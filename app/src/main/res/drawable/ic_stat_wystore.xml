@@ -1,0 +1,23 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Wy monogram -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M2.02,5.61L5.02,15.49L6.76,15.45L8.29,10.59L9.92,15.53L11.62,15.43L12.46,12.44L13.88,15.19L11.98,16.8L11.6,18.41L14.76,17.48L18.92,8.53L16.9,8.61L14.8,13.37L13.05,10.49L13.88,7.1L12.0,7.1L10.61,11.84L9.16,7.16L7.52,7.08L5.95,11.84L4.18,5.65z" />
+    <!-- 2x2 Catalog Tiles -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18.13,13.79L17.97,13.96L17.89,14.18L17.89,15.08L17.99,15.33L18.29,15.53L19.3,15.53L19.48,15.45L19.64,15.27L19.7,15.08L19.7,14.16L19.58,13.9L19.5,13.81L19.24,13.71L18.35,13.71z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20.41,13.79L20.25,13.96L20.17,14.2L20.17,15.06L20.27,15.33L20.39,15.45L20.57,15.53L21.56,15.53L21.78,15.43L21.92,15.27L21.98,15.08L21.98,14.18L21.86,13.9L21.52,13.71L20.61,13.71z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18.11,16.11L17.97,16.25L17.89,16.46L17.89,17.36L18.03,17.67L18.33,17.83L19.26,17.83L19.52,17.71L19.7,17.36L19.7,16.46L19.56,16.17L19.24,16.01L18.35,16.01z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20.41,16.09L20.25,16.25L20.17,16.48L20.17,17.34L20.25,17.58L20.41,17.75L20.61,17.83L21.54,17.83L21.82,17.69L21.98,17.36L21.98,16.48L21.9,16.25L21.74,16.09L21.52,16.01L20.63,16.01z" />
+</vector>

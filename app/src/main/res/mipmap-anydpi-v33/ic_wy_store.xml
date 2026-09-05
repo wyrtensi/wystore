@@ -1,0 +1,5 @@
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_wy_store_background" />
+    <foreground android:drawable="@drawable/ic_wy_store_foreground" />
+    <monochrome android:drawable="@drawable/ic_wy_store_monochrome" />
+</adaptive-icon>

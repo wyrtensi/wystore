@@ -1,0 +1,171 @@
+package dev.wystore.background
+
+import android.content.Context
+import android.os.PowerManager
+import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
+import dev.wystore.data.GitHubCatalog
+import dev.wystore.data.GitHubReleasePolicy
+import dev.wystore.data.GitHubReleaseSource
+import dev.wystore.data.InstallSource
+import dev.wystore.data.ManagedApp
+import dev.wystore.data.ManagedSource
+import dev.wystore.data.RuStoreSource
+import dev.wystore.data.StoreRepository
+import dev.wystore.selfupdate.SelfUpdateChecker
+import dev.wystore.selfupdate.SelfUpdateStatus
+import dev.wystore.updates.QueueRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+
+class UpdateCheckWorker(
+    appContext: Context,
+    parameters: WorkerParameters
+) : CoroutineWorker(appContext, parameters) {
+
+    private val repository = StoreRepository(appContext)
+    private val ruStoreSource = RuStoreSource.getInstance(appContext)
+    private val gitHubSource = GitHubReleaseSource(appContext)
+    private val queueRepository = QueueRepository.getInstance(appContext)
+
+    override suspend fun doWork(): Result {
+        val isManualCheck = inputData.getBoolean(KEY_MANUAL_CHECK, false)
+        val requestedPackage = inputData.getString(KEY_PACKAGE) ?: inputData.getString("package")
+
+        val installed = repository.installedApps().associateBy { it.packageName }
+        val managedApps = repository.retainManagedInstalled(installed.keys)
+
+        val settings = repository.settings()
+        val powerSaveMode = runCatching {
+            applicationContext.getSystemService(PowerManager::class.java)?.isPowerSaveMode == true
+        }.getOrDefault(false)
+        // Standing down here rather than in the constraints: WorkManager has no battery-saver
+        // constraint, and a check skipped now simply happens at the next period.
+        if (!BackgroundPolicy.shouldRunCheck(
+                manual = isManualCheck,
+                powerSaveMode = powerSaveMode,
+                respectBatterySaver = settings.respectBatterySaver,
+                managedAppCount = managedApps.size
+            )
+        ) {
+            return Result.success()
+        }
+
+        val candidates = managedApps.filter { managed ->
+            UpdateCheckPolicy.evaluateAppEligibility(
+                isManualCheck = isManualCheck,
+                targetPackageName = requestedPackage,
+                appPackageName = managed.packageName,
+                autoCheckEnabledForApp = managed.autoUpdate
+            )
+        }
+
+        var anyRetryableFailure = false
+        var updatesFound = 0
+        var problems = 0
+
+        for (managed in candidates) {
+            currentCoroutineContext().ensureActive()
+            val local = installed[managed.packageName] ?: continue
+            if (local.source == InstallSource.GOOGLE_PLAY && !managed.forceWyStore && !isManualCheck) {
+                continue
+            }
+
+            if (managed.source == ManagedSource.GITHUB && !repository.settings().githubEnabled) {
+                continue
+            }
+
+            try {
+                val found = when (managed.source) {
+                    ManagedSource.RUSTORE -> checkRuStoreUpdate(managed, local.versionCode)
+                    ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionCode)
+                    null -> false
+                }
+                if (found) updatesFound++
+            } catch (c: CancellationException) {
+                throw c
+            } catch (error: Throwable) {
+                problems++
+                if (UpdateCheckPolicy.shouldRetryWorker(error)) {
+                    anyRetryableFailure = true
+                }
+            }
+        }
+
+        // Wy Store updates itself through the same queue as everything else, so this only has to
+        // put the release in it; download, signature check and confirmation are unchanged.
+        if (settings.selfUpdateEnabled && requestedPackage == null) {
+            runCatching {
+                val status = SelfUpdateChecker(applicationContext).check()
+                if (status is SelfUpdateStatus.Available) {
+                    SelfUpdateChecker(applicationContext).enqueue(status.release)
+                    updatesFound++
+                }
+            }
+        }
+
+        // The summary switch in Settings guarded a notification that was never written; a manual
+        // check finished with no feedback at all unless it happened to find something.
+        runCatching {
+            NotificationCoordinator(applicationContext).showCheckSummary(
+                manual = isManualCheck,
+                updatesFound = updatesFound,
+                problems = problems
+            )
+        }
+
+        return if (anyRetryableFailure) {
+            Result.retry()
+        } else {
+            Result.success()
+        }
+    }
+
+    /** Returns true when an update was queued for this app. */
+    private suspend fun checkRuStoreUpdate(managed: ManagedApp, localVersionCode: Long): Boolean {
+        val app = runCatching { ruStoreSource.details(managed.packageName, includeReviews = false) }
+            .getOrNull() ?: return false
+        if (app.versionCode <= localVersionCode) return false
+        queueRepository.enqueueAvailableUpdate(
+            packageName = managed.packageName,
+            label = app.name.ifBlank { managed.label },
+            versionName = app.versionName,
+            versionCode = app.versionCode,
+            source = ManagedSource.RUSTORE
+        )
+        return true
+    }
+
+    /** Returns true when an update was queued for this app. */
+    private suspend fun checkGitHubUpdate(managed: ManagedApp, localVersionCode: Long): Boolean {
+        val repo = managed.githubRepository ?: return false
+        val assetPattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
+        // Skips rolling nightly tags and releases with no installable APK; see GitHubReleasePolicy.
+        val latest = GitHubReleasePolicy.selectRelease(gitHubSource.releases(repo), assetPattern)
+            ?: return false
+
+        // A GitHub release id is not a version code. Comparing the two — a nine-digit release id
+        // against an app's versionCode — was always "newer", so every check re-offered an update
+        // for an app that was already current. The installed release is tracked instead.
+        val installedReleaseId = managed.githubReleaseId
+        if (installedReleaseId != null && latest.id == installedReleaseId) return false
+
+        queueRepository.enqueueAvailableUpdate(
+            packageName = managed.packageName,
+            label = managed.label,
+            versionName = latest.tagName.removePrefix("v"),
+            // Placeholder only: verification replaces it with the version read out of the APK.
+            versionCode = latest.id,
+            source = ManagedSource.GITHUB,
+            githubRepository = repo,
+            githubReleaseId = latest.id
+        )
+        return true
+    }
+
+    companion object {
+        const val KEY_MANUAL_CHECK = "manual_check"
+        const val KEY_PACKAGE = "package_name"
+    }
+}

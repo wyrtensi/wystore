@@ -1,0 +1,129 @@
+package dev.wystore.updates
+
+import android.content.Context
+import dev.wystore.background.TransferDispatcher
+import dev.wystore.data.QueueMode
+import dev.wystore.data.StoreRepository
+import dev.wystore.permissions.PermissionRepository
+import dev.wystore.permissions.PermissionSnapshot
+import dev.wystore.updates.model.QueueAction
+import dev.wystore.updates.model.QueueErrorCode
+import dev.wystore.updates.model.QueueItemSnapshot
+import dev.wystore.updates.model.QueueState
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+class QueueCoordinator(
+    private val context: Context,
+    private val repository: QueueRepository = QueueRepository.getInstance(context),
+    private val storeRepository: StoreRepository = StoreRepository(context),
+    private val permissionRepository: PermissionRepository = PermissionRepository(context)
+) {
+    private val _offeredNext = MutableStateFlow<QueueItemSnapshot?>(null)
+    val offeredNext = _offeredNext.asStateFlow()
+
+    fun observeAll(): Flow<List<QueueItemSnapshot>> = repository.observeAll()
+
+    fun permissionSnapshot(): PermissionSnapshot = permissionRepository.snapshot()
+
+    suspend fun startQueue() {
+        val next = repository.nextEligible() ?: return
+        download(next.id)
+    }
+
+    suspend fun download(id: String) {
+        TransferDispatcher.dispatch(context, id)
+    }
+
+    suspend fun install(id: String, installer: UserConfirmedInstaller) {
+        installer.install(id)
+    }
+
+    suspend fun skip(id: String) {
+        // Skipping an in-flight item has to stop the transfer too, not just relabel the row.
+        TransferDispatcher.cancel(context, id)
+        repository.transition(id, QueueAction.Skip)
+        advanceSmartPromptIfNeeded(id)
+    }
+
+    suspend fun retry(id: String) {
+        // Retry is offered from FAILED, CANCELED and SKIPPED; only the first two are legal Retry
+        // inputs, so a skipped item is put back through the same reset the worker uses.
+        val current = repository.getById(id) ?: return
+        when (current.state) {
+            QueueState.FAILED, QueueState.CANCELED -> repository.transition(id, QueueAction.Retry)
+            QueueState.SKIPPED -> repository.resetForRetry(id, errorCode = null, errorDetail = null)
+            QueueState.AVAILABLE -> Unit
+            else -> return
+        }
+        download(id)
+    }
+
+    suspend fun cancel(id: String) {
+        TransferDispatcher.cancel(context, id)
+        repository.transition(id, QueueAction.Cancel)
+    }
+
+    suspend fun acceptNext(installer: UserConfirmedInstaller) {
+        val next = _offeredNext.value ?: return
+        _offeredNext.value = null
+        if (next.state == QueueState.READY_TO_INSTALL) {
+            install(next.id, installer)
+        } else if (next.state == QueueState.AVAILABLE) {
+            download(next.id)
+        }
+    }
+
+    suspend fun dismissOfferedNext() {
+        _offeredNext.value = null
+    }
+
+    suspend fun onInstallResult(id: String, success: Boolean, message: String? = null) {
+        // Same reasoning as InstallResultReceiver: the Activity callback can arrive for a row that
+        // is no longer INSTALLING, so the outcome is reconciled rather than pushed through the
+        // reducer, which would throw and drop the result.
+        repository.reconcileInstallResult(
+            id = id,
+            success = success,
+            errorCode = QueueErrorCode.INSTALL_FAILED,
+            errorDetail = message
+        )
+        if (success) {
+            advanceSmartPromptIfNeeded(id)
+        }
+    }
+
+    private suspend fun advanceSmartPromptIfNeeded(justFinishedId: String) {
+        val settings = storeRepository.settings()
+        val next = repository.nextEligible()
+        val nextAction = QueueCoordinatorPolicy.determineNextAction(
+            mode = settings.queueMode,
+            justInstalledId = justFinishedId,
+            nextEligible = next
+        )
+        if (nextAction == QueueAction.OfferNext && next != null) {
+            _offeredNext.value = next
+        } else {
+            _offeredNext.value = null
+        }
+    }
+
+    /**
+     * Rebuilds the smart prompt after a cold start.
+     *
+     * The offered-next item used to live only in [_offeredNext], so a process death between one
+     * install finishing and the user answering the prompt silently dropped the rest of the queue.
+     * The durable states are the source of truth; this only restores the in-memory mirror.
+     */
+    suspend fun restoreOfferedNext() {
+        val settings = storeRepository.settings()
+        if (settings.queueMode != QueueMode.SMART_PROMPTS) {
+            _offeredNext.value = null
+            return
+        }
+        val hasFinishedItem = repository.observeAllOnce()
+            .any { it.state == QueueState.OFFER_NEXT || it.state == QueueState.INSTALLED }
+        _offeredNext.value = if (hasFinishedItem) repository.nextEligible() else null
+    }
+}

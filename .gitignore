@@ -1,0 +1,31 @@
+# Build output
+build/
+.gradle/
+.kotlin/
+app/build/
+
+# Signing material. The release keystore must never leave this machine.
+*.jks
+*.keystore
+*.p12
+*.pem
+keystore.properties
+signing.properties
+
+# Local machine configuration (SDK path)
+local.properties
+
+# Built artifacts
+*.apk
+*.aab
+*.aar
+outputs/
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Working notes that reference local machines and addresses
+.superpowers/
+docs/superpowers/

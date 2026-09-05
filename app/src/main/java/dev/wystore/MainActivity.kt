@@ -1,0 +1,208 @@
+package dev.wystore
+
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageInstaller
+import android.net.Uri
+import android.os.Bundle
+import android.provider.Settings
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import dev.wystore.background.NotificationIntentFactory
+import dev.wystore.data.StoreRepository
+import dev.wystore.localization.AppLocaleController
+import dev.wystore.localization.VerificationTextResolver
+import dev.wystore.settings.SettingsRepository
+import dev.wystore.settings.toAppSettings
+import dev.wystore.ui.WyStoreApp
+import dev.wystore.ui.theme.WyStoreTheme
+import dev.wystore.data.SigningVerifier
+import dev.wystore.updates.InstallCallbackStore
+import dev.wystore.updates.UserConfirmedInstaller
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+
+class MainActivity : AppCompatActivity() {
+    private val storeViewModel by viewModels<StoreViewModel>()
+    private var packageWaitingForInstallPermission: String? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        // Keeps the synchronous settings cache fresh so workers and startup never block on DataStore.
+        SettingsRepository(this).warmUp(lifecycleScope)
+        val settings = StoreRepository(this).settings()
+        AppLocaleController.apply(settings.language)
+        setContent {
+            val state by storeViewModel.state.collectAsState()
+            WyStoreTheme(settings = state.settings.toAppSettings()) {
+                WyStoreApp(storeViewModel, ::beginPendingInstall)
+            }
+        }
+        handleInstallStatus(intent)
+        handleNotificationDeepLink(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleInstallStatus(intent)
+        handleNotificationDeepLink(intent)
+    }
+
+    /**
+     * Keeps the library in step with the device while the app is open.
+     *
+     * `PACKAGE_ADDED` and friends are implicit broadcasts, and manifest-declared receivers for them
+     * do not fire on API 26+. A receiver registered at runtime does, so this is what tells Wy Store
+     * that an install or uninstall just happened — including its own installs, whose package the
+     * cached `getInstalledPackages` list does not yet contain.
+     */
+    private val packageChangeReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            // The cached package list is exactly what this broadcast invalidates.
+            dev.wystore.data.invalidateInstalledApps()
+            storeViewModel.refreshLibrary()
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val filter = android.content.IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_FULLY_REMOVED)
+            addDataScheme("package")
+        }
+        ContextCompat.registerReceiver(
+            this,
+            packageChangeReceiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    override fun onStop() {
+        runCatching { unregisterReceiver(packageChangeReceiver) }
+        super.onStop()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        storeViewModel.refreshLibrary(reportConfirmed = true)
+        if (!packageManager.canRequestPackageInstalls()) return
+        // The in-memory field only survives while this Activity does; the durable queue is what
+        // carries the intent to install across the trip to Android Settings and a possible kill.
+        lifecycleScope.launch {
+            val resumed = buildSet {
+                packageWaitingForInstallPermission?.let(::add)
+                addAll(storeViewModel.packagesAwaitingUnknownSources())
+            }
+            packageWaitingForInstallPermission = null
+            for (packageName in resumed) {
+                storeViewModel.clearAwaitingUnknownSources(packageName)
+            }
+            storeViewModel.refreshPendingUpdates()
+            resumed.firstOrNull()?.let(::beginPendingInstall)
+        }
+    }
+
+    private fun beginPendingInstall(packageName: String) {
+        val update = storeViewModel.pendingUpdate(packageName) ?: run {
+            storeViewModel.reportInstallLaunchFailure(getString(R.string.msg_install_artifact_missing))
+            return
+        }
+        if (!packageManager.canRequestPackageInstalls()) {
+            packageWaitingForInstallPermission = packageName
+            storeViewModel.reportInstallPermissionRequired(packageName)
+            startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${this.packageName}")))
+            return
+        }
+        lifecycleScope.launch {
+            // Reading and hashing every APK in the set is disk plus zip work; on the main thread it
+            // stalls the frame that reacted to the install tap.
+            val verification = withContext(Dispatchers.IO) {
+                val installed = storeViewModel.installedApp(packageName)
+                SigningVerifier.verifyArtifacts(
+                    packageManager,
+                    update.filePaths.map(::File),
+                    installed,
+                    update.packageName
+                )
+            }
+            if (!verification.isValid) {
+                storeViewModel.reportInstallLaunchFailure(
+                    verification.error?.let { getString(VerificationTextResolver.stringRes(it)) }
+                        ?: getString(R.string.msg_install_reverify_failed)
+                )
+                return@launch
+            }
+            if (update.signingDigests.isEmpty()) {
+                // Written by a build that dropped the verified identity. The bytes on disk cannot be
+                // tied back to what was checked at download time, so the item is discarded and the
+                // user is asked to download it again rather than installing something unverified.
+                storeViewModel.discardUnverifiablePendingUpdate(packageName)
+                return@launch
+            }
+            if (verification.identity.signingDigests != update.signingDigests) {
+                storeViewModel.reportInstallLaunchFailure(getString(R.string.msg_install_signature_drift))
+                return@launch
+            }
+            try {
+                UserConfirmedInstaller(this@MainActivity).install(update)
+                storeViewModel.reportInstallStarted(packageName)
+            } catch (error: Exception) {
+                storeViewModel.reportInstallLaunchFailure(
+                    error.message ?: getString(R.string.msg_install_launch_failed)
+                )
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun handleInstallStatus(intent: Intent?) {
+        if (intent?.action != ACTION_INSTALL_STATUS) return
+        val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
+        val packageName = intent.getStringExtra(EXTRA_INSTALL_PACKAGE)
+            ?: intent.getStringExtra(PackageInstaller.EXTRA_PACKAGE_NAME)
+            ?: return
+        val callbackStore = InstallCallbackStore(this)
+        if (!callbackStore.matches(packageName, intent.getStringExtra(EXTRA_INSTALL_TOKEN))) return
+        if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
+            val confirmation = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
+            if (confirmation != null) startActivity(confirmation)
+            else storeViewModel.reportInstallLaunchFailure(getString(R.string.msg_install_no_confirm_dialog))
+            return
+        }
+        callbackStore.clear(packageName)
+        storeViewModel.handlePackageInstallResult(
+            packageName,
+            success = status == PackageInstaller.STATUS_SUCCESS,
+            message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
+        )
+    }
+
+    private fun handleNotificationDeepLink(intent: Intent?) {
+        if (intent == null) return
+        val destination = intent.getStringExtra(NotificationIntentFactory.EXTRA_DESTINATION)
+        val packageName = intent.getStringExtra(NotificationIntentFactory.EXTRA_PACKAGE_NAME)
+        if (!packageName.isNullOrBlank() && destination?.startsWith("updates/") == true) {
+            storeViewModel.openDetails(packageName)
+        }
+    }
+
+    companion object {
+        const val ACTION_INSTALL_STATUS = "dev.wystore.action.INSTALL_STATUS"
+        const val EXTRA_INSTALL_PACKAGE = "install_package"
+        const val EXTRA_INSTALL_TOKEN = "install_token"
+    }
+}

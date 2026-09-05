@@ -1,0 +1,314 @@
+package dev.wystore.ui.updates
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
+import dev.wystore.R
+import dev.wystore.InstallQueueItem
+import dev.wystore.InstallQueueStatus
+import dev.wystore.UpdateCheckTask
+import dev.wystore.data.InstalledApp
+import dev.wystore.data.ManagedApp
+import dev.wystore.data.PendingUpdate
+import dev.wystore.data.UpdateCheckSummary
+import dev.wystore.ui.components.EmptyState
+import dev.wystore.ui.components.ScreenPadding
+import dev.wystore.ui.components.SectionHeader
+import dev.wystore.ui.components.WyCard
+import dev.wystore.ui.components.queueStatusLabel
+import dev.wystore.ui.library.UpdateCheckStatusCard
+import java.text.DateFormat
+import java.util.Date
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UpdatesScreen(
+    modifier: Modifier = Modifier,
+    managed: List<ManagedApp>,
+    installed: List<InstalledApp>,
+    pendingUpdates: List<PendingUpdate>,
+    updateCheckTask: UpdateCheckTask?,
+    lastUpdateCheck: UpdateCheckSummary?,
+    queue: List<InstallQueueItem> = emptyList(),
+    onOpen: (ManagedApp) -> Unit,
+    onInstallPending: (String) -> Unit,
+    onQueueRetry: (String) -> Unit = {},
+    onQueueCancel: (String) -> Unit = {},
+    onQueueSkip: (String) -> Unit = {},
+    onStartQueue: () -> Unit = {}
+) {
+    val installedByPackage = remember(installed) { installed.associateBy { it.packageName } }
+    val orderedManaged = remember(managed, installedByPackage) {
+        managed.sortedByDescending { managedApp ->
+            installedByPackage[managedApp.packageName]?.lastUpdateTime ?: managedApp.lastUpdatedAt ?: 0L
+        }
+    }
+    val pendingByPackage = remember(pendingUpdates) { pendingUpdates.associateBy { it.packageName } }
+    // Items that are transferring, waiting, failed or canceled have no other home in the UI;
+    // without this section a failed download is invisible and unrecoverable.
+    val actionableQueue = remember(queue) {
+        queue.filter { item ->
+            when (item.status) {
+                InstallQueueStatus.DOWNLOADING,
+                InstallQueueStatus.VERIFYING,
+                InstallQueueStatus.RESOLVING,
+                InstallQueueStatus.QUEUED,
+                InstallQueueStatus.CANCELED,
+                InstallQueueStatus.FAILED -> true
+                else -> false
+            }
+        }
+    }
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.updates_title)) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            )
+        }
+    ) { contentPadding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            contentPadding = PaddingValues(
+                start = ScreenPadding,
+                end = ScreenPadding,
+                top = 4.dp,
+                bottom = 24.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Text(
+                    stringResource(R.string.updates_intro),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            updateCheckTask?.takeIf { it.active }?.let { task ->
+                item { UpdateCheckStatusCard(task) }
+            }
+
+            lastUpdateCheck?.let { summary ->
+                item { LastUpdateCheckCard(summary) }
+            }
+
+            if (actionableQueue.isNotEmpty()) {
+                item {
+                    val canStart = actionableQueue.any { it.status == InstallQueueStatus.QUEUED }
+                    SectionHeader(
+                        title = stringResource(R.string.updates_queue_title, actionableQueue.size),
+                        actionLabel = if (canStart) stringResource(R.string.updates_queue_start) else null,
+                        onActionClick = if (canStart) onStartQueue else null
+                    )
+                }
+                items(actionableQueue, key = { "queue:${it.id}" }) { item ->
+                    QueueItemCard(
+                        item = item,
+                        onRetry = { onQueueRetry(item.id) },
+                        onCancel = { onQueueCancel(item.id) },
+                        onSkip = { onQueueSkip(item.id) }
+                    )
+                }
+            }
+
+            if (pendingUpdates.isNotEmpty()) {
+                item {
+                    SectionHeader(title = stringResource(R.string.updates_ready_title, pendingUpdates.size))
+                }
+                items(pendingUpdates, key = { "pending:${it.packageName}" }) { pending ->
+                    PendingUpdateCard(pending, onInstallPending)
+                }
+            }
+
+            if (orderedManaged.isNotEmpty()) {
+                item {
+                    SectionHeader(title = stringResource(R.string.updates_managed_title, orderedManaged.size))
+                }
+                items(orderedManaged, key = { it.packageName }) { managedApp ->
+                    val local = installedByPackage[managedApp.packageName]
+                    val pending = pendingByPackage[managedApp.packageName]
+                    UpdateStatusRow(
+                        managed = managedApp,
+                        installed = local,
+                        pendingUpdate = pending,
+                        onOpen = { onOpen(managedApp) },
+                        onAction = {
+                            if (pending != null) onInstallPending(pending.packageName)
+                            else onOpen(managedApp)
+                        }
+                    )
+                }
+            } else if (pendingUpdates.isEmpty()) {
+                item {
+                    EmptyState(
+                        icon = Icons.Outlined.CheckCircle,
+                        title = stringResource(R.string.home_all_up_to_date),
+                        message = stringResource(R.string.updates_managed_empty)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PendingUpdateCard(update: PendingUpdate, onInstallPending: (String) -> Unit) {
+    val onContainer = MaterialTheme.colorScheme.onPrimaryContainer
+    WyCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.primaryContainer
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(update.label, style = MaterialTheme.typography.titleSmall, color = onContainer)
+                Text(
+                    stringResource(R.string.updates_downloaded_version, update.versionName),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = onContainer.copy(alpha = 0.8f)
+                )
+                Text(
+                    stringResource(R.string.updates_needs_confirmation),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = onContainer.copy(alpha = 0.7f)
+                )
+            }
+            Spacer(Modifier.width(10.dp))
+            Button(
+                onClick = { onInstallPending(update.packageName) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = onContainer,
+                    contentColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Text(stringResource(R.string.common_install), maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+fun LastUpdateCheckCard(summary: UpdateCheckSummary) {
+    WyCard(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                stringResource(
+                    if (summary.manual) R.string.updates_last_check_manual
+                    else R.string.updates_last_check_background
+                ),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Text(formatCheckTime(summary.finishedAt), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(summary.detail, style = MaterialTheme.typography.bodySmall)
+            if (summary.total > 0) {
+                Text(
+                    stringResource(
+                        R.string.updates_check_counts,
+                        summary.checked,
+                        summary.total,
+                        summary.updates,
+                        summary.problems
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+fun formatCheckTime(time: Long): String =
+    DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(time))
+
+/**
+ * One durable queue row with the actions its state actually allows. Retry is only meaningful once
+ * the item has stopped, and cancel only while it is still moving.
+ */
+@Composable
+fun QueueItemCard(
+    item: InstallQueueItem,
+    onRetry: () -> Unit,
+    onCancel: () -> Unit,
+    onSkip: () -> Unit
+) {
+    val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED
+    val failed = item.status == InstallQueueStatus.FAILED
+    WyCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = if (failed) {
+            MaterialTheme.colorScheme.errorContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        }
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(item.label.ifBlank { item.packageName }, style = MaterialTheme.typography.titleSmall)
+            Text(
+                queueStatusLabel(item),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (failed) {
+                    MaterialTheme.colorScheme.onErrorContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+            item.progress?.takeIf { it.totalBytes > 0 }?.let { progress ->
+                LinearProgressIndicator(
+                    progress = { progress.fraction },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.extraSmall)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                if (stopped) {
+                    Button(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+                } else {
+                    TextButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
+                    Spacer(Modifier.width(4.dp))
+                    OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
+                }
+            }
+        }
+    }
+}
