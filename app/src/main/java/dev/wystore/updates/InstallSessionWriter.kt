@@ -49,7 +49,7 @@ class InstallSessionWriter(private val context: Context) {
         val artifacts = database.updateQueueDao.getArtifactsForQueue(queueId)
         val files = artifacts.map { File(it.path) }
         require(files.isNotEmpty() && files.all { it.isFile && it.length() > 0L }) {
-            "Скачанные файлы APK отсутствуют или повреждены"
+            "Downloaded APK files are missing or unreadable"
         }
 
         val installed = storeRepository.installedApps().firstOrNull { it.packageName == entity.packageName }

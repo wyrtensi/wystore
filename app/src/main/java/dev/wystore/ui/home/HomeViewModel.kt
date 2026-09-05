@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dev.wystore.data.CatalogRepository
 import dev.wystore.data.StoreApp
 import dev.wystore.data.StoreCategory
+import dev.wystore.localization.SourceTextResolver
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -78,7 +79,7 @@ class HomeViewModel(
                         ?: current.featuredApps,
                     loading = false,
                     stale = categories.getOrNull()?.stale == true || featured.getOrNull()?.stale == true,
-                    error = failure?.message
+                    error = SourceTextResolver.describe(getApplication(), failure)
                 )
             }
         }

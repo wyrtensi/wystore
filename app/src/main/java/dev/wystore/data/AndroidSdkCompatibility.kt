@@ -3,9 +3,11 @@ package dev.wystore.data
 object AndroidSdkCompatibility {
     fun requireSupported(minSdkVersion: Int?, deviceSdkVersion: Int) {
         if (minSdkVersion != null && minSdkVersion > deviceSdkVersion) {
+            // The two version labels are the useful part and are language-neutral; the sentence
+            // around them is built from resources where this surfaces.
             throw SourceFormatException(
-                "Этой версии приложения требуется ${label(minSdkVersion)}, " +
-                    "а на устройстве ${label(deviceSdkVersion)}"
+                SourceError.INCOMPATIBLE_ANDROID,
+                "Requires ${label(minSdkVersion)}, device is ${label(deviceSdkVersion)}"
             )
         }
     }

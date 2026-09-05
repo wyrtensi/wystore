@@ -208,4 +208,13 @@ data class BackupRestoreSummary(
     val message: String
 )
 
-class SourceFormatException(message: String) : IllegalStateException(message)
+/**
+ * A source did not behave as the client expects.
+ *
+ * [error] is what the UI renders and what [classifyThrowable] switches on; [message] stays an
+ * untranslated technical detail for logs and for the bug report a user might paste.
+ */
+class SourceFormatException(
+    val error: SourceError,
+    message: String
+) : IllegalStateException(message)

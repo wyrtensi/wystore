@@ -51,6 +51,23 @@ fun WyStoreRoot(
     var destination by rememberSaveable(stateSaver = WyStoreDestination.Saver) {
         mutableStateOf<WyStoreDestination>(WyStoreDestination.Home)
     }
+    // The open app page lives in the ViewModel, which does not survive process death: backgrounding
+    // the app on a store page and coming back after Android reclaimed the process dropped the user
+    // on a bare tab. The package name is small and saveable, so the page is reopened from it.
+    var openedPackage by rememberSaveable { mutableStateOf<String?>(null) }
+    // Captured during the very first composition, before any effect can run. Reading it later
+    // would be too late: the effect that tracks the open page runs first and would have written
+    // the current (empty) selection over the value that was just restored.
+    val restoredPackage = remember { openedPackage }
+    LaunchedEffect(Unit) {
+        restoredPackage?.takeIf { state.selected == null }?.let(viewModel::openDetails)
+    }
+    // Only ever records an open page. Closing one clears the record explicitly, so a transient
+    // null while details load cannot wipe it.
+    LaunchedEffect(state.selected?.packageName) {
+        state.selected?.packageName?.let { openedPackage = it }
+    }
+
     val homeViewModel: HomeViewModel = viewModel()
     val homeState by homeViewModel.uiState.collectAsState()
     val categoryViewModel: CategoryViewModel = viewModel()
@@ -77,7 +94,10 @@ fun WyStoreRoot(
         when {
             state.githubSelectedRelease != null -> viewModel.closeGitHubRelease()
             state.githubApp.entry != null -> viewModel.closeGitHubApp()
-            state.selected != null -> viewModel.clearDetails()
+            state.selected != null -> {
+                openedPackage = null
+                viewModel.clearDetails()
+            }
             else -> destination = WyStoreDestination.Home
         }
     }
@@ -151,7 +171,10 @@ fun WyStoreRoot(
             rootAvailable = state.rootAvailable,
             busy = state.detailsLoading,
             queueItem = state.installQueue.firstOrNull { it.packageName == selected.packageName },
-            onBack = viewModel::clearDetails,
+            onBack = {
+                openedPackage = null
+                viewModel.clearDetails()
+            },
             onLaunch = viewModel::launchInstalledApp,
             onInstallPending = onInstallPending,
             onInstall = {

@@ -23,7 +23,8 @@ object InstallReconciliationPolicy {
             CallbackResult.CANCELLED -> QueueAction.Cancel
             CallbackResult.FAILED -> QueueAction.InstallFailed(
                 errorCode = QueueErrorCode.INSTALL_FAILED,
-                errorDetail = statusMessage ?: "Установка завершилась ошибкой"
+                // The typed code is what the UI renders; this stays the raw technical detail.
+                errorDetail = statusMessage ?: "PackageInstaller reported failure"
             )
         }
     }
@@ -56,7 +57,7 @@ object InstallReconciliationPolicy {
         } else {
             QueueAction.InstallFailed(
                 errorCode = QueueErrorCode.TIMEOUT,
-                errorDetail = "Время ожидания установки истекло"
+                errorDetail = "Install confirmation timed out"
             )
         }
     }

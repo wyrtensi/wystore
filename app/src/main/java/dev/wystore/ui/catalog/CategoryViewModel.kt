@@ -8,6 +8,7 @@ import dev.wystore.data.CuratedCategories
 import dev.wystore.R
 import dev.wystore.data.StoreApp
 import dev.wystore.data.StoreCategory
+import dev.wystore.localization.SourceTextResolver
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -95,7 +96,13 @@ class CategoryViewModel(
                     }
                 }
                 .onFailure { error ->
-                    _uiState.update { it.copy(loading = false, error = error.message ?: getApplication<Application>().getString(R.string.catalog_load_failed)) }
+                    _uiState.update {
+                        it.copy(
+                            loading = false,
+                            error = SourceTextResolver.describe(getApplication(), error)
+                                ?: getApplication<Application>().getString(R.string.catalog_load_failed)
+                        )
+                    }
                 }
         }
     }

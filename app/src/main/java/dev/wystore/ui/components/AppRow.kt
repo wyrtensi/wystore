@@ -19,12 +19,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.wystore.R
+import dev.wystore.localization.StatusTextResolver
 
 /**
  * One app in a list.
@@ -108,6 +110,24 @@ fun AppRow(
                 }
             }
 
+            // What is happening to this app, in words. The reducer has always produced this and
+            // the resolver has always been able to render it; nothing ever displayed it.
+            if (state.status.code in REPORTED_STATES) {
+                Text(
+                    text = StatusTextResolver.resolve(LocalContext.current, state.status),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = when (state.status.code) {
+                        StatusCode.FAILED_NETWORK,
+                        StatusCode.FAILED_STORAGE,
+                        StatusCode.FAILED_SIGNATURE,
+                        StatusCode.FAILED_GENERIC -> MaterialTheme.colorScheme.error
+                        else -> MaterialTheme.colorScheme.primary
+                    },
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
             if (state.progress != null || state.transferInfo != null) {
                 TransferProgress(
                     progress = state.progress,
@@ -184,3 +204,23 @@ private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
         PrimaryAction.None -> Unit
     }
 }
+
+/**
+ * States worth a line of their own. "Installed" and the idle states say nothing the row does not
+ * already show through its action button.
+ */
+private val REPORTED_STATES = setOf(
+    StatusCode.CHECKING,
+    StatusCode.QUEUED,
+    StatusCode.DOWNLOADING,
+    StatusCode.VERIFYING,
+    StatusCode.READY_TO_INSTALL,
+    StatusCode.AWAITING_UNKNOWN_SOURCES_PERMISSION,
+    StatusCode.AWAITING_USER_CONFIRMATION,
+    StatusCode.INSTALLING,
+    StatusCode.FAILED_NETWORK,
+    StatusCode.FAILED_STORAGE,
+    StatusCode.FAILED_SIGNATURE,
+    StatusCode.FAILED_GENERIC,
+    StatusCode.CANCELLED
+)

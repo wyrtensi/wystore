@@ -16,7 +16,9 @@ object CatalogSlugPolicy {
 
     fun requireValid(slug: String): String {
         val trimmed = slug.trim().trim('/')
-        require(isValid(trimmed)) { "Недопустимый раздел каталога: $slug" }
+        if (!isValid(trimmed)) {
+            throw SourceFormatException(SourceError.INVALID_SECTION, "Rejected catalog slug: $slug")
+        }
         return trimmed
     }
 }

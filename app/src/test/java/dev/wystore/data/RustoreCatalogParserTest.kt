@@ -124,7 +124,12 @@ class RustoreCatalogParserTest {
         }
         listOf("../secrets", "tools/../..", "https://evil.example", "Tools", "a b", "a".repeat(65))
             .forEach { assertFalse("$it must be rejected", CatalogSlugPolicy.isValid(it)) }
-        assertThrows(IllegalArgumentException::class.java) { CatalogSlugPolicy.requireValid("../etc") }
+        // A rejected slug is now a typed source failure rather than a bare IllegalArgumentException,
+        // so the reason can be shown in the user's language instead of a Kotlin message.
+        val rejected = assertThrows(SourceFormatException::class.java) {
+            CatalogSlugPolicy.requireValid("../etc")
+        }
+        assertEquals(SourceError.INVALID_SECTION, rejected.error)
         assertEquals("tools", CatalogSlugPolicy.requireValid("/tools/"))
     }
 }

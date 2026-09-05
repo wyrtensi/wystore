@@ -26,7 +26,7 @@ class RuStoreApiClient(
         }
         outcome.value.use { response ->
             if (!outcome.accepted || response.code !in setOf(200, 404)) {
-                throw SourceFormatException("RuStore не принял API-код: HTTP ${response.code}")
+                throw SourceFormatException(SourceError.RUSTORE_API_REJECTED, "RuStore HTTP ${response.code}")
             }
         }
         persist(outcome.versionCode)

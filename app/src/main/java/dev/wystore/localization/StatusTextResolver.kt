@@ -1,51 +1,58 @@
 package dev.wystore.localization
 
 import android.content.Context
+import androidx.annotation.StringRes
+import dev.wystore.R
 import dev.wystore.ui.components.StatusCode
 import dev.wystore.ui.components.StatusMessage
-import java.util.Locale
 
+/**
+ * Turns a [StatusMessage] into the line a row shows about what is happening to it.
+ *
+ * This used to hold a Russian and an English sentence side by side in Kotlin and pick between them
+ * from the device locale, which meant the app's own language setting did not reach it and a third
+ * language would have needed code. It reads resources now, like everything else.
+ */
 object StatusTextResolver {
 
-    fun resolve(message: StatusMessage, isRussian: Boolean): String = when (message.code) {
-        StatusCode.CHECKING -> if (isRussian) "Проверка обновлений..." else "Checking for updates..."
-        StatusCode.QUEUED -> if (isRussian) "В очереди" else "Queued"
+    /**
+     * The resource for a code on its own. Separate from [resolve] so the mapping can be checked
+     * without a context; the argument-bearing states are formatted in [resolve].
+     */
+    @StringRes
+    fun stringRes(code: StatusCode): Int = when (code) {
+        StatusCode.CHECKING -> R.string.status_checking
+        StatusCode.QUEUED -> R.string.status_queued
+        StatusCode.DOWNLOADING -> R.string.status_downloading
+        StatusCode.VERIFYING -> R.string.status_verifying
+        StatusCode.READY_TO_INSTALL -> R.string.status_ready_to_install
+        StatusCode.AWAITING_UNKNOWN_SOURCES_PERMISSION -> R.string.status_awaiting_permission
+        StatusCode.AWAITING_USER_CONFIRMATION -> R.string.status_awaiting_confirmation
+        StatusCode.INSTALLING -> R.string.status_installing
+        StatusCode.INSTALLED -> R.string.status_installed
+        StatusCode.FAILED_NETWORK -> R.string.status_failed_network
+        StatusCode.FAILED_STORAGE -> R.string.status_failed_storage
+        StatusCode.FAILED_SIGNATURE -> R.string.status_failed_signature
+        StatusCode.FAILED_GENERIC -> R.string.status_failed_generic
+        StatusCode.CANCELLED -> R.string.status_cancelled
+        StatusCode.SKIPPED -> R.string.status_skipped
+        StatusCode.OFFER_NEXT -> R.string.status_offer_next
+    }
+
+    fun resolve(context: Context, message: StatusMessage): String = when (message.code) {
         StatusCode.DOWNLOADING -> {
             val percent = message.args["percent"] ?: "0"
             val downloaded = message.args["downloaded"]
             val total = message.args["total"]
             if (downloaded != null && total != null) {
-                if (isRussian) "Скачивание $percent% ($downloaded/$total)"
-                else "Downloading $percent% ($downloaded/$total)"
+                context.getString(R.string.status_downloading_detail, percent, downloaded, total)
             } else {
-                if (isRussian) "Скачивание $percent%"
-                else "Downloading $percent%"
+                context.getString(R.string.status_downloading, percent)
             }
         }
-        StatusCode.VERIFYING -> if (isRussian) "Проверка пакета..." else "Verifying package..."
-        StatusCode.READY_TO_INSTALL -> if (isRussian) "Готово к установке" else "Ready to install"
-        StatusCode.AWAITING_UNKNOWN_SOURCES_PERMISSION ->
-            if (isRussian) "Разрешите установку из этого источника" else "Grant permission to install apps"
-        StatusCode.AWAITING_USER_CONFIRMATION ->
-            if (isRussian) "Подтвердите установку" else "Confirm installation"
-        StatusCode.INSTALLING -> if (isRussian) "Установка..." else "Installing..."
-        StatusCode.INSTALLED -> if (isRussian) "Успешно установлено" else "Installed successfully"
-        StatusCode.FAILED_NETWORK -> if (isRussian) "Ошибка сети" else "Network error"
-        StatusCode.FAILED_STORAGE -> if (isRussian) "Недостаточно места" else "Storage is full"
-        StatusCode.FAILED_SIGNATURE -> if (isRussian) "Несовпадение цифровой подписи" else "Signature mismatch"
-        StatusCode.FAILED_GENERIC -> {
-            val detail = message.args["detail"]
-            if (!detail.isNullOrBlank()) detail
-            else if (isRussian) "Ошибка установки" else "Installation failed"
-        }
-        StatusCode.CANCELLED -> if (isRussian) "Отменено" else "Cancelled"
-        StatusCode.SKIPPED -> if (isRussian) "Пропущено" else "Skipped"
-        StatusCode.OFFER_NEXT -> if (isRussian) "Обновить следующее приложение" else "Update next app in queue"
-    }
-
-    fun resolve(context: Context, message: StatusMessage): String {
-        val currentLocale = context.resources.configuration.locales.get(0) ?: Locale.getDefault()
-        val isRussian = currentLocale.language.startsWith("ru", ignoreCase = true)
-        return resolve(message, isRussian)
+        // A concrete reason from the data layer beats the generic sentence.
+        StatusCode.FAILED_GENERIC -> message.args["detail"]?.takeIf { it.isNotBlank() }
+            ?: context.getString(R.string.status_failed_generic)
+        else -> context.getString(stringRes(message.code))
     }
 }

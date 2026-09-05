@@ -58,35 +58,29 @@ fun classifyThrowable(throwable: Throwable): TransferFailure {
     if (throwable is CancellationException) throw throwable
     if (throwable is TransferFailure) return throwable
 
+    // A typed source failure answers this outright. The message matching below is the fallback for
+    // everything that is still a plain exception, and it used to be the only path: whether a
+    // failure counted as retryable was decided by looking for Russian substrings in the message,
+    // so translating any one of them would have silently reclassified it.
+    if (throwable is SourceFormatException) {
+        return TransferFailure(
+            retryable = throwable.error.retryable,
+            code = throwable.error.queueCode,
+            detail = throwable.message
+        )
+    }
+
     val message = throwable.message.orEmpty()
 
+    // Message matching survives only for failures the app did not raise itself: the filesystem
+    // reports a full disk through a plain IOException. Everything Wy Store throws now carries a
+    // code, so the Russian-substring branches that used to live here are gone with the sentences
+    // they were matching.
     if (message.contains("No space left on device", ignoreCase = true) ||
-        message.contains("ENOSPC", ignoreCase = true) ||
-        message.contains("превышает допустимый размер", ignoreCase = true)) {
+        message.contains("ENOSPC", ignoreCase = true)) {
         return TransferFailure(
             retryable = false,
             code = QueueErrorCode.STORAGE_FULL,
-            detail = message
-        )
-    }
-
-    if (message.contains("Хеш APK не совпадает", ignoreCase = true) ||
-        message.contains("integrity", ignoreCase = true)) {
-        return TransferFailure(
-            retryable = false,
-            code = QueueErrorCode.INTEGRITY,
-            detail = message
-        )
-    }
-
-    if (throwable is SourceFormatException ||
-        message.contains("недопустим", ignoreCase = true) ||
-        message.contains("недоверенного домена", ignoreCase = true) ||
-        message.contains("некорректную ссылку", ignoreCase = true) ||
-        message.contains("слишком много перенаправлений", ignoreCase = true)) {
-        return TransferFailure(
-            retryable = false,
-            code = QueueErrorCode.SOURCE_CHANGED,
             detail = message
         )
     }
@@ -123,3 +117,34 @@ private fun parseRetryAfterHeader(header: String?): Long? {
         (instant.toEpochMilli() - System.currentTimeMillis()).coerceAtLeast(0L)
     }.getOrNull()
 }
+
+/**
+ * How a source failure maps onto the queue's own vocabulary.
+ *
+ * Retryability is a property of the failure, not of the message it happened to carry: a rate limit
+ * clears on its own, a rejected host never will.
+ */
+val SourceError.queueCode: QueueErrorCode
+    get() = when (this) {
+        SourceError.GITHUB_RATE_LIMITED -> QueueErrorCode.RATE_LIMITED
+        SourceError.GITHUB_UNAVAILABLE,
+        SourceError.RUSTORE_UNAVAILABLE,
+        SourceError.DOWNLOAD_FAILED -> QueueErrorCode.NETWORK
+        SourceError.ARTIFACT_INTEGRITY_MISMATCH,
+        SourceError.ARTIFACT_SIZE_MISMATCH -> QueueErrorCode.INTEGRITY
+        SourceError.ARTIFACT_TOO_LARGE,
+        SourceError.ARTIFACT_WRITE_FAILED -> QueueErrorCode.STORAGE_FULL
+        SourceError.INCOMPATIBLE_ANDROID -> QueueErrorCode.INCOMPATIBLE
+        else -> QueueErrorCode.SOURCE_CHANGED
+    }
+
+/** Whether waiting and trying again could plausibly succeed. */
+val SourceError.retryable: Boolean
+    get() = when (this) {
+        SourceError.GITHUB_RATE_LIMITED,
+        SourceError.GITHUB_UNAVAILABLE,
+        SourceError.RUSTORE_UNAVAILABLE,
+        SourceError.RUSTORE_EMPTY_RESPONSE,
+        SourceError.DOWNLOAD_FAILED -> true
+        else -> false
+    }

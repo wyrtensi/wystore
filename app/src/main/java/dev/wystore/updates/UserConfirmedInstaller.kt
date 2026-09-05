@@ -17,7 +17,7 @@ class UserConfirmedInstaller(private val activity: Activity) {
     suspend fun install(update: PendingUpdate) = withContext(Dispatchers.IO) {
         val readyEntity = database.updateQueueDao.getByPackage(update.packageName)
             .firstOrNull { it.state in INSTALLABLE_STATES }
-            ?: throw IllegalStateException("Скачанный APK больше недоступен")
+            ?: throw IllegalStateException("The downloaded APK is no longer on disk")
 
         install(readyEntity.id)
     }

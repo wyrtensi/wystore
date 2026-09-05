@@ -1,5 +1,6 @@
 package dev.wystore.data
 
+import dev.wystore.R
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -91,7 +92,7 @@ class StoreRepository(private val context: Context) {
     )
 
     fun saveRuStoreCompatibility(compatibility: RuStoreCompatibility) {
-        require(compatibility.apiVersionCode > 0L) { "API-код должен быть положительным" }
+        require(compatibility.apiVersionCode > 0L) { "API version code must be positive" }
         preferences.edit()
             .putLong("rustore_api_version_code", compatibility.apiVersionCode)
             .putLong("rustore_version_code", compatibility.apiVersionCode)
@@ -106,7 +107,7 @@ class StoreRepository(private val context: Context) {
             preferences.getLong("rustore_api_version_code", 0L) == versionCode
 
     fun saveRuStoreApiVersionCode(versionCode: Long) {
-        require(versionCode > 0L) { "API-код должен быть положительным" }
+        require(versionCode > 0L) { "API version code must be positive" }
         preferences.edit()
             .putLong("rustore_api_version_code", versionCode)
             .putLong("rustore_version_code", versionCode)
@@ -114,7 +115,7 @@ class StoreRepository(private val context: Context) {
     }
 
     fun saveVerifiedRuStoreApk(versionName: String?, versionCode: Long, verifiedAt: Long) {
-        require(versionCode > 0L) { "VersionCode APK должен быть положительным" }
+        require(versionCode > 0L) { "APK version code must be positive" }
         preferences.edit()
             .putString("rustore_verified_version_name", versionName)
             .putLong("rustore_verified_version_code", versionCode)
@@ -127,7 +128,7 @@ class StoreRepository(private val context: Context) {
         if (finishedAt <= 0L) return null
         return UpdateCheckSummary(
             finishedAt = finishedAt,
-            detail = preferences.getString("last_update_check_detail", null) ?: "Проверка завершена",
+            detail = preferences.getString("last_update_check_detail", null) ?: context.getString(R.string.check_completed),
             checked = preferences.getInt("last_update_check_checked", 0),
             total = preferences.getInt("last_update_check_total", 0),
             updates = preferences.getInt("last_update_check_updates", 0),
@@ -240,13 +241,17 @@ class StoreRepository(private val context: Context) {
         return BackupRestoreSummary(
             managedAppsCount = currentManaged.size,
             githubRepositoriesCount = mergedRepos.size,
-            message = "Восстановлено: ${currentManaged.size} приложений, ${mergedRepos.size} репозиториев"
+            message = context.getString(
+                R.string.backup_restored_summary,
+                currentManaged.size,
+                mergedRepos.size
+            )
         )
     }
 
     fun restoreBackupJson(json: String, merge: Boolean = false): BackupRestoreSummary {
         val backup = runCatching { gson.fromJson(json, WyStoreBackup::class.java) }.getOrNull()
-            ?: throw IllegalArgumentException("Некорректный формат JSON резервной копии")
+            ?: throw IllegalArgumentException(context.getString(R.string.backup_invalid_json))
         return restoreBackup(backup, merge)
     }
 

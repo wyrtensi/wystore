@@ -29,37 +29,47 @@ class RuStoreCompatibilityWorker(appContext: Context, parameters: WorkerParamete
     private val client = dev.wystore.data.RussianTrustStore.createClient(appContext, 20, 90)
     private val apiClient = RuStoreApiClient(client, repository)
 
-    override suspend fun getForegroundInfo(): ForegroundInfo = notification("Проверяем RuStore")
+    override suspend fun getForegroundInfo(): ForegroundInfo =
+        notification(text(R.string.rustore_compat_preparing))
 
     override suspend fun doWork(): Result = runCatching {
-        setForeground(notification("Подготавливаем проверку"))
-        report("PREPARING", "Получаем официальный APK RuStore")
+        setForeground(notification(text(R.string.rustore_compat_preparing)))
+        report("PREPARING", text(R.string.rustore_compat_fetching))
         val directory = File(applicationContext.cacheDir, "rustore-compatibility/${UUID.randomUUID()}").apply { mkdirs() }
         try {
             val file = downloadOfficialApk(directory)
-            report("VERIFYING", "Проверяем пакет и подпись RuStore")
+            report("VERIFYING", text(R.string.rustore_compat_verifying))
             val identity = SigningVerifier.archiveIdentity(applicationContext.packageManager, file)
-                ?: error("Не удалось прочитать APK RuStore")
-            require(identity.packageName == RUSTORE_PACKAGE) { "Официальная ссылка отдала другой пакет" }
-            require(RUSTORE_CERTIFICATE in identity.signingDigests) { "Подпись APK RuStore не совпадает с закреплённой" }
-            require(identity.versionCode > 0L) { "APK RuStore не содержит versionCode" }
+                ?: error("RuStore APK could not be read")
+            require(identity.packageName == RUSTORE_PACKAGE) { "Official link returned ${identity.packageName}" }
+            require(RUSTORE_CERTIFICATE in identity.signingDigests) { "RuStore APK signature does not match the pinned certificate" }
+            require(identity.versionCode > 0L) { "RuStore APK carries no versionCode" }
             val discoveredApiCode = RuStoreApiCompatibilityPolicy.fromOfficialVersionName(identity.versionName)
-                ?: error("Не удалось определить API-код из версии RuStore ${identity.versionName.orEmpty()}")
-            report("PROBING", "Проверяем API-код $discoveredApiCode")
+                ?: error("No API code derivable from RuStore version ${identity.versionName.orEmpty()}")
+            report("PROBING", text(R.string.rustore_compat_probing, discoveredApiCode))
             val acceptedApiCode = apiClient.probe(discoveredApiCode)
             repository.saveVerifiedRuStoreApk(
                 versionName = identity.versionName,
                 versionCode = identity.versionCode,
                 verifiedAt = System.currentTimeMillis()
             )
-            report("COMPLETE", "Используется API-код $acceptedApiCode")
-            Result.success(workDataOf("detail" to "RuStore ${identity.versionName} · APK ${identity.versionCode} · API $acceptedApiCode"))
+            report("COMPLETE", text(R.string.rustore_compat_using, acceptedApiCode))
+            Result.success(
+                workDataOf(
+                    "detail" to text(
+                        R.string.rustore_compat_result,
+                        identity.versionName.orEmpty(),
+                        identity.versionCode,
+                        acceptedApiCode
+                    )
+                )
+            )
         } finally {
             directory.deleteRecursively()
         }
     }.getOrElse { error ->
         android.util.Log.e("WyStoreRuStore", "RuStore compatibility check failed", error)
-        Result.failure(workDataOf("detail" to (error.message ?: "Не удалось проверить APK RuStore")))
+        Result.failure(workDataOf("detail" to text(R.string.rustore_compat_failed)))
     }
 
     private suspend fun downloadOfficialApk(directory: File): File = withContext(Dispatchers.IO) {
@@ -69,18 +79,18 @@ class RuStoreCompatibilityWorker(appContext: Context, parameters: WorkerParamete
         repeat(6) {
             val response = client.newCall(Request.Builder().url(url).header("User-Agent", "WyStore/1.0").build()).execute()
             if (response.isRedirect) {
-                val next = response.header("Location") ?: error("RuStore не указал адрес загрузки")
+                val next = response.header("Location") ?: error("Redirect without a Location header")
                 response.close()
                 val uri = URI(next)
-                require(uri.scheme == "https" && (uri.host == "rustore.ru" || uri.host?.endsWith(".rustore.ru") == true)) { "RuStore перенаправил на недоверенный домен" }
+                require(uri.scheme == "https" && (uri.host == "rustore.ru" || uri.host?.endsWith(".rustore.ru") == true)) { "Redirected to an untrusted host: ${uri.host}" }
                 url = next
                 return@repeat
             }
             response.use {
-                require(it.isSuccessful) { "Не удалось скачать APK RuStore: HTTP ${it.code}" }
-                val total = it.body?.contentLength()?.takeIf { size -> size > 0L } ?: error("RuStore не указал размер APK")
-                require(total <= MAX_APK_BYTES) { "APK RuStore слишком большой" }
-                val body = it.body ?: error("RuStore не вернул APK")
+                require(it.isSuccessful) { "RuStore APK download failed: HTTP ${it.code}" }
+                val total = it.body?.contentLength()?.takeIf { size -> size > 0L } ?: error("RuStore did not declare the APK size")
+                require(total <= MAX_APK_BYTES) { "RuStore APK exceeds $MAX_APK_BYTES bytes" }
+                val body = it.body ?: error("RuStore response had no body")
                 body.byteStream().use { input ->
                     temporary.outputStream().use { output ->
                         var downloaded = 0L
@@ -91,25 +101,32 @@ class RuStoreCompatibilityWorker(appContext: Context, parameters: WorkerParamete
                             val count = input.read(buffer)
                             if (count < 0) break
                             downloaded += count
-                            require(downloaded <= MAX_APK_BYTES) { "APK RuStore слишком большой" }
+                            require(downloaded <= MAX_APK_BYTES) { "RuStore APK exceeds $MAX_APK_BYTES bytes" }
                             output.write(buffer, 0, count)
                             val now = System.nanoTime()
                             if (now - lastAt >= PROGRESS_INTERVAL_NANOS || downloaded == total) {
                                 val speed = ((downloaded - lastBytes) * 1_000_000_000L / (now - lastAt).coerceAtLeast(1L)).coerceAtLeast(0L)
-                                report("DOWNLOADING", "Скачиваем APK RuStore", downloaded, total, speed)
-                                setForeground(notification("Скачиваем RuStore: ${(downloaded * 100 / total).coerceIn(0, 100)}%"))
+                                report("DOWNLOADING", text(R.string.rustore_compat_downloading), downloaded, total, speed)
+                                setForeground(
+                                    notification(
+                                        text(
+                                            R.string.rustore_compat_progress,
+                                            (downloaded * 100 / total).coerceIn(0, 100).toInt()
+                                        )
+                                    )
+                                )
                                 lastAt = now
                                 lastBytes = downloaded
                             }
                         }
-                        require(downloaded == total) { "Загрузка APK RuStore завершилась с неверным размером" }
+                        require(downloaded == total) { "RuStore APK download ended at $downloaded of $total bytes" }
                     }
                 }
             }
-            require(temporary.renameTo(destination)) { "Не удалось сохранить APK RuStore" }
+            require(temporary.renameTo(destination)) { "Could not move the downloaded RuStore APK into place" }
             return@withContext destination
         }
-        error("RuStore отправил слишком много перенаправлений")
+        error("RuStore redirect limit reached")
     }
 
     private suspend fun report(status: String, detail: String, downloaded: Long = 0L, total: Long = 0L, speed: Long = 0L) {
@@ -117,21 +134,28 @@ class RuStoreCompatibilityWorker(appContext: Context, parameters: WorkerParamete
     }
 
     private fun notification(text: String): ForegroundInfo {
+        // The channel belongs to NotificationCoordinator, which owns its name, importance and
+        // group; re-creating it here gave the same id a second, untranslated definition.
         val channelId = dev.wystore.background.NotificationCoordinator.CHANNEL_CHECKS
-        val manager = applicationContext.getSystemService(NotificationManager::class.java)
-        if (Build.VERSION.SDK_INT >= 26) {
-            manager.createNotificationChannel(NotificationChannel(channelId, "Проверка обновлений", NotificationManager.IMPORTANCE_LOW))
-        }
         val notification = NotificationCompat.Builder(applicationContext, channelId)
             .setSmallIcon(R.drawable.ic_stat_wystore)
-            .setContentTitle("Wy Store · совместимость RuStore")
+            .setContentTitle(text(R.string.rustore_compat_title))
             .setContentText(text)
             .setOngoing(true)
             .build()
-        return ForegroundInfo(7004, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        return ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
     }
 
+    private fun text(@androidx.annotation.StringRes id: Int, vararg args: Any): String =
+        applicationContext.getString(id, *args)
+
     private companion object {
+        /**
+         * Distinct from every id in [dev.wystore.background.NotificationCoordinator]. This used to
+         * be 7004, which the consolidated check summary also uses: whichever posted second replaced
+         * the other.
+         */
+        const val NOTIFICATION_ID = 7101
         const val DOWNLOAD_URL = "https://www.rustore.ru/download"
         const val RUSTORE_PACKAGE = "ru.vk.store"
         const val RUSTORE_CERTIFICATE = "661f20828ef780de0b79bc59f26a30864316355f30e4f91cfa14a20791839914"

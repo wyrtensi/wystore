@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -30,6 +31,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +61,7 @@ import dev.wystore.ui.components.RatingPill
 import dev.wystore.ui.components.ReviewCard
 import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.SectionHeader
+import dev.wystore.ui.components.shareLink
 import dev.wystore.ui.components.SourceDisclaimer
 import dev.wystore.ui.components.SourceLabel
 import dev.wystore.ui.components.WyCard
@@ -78,7 +82,9 @@ fun AppDetailsScreen(
     onInstall: () -> Unit
 ) {
     var screenshotPreview by remember { mutableStateOf<String?>(null) }
+    var shownReviews by remember(app.packageName) { mutableIntStateOf(REVIEW_PAGE) }
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
     val queueActive = queueItem?.status !in setOf(InstallQueueStatus.COMPLETE, InstallQueueStatus.FAILED, null)
     val canUpdate = (installed == null || app.versionCode > installed.versionCode) && !queueActive
     val installLabel = stringResource(
@@ -103,6 +109,25 @@ fun AppDetailsScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                         contentDescription = stringResource(R.string.common_back)
+                    )
+                }
+            },
+            actions = {
+                val shareSubject = stringResource(R.string.details_share_subject, app.name)
+                val chooserTitle = stringResource(R.string.details_share_chooser)
+                IconButton(
+                    onClick = {
+                        shareLink(
+                            context = context,
+                            subject = shareSubject,
+                            url = "https://www.rustore.ru/catalog/app/${app.packageName}",
+                            chooserTitle = chooserTitle
+                        )
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Share,
+                        contentDescription = stringResource(R.string.details_share)
                     )
                 }
             },
@@ -258,12 +283,44 @@ fun AppDetailsScreen(
 
             if (app.reviews.isNotEmpty()) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        SectionHeader(
-                            title = stringResource(R.string.details_reviews),
-                            subtitle = stringResource(R.string.details_reviews_hint)
-                        )
-                        app.reviews.forEach { ReviewCard(it) }
+                    SectionHeader(
+                        title = stringResource(R.string.details_reviews_count, app.reviews.size),
+                        subtitle = stringResource(R.string.details_reviews_hint)
+                    )
+                }
+                // Paged rather than rendered in one item: the parser no longer caps the list at
+                // five, and a hundred cards inside a single LazyColumn item would all be composed
+                // at once.
+                items(
+                    app.reviews.take(shownReviews),
+                    key = { "review:${it.author}:${it.publishedAt}:${it.text.hashCode()}" }
+                ) { review ->
+                    ReviewCard(review)
+                }
+                if (app.reviews.size > REVIEW_PAGE) {
+                    item {
+                        val remaining = app.reviews.size - shownReviews
+                        TextButton(
+                            onClick = {
+                                shownReviews = if (remaining > 0) {
+                                    (shownReviews + REVIEW_PAGE).coerceAtMost(app.reviews.size)
+                                } else {
+                                    REVIEW_PAGE
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                if (remaining > 0) {
+                                    stringResource(
+                                        R.string.details_reviews_show_more,
+                                        remaining.coerceAtMost(REVIEW_PAGE)
+                                    )
+                                } else {
+                                    stringResource(R.string.details_reviews_show_less)
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -333,3 +390,6 @@ fun AppDetailsScreen(
         }
     }
 }
+
+/** How many reviews a page of the list shows. */
+private const val REVIEW_PAGE = 5

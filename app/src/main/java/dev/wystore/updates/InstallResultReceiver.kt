@@ -57,7 +57,7 @@ class InstallResultReceiver : BroadcastReceiver() {
                         id = queueId,
                         success = false,
                         errorCode = QueueErrorCode.INSTALL_FAILED,
-                        errorDetail = message ?: "Установка не удалась"
+                        errorDetail = message ?: "PackageInstaller reported failure"
                     )
                 }
             } catch (error: Throwable) {

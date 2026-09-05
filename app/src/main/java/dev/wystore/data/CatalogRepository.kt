@@ -68,7 +68,7 @@ class CatalogRepository(
                 stale = stale || it.stale
             } ?: run { failure = result.exceptionOrNull() }
         }
-        if (collected.isEmpty()) throw failure ?: IllegalStateException("Раздел каталога пуст")
+        if (collected.isEmpty()) throw failure ?: SourceFormatException(SourceError.EMPTY_SECTION, "Curated section produced no apps")
         // One page: the allowlist is finite, so there is nothing further to page through.
         Result(
             value = CatalogPage(apps = category.select(collected), page = 1, lastPage = 1),

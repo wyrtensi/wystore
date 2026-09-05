@@ -307,9 +307,9 @@ class QueueRepository(
         files: List<File>,
         sourceHash: String? = null
     ): List<UpdateArtifactEntity> = withContext(Dispatchers.IO) {
-        require(identity.signingDigests.isNotEmpty()) { "Проверенный APK не содержит подписи" }
-        require(identity.packageName.isNotBlank()) { "Проверенный APK не содержит имя пакета" }
-        require(files.isNotEmpty()) { "Проверенный комплект APK пуст" }
+        require(identity.signingDigests.isNotEmpty()) { "Verified identity carries no signing digest" }
+        require(identity.packageName.isNotBlank()) { "Verified identity carries no package name" }
+        require(files.isNotEmpty()) { "Verified APK set is empty" }
         val targetDir = File(rootDirectory, queueId).apply { mkdirs() }
         val copied = files.mapIndexed { index, file ->
             val dest = File(targetDir, "artifact_$index.apk")
@@ -406,14 +406,14 @@ class QueueRepository(
     ): PendingUpdate = withContext(Dispatchers.IO) {
         importLegacyIfNeeded()
         require(plan.files.isNotEmpty() && plan.files.all { it.isFile && it.length() > 0L }) {
-            "Проверенный APK больше недоступен"
+            "A verified APK is no longer on disk"
         }
         val identity = plan.identity
         val existing = dao.find(identity.packageName, identity.versionCode, source.name)
         val queueId = existing?.id ?: UUID.randomUUID().toString()
         val targetDir = File(rootDirectory, queueId)
         if (!targetDir.exists()) {
-            require(targetDir.mkdirs()) { "Не удалось подготовить хранилище обновления" }
+            require(targetDir.mkdirs()) { "Could not create the artifact directory" }
         }
         val copiedFiles = try {
             plan.files.mapIndexed { index, sourceFile ->

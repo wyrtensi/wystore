@@ -61,8 +61,52 @@ class TransferFailureTest {
         assertFalse(diskFull.retryable)
         assertEquals(QueueErrorCode.STORAGE_FULL, diskFull.code)
 
-        val hashMismatch = classifyThrowable(IllegalStateException("Хеш APK не совпадает"))
-        assertFalse(hashMismatch.retryable)
-        assertEquals(QueueErrorCode.INTEGRITY, hashMismatch.code)
+        // Integrity is no longer inferred from the wording of a message: the downloader raises a
+        // typed failure, covered by the test below.
+        val unknown = classifyThrowable(IllegalStateException("something the app did not raise"))
+        assertFalse(unknown.retryable)
+        assertEquals(QueueErrorCode.NETWORK, unknown.code)
+    }
+
+    /**
+     * Classification used to work by looking for Russian substrings in the exception message, so
+     * translating any one of them would silently have turned an integrity failure into a generic
+     * retryable network error. These assertions go through the typed code instead.
+     */
+    @Test
+    fun aTypedSourceFailureClassifiesWithoutReadingItsMessage() {
+        val integrity = classifyThrowable(
+            SourceFormatException(SourceError.ARTIFACT_INTEGRITY_MISMATCH, "SHA-256 mismatch")
+        )
+        assertEquals(QueueErrorCode.INTEGRITY, integrity.code)
+        assertFalse(integrity.retryable)
+
+        val tooLarge = classifyThrowable(
+            SourceFormatException(SourceError.ARTIFACT_TOO_LARGE, "Exceeded limit")
+        )
+        assertEquals(QueueErrorCode.STORAGE_FULL, tooLarge.code)
+        assertFalse(tooLarge.retryable)
+
+        val rateLimited = classifyThrowable(
+            SourceFormatException(SourceError.GITHUB_RATE_LIMITED, "GitHub 429")
+        )
+        assertEquals(QueueErrorCode.RATE_LIMITED, rateLimited.code)
+        assertTrue(rateLimited.retryable)
+
+        val untrusted = classifyThrowable(
+            SourceFormatException(SourceError.UNTRUSTED_HOST, "Redirected elsewhere")
+        )
+        assertEquals(QueueErrorCode.SOURCE_CHANGED, untrusted.code)
+        assertFalse("a rejected host never becomes acceptable by waiting", untrusted.retryable)
+    }
+
+    @Test
+    fun anIncompatibleAndroidVersionIsNotANetworkProblem() {
+        val incompatible = classifyThrowable(
+            SourceFormatException(SourceError.INCOMPATIBLE_ANDROID, "Requires Android 10")
+        )
+
+        assertEquals(QueueErrorCode.INCOMPATIBLE, incompatible.code)
+        assertFalse(incompatible.retryable)
     }
 }

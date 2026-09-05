@@ -48,6 +48,7 @@ class UpdateDownloadWorker(
             Result.success()
         } catch (cancellation: CancellationException) {
             runCatching { queueRepository.transition(queueId, QueueAction.Cancel) }
+            runCatching { workingDirectory(queueId).deleteRecursively() }
             throw cancellation
         } catch (error: Throwable) {
             val failure = classifyThrowable(error)
@@ -60,6 +61,8 @@ class UpdateDownloadWorker(
                 Result.retry()
             } else {
                 runCatching { queueRepository.markFailed(queueId, failure.code, failure.detail) }
+                // Nothing will resume this, so the partial bytes are dead weight.
+                runCatching { workingDirectory(queueId).deleteRecursively() }
                 // A background download that died used to be silent: the error switch in Settings
                 // guarded a method with no callers.
                 runCatching {
@@ -87,10 +90,9 @@ class UpdateDownloadWorker(
 
             queueRepository.transition(queueId, QueueAction.StartDownload)
 
-            val tempDir = File(context.cacheDir, "download_$queueId").apply {
-                deleteRecursively()
-                mkdirs()
-            }
+            // Kept across attempts on purpose: partial files are what makes a resumed download
+            // possible, and wiping the directory on entry meant every retry restarted from zero.
+            val tempDir = File(context.cacheDir, "download_$queueId").apply { mkdirs() }
 
             // Kept alongside the files so verification can enforce the fingerprint the source
             // advertised, and so the artifact row records what the source claimed.
@@ -216,11 +218,14 @@ class UpdateDownloadWorker(
                 // plus a group summary, so twenty updates meant twenty-one notifications.
                 coordinator.publishReady(queueRepository.readyToInstallSnapshots())
 
+                // The verified files have been copied into durable storage by now, so the
+                // working directory and any partial files in it are no longer needed.
+                tempDir.deleteRecursively()
+
                 // Each finished download adds to private storage, so this is where the retention
                 // and quota settings are applied. Failing to prune must not fail the download.
                 runCatching { queueRepository.cleanupWithSettings(storeRepository.settings()) }
             } finally {
-                tempDir.deleteRecursively()
                 coordinator.cancelTransfer()
             }
         }
@@ -281,6 +286,8 @@ class UpdateDownloadWorker(
             }
         }
     }
+
+    private fun workingDirectory(queueId: String) = File(applicationContext.cacheDir, "download_$queueId")
 
     companion object {
         const val KEY_QUEUE_ID = "queue_id"

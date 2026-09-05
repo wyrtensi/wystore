@@ -90,7 +90,7 @@ fun ReviewCard(review: StoreReview) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    review.author,
+                    review.author.ifBlank { stringResource(R.string.review_anonymous_author) },
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,

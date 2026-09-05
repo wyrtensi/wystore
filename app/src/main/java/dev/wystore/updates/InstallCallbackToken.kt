@@ -16,7 +16,7 @@ class InstallCallbackStore(context: Context) {
 
     fun create(packageName: String): String = synchronized(lock) {
         val createdAt = preferences.getLong("${packageName}_at", 0L)
-        require(System.currentTimeMillis() - createdAt > ACTIVE_TIMEOUT_MS) { "Установка уже ожидает подтверждения" }
+        require(System.currentTimeMillis() - createdAt > ACTIVE_TIMEOUT_MS) { "An install is already awaiting confirmation" }
         val bytes = ByteArray(32).also(SecureRandom()::nextBytes)
         val token = bytes.joinToString("") { byte -> "%02x".format(byte) }
         preferences.edit()

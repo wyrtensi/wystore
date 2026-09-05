@@ -28,10 +28,10 @@ class GitHubReleaseSource(context: Context? = null) {
             .build()
         val root = client.newCall(request).execute().use { response ->
             when (response.code) {
-                404 -> throw SourceFormatException("Репозиторий не найден или в нём нет публичных релизов")
-                403, 429 -> throw SourceFormatException("GitHub временно ограничил запросы. Повтори позже")
+                404 -> throw SourceFormatException(SourceError.GITHUB_REPOSITORY_NOT_FOUND, "GitHub 404")
+                403, 429 -> throw SourceFormatException(SourceError.GITHUB_RATE_LIMITED, "GitHub ${response.code}")
             }
-            if (!response.isSuccessful) throw SourceFormatException("GitHub недоступен: HTTP ${response.code}")
+            if (!response.isSuccessful) throw SourceFormatException(SourceError.GITHUB_UNAVAILABLE, "GitHub HTTP ${response.code}")
             JsonParser.parseString(response.body?.string() ?: "[]").asJsonArray
         }
         root.mapNotNull { element -> element.asJsonObject.toRelease() }
@@ -51,10 +51,10 @@ class GitHubReleaseSource(context: Context? = null) {
             .build()
         val root = client.newCall(request).execute().use { response ->
             when (response.code) {
-                404 -> throw SourceFormatException("Репозиторий не найден")
-                403, 429 -> throw SourceFormatException("GitHub временно ограничил запросы. Повтори позже")
+                404 -> throw SourceFormatException(SourceError.GITHUB_REPOSITORY_NOT_FOUND, "GitHub 404")
+                403, 429 -> throw SourceFormatException(SourceError.GITHUB_RATE_LIMITED, "GitHub ${response.code}")
             }
-            if (!response.isSuccessful) throw SourceFormatException("GitHub недоступен: HTTP ${response.code}")
+            if (!response.isSuccessful) throw SourceFormatException(SourceError.GITHUB_UNAVAILABLE, "GitHub HTTP ${response.code}")
             JsonParser.parseString(response.body?.string() ?: "{}").asJsonObject
         }
         GitHubRepositoryInfo(
@@ -110,12 +110,12 @@ class GitHubReleaseSource(context: Context? = null) {
         val parts = if (normalized.matches(Regex("[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"))) {
             normalized.split('/')
         } else {
-            val uri = runCatching { URI(normalized) }.getOrElse { throw SourceFormatException("Укажи ссылку вида https://github.com/owner/repository") }
-            if (uri.scheme != "https" || uri.host != "github.com") throw SourceFormatException("Поддерживаются только публичные репозитории github.com")
+            val uri = runCatching { URI(normalized) }.getOrElse { throw SourceFormatException(SourceError.GITHUB_INVALID_URL, "Unparseable repository URL") }
+            if (uri.scheme != "https" || uri.host != "github.com") throw SourceFormatException(SourceError.GITHUB_INVALID_URL, "Not a github.com https URL")
             uri.path.trim('/').split('/').filter { it.isNotBlank() }
         }
         if (parts.size != 2 || parts.any { !it.matches(Regex("[A-Za-z0-9_.-]+")) }) {
-            throw SourceFormatException("Укажи ссылку вида https://github.com/owner/repository")
+            throw SourceFormatException(SourceError.GITHUB_INVALID_URL, "Repository URL is not owner/name")
         }
         return GitHubRepository(parts[0], parts[1])
     }

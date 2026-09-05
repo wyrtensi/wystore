@@ -50,7 +50,7 @@ class RuStoreSource(context: Context) : StoreSource {
         val root = parseObject(getText("https://backapi.rustore.ru/applicationData/overallInfo/$validPackageName"))
         val body = root.requiredObject("body")
         body.toStoreApp().also {
-            if (it.packageName != validPackageName) throw SourceFormatException("Источник отдал карточку другого пакета")
+            if (it.packageName != validPackageName) throw SourceFormatException(SourceError.WRONG_PACKAGE, "Overview returned another package")
         }.let { app ->
             if (!includeReviews) app
             else {
@@ -88,20 +88,21 @@ class RuStoreSource(context: Context) : StoreSource {
                 .post(payload.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
                 .build()
         }.use { response ->
-            if (!response.isSuccessful) throw SourceFormatException("RuStore не выдал ссылку для скачивания: HTTP ${response.code}")
-            parseObject(response.body?.string() ?: throw SourceFormatException("RuStore не вернул ответ"))
+            if (!response.isSuccessful) throw SourceFormatException(SourceError.RUSTORE_NO_DOWNLOAD_LINK, "download-link HTTP ${response.code}")
+            parseObject(response.body?.string() ?: throw SourceFormatException(SourceError.RUSTORE_EMPTY_RESPONSE, "Empty response body"))
         }
         val urls = root.requiredObject("body").getAsJsonArray("downloadUrls")
-            ?: throw SourceFormatException("Источник изменил формат: downloadUrls отсутствует")
+            ?: throw SourceFormatException(SourceError.RUSTORE_NO_DOWNLOAD_LINK, "downloadUrls missing")
         urls.map { item ->
             val objectItem = item.asJsonObject
-            val url = objectItem.string("url") ?: throw SourceFormatException("Источник отдал файл без ссылки")
+            val url = objectItem.string("url") ?: throw SourceFormatException(SourceError.RUSTORE_NO_DOWNLOAD_LINK, "Artifact without url")
             DownloadArtifact(url, objectItem.long("size") ?: 0L, objectItem.string("hash"))
         }.also {
             if (it.isEmpty()) {
                 throw SourceFormatException(
-                    "RuStore не нашёл APK для ${AndroidSdkCompatibility.label(Build.VERSION.SDK_INT)} " +
-                        "и архитектур ${Build.SUPPORTED_ABIS.joinToString()}"
+                    SourceError.RUSTORE_NO_DOWNLOAD_LINK,
+                    "No APK for ${AndroidSdkCompatibility.label(Build.VERSION.SDK_INT)} " +
+                        "and ABIs ${Build.SUPPORTED_ABIS.joinToString()}"
                 )
             }
         }
@@ -133,19 +134,22 @@ class RuStoreSource(context: Context) : StoreSource {
             client.newCall(Request.Builder().url(url).header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}").build()).execute()
         }
         return response.use {
-            if (!it.isSuccessful) throw SourceFormatException("RuStore недоступен: HTTP ${it.code}")
-            it.body?.string() ?: throw SourceFormatException("RuStore не вернул ответ")
+            if (!it.isSuccessful) throw SourceFormatException(SourceError.RUSTORE_UNAVAILABLE, "RuStore HTTP ${it.code}")
+            it.body?.string() ?: throw SourceFormatException(SourceError.RUSTORE_EMPTY_RESPONSE, "Empty response body")
         }
     }
 
     private fun parseObject(text: String): JsonObject = try {
         JsonParser.parseString(text).asJsonObject
     } catch (error: Exception) {
-        throw SourceFormatException("Источник изменил формат ответа")
+        throw SourceFormatException(SourceError.FORMAT_CHANGED, "Unparseable response")
     }
 }
 
 object RustoreHtmlParser {
+    /** Upper bound on parsed reviews: a guard against a pathological document, not a preview cap. */
+    private const val MAX_REVIEWS = 100
+
     private const val CHANGELOG_HEADING = "Что нового"
     private const val CHANGELOG_VERSION_LABEL = "Версия"
     private const val CHANGELOG_DATE_LABEL = "Дата"
@@ -159,7 +163,7 @@ object RustoreHtmlParser {
             // "Nothing matched" and "the markup changed" are indistinguishable if both throw, and
             // the user is told the source broke when their query simply had no results.
             if (!renderedSearchResults(document, total)) {
-                throw SourceFormatException("Источник изменил формат поиска")
+                throw SourceFormatException(SourceError.FORMAT_CHANGED, "Search markup changed")
             }
             return SearchPage(emptyList(), page, total ?: 0)
         }
@@ -175,7 +179,7 @@ object RustoreHtmlParser {
     fun parseCategories(html: String): List<StoreCategory> {
         val document = Jsoup.parse(html)
         val links = document.select("a[data-testid=category], a[data-testid=all]")
-        if (links.isEmpty()) throw SourceFormatException("Источник изменил формат каталога")
+        if (links.isEmpty()) throw SourceFormatException(SourceError.FORMAT_CHANGED, "Catalog markup changed")
         return links.mapNotNull { link ->
             val slug = link.attr("href").substringAfterLast("/catalog/", "").trim('/')
             val title = link.text().trim()
@@ -195,7 +199,7 @@ object RustoreHtmlParser {
         if (cards.isEmpty() && document.selectFirst("a[data-testid=category]") == null) {
             // The category nav is on every catalog page, so its absence means the markup changed
             // rather than the section genuinely holding nothing.
-            throw SourceFormatException("Источник изменил формат каталога")
+            throw SourceFormatException(SourceError.FORMAT_CHANGED, "Catalog markup changed")
         }
         val base = if (slug.isEmpty()) "/catalog" else "/catalog/$slug"
         // The pager lists a window of page links; its highest entry is the last page of the section.
@@ -236,6 +240,13 @@ object RustoreHtmlParser {
         )
     }
 
+    /**
+     * Every review embedded in the page.
+     *
+     * This used to end in `take(5)`, which threw away whatever else the page carried without
+     * telling anyone; the app page pages through the full list instead. The remaining bound is a
+     * guard against an unexpectedly huge document, not an editorial choice.
+     */
     fun parseReviewPreviews(html: String): List<StoreReview> {
         val documents = Jsoup.parse(html).select("script[type=application/ld+json]")
         return documents.flatMap { script ->
@@ -250,12 +261,14 @@ object RustoreHtmlParser {
             val rating = reviewObject.getAsJsonObject("reviewRating")?.get("ratingValue")
                 ?.takeUnless { it.isJsonNull }?.asInt
             StoreReview(
-                author = author.ifBlank { "Пользователь RuStore" },
+                // Left blank rather than filled with a Russian placeholder: the review card
+                // renders its own fallback from resources.
+                author = author,
                 publishedAt = reviewObject.string("datePublished"),
                 rating = rating?.takeIf { it in 1..5 },
                 text = text
             )
-        }.distinctBy { listOf(it.author, it.publishedAt, it.text) }.take(5)
+        }.distinctBy { listOf(it.author, it.publishedAt, it.text) }.take(MAX_REVIEWS)
     }
 
     /**
@@ -300,7 +313,7 @@ object RustoreHtmlParser {
 }
 
 private fun JsonObject.requiredObject(name: String): JsonObject = getAsJsonObject(name)
-    ?: throw SourceFormatException("Источник изменил формат: $name отсутствует")
+    ?: throw SourceFormatException(SourceError.FORMAT_CHANGED, "Missing field: $name")
 
 private fun JsonObject.string(name: String): String? = get(name)?.takeUnless { it.isJsonNull }?.asString
 private fun JsonObject.long(name: String): Long? = get(name)?.takeUnless { it.isJsonNull }?.asLong
@@ -315,8 +328,8 @@ internal fun JsonObject.toStoreApp(): StoreApp {
     val ratingObject = getAsJsonObject("rating")
     val minSdkVersion = int("minSdkVersion")
     return StoreApp(
-        appId = long("appId") ?: throw SourceFormatException("Источник отдал приложение без appId"),
-        packageName = string("packageName") ?: throw SourceFormatException("Источник отдал приложение без packageName"),
+        appId = long("appId") ?: throw SourceFormatException(SourceError.FORMAT_CHANGED, "Missing field: appId"),
+        packageName = string("packageName") ?: throw SourceFormatException(SourceError.FORMAT_CHANGED, "Missing field: packageName"),
         name = string("appName").orEmpty(),
         publisher = string("companyName").orEmpty(),
         categories = getAsJsonArray("categories")?.mapNotNull { it.asString }.orEmpty(),

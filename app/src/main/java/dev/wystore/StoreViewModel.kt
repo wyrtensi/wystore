@@ -34,6 +34,8 @@ import dev.wystore.updates.GitHubInstallScheduler
 import dev.wystore.updates.InstalledUpdateMatcher
 import dev.wystore.ui.github.GitHubAppUiState
 import dev.wystore.data.CatalogRepository
+import dev.wystore.localization.RootTextResolver
+import dev.wystore.localization.SourceTextResolver
 import dev.wystore.selfupdate.SelfUpdateChecker
 import dev.wystore.selfupdate.SelfUpdateStatus
 import dev.wystore.updates.PendingUpdateNotifier
@@ -353,7 +355,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         _state.value = _state.value.copy(detailsLoading = true, operation = string(R.string.vm_opening_details), message = null)
         runCatching { catalogRepository.details(packageName) }
             .onSuccess { _state.value = _state.value.copy(selected = it, detailsLoading = false, operation = null) }
-            .onFailure { _state.value = _state.value.copy(detailsLoading = false, operation = null, message = it.message ?: string(R.string.vm_open_details_failed)) }
+            .onFailure { _state.value = _state.value.copy(detailsLoading = false, operation = null, message = SourceTextResolver.describe(getApplication(), it) ?: string(R.string.vm_open_details_failed)) }
     }
 
     fun clearDetails() {
@@ -792,7 +794,10 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             refreshLibrary()
             _state.value = _state.value.copy(message = string(R.string.vm_uninstalled, app.label))
         } else {
-            _state.value = _state.value.copy(message = result.output.ifBlank { string(R.string.vm_uninstall_failed, app.label) })
+            _state.value = _state.value.copy(
+                message = RootTextResolver.describe(getApplication(), result)
+                    .ifBlank { string(R.string.vm_uninstall_failed, app.label) }
+            )
         }
     }
 

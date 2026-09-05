@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -40,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +60,7 @@ import dev.wystore.ui.components.CategoryPill
 import dev.wystore.ui.components.EmptyState
 import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.SectionHeader
+import dev.wystore.ui.components.shareLink
 import dev.wystore.ui.components.SourceDisclaimer
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.WyDivider
@@ -106,6 +109,7 @@ fun GitHubAppScreen(
     val entry = state.entry
     var showAllAssets by rememberSaveable(entry?.slug) { mutableStateOf(false) }
     val deviceAbis = remember { android.os.Build.SUPPORTED_ABIS.toList() }
+    val context = LocalContext.current
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -117,6 +121,28 @@ fun GitHubAppScreen(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = stringResource(R.string.common_back)
                         )
+                    }
+                },
+                actions = {
+                    // The same affordance as a RuStore page: both sources behave alike.
+                    entry?.let { catalogEntry ->
+                        val subject = stringResource(R.string.github_share_subject, catalogEntry.title)
+                        val chooserTitle = stringResource(R.string.details_share_chooser)
+                        IconButton(
+                            onClick = {
+                                shareLink(
+                                    context = context,
+                                    subject = subject,
+                                    url = "https://github.com/${catalogEntry.repository.owner}/${catalogEntry.repository.name}",
+                                    chooserTitle = chooserTitle
+                                )
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Share,
+                                contentDescription = stringResource(R.string.details_share)
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
