@@ -1,10 +1,17 @@
+<div align="center">
+
+<img src="docs/logo.png" alt="Wy Store" width="128">
+
 # Wy Store
 
-[Русский](README.md)
+**An Android store client with no account, no backend and no telemetry**
 
-An Android store client with no account, no backend and no telemetry. It browses the RuStore
-catalogue, tracks releases of curated GitHub projects, verifies every APK before it is installed,
-and keeps installed apps up to date in the background.
+[Русский](README.md) · [Releases](https://github.com/wyrtensi/wystore/releases) · [Licence](LICENSE)
+
+</div>
+
+It browses the RuStore catalogue, tracks releases of curated GitHub projects, verifies every APK
+before it is installed, and keeps installed apps up to date in the background.
 
 The catalogue and the curated sections are aimed at users in Russia, so most of the content the app
 displays is in Russian; the interface itself ships in Russian and English.
