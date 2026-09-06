@@ -69,7 +69,7 @@ class InstallLifecycleTest {
         // Exactly what InstallResultReceiver does for STATUS_SUCCESS.
         val result = repository.reconcileInstallResult(id, success = true)
 
-        assertEquals(QueueState.OFFER_NEXT, result?.state)
+        assertEquals(QueueState.INSTALLED, result?.state)
         assertNull("a finished install must not leave a session behind", database.updateQueueDao.getSession(id))
     }
 
@@ -96,7 +96,7 @@ class InstallLifecycleTest {
 
         val second = repository.reconcileInstallResult(id, success = true)
 
-        assertEquals(QueueState.OFFER_NEXT, second?.state)
+        assertEquals(QueueState.INSTALLED, second?.state)
     }
 
     @Test

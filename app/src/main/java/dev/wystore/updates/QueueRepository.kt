@@ -224,7 +224,9 @@ class QueueRepository(
         errorDetail: String? = null
     ): QueueItemSnapshot? = withContext(Dispatchers.IO) {
         val entity = dao.getById(id) ?: return@withContext null
-        val target = if (success) QueueState.OFFER_NEXT else QueueState.FAILED
+        // INSTALLED is terminal. Parking a finished install in OFFER_NEXT left a row nothing ever
+        // moved on, and every screen that reads the queue kept treating the app as busy.
+        val target = if (success) QueueState.INSTALLED else QueueState.FAILED
         val updated = entity.copy(
             state = target.name,
             errorCode = if (success) null else errorCode.name,

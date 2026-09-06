@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
+import dev.wystore.isInFlight
 import dev.wystore.R
 import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.data.InstalledApp
@@ -279,13 +280,7 @@ fun SearchCard(
     onLaunch: (String) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
-    val inFlight = queueItem?.status in setOf(
-        InstallQueueStatus.RESOLVING,
-        InstallQueueStatus.QUEUED,
-        InstallQueueStatus.DOWNLOADING,
-        InstallQueueStatus.VERIFYING,
-        InstallQueueStatus.INSTALLING
-    )
+    val inFlight = queueItem?.status?.isInFlight == true
 
     WyCard(modifier = Modifier.fillMaxWidth(), onClick = { onOpen(app) }) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

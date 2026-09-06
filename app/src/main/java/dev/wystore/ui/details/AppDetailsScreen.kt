@@ -50,6 +50,7 @@ import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
+import dev.wystore.isInFlight
 import dev.wystore.R
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.PendingUpdate
@@ -85,7 +86,7 @@ fun AppDetailsScreen(
     var shownReviews by remember(app.packageName) { mutableIntStateOf(REVIEW_PAGE) }
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
-    val queueActive = queueItem?.status !in setOf(InstallQueueStatus.COMPLETE, InstallQueueStatus.FAILED, null)
+    val queueActive = queueItem?.status?.isInFlight == true
     val canUpdate = (installed == null || app.versionCode > installed.versionCode) && !queueActive
     val installLabel = stringResource(
         when {
@@ -253,7 +254,12 @@ fun AppDetailsScreen(
                 }
             }
 
-            queueItem?.let { item { OperationProgress(it) } }
+            // Only while something is happening, or when it stopped with an error. A finished row
+            // stays in the queue until cleanup, and rendering it left a transfer card sitting on the
+            // page of an app that had been up to date for days.
+            queueItem
+                ?.takeIf { it.status.isInFlight || it.status == InstallQueueStatus.FAILED }
+                ?.let { item { OperationProgress(it) } }
 
             item { DetailFacts(app) }
 

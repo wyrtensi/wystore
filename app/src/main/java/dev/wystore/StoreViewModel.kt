@@ -41,6 +41,7 @@ import dev.wystore.selfupdate.SelfUpdateStatus
 import dev.wystore.updates.PendingUpdateNotifier
 import dev.wystore.updates.PendingUpdateCatalog
 import dev.wystore.updates.QueueRepository
+import dev.wystore.updates.model.QueueState
 import dev.wystore.updates.RuStoreCompatibilityScheduler
 import dev.wystore.settings.toStoreSettings
 import dev.wystore.settings.toAppSettings
@@ -65,6 +66,60 @@ enum class InstallQueueStatus {
     CANCELED,
     FAILED
 }
+
+/**
+ * How a durable queue row reads on screen.
+ *
+ * OFFER_NEXT is here for rows written by older versions: an install used to end there and stay,
+ * which is why an updated app went on showing a queued, disabled button. Those rows are finished
+ * installs and are reported as such.
+ */
+fun QueueState.toInstallQueueStatus(): InstallQueueStatus = when (this) {
+    QueueState.AVAILABLE,
+    QueueState.CHECKING -> InstallQueueStatus.QUEUED
+    QueueState.DOWNLOADING -> InstallQueueStatus.DOWNLOADING
+    QueueState.VERIFYING -> InstallQueueStatus.VERIFYING
+    // The download is finished and the item is waiting for the user to start the install, so cards
+    // must offer Install rather than keep saying queued.
+    QueueState.READY_TO_INSTALL,
+    QueueState.AWAITING_UNKNOWN_SOURCES_PERMISSION,
+    QueueState.AWAITING_USER_CONFIRMATION -> InstallQueueStatus.READY
+    QueueState.INSTALLING -> InstallQueueStatus.INSTALLING
+    QueueState.INSTALLED,
+    QueueState.OFFER_NEXT -> InstallQueueStatus.COMPLETE
+    QueueState.CANCELED,
+    QueueState.SKIPPED -> InstallQueueStatus.CANCELED
+    QueueState.FAILED -> InstallQueueStatus.FAILED
+}
+
+/**
+ * Whether the queue is actively working on the item, so the UI shows progress and holds its actions.
+ *
+ * Screens used to spell this out as "anything that is not COMPLETE or FAILED", which also caught
+ * states in which nothing is running: a canceled download, or an install that had already finished,
+ * left the app page with a disabled "Queued" button forever.
+ */
+val InstallQueueStatus.isInFlight: Boolean
+    get() = when (this) {
+        InstallQueueStatus.RESOLVING,
+        InstallQueueStatus.QUEUED,
+        InstallQueueStatus.DOWNLOADING,
+        InstallQueueStatus.VERIFYING,
+        InstallQueueStatus.INSTALLING -> true
+        InstallQueueStatus.READY,
+        InstallQueueStatus.COMPLETE,
+        InstallQueueStatus.CANCELED,
+        InstallQueueStatus.FAILED -> false
+    }
+
+/**
+ * Whether the queue already owns this package, so a second transfer must not be started for it.
+ *
+ * Wider than [isInFlight] by one state: a downloaded item waiting for the user is idle, but its
+ * artifact is on disk and re-downloading it would be pure waste.
+ */
+val InstallQueueStatus.occupiesQueue: Boolean
+    get() = isInFlight || this == InstallQueueStatus.READY
 
 data class InstallQueueItem(
     /** Durable queue row id; queue actions are addressed by it, not by package name. */
@@ -227,28 +282,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                         id = item.id,
                         packageName = item.packageName,
                         label = item.label,
-                        status = when (item.state) {
-                            dev.wystore.updates.model.QueueState.AVAILABLE,
-                            dev.wystore.updates.model.QueueState.CHECKING -> InstallQueueStatus.QUEUED
-                            dev.wystore.updates.model.QueueState.DOWNLOADING -> InstallQueueStatus.DOWNLOADING
-                            dev.wystore.updates.model.QueueState.VERIFYING -> InstallQueueStatus.VERIFYING
-                            // The download is finished and the item is waiting for the user to start
-                            // the install, so cards must offer Install rather than keep saying queued.
-                            dev.wystore.updates.model.QueueState.READY_TO_INSTALL,
-                            dev.wystore.updates.model.QueueState.AWAITING_UNKNOWN_SOURCES_PERMISSION,
-                            dev.wystore.updates.model.QueueState.AWAITING_USER_CONFIRMATION,
-                            dev.wystore.updates.model.QueueState.OFFER_NEXT -> InstallQueueStatus.READY
-                            dev.wystore.updates.model.QueueState.INSTALLING -> InstallQueueStatus.INSTALLING
-                            dev.wystore.updates.model.QueueState.INSTALLED -> InstallQueueStatus.COMPLETE
-                            dev.wystore.updates.model.QueueState.CANCELED,
-                            dev.wystore.updates.model.QueueState.SKIPPED -> InstallQueueStatus.CANCELED
-                            dev.wystore.updates.model.QueueState.FAILED -> InstallQueueStatus.FAILED
-                        },
+                        status = item.state.toInstallQueueStatus(),
                         // Byte counters survive the transfer; showing them past DOWNLOADING leaves a
                         // full progress bar stuck under a finished item.
                         progress = if (
                             item.totalBytes > 0 &&
-                            item.state == dev.wystore.updates.model.QueueState.DOWNLOADING
+                            item.state == QueueState.DOWNLOADING
                         ) DownloadProgress(
                             downloadedBytes = item.downloadedBytes,
                             totalBytes = item.totalBytes,
@@ -913,7 +952,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun hasActiveQueueItem(packageName: String): Boolean = _state.value.installQueue.any {
-        it.packageName == packageName && it.status !in setOf(InstallQueueStatus.COMPLETE, InstallQueueStatus.FAILED)
+        it.packageName == packageName && it.status.occupiesQueue
     }
 
     fun consumeMessage() {

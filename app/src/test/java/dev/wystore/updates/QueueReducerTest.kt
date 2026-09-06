@@ -29,9 +29,12 @@ class QueueReducerTest {
     }
 
     @Test
-    fun successfulInstallOffersTheNextItem() {
+    fun aSuccessfulInstallEndsInATerminalState() {
+        // OFFER_NEXT is a prompt, not an outcome, and nothing ever left it: every installed app kept
+        // a live queue row, so its page went on showing "Queued" long after the update was on the
+        // device. The outcome of an install is INSTALLED.
         assertEquals(
-            QueueState.OFFER_NEXT,
+            QueueState.INSTALLED,
             QueueReducer.reduce(item(QueueState.INSTALLING), QueueAction.InstallSucceeded).state
         )
     }

@@ -36,7 +36,7 @@ object QueueReducer {
             QueueState.AWAITING_USER_CONFIRMATION,
             QueueState.INSTALLING
         )
-        QueueAction.InstallSucceeded -> transition(current, QueueState.INSTALLING, QueueState.OFFER_NEXT)
+        QueueAction.InstallSucceeded -> transition(current, QueueState.INSTALLING, QueueState.INSTALLED)
         is QueueAction.InstallFailed -> installFail(current, action)
         is QueueAction.Failed -> fail(current, action.errorCode, action.errorDetail)
         QueueAction.Skip -> skip(current)
