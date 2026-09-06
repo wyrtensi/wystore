@@ -13,9 +13,11 @@ import dev.wystore.data.ManagedSource
 import dev.wystore.data.RuStoreSource
 import dev.wystore.R
 import dev.wystore.data.StoreRepository
+import dev.wystore.data.StoreSettings
 import dev.wystore.data.UpdateCheckSummary
 import dev.wystore.selfupdate.SelfUpdateChecker
 import dev.wystore.selfupdate.SelfUpdateStatus
+import dev.wystore.root.RootInstaller
 import dev.wystore.updates.QueueRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
@@ -66,6 +68,9 @@ class UpdateCheckWorker(
         var anyRetryableFailure = false
         var updatesFound = 0
         var problems = 0
+        // Queue rows created by this run, so an unattended download starts only what was just
+        // found rather than everything ever left in the queue.
+        val queuedThisRun = mutableListOf<String>()
 
         for (managed in candidates) {
             currentCoroutineContext().ensureActive()
@@ -79,12 +84,15 @@ class UpdateCheckWorker(
             }
 
             try {
-                val found = when (managed.source) {
+                val queuedId = when (managed.source) {
                     ManagedSource.RUSTORE -> checkRuStoreUpdate(managed, local.versionCode)
                     ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionCode)
-                    null -> false
+                    null -> null
                 }
-                if (found) updatesFound++
+                if (queuedId != null) {
+                    updatesFound++
+                    queuedThisRun += queuedId
+                }
             } catch (c: CancellationException) {
                 throw c
             } catch (error: Throwable) {
@@ -101,10 +109,18 @@ class UpdateCheckWorker(
             runCatching {
                 val status = SelfUpdateChecker(applicationContext).check()
                 if (status is SelfUpdateStatus.Available) {
-                    SelfUpdateChecker(applicationContext).enqueue(status.release)
+                    queuedThisRun += SelfUpdateChecker(applicationContext).enqueue(status.release)
                     updatesFound++
                 }
             }
+        }
+
+        // Root makes an update possible without the user present: the download can run
+        // unattended and UpdateDownloadWorker installs it silently. The policy for this was
+        // written and tested but never called, so both switches did nothing on their own and
+        // every update still waited behind a button press.
+        if (queuedThisRun.isNotEmpty()) {
+            startUnattendedDownloads(settings, queuedThisRun)
         }
 
         // The Updates screen has always had a "last check" card, and StoreRepository has always had
@@ -142,36 +158,35 @@ class UpdateCheckWorker(
         }
     }
 
-    /** Returns true when an update was queued for this app. */
-    private suspend fun checkRuStoreUpdate(managed: ManagedApp, localVersionCode: Long): Boolean {
+    /** Returns the queue id when an update was queued for this app, or null when it is current. */
+    private suspend fun checkRuStoreUpdate(managed: ManagedApp, localVersionCode: Long): String? {
         val app = runCatching { ruStoreSource.details(managed.packageName, includeReviews = false) }
-            .getOrNull() ?: return false
-        if (app.versionCode <= localVersionCode) return false
-        queueRepository.enqueueAvailableUpdate(
+            .getOrNull() ?: return null
+        if (app.versionCode <= localVersionCode) return null
+        return queueRepository.enqueueAvailableUpdate(
             packageName = managed.packageName,
             label = app.name.ifBlank { managed.label },
             versionName = app.versionName,
             versionCode = app.versionCode,
             source = ManagedSource.RUSTORE
-        )
-        return true
+        ).id
     }
 
-    /** Returns true when an update was queued for this app. */
-    private suspend fun checkGitHubUpdate(managed: ManagedApp, localVersionCode: Long): Boolean {
-        val repo = managed.githubRepository ?: return false
+    /** Returns the queue id when an update was queued for this app, or null when it is current. */
+    private suspend fun checkGitHubUpdate(managed: ManagedApp, localVersionCode: Long): String? {
+        val repo = managed.githubRepository ?: return null
         val assetPattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
         // Skips rolling nightly tags and releases with no installable APK; see GitHubReleasePolicy.
         val latest = GitHubReleasePolicy.selectRelease(gitHubSource.releases(repo), assetPattern)
-            ?: return false
+            ?: return null
 
         // A GitHub release id is not a version code. Comparing the two — a nine-digit release id
         // against an app's versionCode — was always "newer", so every check re-offered an update
         // for an app that was already current. The installed release is tracked instead.
         val installedReleaseId = managed.githubReleaseId
-        if (installedReleaseId != null && latest.id == installedReleaseId) return false
+        if (installedReleaseId != null && latest.id == installedReleaseId) return null
 
-        queueRepository.enqueueAvailableUpdate(
+        return queueRepository.enqueueAvailableUpdate(
             packageName = managed.packageName,
             label = managed.label,
             versionName = latest.tagName.removePrefix("v"),
@@ -180,8 +195,26 @@ class UpdateCheckWorker(
             source = ManagedSource.GITHUB,
             githubRepository = repo,
             githubReleaseId = latest.id
-        )
-        return true
+        ).id
+    }
+
+    /**
+     * Downloads what was just found, without the user present.
+     *
+     * Only with root: without it the install still needs the Android confirmation dialog, so
+     * downloading ahead of time would fill storage with files that cannot be installed unattended
+     * anyway. Checking for root runs a shell command, so it happens once and only when the setting
+     * asks for it.
+     */
+    private suspend fun startUnattendedDownloads(settings: StoreSettings, queueIds: List<String>) {
+        if (!settings.rootBackgroundDownloadsEnabled) return
+        val rootAvailable = runCatching { RootInstaller().isAvailable() }.getOrDefault(false)
+        if (!UpdateCheckPolicy.shouldEnqueueDownload(settings.rootBackgroundDownloadsEnabled, rootAvailable)) {
+            return
+        }
+        queueIds.forEach { id ->
+            runCatching { TransferDispatcher.dispatchUnattended(applicationContext, id, settings) }
+        }
     }
 
     companion object {

@@ -48,6 +48,21 @@ instead of an exception message.
 dialog. On a rooted device silent installation is available, but it is off unless you turn it on and
 root is actually granted.
 
+**Fully automatic updates on a rooted device.** Two switches in Settings close the loop with no
+interaction at all: the periodic check finds an update, downloads it in the background straight
+away, and installs it silently.
+
+- *Download updates in background (root)* — a discovered update starts downloading by itself. The
+  download honours the network you chose: with "Wi-Fi only" it waits for Wi-Fi rather than spending
+  mobile data, and with "only while charging" it waits for the charger.
+- *Silent root install* — the downloaded and verified update is installed through `pm install` as
+  root, without the system dialog.
+
+The checks are unchanged: package name, version code, APK-set completeness and signature match. A
+silent install weakens none of them — an APK with a different signature is refused here too. If root
+is not actually granted, both switches do nothing: without root a silent install is impossible, and
+downloading ahead of time would be pointless because the install needs confirmation anyway.
+
 **Notifications that stay quiet.** At most one notification per category. Twenty updates produce one
 entry listing them, not twenty; a repeated background check that finds the same updates re-posts
 silently instead of alerting again; and quiet hours keep everything soundless inside a window you

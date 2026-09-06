@@ -39,7 +39,7 @@ class UpdateWorkSchedulerTest {
     fun enqueuesManualCheckSuccessfully() {
         UpdateWorkScheduler.checkPackageNow(context, settings, "dev.wystore.testapp")
         val workInfos = WorkManager.getInstance(context)
-            .getWorkInfosForUniqueWork(UpdateWorkScheduler.manualCheckWork("dev.wystore.testapp"))
+            .getWorkInfosForUniqueWork(UpdateWorkScheduler.MANUAL_CHECK_WORK)
             .get()
         assertNotNull(workInfos)
     }

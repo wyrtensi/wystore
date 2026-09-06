@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
+import dev.wystore.updates.UpdateScheduler
 import org.junit.Test
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -69,17 +70,17 @@ class UpdateCheckPolicyTest {
         assertFalse(eligiblePeriodic)
     }
 
+    /**
+     * A manual check used to get a unique work name per target package. Nothing could observe that:
+     * the ViewModel registers one observer for one fixed name, and it was observing a third name
+     * that nothing enqueued, so the progress card never left "queued" and the check button — which
+     * is disabled while a check is active — stayed dead until the app restarted.
+     */
     @Test
-    fun twoDifferentPackageChecksReceiveDifferentUniqueNames() {
-        val name1 = UpdateWorkScheduler.manualCheckWork("app.first")
-        val name2 = UpdateWorkScheduler.manualCheckWork("app.second")
-        val nameAll = UpdateWorkScheduler.manualCheckWork(null)
-
-        assertNotEquals(name1, name2)
-        assertNotEquals(name1, nameAll)
-        assertEquals("wystore:updates:manual:app.first", name1)
-        assertEquals("wystore:updates:manual:app.second", name2)
-        assertEquals("wystore:updates:manual:all", nameAll)
+    fun everyManualCheckSharesOneObservableName() {
+        assertEquals("wystore:updates:manual", UpdateWorkScheduler.MANUAL_CHECK_WORK)
+        assertEquals(UpdateWorkScheduler.MANUAL_CHECK_WORK, UpdateScheduler.MANUAL_CHECK_WORK_NAME)
+        assertNotEquals(UpdateWorkScheduler.MANUAL_CHECK_WORK, UpdateWorkScheduler.PERIODIC_CHECK_WORK)
         assertEquals("wystore:updates:periodic", UpdateWorkScheduler.PERIODIC_CHECK_WORK)
     }
 

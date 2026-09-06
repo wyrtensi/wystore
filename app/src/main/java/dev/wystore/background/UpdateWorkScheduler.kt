@@ -51,8 +51,16 @@ object UpdateCheckPolicy {
 object UpdateWorkScheduler {
     const val PERIODIC_CHECK_WORK = "wystore:updates:periodic"
 
-    fun manualCheckWork(packageName: String?): String =
-        "wystore:updates:manual:${packageName ?: "all"}"
+    /**
+     * One name for every manual check.
+     *
+     * It used to carry the package, so each target produced a different unique work name — and the
+     * ViewModel, which can only observe a fixed name, observed a third one that nothing enqueued.
+     * The progress card therefore never left "queued" and the check button, disabled while a check
+     * is active, stayed dead until the app was restarted. One name also matches the UI: there is
+     * one button and one progress card, so one manual check at a time.
+     */
+    const val MANUAL_CHECK_WORK = "wystore:updates:manual"
 
     /**
      * Schedules — or unschedules — the recurring check.
@@ -106,7 +114,7 @@ object UpdateWorkScheduler {
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(
-            manualCheckWork(packageName),
+            MANUAL_CHECK_WORK,
             ExistingWorkPolicy.REPLACE,
             request
         )

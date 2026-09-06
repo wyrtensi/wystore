@@ -50,10 +50,11 @@ class SelfUpdateChecker(
     }
 
     /**
-     * Puts the release in the ordinary download queue. The install itself replaces this process,
-     * so nothing here can run afterwards; everything that matters is already persisted.
+     * Puts the release in the ordinary download queue and returns its queue id. The install itself
+     * replaces this process, so nothing here can run afterwards; everything that matters is already
+     * persisted.
      */
-    suspend fun enqueue(release: GitHubRelease) {
+    suspend fun enqueue(release: GitHubRelease): String =
         queueRepository.enqueueAvailableUpdate(
             packageName = context.packageName,
             label = APP_LABEL,
@@ -63,8 +64,7 @@ class SelfUpdateChecker(
             source = ManagedSource.GITHUB,
             githubRepository = REPOSITORY,
             githubReleaseId = release.id
-        )
-    }
+        ).id
 
     companion object {
         const val APP_LABEL = "Wy Store"

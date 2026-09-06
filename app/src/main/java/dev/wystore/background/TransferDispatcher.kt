@@ -13,6 +13,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
+import dev.wystore.data.StoreSettings
 
 object TransferDispatcher {
     enum class TransferMechanism {
@@ -47,6 +48,10 @@ object TransferDispatcher {
         }
     }
 
+    /**
+     * Starts a transfer the user is waiting for. Runs as soon as there is any connection, because
+     * the user pressed a button and is watching.
+     */
     fun dispatch(context: Context, queueId: String) {
         val mechanism = determineMechanism()
         if (mechanism == TransferMechanism.USER_INITIATED_JOB) {
@@ -56,19 +61,48 @@ object TransferDispatcher {
         enqueueWorkManagerForeground(context, queueId)
     }
 
-    fun enqueueWorkManagerForeground(context: Context, queueId: String) {
+    /**
+     * Starts a transfer nobody asked for, right now.
+     *
+     * Unattended downloads have to obey the settings that a user-initiated one may ignore: an
+     * automatic update must not spend mobile data when the user asked for Wi-Fi only, and it can
+     * wait for the charger. It also never uses the user-initiated job mechanism, which is reserved
+     * for transfers the user actually initiated.
+     */
+    fun dispatchUnattended(context: Context, queueId: String, settings: StoreSettings) {
+        val network = if (settings.allowMobileData || !settings.wifiOnly) {
+            NetworkType.CONNECTED
+        } else {
+            NetworkType.UNMETERED
+        }
+        enqueueWorkManagerForeground(
+            context = context,
+            queueId = queueId,
+            constraints = Constraints.Builder()
+                .setRequiredNetworkType(network)
+                .setRequiresCharging(settings.requiresCharging)
+                .setRequiresBatteryNotLow(true)
+                .build(),
+            expedited = false
+        )
+    }
+
+    fun enqueueWorkManagerForeground(
+        context: Context,
+        queueId: String,
+        constraints: Constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build(),
+        expedited: Boolean = true
+    ) {
         val request = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
             .setInputData(
                 Data.Builder()
                     .putString(UpdateDownloadWorker.KEY_QUEUE_ID, queueId)
                     .build()
             )
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setConstraints(constraints)
+            .apply { if (expedited) setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST) }
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(

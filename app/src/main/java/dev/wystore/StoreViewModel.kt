@@ -137,6 +137,20 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     val queueCoordinator = dev.wystore.updates.QueueCoordinator(application)
     val offeredNext = queueCoordinator.offeredNext
     private val workManager = WorkManager.getInstance(application)
+
+    /**
+     * Held as fields on purpose.
+     *
+     * `getWorkInfosForUniqueWorkLiveData` builds a new LiveData on every call. Observing the
+     * result of an inline call left nothing holding it, so it could be collected together with its
+     * observer — and `onCleared` then removed the observer from a third, freshly built instance
+     * that never had it. In practice the check card stayed on "queued" forever and the check
+     * button, disabled while a check is active, never came back.
+     */
+    private val manualCheckWorkInfos =
+        workManager.getWorkInfosForUniqueWorkLiveData(UpdateScheduler.MANUAL_CHECK_WORK_NAME)
+    private val ruStoreCompatibilityWorkInfos =
+        workManager.getWorkInfosForUniqueWorkLiveData(RuStoreCompatibilityScheduler.WORK_NAME)
     private var lastUpdateCheckTerminalId: UUID? = null
     private val ruStoreCompatibilityObserver = Observer<List<WorkInfo>> { infos ->
         val info = infos.lastOrNull() ?: return@Observer
@@ -164,7 +178,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     private val updateCheckObserver = Observer<List<WorkInfo>> { infos ->
-        val info = infos.lastOrNull() ?: return@Observer
+        // REPLACE leaves the superseded runs in this list, so a run still in flight is what the UI
+        // should follow; the newest finished one is the fallback.
+        val info = infos.firstOrNull { !it.state.isFinished } ?: infos.lastOrNull() ?: return@Observer
         val progress = info.progress
         val terminal = info.state in setOf(WorkInfo.State.SUCCEEDED, WorkInfo.State.FAILED, WorkInfo.State.CANCELLED)
         val status = progress.getString("status") ?: when (info.state) {
@@ -258,14 +274,14 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         refreshLibrary()
         _state.update { it.copy(githubRepositories = repository.githubRepositories(), ruStoreCompatibility = repository.ruStoreCompatibility()) }
         UpdateScheduler.schedule(application, repository.settings())
-        workManager.getWorkInfosForUniqueWorkLiveData(RuStoreCompatibilityScheduler.WORK_NAME).observeForever(ruStoreCompatibilityObserver)
-        workManager.getWorkInfosForUniqueWorkLiveData(UpdateScheduler.MANUAL_CHECK_WORK_NAME).observeForever(updateCheckObserver)
+        ruStoreCompatibilityWorkInfos.observeForever(ruStoreCompatibilityObserver)
+        manualCheckWorkInfos.observeForever(updateCheckObserver)
         if (repository.settings().backgroundRootUpdates) checkRoot()
     }
 
     override fun onCleared() {
-        workManager.getWorkInfosForUniqueWorkLiveData(RuStoreCompatibilityScheduler.WORK_NAME).removeObserver(ruStoreCompatibilityObserver)
-        workManager.getWorkInfosForUniqueWorkLiveData(UpdateScheduler.MANUAL_CHECK_WORK_NAME).removeObserver(updateCheckObserver)
+        ruStoreCompatibilityWorkInfos.removeObserver(ruStoreCompatibilityObserver)
+        manualCheckWorkInfos.removeObserver(updateCheckObserver)
         super.onCleared()
     }
 

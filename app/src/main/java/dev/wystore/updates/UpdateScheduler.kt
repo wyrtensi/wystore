@@ -6,7 +6,8 @@ import dev.wystore.data.StoreRepository
 import dev.wystore.data.StoreSettings
 
 object UpdateScheduler {
-    const val MANUAL_CHECK_WORK_NAME = "wy_store_manual_update_check"
+    /** The name the work is actually enqueued under, so an observer can find it. */
+    const val MANUAL_CHECK_WORK_NAME = UpdateWorkScheduler.MANUAL_CHECK_WORK
 
     /**
      * (Re)schedules the recurring check. The managed-app count is read here rather than passed in
