@@ -118,6 +118,16 @@ fun AboutSettingsScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(stringResource(R.string.about_source)) }
+                    OutlinedButton(
+                        onClick = {
+                            runCatching {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, SelfUpdateChecker.DISCLAIMER_URL.toUri())
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(stringResource(R.string.about_disclaimer_link)) }
                 }
             }
 

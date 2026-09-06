@@ -6,7 +6,7 @@
 
 **An Android store client with no account, no backend and no telemetry**
 
-[Русский](README.md) · [Releases](https://github.com/wyrtensi/wystore/releases) · [Licence](LICENSE)
+[Русский](README.md) · [Releases](https://github.com/wyrtensi/wystore/releases) · [Project statement](DISCLAIMER.md) · [Licence](LICENSE)
 
 </div>
 
@@ -74,6 +74,11 @@ the same queue, with the same signature check, as any other app.
 
 Wy Store verifies distribution. It does not review the applications themselves, and every install
 page names the source so responsibility sits with it.
+
+The project hosts nothing: it has no servers, and APKs are downloaded straight from `rustore.ru` and
+`github.com` using links those services publish themselves. The client identifies itself as
+`WyStore/<version>` rather than posing as the official one, has no account and never creates a
+RuStore `User-Token`. Details and the statement of independence are in [DISCLAIMER.md](DISCLAIMER.md).
 
 ## Source limitations
 

@@ -70,5 +70,6 @@ class SelfUpdateChecker(
         const val APP_LABEL = "Wy Store"
         val REPOSITORY = GitHubRepository(owner = "wyrtensi", name = "wystore")
         const val PROJECT_URL = "https://github.com/wyrtensi/wystore"
+        const val DISCLAIMER_URL = "https://github.com/wyrtensi/wystore/blob/main/DISCLAIMER.md"
     }
 }

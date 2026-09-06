@@ -1,5 +1,6 @@
 package dev.wystore.data
 
+import dev.wystore.BuildConfig
 import android.content.Context
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -24,7 +25,7 @@ class GitHubReleaseSource(context: Context? = null) {
             .url("https://api.github.com/repos/${repository.owner}/${repository.name}/releases?per_page=30")
             .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
-            .header("User-Agent", "WyStore/1.0")
+            .header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}")
             .build()
         val root = client.newCall(request).execute().use { response ->
             when (response.code) {
@@ -47,7 +48,7 @@ class GitHubReleaseSource(context: Context? = null) {
             .url("https://api.github.com/repos/${repository.owner}/${repository.name}")
             .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
-            .header("User-Agent", "WyStore/1.0")
+            .header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}")
             .build()
         val root = client.newCall(request).execute().use { response ->
             when (response.code) {
@@ -89,7 +90,7 @@ class GitHubReleaseSource(context: Context? = null) {
             .url("https://api.github.com/repos/${repository.owner}/${repository.name}/contents/$path")
             .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28")
-            .header("User-Agent", "WyStore/1.0")
+            .header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}")
             .build()
         return client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) return emptyList()

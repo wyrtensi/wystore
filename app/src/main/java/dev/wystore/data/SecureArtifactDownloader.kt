@@ -1,5 +1,6 @@
 package dev.wystore.data
 
+import dev.wystore.BuildConfig
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -151,7 +152,7 @@ class SecureArtifactDownloader(context: Context? = null) {
                 val response = redirectAwareClient
                     .newCall(
                         Request.Builder().url(url)
-                            .header("User-Agent", "WyStore/1.0")
+                            .header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}")
                             .apply { if (resumeFrom > 0L) header("Range", "bytes=$resumeFrom-") }
                             .build()
                     )

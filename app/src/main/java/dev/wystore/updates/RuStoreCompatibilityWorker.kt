@@ -1,5 +1,6 @@
 package dev.wystore.updates
 
+import dev.wystore.BuildConfig
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -77,7 +78,7 @@ class RuStoreCompatibilityWorker(appContext: Context, parameters: WorkerParamete
         val destination = File(directory, "rustore.apk")
         var url = DOWNLOAD_URL
         repeat(6) {
-            val response = client.newCall(Request.Builder().url(url).header("User-Agent", "WyStore/1.0").build()).execute()
+            val response = client.newCall(Request.Builder().url(url).header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}").build()).execute()
             if (response.isRedirect) {
                 val next = response.header("Location") ?: error("Redirect without a Location header")
                 response.close()

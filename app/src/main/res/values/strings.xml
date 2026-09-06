@@ -575,4 +575,5 @@
     <string name="check_finished_with_problems">Check finished, some apps could not be reached</string>
     <string name="queue_download_now">Download now</string>
     <string name="about_independent">Wy Store is an independent alternative client for the RuStore catalogue and for GitHub releases. It is not affiliated with RuStore, not endorsed by it, and does not act on its behalf.</string>
+    <string name="about_disclaimer_link">Project statement and independence</string>
 </resources>
