@@ -6,7 +6,15 @@
 
 **Магазин приложений для Android без аккаунта, без сервера и без телеметрии**
 
-[English](README.en.md) · [Релизы](https://github.com/wyrtensi/wystore/releases) · [Заявление о проекте](DISCLAIMER.md) · [Лицензия](LICENSE)
+[![Скачать APK](https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C%20APK-0B57D0?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest)
+
+[![Последний релиз](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%D1%80%D0%B5%D0%BB%D0%B8%D0%B7&color=0B57D0)](https://github.com/wyrtensi/wystore/releases/latest)
+[![Сборка](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%D1%81%D0%B1%D0%BE%D1%80%D0%BA%D0%B0)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
+[![Загрузок](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BE%D0%BA)](https://github.com/wyrtensi/wystore/releases)
+[![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#требования)
+[![Лицензия MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=%D0%BB%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F)](LICENSE)
+
+[English](README.en.md) · [Все релизы](https://github.com/wyrtensi/wystore/releases) · [Заявление о проекте](DISCLAIMER.md) · [Лицензия](LICENSE)
 
 </div>
 
@@ -25,6 +33,20 @@ Wy Store сделан для тех, у кого привычные магази
 | Главная | Страница приложения | Библиотека |
 |---|---|---|
 | ![Главная](docs/screenshots/home.png) | ![Страница приложения](docs/screenshots/app-page.png) | ![Библиотека](docs/screenshots/library.png) |
+
+## Установка
+
+1. Скачайте `wystore-<версия>.apk` из [последнего релиза](https://github.com/wyrtensi/wystore/releases/latest).
+2. Откройте файл. Android один раз спросит разрешение на установку из этого источника.
+3. Дальше Wy Store обновляет себя сам: он следит за релизами в этом репозитории и ставит их через
+   ту же проверку подписи, что и любое другое приложение.
+
+APK подписан постоянным ключом, отпечаток которого печатает CI при каждой публикации. Проверить
+скачанный файл можно так:
+
+```bash
+apksigner verify --print-certs wystore-<версия>.apk
+```
 
 ## Что умеет
 

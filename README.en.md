@@ -6,7 +6,15 @@
 
 **An Android store client with no account, no backend and no telemetry**
 
-[Русский](README.md) · [Releases](https://github.com/wyrtensi/wystore/releases) · [Project statement](DISCLAIMER.md) · [Licence](LICENSE)
+[![Download APK](https://img.shields.io/badge/Download%20APK-0B57D0?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest)
+
+[![Latest release](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=release&color=0B57D0)](https://github.com/wyrtensi/wystore/releases/latest)
+[![Build](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=build)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
+[![Downloads](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&label=downloads)](https://github.com/wyrtensi/wystore/releases)
+[![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#requirements)
+[![Licence MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=licence)](LICENSE)
+
+[Русский](README.md) · [All releases](https://github.com/wyrtensi/wystore/releases) · [Project statement](DISCLAIMER.md) · [Licence](LICENSE)
 
 </div>
 
@@ -26,6 +34,20 @@ displays is in Russian; the interface itself ships in Russian and English.
 | Home | App page | Library |
 |---|---|---|
 | ![Home](docs/screenshots/home.png) | ![App page](docs/screenshots/app-page.png) | ![Library](docs/screenshots/library.png) |
+
+## Install
+
+1. Download `wystore-<version>.apk` from the [latest release](https://github.com/wyrtensi/wystore/releases/latest).
+2. Open the file. Android asks once for permission to install from this source.
+3. After that Wy Store updates itself: it watches the releases in this repository and installs them
+   through the same signature check as any other app.
+
+The APK is signed with a permanent key whose fingerprint CI prints on every publish. To check the
+file you downloaded:
+
+```bash
+apksigner verify --print-certs wystore-<version>.apk
+```
 
 ## What it does
 
