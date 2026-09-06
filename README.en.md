@@ -106,12 +106,33 @@ Releases are signed with a fixed key. Because the signature check applies to Wy 
 you compiled locally cannot be updated in place by a published release, and the reverse is also true
 — the two are different applications as far as Android is concerned.
 
-Signing material is read from `keystore.properties` at the repository root (gitignored) or from the
-environment variables `WYSTORE_KEYSTORE`, `WYSTORE_KEYSTORE_PASSWORD`, `WYSTORE_KEY_ALIAS` and
-`WYSTORE_KEY_PASSWORD`. Without either, the release build stays unsigned rather than silently falling
-back to the debug key. See [keystore.properties.example](keystore.properties.example).
+Create the key (keytool asks for the password interactively, so it never appears in a command):
 
-For KernelSU root setup, see [KERNELSU_ROOT_RU.md](KERNELSU_ROOT_RU.md) (in Russian).
+```bash
+keytool -genkeypair -v -keystore outputs/wystore-release.jks -alias wystore -keyalg RSA -keysize 4096 -validity 10000
+```
+
+Signing material is read from `keystore.properties` at the repository root (gitignored; template in
+[keystore.properties.example](keystore.properties.example)) or from the environment variables
+`WYSTORE_KEYSTORE`, `WYSTORE_KEYSTORE_PASSWORD`, `WYSTORE_KEY_ALIAS` and `WYSTORE_KEY_PASSWORD`.
+All four are required: with any of them missing the release build stays unsigned rather than
+silently falling back to the debug key.
+
+### Publishing
+
+CI builds a release from a tag, see [.github/workflows/release.yml](.github/workflows/release.yml):
+
+```bash
+git tag v0.1.12 && git push origin v0.1.12
+```
+
+That needs `WYSTORE_KEYSTORE_BASE64` (the keystore file, base64-encoded), `WYSTORE_KEYSTORE_PASSWORD`,
+`WYSTORE_KEY_ALIAS` and `WYSTORE_KEY_PASSWORD` in the repository secrets. The workflow verifies that
+the APK really is signed and fails if it is not, so a build nobody could install never gets
+published.
+
+A signing key held in CI secrets is reachable by anyone who can change a workflow in this
+repository. If that is not acceptable, build the release locally and upload the APK by hand.
 
 ## Project layout
 

@@ -107,12 +107,33 @@ Debug-APK появится в `app/build/outputs/apk/debug/app-debug.apk`.
 собранная вами локально сборка не обновится опубликованным релизом, и наоборот: для Android это
 разные приложения.
 
-Данные для подписи берутся из `keystore.properties` в корне репозитория (файл в `.gitignore`) или из
-переменных окружения `WYSTORE_KEYSTORE`, `WYSTORE_KEYSTORE_PASSWORD`, `WYSTORE_KEY_ALIAS`,
-`WYSTORE_KEY_PASSWORD`. Без них release-сборка остаётся неподписанной, а не подписывается debug-ключом
-молча. Шаблон — в [keystore.properties.example](keystore.properties.example).
+Создать ключ (пароль `keytool` спросит сам, в команде его писать не нужно):
 
-Про настройку root на KernelSU — [KERNELSU_ROOT_RU.md](KERNELSU_ROOT_RU.md).
+```bash
+keytool -genkeypair -v -keystore outputs/wystore-release.jks -alias wystore -keyalg RSA -keysize 4096 -validity 10000
+```
+
+Данные для подписи берутся из `keystore.properties` в корне репозитория (файл в `.gitignore`,
+шаблон — [keystore.properties.example](keystore.properties.example)) или из переменных окружения
+`WYSTORE_KEYSTORE`, `WYSTORE_KEYSTORE_PASSWORD`, `WYSTORE_KEY_ALIAS`, `WYSTORE_KEY_PASSWORD`.
+Нужны все четыре значения: при нехватке любого release-сборка остаётся неподписанной, а не
+подписывается debug-ключом молча.
+
+### Публикация
+
+Релиз собирает CI по тегу — [.github/workflows/release.yml](.github/workflows/release.yml):
+
+```bash
+git tag v0.1.12 && git push origin v0.1.12
+```
+
+Для этого в секретах репозитория должны лежать `WYSTORE_KEYSTORE_BASE64` (файл ключа в base64),
+`WYSTORE_KEYSTORE_PASSWORD`, `WYSTORE_KEY_ALIAS` и `WYSTORE_KEY_PASSWORD`. Workflow проверяет, что
+APK действительно подписан, и падает, если нет, — чтобы не выложить сборку, которая ни у кого не
+установится.
+
+Ключ подписи в секретах CI доступен любому, кто может изменить workflow в этом репозитории. Если это
+неприемлемо, собирайте релиз локально и загружайте APK вручную.
 
 ## Структура проекта
 

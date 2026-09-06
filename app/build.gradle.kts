@@ -38,12 +38,19 @@ android {
 
     signingConfigs {
         create("release") {
-            val storePath = signingValue("storeFile", "WYSTORE_KEYSTORE")
-            if (storePath != null) {
-                storeFile = file(storePath)
-                storePassword = signingValue("storePassword", "WYSTORE_KEYSTORE_PASSWORD")
-                keyAlias = signingValue("keyAlias", "WYSTORE_KEY_ALIAS")
-                keyPassword = signingValue("keyPassword", "WYSTORE_KEY_PASSWORD")
+            // All four values or none: a config with a keystore and a blank password fails the
+            // build at signing time instead of leaving an honestly unsigned APK.
+            val storePath = signingValue("storeFile", "WYSTORE_KEYSTORE")?.takeIf { it.isNotBlank() }
+            val store = signingValue("storePassword", "WYSTORE_KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() }
+            val alias = signingValue("keyAlias", "WYSTORE_KEY_ALIAS")?.takeIf { it.isNotBlank() }
+            val key = signingValue("keyPassword", "WYSTORE_KEY_PASSWORD")?.takeIf { it.isNotBlank() }
+            if (storePath != null && store != null && alias != null && key != null) {
+                // Resolved against the repository root, not the module: `file()` here would read
+                // a relative path as app/outputs/... and quietly find nothing.
+                storeFile = rootProject.file(storePath)
+                storePassword = store
+                keyAlias = alias
+                keyPassword = key
             }
         }
     }
