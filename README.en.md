@@ -33,7 +33,7 @@ displays is in Russian; the interface itself ships in Russian and English.
 
 | Home | App page | Library |
 |---|---|---|
-| ![Home](docs/screenshots/home.png) | ![App page](docs/screenshots/app-page.png) | ![Library](docs/screenshots/library.png) |
+| ![Home](docs/screenshots/en/home.png) | ![App page](docs/screenshots/en/app-page.png) | ![Library](docs/screenshots/en/library.png) |
 
 ## Install
 
