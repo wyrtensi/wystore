@@ -98,28 +98,6 @@ class NotificationCoordinator(
         safeNotify(NOTIFICATION_ID_TRANSFER, notification)
     }
 
-    fun showTransferProgress(
-        title: String,
-        text: String,
-        progress: DownloadProgress? = null
-    ) {
-        val percent = progress?.let { (it.fraction * 100).toInt().coerceIn(0, 100) }
-        val detail = progress?.let { " · " + speedText(it.bytesPerSecond) + etaSuffix(it.etaSeconds) }.orEmpty()
-        val content = percent?.let { "$text: $it%$detail" } ?: text
-
-        val notification = NotificationCompat.Builder(appContext, CHANNEL_TRANSFERS)
-            .setSmallIcon(R.drawable.ic_stat_wystore)
-            .setContentTitle(title)
-            .setContentText(content)
-            .setOngoing(true)
-            .setSilent(true)
-            .setOnlyAlertOnce(true)
-            .apply { if (percent != null) setProgress(100, percent, false) }
-            .build()
-
-        safeNotify(NOTIFICATION_ID_TRANSFER, notification)
-    }
-
     /**
      * The single "ready to install" entry.
      *

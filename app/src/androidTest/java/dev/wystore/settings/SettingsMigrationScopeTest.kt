@@ -40,12 +40,20 @@ class SettingsMigrationScopeTest {
         savedRepos = repository.githubRepositories()
     }
 
+    /**
+     * Removes only what this test added.
+     *
+     * The previous version wiped every managed app and every saved repository and then restored the
+     * list captured in [setUp]. That is a destructive round trip against the user's real
+     * preferences: a process death between the two halves — which an instrumented run can easily
+     * cause — left the device with an empty library and no way to tell that a test did it.
+     */
     @After
     fun tearDown() {
-        repository.managedApps().forEach { repository.removeManaged(it.packageName) }
-        savedApps.forEach { repository.saveManaged(it) }
-        repository.githubRepositories().forEach { repository.removeGithubRepository(it) }
-        savedRepos.forEach { repository.saveGithubRepository(it) }
+        repository.removeManaged(PROBE_PACKAGE)
+        repository.githubRepositories()
+            .filter { it.name == PROBE_REPOSITORY && it !in savedRepos }
+            .forEach { repository.removeGithubRepository(it) }
     }
 
     @Test
@@ -80,7 +88,7 @@ class SettingsMigrationScopeTest {
                 githubReleaseId = 42L
             )
         )
-        repository.saveGithubRepository(GitHubRepository("probe-owner", "probe-repo"))
+        repository.saveGithubRepository(GitHubRepository("probe-owner", PROBE_REPOSITORY))
 
         // Reading settings is what triggers any pending DataStore migration.
         SettingsRepository(context).currentSettings()
@@ -91,7 +99,7 @@ class SettingsMigrationScopeTest {
         )
         assertTrue(
             "saved GitHub repositories must not be migrated away",
-            StoreRepository(context).githubRepositories().any { it.name == "probe-repo" }
+            StoreRepository(context).githubRepositories().any { it.name == PROBE_REPOSITORY }
         )
     }
 
@@ -105,5 +113,6 @@ class SettingsMigrationScopeTest {
 
     private companion object {
         const val PROBE_PACKAGE = "dev.wystore.migration.probe"
+        const val PROBE_REPOSITORY = "probe-repo"
     }
 }

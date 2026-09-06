@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -14,6 +15,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -23,10 +26,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.wystore.R
+import dev.wystore.ui.components.WyCard
+import dev.wystore.ui.components.ruStoreTaskLabel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import dev.wystore.RuStoreCompatibilityTask
@@ -81,11 +87,54 @@ fun SourceSettingsScreen(
             Text(stringResource(R.string.sources_api_code, ruStoreCompatibility.apiVersionCode), style = MaterialTheme.typography.titleSmall)
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onCheckRuStore, modifier = Modifier.weight(1f)) {
+                OutlinedButton(
+                    onClick = onCheckRuStore,
+                    enabled = ruStoreCompatibilityTask == null,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(stringResource(R.string.sources_match))
                 }
                 OutlinedButton(onClick = onManualRuStoreCode, modifier = Modifier.weight(1f)) {
                     Text(stringResource(R.string.sources_manual))
+                }
+            }
+
+            // The task state was passed into this screen and never rendered: pressing "match"
+            // looked like it did nothing until the API code silently changed some seconds later.
+            ruStoreCompatibilityTask?.let { task ->
+                WyCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                ruStoreTaskLabel(task.status),
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            if (task.status !in setOf("COMPLETE", "FAILED")) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                        }
+                        task.detail?.let {
+                            Text(it, style = MaterialTheme.typography.bodySmall)
+                        }
+                        task.progress?.takeIf { it.totalBytes > 0 }?.let { progress ->
+                            LinearProgressIndicator(
+                                progress = { progress.fraction.coerceIn(0f, 1f) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.extraSmall)
+                            )
+                        }
+                    }
                 }
             }
 

@@ -572,4 +572,6 @@
     <string name="details_share_subject">%1$s в RuStore</string>
     <string name="details_share_chooser">Поделиться ссылкой на приложение</string>
     <string name="github_share_subject">%1$s на GitHub</string>
+    <string name="check_finished_with_problems">Проверка завершена, часть приложений опросить не удалось</string>
+    <string name="queue_download_now">Скачать сейчас</string>
 </resources>

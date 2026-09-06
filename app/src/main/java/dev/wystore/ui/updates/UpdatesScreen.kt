@@ -64,6 +64,7 @@ fun UpdatesScreen(
     onQueueRetry: (String) -> Unit = {},
     onQueueCancel: (String) -> Unit = {},
     onQueueSkip: (String) -> Unit = {},
+    onQueueDownload: (String) -> Unit = {},
     onStartQueue: () -> Unit = {}
 ) {
     val installedByPackage = remember(installed) { installed.associateBy { it.packageName } }
@@ -138,7 +139,8 @@ fun UpdatesScreen(
                         item = item,
                         onRetry = { onQueueRetry(item.id) },
                         onCancel = { onQueueCancel(item.id) },
-                        onSkip = { onQueueSkip(item.id) }
+                        onSkip = { onQueueSkip(item.id) },
+                        onDownload = { onQueueDownload(item.id) }
                     )
                 }
             }
@@ -266,7 +268,8 @@ fun QueueItemCard(
     item: InstallQueueItem,
     onRetry: () -> Unit,
     onCancel: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
+    onDownload: () -> Unit = {}
 ) {
     val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED
     val failed = item.status == InstallQueueStatus.FAILED
@@ -301,12 +304,20 @@ fun QueueItemCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                if (stopped) {
-                    Button(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
-                } else {
-                    TextButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
-                    Spacer(Modifier.width(4.dp))
-                    OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
+                when {
+                    stopped -> Button(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+                    // An item merely waiting in line can be started on its own, rather than only
+                    // by starting the whole queue.
+                    item.status == InstallQueueStatus.QUEUED -> {
+                        TextButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
+                        Spacer(Modifier.width(4.dp))
+                        Button(onClick = onDownload) { Text(stringResource(R.string.queue_download_now)) }
+                    }
+                    else -> {
+                        TextButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
+                        Spacer(Modifier.width(4.dp))
+                        OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
+                    }
                 }
             }
         }

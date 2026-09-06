@@ -572,4 +572,6 @@
     <string name="details_share_subject">%1$s on RuStore</string>
     <string name="details_share_chooser">Share a link to the app</string>
     <string name="github_share_subject">%1$s on GitHub</string>
+    <string name="check_finished_with_problems">Check finished, some apps could not be reached</string>
+    <string name="queue_download_now">Download now</string>
 </resources>

@@ -619,20 +619,42 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { queueCoordinator.download(id) }
     }
 
-    fun queueInstall(id: String, installer: dev.wystore.updates.UserConfirmedInstaller) {
-        viewModelScope.launch { queueCoordinator.install(id, installer) }
-    }
-
     fun queueSkip(id: String) {
         viewModelScope.launch { queueCoordinator.skip(id) }
     }
 
+    /**
+     * Retries a stopped queue item. The consolidated error notification is rebuilt from what is
+     * still failing, so acting on the notification makes it go away instead of leaving a stale
+     * entry in the shade.
+     */
     fun queueRetry(id: String) {
-        viewModelScope.launch { queueCoordinator.retry(id) }
+        viewModelScope.launch {
+            queueCoordinator.retry(id)
+            refreshErrorNotification()
+        }
     }
 
     fun queueCancel(id: String) {
-        viewModelScope.launch { queueCoordinator.cancel(id) }
+        viewModelScope.launch {
+            queueCoordinator.cancel(id)
+            refreshErrorNotification()
+        }
+    }
+
+    /**
+     * Rebuilds the consolidated error notification from what is still failing.
+     *
+     * Acting on a failure inside the app has to make its notification go away; otherwise the shade
+     * keeps advertising a problem the user has already dealt with.
+     */
+    private suspend fun refreshErrorNotification() {
+        withContext(Dispatchers.IO) {
+            runCatching {
+                dev.wystore.background.NotificationCoordinator(getApplication())
+                    .publishErrors(queueRepository.failedSnapshots())
+            }
+        }
     }
 
     fun queueAcceptNext(installer: dev.wystore.updates.UserConfirmedInstaller) {

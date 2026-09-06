@@ -283,6 +283,7 @@ fun WyStoreRoot(
                     onQueueRetry = viewModel::queueRetry,
                     onQueueCancel = viewModel::queueCancel,
                     onQueueSkip = viewModel::queueSkip,
+                    onQueueDownload = viewModel::queueDownload,
                     onStartQueue = viewModel::startQueue
                 )
                 WyStoreDestination.Library -> LibraryScreen(

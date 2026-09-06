@@ -1,119 +1,132 @@
 # Wy Store
 
-An Android store client with no account, no backend and no telemetry. It browses the RuStore
-catalogue, tracks releases of curated GitHub projects, verifies every APK before it is installed,
-and keeps installed apps up to date in the background.
+[English](README.en.md)
 
-Wy Store is built for people who need a working store on a device where the usual ones are not an
-option, and who would rather see what an app is doing than trust that it behaves.
+Магазин приложений для Android без аккаунта, без сервера и без телеметрии. Показывает каталог
+RuStore, следит за релизами отобранных проектов на GitHub, проверяет каждый APK перед установкой и
+обновляет установленное в фоне.
 
-| Home | App page | Library |
+Wy Store сделан для тех, у кого привычные магазины не работают, и кто предпочитает видеть, что
+именно делает приложение, а не верить ему на слово.
+
+| Главная | Страница приложения | Библиотека |
 |---|---|---|
-| ![Home](docs/screenshots/home.png) | ![App page](docs/screenshots/app-page.png) | ![Library](docs/screenshots/library.png) |
+| ![Главная](docs/screenshots/home.png) | ![Страница приложения](docs/screenshots/app-page.png) | ![Библиотека](docs/screenshots/library.png) |
 
-## What it does
+## Что умеет
 
-**Two sources, one list.** RuStore listings and a built-in catalogue of GitHub projects appear
-side by side in search and on the home screen, each labelled with where it came from. Any public
-GitHub repository can be added by URL; releases are picked by policy, so rolling nightly tags and
-releases without an installable APK are skipped rather than offered.
+**Два источника в одном списке.** Карточки RuStore и встроенный каталог проектов с GitHub идут
+рядом в поиске и на главной, каждая подписана источником. Любой публичный репозиторий добавляется
+ссылкой. Релиз выбирается по правилам: катящиеся nightly-теги и релизы без пригодного APK
+пропускаются, а не предлагаются.
 
-**Verification before installation.** Every downloaded APK set is checked for a single base APK, a
-consistent package name and version code across splits, a readable signature, and — when the app is
-already installed — the same signing certificate and a version code that actually moves forward. A
-set that fails any of these is rejected with a reason, not installed.
+**Проверка до установки, а не после.** Каждый скачанный комплект APK проверяется на единственный
+базовый APK, совпадение имени пакета и versionCode во всех split-частях, читаемую подпись, а для
+уже установленного приложения — на тот же сертификат подписи и на versionCode, который
+действительно растёт. Комплект, не прошедший любую из проверок, отклоняется с указанием причины, а
+не устанавливается.
 
-**Updates that survive the process.** The download queue lives in a database, not in memory. A
-download interrupted by a reboot, a killed process or a lost network resumes from where the queue
-says it was, and a failure is recorded with a typed reason instead of an exception message.
+**Очередь, которая переживает перезагрузку.** Очередь загрузок лежит в базе, а не в памяти.
+Загрузка, прерванная перезагрузкой, убитым процессом или потерянной сетью, продолжается с того
+места, где остановилась — по HTTP Range, а не с нуля. Отказ записывается типизированным кодом, а не
+текстом исключения.
 
-**Installation on your terms.** By default every install goes through Android's own confirmation
-dialog. On a rooted device silent installation is available, but it is off unless you turn it on
-and root is actually granted.
+**Установка на ваших условиях.** По умолчанию каждая установка проходит через системный диалог
+Android. На устройстве с root доступна тихая установка, но она выключена, пока вы её не включите и
+root действительно не выдан.
 
-**Notifications that stay quiet.** At most one notification per category. Twenty updates produce
-one entry listing them, not twenty; a repeated background check that finds the same updates
-re-posts silently instead of alerting again; and quiet hours keep everything soundless inside a
-window you choose.
+**Уведомления, которые молчат.** Не больше одного уведомления на категорию. Двадцать обновлений
+дают одну запись со списком, а не двадцать. Повторная фоновая проверка с тем же результатом
+перепубликует запись беззвучно. Тихие часы делают беззвучным всё внутри выбранного окна.
 
-**Background work that respects the battery.** Periodic checks run in a flexible window so the
-system can batch them with other wake-ups, stand down under battery saver, and are not scheduled at
-all while nothing has been adopted.
+**Фон, который щадит батарею.** Периодические проверки идут с гибким окном, чтобы система
+объединяла их с другими пробуждениями, не выполняются в режиме энергосбережения и вовсе не
+планируются, пока не добавлено ни одного приложения.
 
-**It updates itself.** Wy Store checks its own releases in this repository and installs them
-through the same queue, with the same signature check, as any other app.
+**Обновляет сам себя.** Wy Store проверяет собственные релизы в этом репозитории и ставит их через
+ту же очередь и ту же проверку подписи, что и любое другое приложение.
 
-## Security model
+## Модель безопасности
 
-- Installation starts only from an explicit press of an install or update button.
-- Package name, version code, APK-set completeness and signing certificate are checked before every
-  install. A signature that does not match the installed copy is a refusal, never a warning.
-- Downloads are restricted to an allowlist of hosts, with redirects resolved explicitly rather than
-  followed blind.
-- Apps installed by Google Play are left alone until the per-app override is switched on.
-- Verified APKs stay in the app's private storage until the install is confirmed, and are pruned
-  under retention and storage limits you control.
-- No account, no analytics, no advertising SDK, no server of the project's own.
+- Установка начинается только по явному нажатию кнопки установки или обновления.
+- Перед каждой установкой проверяются имя пакета, versionCode, полнота комплекта APK и сертификат
+  подписи. Несовпадение подписи с установленной копией — это отказ, а не предупреждение.
+- Загрузки ограничены списком разрешённых хостов, перенаправления разбираются явно, а не следуются
+  вслепую.
+- Приложения, установленные из Google Play, не трогаются, пока не включён отдельный переключатель
+  для конкретного приложения.
+- Проверенные APK лежат в приватном хранилище приложения до подтверждения установки и удаляются по
+  вашим настройкам срока хранения и лимита места.
+- Ни аккаунта, ни аналитики, ни рекламных SDK, ни собственного сервера у проекта нет.
 
-Wy Store verifies distribution. It does not review the applications themselves, and every install
-page names the source so responsibility sits with it.
+Wy Store проверяет доставку. Он не проверяет сами приложения, и каждая страница установки называет
+источник, чтобы ответственность оставалась за ним.
 
-## Source limitations
+## Ограничения источника
 
-The RuStore endpoints the app uses are public web endpoints, not a supported consumer API. The
-integration is isolated in `RuStoreSource`, and a change upstream surfaces as a source-format error
-rather than as corrupted data. The client uses a bounded `ruStoreVerCode` compatibility fallback and
-never creates or copies a RuStore `User-Token`. Free, current-version applications are supported.
+Эндпоинты RuStore, которые использует приложение, — это публичные веб-эндпоинты, а не поддерживаемое
+клиентское API. Интеграция изолирована в `RuStoreSource`, и изменение на стороне источника
+проявляется как ошибка формата, а не как испорченные данные. Клиент использует ограниченный запасной
+вариант `ruStoreVerCode` и никогда не создаёт и не копирует `User-Token` RuStore. Поддерживаются
+бесплатные приложения в текущей версии.
 
-The endpoints, the HTTP 419 root cause, the official-APK version conversion and the fallback
-behaviour are documented in [docs/RUSTORE_API_COMPATIBILITY_RU.md](docs/RUSTORE_API_COMPATIBILITY_RU.md).
+Эндпоинты, причина HTTP 419, преобразование версии официального APK и поведение запасного варианта
+описаны в [docs/RUSTORE_API_COMPATIBILITY_RU.md](docs/RUSTORE_API_COMPATIBILITY_RU.md).
 
-## Requirements
+## Требования
 
-- Android 8.0 (API 26) or newer
-- Permission to install unknown apps, which Android asks for on the first install
-- Root is optional and only needed for silent installation
+- Android 8.0 (API 26) или новее
+- Разрешение на установку неизвестных приложений — Android запросит его при первой установке
+- Root не обязателен и нужен только для тихой установки
 
-## Build
+## Сборка
 
-JDK 17 or newer and Android SDK Platform 36.
+JDK 17 или новее и Android SDK Platform 36.
 
 ```bash
 ./gradlew :app:assembleDebug
 ```
 
-The debug APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
+Debug-APK появится в `app/build/outputs/apk/debug/app-debug.apk`.
 
-Tests:
+Тесты:
 
 ```bash
 ./gradlew :app:testDebugUnitTest
 ```
 
-Instrumented tests, with a device or emulator attached:
+Инструментальные тесты, с подключённым устройством или эмулятором:
 
 ```bash
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-Releases published here are signed with a fixed key. Because the signature check applies to Wy
-Store itself, a build you compiled locally cannot be updated in place by a published release, and
-the reverse is also true — the two are different applications as far as Android is concerned.
+### Подпись релиза
 
-For KernelSU root setup, see [KERNELSU_ROOT_RU.md](KERNELSU_ROOT_RU.md).
+Релизы подписываются постоянным ключом. Проверка подписи распространяется и на сам Wy Store, поэтому
+собранная вами локально сборка не обновится опубликованным релизом, и наоборот: для Android это
+разные приложения.
 
-## Project layout
+Данные для подписи берутся из `keystore.properties` в корне репозитория (файл в `.gitignore`) или из
+переменных окружения `WYSTORE_KEYSTORE`, `WYSTORE_KEYSTORE_PASSWORD`, `WYSTORE_KEY_ALIAS`,
+`WYSTORE_KEY_PASSWORD`. Без них release-сборка остаётся неподписанной, а не подписывается debug-ключом
+молча. Шаблон — в [keystore.properties.example](keystore.properties.example).
 
-| Path | What lives there |
+Про настройку root на KernelSU — [KERNELSU_ROOT_RU.md](KERNELSU_ROOT_RU.md).
+
+## Структура проекта
+
+| Путь | Что там |
 |---|---|
-| `app/src/main/java/dev/wystore/data` | Sources, catalogue, models, APK verification |
-| `app/src/main/java/dev/wystore/updates` | Durable queue, install flow, schedulers |
-| `app/src/main/java/dev/wystore/background` | Workers, notification and battery policy |
-| `app/src/main/java/dev/wystore/selfupdate` | Wy Store's own update check |
-| `app/src/main/java/dev/wystore/ui` | Compose screens, theme, shared components |
-| `app/src/test` | Pure unit tests, including HTML fixtures captured from the source |
-| `app/src/androidTest` | Instrumented tests |
+| `app/src/main/java/dev/wystore/data` | Источники, каталог, модели, проверка APK |
+| `app/src/main/java/dev/wystore/updates` | Долговечная очередь, установка, планировщики |
+| `app/src/main/java/dev/wystore/background` | Воркеры, политика уведомлений и батареи |
+| `app/src/main/java/dev/wystore/selfupdate` | Проверка обновлений самого Wy Store |
+| `app/src/main/java/dev/wystore/localization` | Перевод типизированных кодов ошибок в текст |
+| `app/src/main/java/dev/wystore/ui` | Экраны на Compose, тема, общие компоненты |
+| `app/src/test` | Юнит-тесты, включая HTML-фикстуры, снятые с источника |
+| `app/src/androidTest` | Инструментальные тесты |
 
-## Licence
+## Лицензия
 
-MIT. See [LICENSE](LICENSE).
+MIT, см. [LICENSE](LICENSE).

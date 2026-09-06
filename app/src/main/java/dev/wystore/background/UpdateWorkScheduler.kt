@@ -91,10 +91,6 @@ object UpdateWorkScheduler {
         )
     }
 
-    fun checkAllNow(context: Context, settings: StoreSettings) {
-        checkPackageNow(context, settings, null)
-    }
-
     fun checkPackageNow(context: Context, settings: StoreSettings, packageName: String?) {
         val network = if (settings.allowMobileData || !settings.wifiOnly) NetworkType.CONNECTED else NetworkType.UNMETERED
         val request = OneTimeWorkRequestBuilder<UpdateCheckWorker>()

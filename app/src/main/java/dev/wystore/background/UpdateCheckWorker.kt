@@ -11,7 +11,9 @@ import dev.wystore.data.InstallSource
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.RuStoreSource
+import dev.wystore.R
 import dev.wystore.data.StoreRepository
+import dev.wystore.data.UpdateCheckSummary
 import dev.wystore.selfupdate.SelfUpdateChecker
 import dev.wystore.selfupdate.SelfUpdateStatus
 import dev.wystore.updates.QueueRepository
@@ -103,6 +105,24 @@ class UpdateCheckWorker(
                     updatesFound++
                 }
             }
+        }
+
+        // The Updates screen has always had a "last check" card, and StoreRepository has always had
+        // somewhere to put the result — but nothing ever wrote it, so the card never appeared.
+        runCatching {
+            repository.saveLastUpdateCheck(
+                UpdateCheckSummary(
+                    finishedAt = System.currentTimeMillis(),
+                    detail = applicationContext.getString(
+                        if (problems > 0) R.string.check_finished_with_problems else R.string.check_completed
+                    ),
+                    checked = candidates.size,
+                    total = managedApps.size,
+                    updates = updatesFound,
+                    problems = problems,
+                    manual = isManualCheck
+                )
+            )
         }
 
         // The summary switch in Settings guarded a notification that was never written; a manual
