@@ -574,4 +574,5 @@
     <string name="github_share_subject">%1$s на GitHub</string>
     <string name="check_finished_with_problems">Проверка завершена, часть приложений опросить не удалось</string>
     <string name="queue_download_now">Скачать сейчас</string>
+    <string name="about_independent">Wy Store — независимый альтернативный клиент для каталога RuStore и релизов GitHub. Проект не связан с RuStore, не одобрен им и не действует от его имени.</string>
 </resources>

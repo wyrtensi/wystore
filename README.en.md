@@ -13,6 +13,13 @@
 It browses the RuStore catalogue, tracks releases of curated GitHub projects, verifies every APK
 before it is installed, and keeps installed apps up to date in the background.
 
+**Wy Store is an independent alternative client for the RuStore catalogue.** It reads the same public
+pages the rustore.ru site serves, but installs apps itself through Android's own package installer,
+and needs neither an account nor the RuStore client to be present. The project is not affiliated with
+RuStore, not endorsed by it, and does not act on its behalf; RuStore is a data source here, not a
+partner. GitHub releases are the second source, which is how Wy Store also covers what RuStore does
+not carry.
+
 The catalogue and the curated sections are aimed at users in Russia, so most of the content the app
 displays is in Russian; the interface itself ships in Russian and English.
 

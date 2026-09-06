@@ -97,6 +97,14 @@ fun AboutSettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text("Wy Store", style = MaterialTheme.typography.titleMedium)
+                    // Says plainly what this is and what it is not: reading RuStore's catalogue
+                    // without saying so invites the assumption that RuStore stands behind it.
+                    Text(
+                        stringResource(R.string.about_independent),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    WyDivider()
                     FactRow(stringResource(R.string.about_version), "$versionName ($versionCode)")
                     FactRow(stringResource(R.string.about_source), SelfUpdateChecker.PROJECT_URL)
                     WyDivider()
