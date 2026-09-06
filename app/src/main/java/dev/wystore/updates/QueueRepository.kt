@@ -256,6 +256,18 @@ class QueueRepository(
         updated.toSnapshot()
     }
 
+    /**
+     * When the most recent install finished, or null when none has.
+     *
+     * OFFER_NEXT is included for rows written before installs became terminal; those are finished
+     * installs too.
+     */
+    suspend fun lastFinishedInstallAt(): Long? = withContext(Dispatchers.IO) {
+        dao.getAll()
+            .filter { it.state == QueueState.INSTALLED.name || it.state == QueueState.OFFER_NEXT.name }
+            .maxOfOrNull { it.updatedAt }
+    }
+
     /** Every item whose verified artifacts are on disk, for the consolidated ready notification. */
     suspend fun readyToInstallSnapshots(): List<QueueItemSnapshot> = withContext(Dispatchers.IO) {
         dao.getAll()

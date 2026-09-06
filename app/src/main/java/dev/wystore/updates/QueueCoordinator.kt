@@ -18,7 +18,8 @@ class QueueCoordinator(
     private val context: Context,
     private val repository: QueueRepository = QueueRepository.getInstance(context),
     private val storeRepository: StoreRepository = StoreRepository(context),
-    private val permissionRepository: PermissionRepository = PermissionRepository(context)
+    private val permissionRepository: PermissionRepository = PermissionRepository(context),
+    private val promptState: QueuePromptState = QueuePromptState(context)
 ) {
     private val _offeredNext = MutableStateFlow<QueueItemSnapshot?>(null)
     val offeredNext = _offeredNext.asStateFlow()
@@ -68,6 +69,7 @@ class QueueCoordinator(
     suspend fun acceptNext(installer: UserConfirmedInstaller) {
         val next = _offeredNext.value ?: return
         _offeredNext.value = null
+        promptState.recordAnswered()
         if (next.state == QueueState.READY_TO_INSTALL) {
             install(next.id, installer)
         } else if (next.state == QueueState.AVAILABLE) {
@@ -77,6 +79,8 @@ class QueueCoordinator(
 
     suspend fun dismissOfferedNext() {
         _offeredNext.value = null
+        // Recorded, so a prompt the user has already turned down does not return on the next start.
+        promptState.recordAnswered()
     }
 
     suspend fun onInstallResult(id: String, success: Boolean, message: String? = null) {
@@ -114,7 +118,11 @@ class QueueCoordinator(
      *
      * The offered-next item used to live only in [_offeredNext], so a process death between one
      * install finishing and the user answering the prompt silently dropped the rest of the queue.
-     * The durable states are the source of truth; this only restores the in-memory mirror.
+     *
+     * It is restored only while that is actually the situation. The condition used to be "the
+     * database holds a finished install", which stays true for the life of the row, so the dialog
+     * arrived on every launch for as long as anything sat in the queue, unrelated to any install the
+     * user had just done.
      */
     suspend fun restoreOfferedNext() {
         val settings = storeRepository.settings()
@@ -122,8 +130,11 @@ class QueueCoordinator(
             _offeredNext.value = null
             return
         }
-        val hasFinishedItem = repository.observeAllOnce()
-            .any { it.state == QueueState.OFFER_NEXT || it.state == QueueState.INSTALLED }
-        _offeredNext.value = if (hasFinishedItem) repository.nextEligible() else null
+        val restore = QueueCoordinatorPolicy.shouldRestoreOffer(
+            finishedAt = repository.lastFinishedInstallAt(),
+            lastAnsweredAt = promptState.lastAnsweredAt(),
+            now = System.currentTimeMillis()
+        )
+        _offeredNext.value = if (restore) repository.nextEligible() else null
     }
 }
