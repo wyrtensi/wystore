@@ -527,6 +527,7 @@
     <string name="source_error_integrity">The downloaded file does not match its published checksum.</string>
     <string name="source_error_write_failed">The download could not be saved.</string>
     <string name="source_error_download_failed">The download did not complete.</string>
+    <string name="status_not_installed">Not installed</string>
     <string name="status_checking">Checking for updates…</string>
     <string name="status_queued">Queued</string>
     <string name="status_downloading">Downloading %1$s%%</string>

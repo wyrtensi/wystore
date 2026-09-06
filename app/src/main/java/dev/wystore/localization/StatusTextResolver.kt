@@ -22,6 +22,7 @@ object StatusTextResolver {
     @StringRes
     fun stringRes(code: StatusCode): Int = when (code) {
         StatusCode.CHECKING -> R.string.status_checking
+        StatusCode.NOT_INSTALLED -> R.string.status_not_installed
         StatusCode.QUEUED -> R.string.status_queued
         StatusCode.DOWNLOADING -> R.string.status_downloading
         StatusCode.VERIFYING -> R.string.status_verifying

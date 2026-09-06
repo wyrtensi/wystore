@@ -39,19 +39,6 @@ class PackageUiStateReducerTest {
     )
 
     @Test
-    fun notInstalledProducesInstallAction() {
-        val state = PackageUiStateReducer.reduce(
-            app = catalogApp,
-            installed = null,
-            managed = null,
-            queueItem = null,
-            pendingUpdate = null
-        )
-        assertEquals(PrimaryAction.Install, state.primaryAction)
-        assertEquals(StatusCode.READY_TO_INSTALL, state.status.code)
-    }
-
-    @Test
     fun installedUpToDateProducesOpenAction() {
         val installed = InstalledApp(
             packageName = "ru.vk.store",
@@ -199,6 +186,43 @@ class PackageUiStateReducerTest {
         )
         assertEquals(PrimaryAction.Retry, state.primaryAction)
         assertEquals(StatusCode.FAILED_NETWORK, state.status.code)
+    }
+
+    @Test
+    fun aCatalogueEntryThatWasNeverDownloadedIsNotReportedAsReadyToInstall() {
+        // Home and Search rows used the ready-to-install line for any app the device does not have,
+        // so a catalogue entry nobody had touched read exactly like an update already downloaded and
+        // waiting. The two are different things and must not share a sentence.
+        val state = PackageUiStateReducer.reduce(
+            app = catalogApp,
+            installed = null,
+            managed = null,
+            queueItem = null,
+            pendingUpdate = null
+        )
+        assertEquals(PrimaryAction.Install, state.primaryAction)
+        assertEquals(StatusCode.NOT_INSTALLED, state.status.code)
+    }
+
+    @Test
+    fun aDownloadedUpdateStillReportsReadyToInstall() {
+        val state = PackageUiStateReducer.reduce(
+            app = catalogApp,
+            installed = null,
+            managed = null,
+            queueItem = null,
+            pendingUpdate = PendingUpdate(
+                packageName = catalogApp.packageName,
+                label = catalogApp.name,
+                versionName = catalogApp.versionName,
+                versionCode = catalogApp.versionCode,
+                filePaths = listOf("/data/artifact_0.apk"),
+                signingDigests = setOf("abc"),
+                source = ManagedSource.RUSTORE
+            )
+        )
+        assertEquals(PrimaryAction.Install, state.primaryAction)
+        assertEquals(StatusCode.READY_TO_INSTALL, state.status.code)
     }
 
     @Test

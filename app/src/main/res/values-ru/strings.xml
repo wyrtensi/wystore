@@ -527,6 +527,7 @@
     <string name="source_error_integrity">Скачанный файл не совпадает с опубликованной контрольной суммой.</string>
     <string name="source_error_write_failed">Не удалось сохранить загрузку.</string>
     <string name="source_error_download_failed">Загрузка не завершилась.</string>
+    <string name="status_not_installed">Не установлено</string>
     <string name="status_checking">Проверка обновлений…</string>
     <string name="status_queued">В очереди</string>
     <string name="status_downloading">Скачивание %1$s%%</string>

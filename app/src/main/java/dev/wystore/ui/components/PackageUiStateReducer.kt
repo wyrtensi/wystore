@@ -275,7 +275,10 @@ object PackageUiStateReducer {
             versionCode = app?.versionCode,
             iconUrl = iconUrl,
             publisher = publisher,
-            status = StatusMessage(StatusCode.READY_TO_INSTALL),
+            // Nothing has been downloaded for this one: it is a catalogue entry the device does
+            // not have. Saying "ready to install" here read exactly like an update already waiting
+            // on disk, which is a different state with the same words.
+            status = StatusMessage(StatusCode.NOT_INSTALLED),
             primaryAction = PrimaryAction.Install,
             secondaryAction = null,
             progress = null,

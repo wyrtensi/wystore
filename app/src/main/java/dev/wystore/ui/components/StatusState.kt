@@ -2,6 +2,7 @@ package dev.wystore.ui.components
 
 enum class StatusCode {
     CHECKING,
+    NOT_INSTALLED,
     QUEUED,
     DOWNLOADING,
     VERIFYING,
