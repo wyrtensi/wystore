@@ -12,6 +12,7 @@
 [![Сборка](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%D1%81%D0%B1%D0%BE%D1%80%D0%BA%D0%B0)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
 [![Загрузок](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BE%D0%BA)](https://github.com/wyrtensi/wystore/releases)
 [![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#требования)
+[![Telegram-чат](https://img.shields.io/badge/Telegram-%D1%87%D0%B0%D1%82-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
 [![Лицензия MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=%D0%BB%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F)](LICENSE)
 
 [English](README.en.md) · [Все релизы](https://github.com/wyrtensi/wystore/releases) · [Заявление о проекте](DISCLAIMER.md) · [Лицензия](LICENSE)
