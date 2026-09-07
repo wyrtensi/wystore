@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="docs/logo.png" alt="Wy Store" width="128">
-
-# Wy Store
+<img src="docs/banner.png" alt="Wy Store" width="760">
 
 **Магазин приложений для Android без аккаунта, без сервера и без телеметрии**
 

@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="docs/logo.png" alt="Wy Store" width="128">
-
-# Wy Store
+<img src="docs/banner-en.png" alt="Wy Store" width="760">
 
 **An Android store client with no account, no backend and no telemetry**
 
