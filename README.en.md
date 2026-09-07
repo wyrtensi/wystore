@@ -31,6 +31,17 @@ not carry.
 The catalogue and the curated sections are aimed at users in Russia, so most of the content the app
 displays is in Russian; the interface itself ships in Russian and English.
 
+> **It gets along with root.** Without root Wy Store does everything it does, except that Android
+> confirms every install. With root it handles the whole thing itself: the update downloads in the
+> background and goes in through `pm install` with no dialog at all - and the same signature check
+> as always. Both switches sit in Settings turned off until you turn them on and root is actually
+> granted.
+
+> **Android 8.0 is Wy Store's own minimum, not the catalogue's.** Plenty of apps in the catalogues
+> need something newer - 9, 10, sometimes 12 or 13. Each app's page states the version it needs, and
+> if the device cannot run it Wy Store says so before the download rather than after two hundred
+> megabytes.
+
 | Home | App page | Library |
 |---|---|---|
 | ![Home](docs/screenshots/en/home.png) | ![App page](docs/screenshots/en/app-page.png) | ![Library](docs/screenshots/en/library.png) |
@@ -130,9 +141,10 @@ behaviour are documented in [docs/RUSTORE_API_COMPATIBILITY_RU.md](docs/RUSTORE_
 
 ## Requirements
 
-- Android 8.0 (API 26) or newer
+- Android 8.0 (API 26) or newer - that is Wy Store's own requirement; apps from the catalogues
+  often need something newer, and each app's page states which version
 - Permission to install unknown apps, which Android asks for on the first install
-- Root is optional and only needed for silent installation
+- Root is optional: without it everything works except installing with no dialogs
 
 ## Build
 
