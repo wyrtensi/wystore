@@ -36,12 +36,14 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import dev.wystore.BuildConfig
+import dev.wystore.InstallQueueItem
 import dev.wystore.R
 import dev.wystore.selfupdate.SelfUpdateStatus
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import dev.wystore.RuStoreCompatibilityTask
+import dev.wystore.data.PendingUpdate
 import dev.wystore.data.RuStoreCompatibility
 import dev.wystore.data.StoreSettings
 import dev.wystore.updates.model.QueueMode
@@ -82,8 +84,12 @@ fun SettingsScreen(
     onRestoreJson: (String, Boolean) -> Unit,
     onOpenGitHub: () -> Unit = {},
     selfUpdate: SelfUpdateStatus = SelfUpdateStatus.Idle,
+    selfUpdateQueueItem: InstallQueueItem? = null,
+    selfUpdatePending: PendingUpdate? = null,
     onCheckSelfUpdate: () -> Unit = {},
-    onInstallSelfUpdate: () -> Unit = {}
+    onInstallSelfUpdate: () -> Unit = {},
+    onInstallDownloadedSelfUpdate: () -> Unit = {},
+    onCancelSelfUpdateDownload: (String) -> Unit = {}
 ) {
     var subScreen by remember { mutableStateOf<SettingsSubScreen?>(null) }
     var editedSettings by remember(settings) { mutableStateOf(settings) }
@@ -162,7 +168,11 @@ fun SettingsScreen(
                 },
                 onCheck = onCheckSelfUpdate,
                 onInstall = onInstallSelfUpdate,
-                onBack = { subScreen = null }
+                onBack = { subScreen = null },
+                queueItem = selfUpdateQueueItem,
+                pendingUpdate = selfUpdatePending,
+                onInstallDownloaded = onInstallDownloadedSelfUpdate,
+                onCancelDownload = onCancelSelfUpdateDownload
             )
             return
         }

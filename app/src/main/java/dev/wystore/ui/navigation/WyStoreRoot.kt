@@ -21,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import dev.wystore.BuildConfig
 import dev.wystore.R
 import dev.wystore.StoreViewModel
 import dev.wystore.data.GitHubAsset
@@ -337,8 +338,18 @@ fun WyStoreRoot(
                     onRestoreJson = viewModel::restoreBackupJson,
                     onOpenGitHub = { destination = WyStoreDestination.GitHub },
                     selfUpdate = state.selfUpdate,
+                    // Wy Store's own row in the queue, so its page can show the download instead
+                    // of sending the user to Updates to watch it.
+                    selfUpdateQueueItem = state.installQueue.firstOrNull {
+                        it.packageName == BuildConfig.APPLICATION_ID
+                    },
+                    selfUpdatePending = state.pendingUpdates.firstOrNull {
+                        it.packageName == BuildConfig.APPLICATION_ID
+                    },
                     onCheckSelfUpdate = viewModel::checkSelfUpdate,
-                    onInstallSelfUpdate = viewModel::installSelfUpdate
+                    onInstallSelfUpdate = viewModel::installSelfUpdate,
+                    onInstallDownloadedSelfUpdate = { onInstallPending(BuildConfig.APPLICATION_ID) },
+                    onCancelSelfUpdateDownload = viewModel::queueCancel
                 )
                 is WyStoreDestination.AppDetails -> Unit
             }

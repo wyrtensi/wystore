@@ -27,22 +27,32 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import dev.wystore.InstallQueueItem
 import dev.wystore.R
+import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreSettings
+import dev.wystore.localization.StatusTextResolver
 import dev.wystore.selfupdate.SelfUpdateChecker
 import dev.wystore.selfupdate.SelfUpdateStatus
 import dev.wystore.ui.components.CompactSettingSwitch
 import dev.wystore.ui.components.FactRow
+import dev.wystore.ui.components.PackageUiStateReducer
+import dev.wystore.ui.components.PrimaryAction
 import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.SectionHeader
 import dev.wystore.ui.components.SectionSpacing
+import dev.wystore.ui.components.StatusCode
+import dev.wystore.ui.components.TransferProgress
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.WyDivider
 
@@ -62,9 +72,21 @@ fun AboutSettingsScreen(
     onCheck: () -> Unit,
     onInstall: () -> Unit,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    queueItem: InstallQueueItem? = null,
+    pendingUpdate: PendingUpdate? = null,
+    onInstallDownloaded: () -> Unit = {},
+    onCancelDownload: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
+
+    // After Wy Store updates itself the process restarts and the check result is gone, so this
+    // page opened silent - no line at all about the build the user had just installed. Opening it
+    // is the request; the answer should be here by the time it is read.
+    LaunchedEffect(Unit) {
+        if (status == SelfUpdateStatus.Idle) onCheck()
+    }
 
     Scaffold(
         modifier = modifier,
@@ -141,7 +163,53 @@ fun AboutSettingsScreen(
                         modifier = Modifier.padding(14.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        when (status) {
+                        // Wy Store updates through the same queue as every other app, so its own
+                        // download was visible only on Updates and in the shade — not on the page
+                        // the user pressed "check" on. The queue's state is shown here too.
+                        val transfer = remember(queueItem, pendingUpdate, resources) {
+                            if (queueItem == null && pendingUpdate == null) {
+                                null
+                            } else {
+                                // A finished row stays in the queue, and the reducer has no
+                                // catalogue entry to fall back on here, so it reads a completed
+                                // update as "not installed". Only a run still in progress or
+                                // waiting for the user says anything true on this page.
+                                PackageUiStateReducer.reduce(
+                                    queueItem = queueItem,
+                                    pendingUpdate = pendingUpdate,
+                                    resources = resources
+                                ).takeIf { it.status.code in QUEUE_STATES }
+                            }
+                        }
+                        val working = transfer != null &&
+                            transfer.primaryAction != PrimaryAction.Install &&
+                            transfer.primaryAction != PrimaryAction.Retry
+
+                        if (transfer != null) {
+                            Text(
+                                text = StatusTextResolver.resolve(context, transfer.status),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = when (transfer.status.code) {
+                                    StatusCode.FAILED_NETWORK,
+                                    StatusCode.FAILED_STORAGE,
+                                    StatusCode.FAILED_SIGNATURE,
+                                    StatusCode.FAILED_GENERIC -> MaterialTheme.colorScheme.error
+                                    else -> MaterialTheme.colorScheme.onSurface
+                                }
+                            )
+                            // A transfer whose size the server has not stated yet has neither a
+                            // fraction nor byte counts, and the card sat on "0%" with nothing
+                            // moving. An indeterminate bar is the honest answer while it lasts.
+                            if (transfer.progress != null ||
+                                transfer.transferInfo != null ||
+                                transfer.status.code == StatusCode.DOWNLOADING
+                            ) {
+                                TransferProgress(
+                                    progress = transfer.progress,
+                                    transferInfo = transfer.transferInfo
+                                )
+                            }
+                        } else when (status) {
                             SelfUpdateStatus.Checking -> Row(verticalAlignment = Alignment.CenterVertically) {
                                 CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                                 Spacer(Modifier.width(10.dp))
@@ -167,14 +235,26 @@ fun AboutSettingsScreen(
                             SelfUpdateStatus.Idle -> Unit
                         }
 
-                        if (status is SelfUpdateStatus.Available) {
+                        // Downloaded and verified: the only step left is Android's own dialog.
+                        if (transfer?.primaryAction == PrimaryAction.Install) {
+                            Button(onClick = onInstallDownloaded, modifier = Modifier.fillMaxWidth()) {
+                                Text(stringResource(R.string.common_install))
+                            }
+                        } else if (!working && status is SelfUpdateStatus.Available) {
                             Button(onClick = onInstall, modifier = Modifier.fillMaxWidth()) {
                                 Text(stringResource(R.string.about_install))
                             }
                         }
+                        // Changing your mind used to mean leaving for the Updates tab.
+                        if (working && queueItem != null) {
+                            OutlinedButton(
+                                onClick = { onCancelDownload(queueItem.id) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text(stringResource(R.string.common_cancel)) }
+                        }
                         FilledTonalButton(
                             onClick = onCheck,
-                            enabled = status != SelfUpdateStatus.Checking,
+                            enabled = status != SelfUpdateStatus.Checking && !working,
                             modifier = Modifier.fillMaxWidth()
                         ) { Text(stringResource(R.string.about_check)) }
                     }
@@ -200,3 +280,21 @@ fun AboutSettingsScreen(
         }
     }
 }
+
+/**
+ * What the update card is allowed to report. Anything else means the queue has nothing to say
+ * about Wy Store right now, and the self-update check speaks instead.
+ */
+private val QUEUE_STATES = setOf(
+    StatusCode.QUEUED,
+    StatusCode.DOWNLOADING,
+    StatusCode.VERIFYING,
+    StatusCode.READY_TO_INSTALL,
+    StatusCode.AWAITING_UNKNOWN_SOURCES_PERMISSION,
+    StatusCode.AWAITING_USER_CONFIRMATION,
+    StatusCode.INSTALLING,
+    StatusCode.FAILED_NETWORK,
+    StatusCode.FAILED_STORAGE,
+    StatusCode.FAILED_SIGNATURE,
+    StatusCode.FAILED_GENERIC
+)

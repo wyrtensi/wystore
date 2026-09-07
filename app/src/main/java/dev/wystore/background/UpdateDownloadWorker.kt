@@ -16,6 +16,7 @@ import dev.wystore.data.StoreRepository
 import dev.wystore.data.invalidateInstalledApps
 import dev.wystore.data.classifyThrowable
 import dev.wystore.root.RootInstaller
+import dev.wystore.selfupdate.SelfUpdateChecker
 import dev.wystore.updates.GitHubInstallScheduler
 import dev.wystore.updates.InstallMode
 import dev.wystore.updates.InstallModePolicy
@@ -144,7 +145,13 @@ class UpdateDownloadWorker(
                         // and not only where the row is created.
                         queueRepository.updateLabel(
                             queueId,
-                            GitHubCatalog.find(repo.displayName)?.title ?: repo.name
+                            // Wy Store is not in the curated catalogue, so its own update was
+                            // relabelled after the repository and appeared as "wystore".
+                            if (entity.packageName == context.packageName) {
+                                SelfUpdateChecker.APP_LABEL
+                            } else {
+                                GitHubCatalog.find(repo.displayName)?.title ?: repo.name
+                            }
                         )
                         val releases = gitHubSource.releases(repo)
                         val assetPattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
