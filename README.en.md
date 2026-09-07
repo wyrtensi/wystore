@@ -176,10 +176,14 @@ silently falling back to the debug key.
 
 ### Publishing
 
+Write the entry in [CHANGELOG.md](CHANGELOG.md) under the new version first, then tag. The release
+notes on GitHub are taken from that section, and a tag without one fails the build rather than
+publishing a list of commit subjects.
+
 CI builds a release from a tag, see [.github/workflows/release.yml](.github/workflows/release.yml):
 
 ```bash
-git tag v0.1.12 && git push origin v0.1.12
+git tag v0.1.17 && git push origin v0.1.17
 ```
 
 That needs `WYSTORE_KEYSTORE_BASE64` (the keystore file, base64-encoded), `WYSTORE_KEYSTORE_PASSWORD`,

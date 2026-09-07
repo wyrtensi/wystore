@@ -176,10 +176,14 @@ keytool -genkeypair -v -keystore outputs/wystore-release.jks -alias wystore -key
 
 ### Публикация
 
+Порядок такой: сначала запись в [CHANGELOG.md](CHANGELOG.md) под номером новой версии, потом тег.
+Текст релиза на GitHub берётся из этого раздела, и тег без записи роняет сборку — чтобы релиз не
+уехал со списком заголовков коммитов вместо описания.
+
 Релиз собирает CI по тегу — [.github/workflows/release.yml](.github/workflows/release.yml):
 
 ```bash
-git tag v0.1.12 && git push origin v0.1.12
+git tag v0.1.17 && git push origin v0.1.17
 ```
 
 Для этого в секретах репозитория должны лежать `WYSTORE_KEYSTORE_BASE64` (файл ключа в base64),

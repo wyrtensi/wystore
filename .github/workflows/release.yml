@@ -72,9 +72,21 @@ jobs:
         if: always()
         run: rm -f "$RUNNER_TEMP/release.jks"
 
+      # The release says what changed, in the words of whoever made the change. A tag pushed
+      # without its CHANGELOG section fails here rather than publishing a list of commit subjects.
+      - name: Collect the release notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          {
+            echo 'NOTES<<CHANGELOG_EOF'
+            bash .github/workflows/changelog-section.sh "$VERSION"
+            echo 'CHANGELOG_EOF'
+          } >> "$GITHUB_ENV"
+
       - name: Publish the release
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ env.RELEASE_APK }}
+          body: ${{ env.NOTES }}
           generate_release_notes: true
           fail_on_unmatched_files: true
