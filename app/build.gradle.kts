@@ -31,8 +31,8 @@ android {
         applicationId = "dev.wystore"
         minSdk = 26
         targetSdk = 36
-        versionCode = 19
-        versionName = "0.1.18"
+        versionCode = 20
+        versionName = "0.1.19"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
