@@ -100,7 +100,7 @@ class QueueCoordinator(
 
     private suspend fun advanceSmartPromptIfNeeded(justFinishedId: String) {
         val settings = storeRepository.settings()
-        val next = repository.nextEligible()
+        val next = repository.nextToOffer()
         val nextAction = QueueCoordinatorPolicy.determineNextAction(
             mode = settings.queueMode,
             justInstalledId = justFinishedId,
@@ -135,6 +135,6 @@ class QueueCoordinator(
             lastAnsweredAt = promptState.lastAnsweredAt(),
             now = System.currentTimeMillis()
         )
-        _offeredNext.value = if (restore) repository.nextEligible() else null
+        _offeredNext.value = if (restore) repository.nextToOffer() else null
     }
 }

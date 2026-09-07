@@ -19,6 +19,7 @@ import dev.wystore.root.RootInstaller
 import dev.wystore.updates.GitHubInstallScheduler
 import dev.wystore.updates.InstallMode
 import dev.wystore.updates.InstallModePolicy
+import dev.wystore.updates.AutoInstallStore
 import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.model.QueueAction
 import dev.wystore.updates.model.QueueState
@@ -103,6 +104,9 @@ class UpdateDownloadWorker(
                 when (entity.source) {
                     ManagedSource.RUSTORE.name -> {
                         val storeApp = ruStoreSource.details(entity.packageName, includeReviews = false)
+                        // The name the source publishes, so the queue and the ready-to-install
+                        // cards stop showing a package name for anything installed from a card.
+                        queueRepository.updateLabel(queueId, storeApp.name)
                         val artifacts = ruStoreSource.resolveArtifacts(storeApp)
                         sourceSignatureHint = storeApp.signatureHint
                         sourceArtifactHash = artifacts.firstOrNull()?.sourceHash
@@ -214,6 +218,15 @@ class UpdateDownloadWorker(
                 // setting did nothing and every update still needed the Android dialog.
                 if (installSilentlyIfEnabled(queueId, installed != null)) return@withContext
 
+                // Without root the install still needs Android's confirmation dialog, which needs an
+                // Activity. The request is recorded here and carried out the next time the app is on
+                // screen, so "install as soon as it is downloaded" means what it says on a device
+                // where silent installs are not possible.
+                requestAutoInstallIfEnabled(
+                    packageName = verification.identity.packageName,
+                    isUpdate = installed != null
+                )
+
                 // One entry for the whole set. A bulk update used to post a notification per app
                 // plus a group summary, so twenty updates meant twenty-one notifications.
                 coordinator.publishReady(queueRepository.readyToInstallSnapshots())
@@ -284,6 +297,14 @@ class UpdateDownloadWorker(
                 queueRepository.resetReadyToInstall(queueId)
                 false
             }
+        }
+
+        /** Records the user's "install it straight away" choice for the app just downloaded. */
+        private suspend fun requestAutoInstallIfEnabled(packageName: String, isUpdate: Boolean) {
+            val settings = storeRepository.settings()
+            val wanted = if (isUpdate) settings.autoInstallUpdates else settings.autoInstallNewApps
+            if (!wanted) return
+            runCatching { AutoInstallStore(context).request(packageName) }
         }
     }
 

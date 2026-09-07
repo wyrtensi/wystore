@@ -177,7 +177,20 @@ data class StoreUiState(
     /** GitHub catalogue entries matching the current search query. */
     val githubSearchResults: List<GitHubCatalogEntry> = emptyList(),
     val githubApp: GitHubAppUiState = GitHubAppUiState(),
-    val selfUpdate: SelfUpdateStatus = SelfUpdateStatus.Idle
+    val selfUpdate: SelfUpdateStatus = SelfUpdateStatus.Idle,
+    /** The full review list is being fetched for the open app page. */
+    val reviewsLoading: Boolean = false,
+    /** Packages whose full review list has already been fetched in this session. */
+    val fullReviewsLoaded: Set<String> = emptySet(),
+    /** Packages left in an "update everything" run, in the order they will be installed. */
+    val installAllRemaining: List<String> = emptyList(),
+    /**
+     * Catalogue icons for packages the queue is carrying.
+     *
+     * Queue rows hold no icon and an app that is not installed has none on the device either, so
+     * "ready to install" showed a package name next to an empty square.
+     */
+    val packageIcons: Map<String, String> = emptyMap()
 )
 
 class StoreViewModel(application: Application) : AndroidViewModel(application) {
@@ -188,6 +201,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     private val installer = RootInstaller()
     private val queueRepository = QueueRepository.getInstance(application)
     private val selfUpdateChecker = SelfUpdateChecker(application)
+    private val autoInstallStore = dev.wystore.updates.AutoInstallStore(application)
+
+    /** The app an "update all" run is waiting on right now, or null when nothing is in flight. */
+    private var installAllCurrent: String? = null
+
+    /** Whether [installAllCurrent] has already been handed to Android's installer. */
+    private var installAllHandedOver: Boolean = false
     private val catalogRepository = CatalogRepository.getInstance(application)
     val queueCoordinator = dev.wystore.updates.QueueCoordinator(application)
     val offeredNext = queueCoordinator.offeredNext
@@ -269,10 +289,26 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(StoreUiState())
     val state: StateFlow<StoreUiState> = _state.asStateFlow()
 
+    /**
+     * The package the Activity should hand to the system installer next.
+     *
+     * Installing needs an Activity for Android's confirmation dialog, so the ViewModel asks rather
+     * than installs. This is what makes "update everything" run through the whole list instead of
+     * stopping after the first one.
+     */
+    private val _installRequest = MutableStateFlow<String?>(null)
+    val installRequest: StateFlow<String?> = _installRequest.asStateFlow()
+
+    fun consumeInstallRequest() {
+        _installRequest.value = null
+    }
+
     init {
         viewModelScope.launch {
             queueRepository.observePendingUpdates().collect { pending ->
                 _state.update { it.copy(pendingUpdates = pending) }
+                resolveIcons(pending.map { update -> update.packageName })
+                requestAutoInstalls(pending)
             }
         }
         viewModelScope.launch {
@@ -301,6 +337,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 // The whole queue is kept: truncating hid older rows from Updates, Search and
                 // Details entirely, so a failed item could become unreachable.
                 _state.update { it.copy(installQueue = uiQueue) }
+                resolveIcons(uiQueue.map { row -> row.packageName })
+                advanceBatchIfSettled(uiQueue)
             }
         }
         viewModelScope.launch {
@@ -310,6 +348,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
         // The smart prompt is derived from durable queue states, so it survives process death.
         viewModelScope.launch { runCatching { queueCoordinator.restoreOfferedNext() } }
+        // Installs the user declined are still downloaded and verified; they belong in the ready
+        // list, not behind an error that offers to fetch them all over again.
+        viewModelScope.launch { runCatching { queueRepository.restoreDeclinedInstalls() } }
         refreshLibrary()
         _state.update { it.copy(githubRepositories = repository.githubRepositories(), ruStoreCompatibility = repository.ruStoreCompatibility()) }
         UpdateScheduler.schedule(application, repository.settings())
@@ -411,6 +452,42 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         runCatching { catalogRepository.details(packageName) }
             .onSuccess { _state.value = _state.value.copy(selected = it, detailsLoading = false, operation = null) }
             .onFailure { _state.value = _state.value.copy(detailsLoading = false, operation = null, message = SourceTextResolver.describe(getApplication(), it) ?: string(R.string.vm_open_details_failed)) }
+    }
+
+    /**
+     * Fetches every review the source publishes for the open app.
+     *
+     * The app page embeds a fixed five, so "show more" had nothing to page through. The rest live
+     * on a page of their own and are fetched only when the user asks for them.
+     */
+    fun loadAllReviews() {
+        val app = _state.value.selected ?: return
+        if (_state.value.reviewsLoading || app.packageName in _state.value.fullReviewsLoaded) return
+        _state.update { it.copy(reviewsLoading = true) }
+        viewModelScope.launch(Dispatchers.IO) {
+            val fetched = runCatching { source.reviews(app.packageName) }
+            _state.update { state ->
+                val open = state.selected
+                if (open == null || open.packageName != app.packageName) {
+                    return@update state.copy(reviewsLoading = false)
+                }
+                val all = fetched.getOrNull()
+                state.copy(
+                    selected = if (all.isNullOrEmpty()) open else open.copy(
+                        // The page's own five come first and are already on screen; the rest are
+                        // appended so nothing the user is looking at jumps.
+                        reviews = (open.reviews + all).distinctBy {
+                            listOf(it.author, it.publishedAt, it.text)
+                        }
+                    ),
+                    reviewsLoading = false,
+                    fullReviewsLoaded = state.fullReviewsLoaded + app.packageName,
+                    message = fetched.exceptionOrNull()
+                        ?.let { SourceTextResolver.describe(getApplication(), it) }
+                        ?: state.message
+                )
+            }
+        }
     }
 
     fun clearDetails() {
@@ -644,6 +721,98 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     fun startQueue() {
         viewModelScope.launch { queueCoordinator.startQueue() }
+    }
+
+    /**
+     * Acts on everything the queue holds, in order.
+     *
+     * "Update all" used to call [startQueue], which looks for the next item to *download*. Once the
+     * updates were already downloaded — which is exactly when the button appears — there was
+     * nothing to download and the button did nothing at all. Downloaded updates are installed one
+     * after another; anything still waiting to be fetched starts fetching.
+     */
+    fun updateAll() {
+        _state.update { state ->
+            state.copy(installAllRemaining = state.pendingUpdates.map { it.packageName })
+        }
+        startNextBatchInstall()
+        viewModelScope.launch { runCatching { queueCoordinator.startQueue() } }
+    }
+
+    /**
+     * Looks up catalogue icons for packages the queue mentions.
+     *
+     * Only the ones not resolved yet, and only from what the catalogue cache already holds: this
+     * runs on every queue change and must not turn into a request per row.
+     */
+    private fun resolveIcons(packages: List<String>) {
+        val known = _state.value.packageIcons
+        val missing = packages.distinct().filter { it.isNotBlank() && it !in known }
+        if (missing.isEmpty()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            val found = missing.mapNotNull { packageName ->
+                catalogRepository.cachedIcon(packageName)?.let { packageName to it }
+            }
+            if (found.isEmpty()) return@launch
+            _state.update { it.copy(packageIcons = it.packageIcons + found) }
+        }
+    }
+
+    /** Hands the Activity the next install of a batch, or ends the batch. */
+    private fun startNextBatchInstall() {
+        if (installAllCurrent != null) return
+        val stillPending = _state.value.pendingUpdates.mapTo(mutableSetOf()) { it.packageName }
+        val remaining = _state.value.installAllRemaining
+        val next = InstallBatchPolicy.next(remaining, stillPending)
+        _state.update { it.copy(installAllRemaining = InstallBatchPolicy.remainingAfter(remaining, next)) }
+        if (next == null) return
+        installAllCurrent = next
+        installAllHandedOver = false
+        // The user already answered "all of them", so the per-item prompt is not asked again.
+        viewModelScope.launch { runCatching { queueCoordinator.dismissOfferedNext() } }
+        _installRequest.value = next
+    }
+
+    /**
+     * Moves the batch on once the app it is waiting for has settled.
+     *
+     * Driven by the queue rather than by the Activity's install callback: a session install reports
+     * to [dev.wystore.updates.InstallResultReceiver], so that callback never fires for it and the
+     * batch stopped after the first app.
+     */
+    private fun advanceBatchIfSettled(queue: List<InstallQueueItem>) {
+        val current = installAllCurrent ?: return
+        val statuses = queue.filter { it.packageName == current }.map { it.status }
+        if (InstallBatchPolicy.isHandedOver(statuses)) installAllHandedOver = true
+        if (!InstallBatchPolicy.isSettled(statuses, installAllHandedOver)) return
+        installAllCurrent = null
+        installAllHandedOver = false
+        startNextBatchInstall()
+    }
+
+    fun cancelInstallAll() {
+        installAllCurrent = null
+        installAllHandedOver = false
+        _state.update { it.copy(installAllRemaining = emptyList()) }
+    }
+
+    /**
+     * Carries out the installs the download worker recorded for "install as soon as it is
+     * downloaded".
+     *
+     * The download usually finishes with the app in the background, where Android's confirmation
+     * dialog cannot be shown, so the worker only writes the request down. This is where it is
+     * turned into an actual install, the next time the app is on screen.
+     */
+    private fun requestAutoInstalls(pending: List<PendingUpdate>) {
+        if (_installRequest.value != null) return
+        val requested = runCatching { autoInstallStore.requested() }.getOrDefault(emptySet())
+        if (requested.isEmpty()) return
+        val ready = pending.map { it.packageName }.filter { it in requested }
+        if (ready.isEmpty()) return
+        ready.forEach { runCatching { autoInstallStore.clear(it) } }
+        _state.update { it.copy(installAllRemaining = it.installAllRemaining + ready.drop(1)) }
+        _installRequest.value = ready.first()
     }
 
     /**
@@ -927,8 +1096,28 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     fun quickInstall(packageName: String) {
         if (hasActiveQueueItem(packageName)) return
         clearTransientFailure(packageName)
-        ManualInstallScheduler.enqueue(getApplication(), packageName, packageName, repository.settings())
-        _state.value = _state.value.copy(message = string(R.string.vm_queued_generic))
+        val label = labelFor(packageName)
+        ManualInstallScheduler.enqueue(getApplication(), packageName, label, repository.settings())
+        _state.value = _state.value.copy(
+            message = if (label == packageName) string(R.string.vm_queued_generic)
+            else string(R.string.vm_queued_app, label)
+        )
+    }
+
+    /**
+     * The best name the app already knows for a package.
+     *
+     * Cards call in with a package name only, and that name is what ended up on the queue row and
+     * on every "ready to install" card. Whatever screen the tap came from usually holds the real
+     * one already.
+     */
+    private fun labelFor(packageName: String): String {
+        val state = _state.value
+        return state.selected?.takeIf { it.packageName == packageName }?.name?.takeIf { it.isNotBlank() }
+            ?: state.search?.apps?.firstOrNull { it.packageName == packageName }?.name?.takeIf { it.isNotBlank() }
+            ?: state.installed.firstOrNull { it.packageName == packageName }?.label?.takeIf { it.isNotBlank() }
+            ?: state.managed.firstOrNull { it.packageName == packageName }?.label?.takeIf { it.isNotBlank() }
+            ?: packageName
     }
 
     fun launchInstalledApp(packageName: String) {

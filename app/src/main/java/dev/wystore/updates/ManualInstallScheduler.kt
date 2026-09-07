@@ -14,18 +14,23 @@ object ManualInstallScheduler {
     const val KEY_LABEL = "label"
     const val PACKAGE_TAG_PREFIX = "wy_store_package:"
 
+    /**
+     * Starts a transfer the user asked for.
+     *
+     * The row is prepared rather than blindly created: a package whose previous attempt stopped
+     * still has that row in the database, and the download step is only legal from AVAILABLE. This
+     * used to enqueue on top of a FAILED row, so every later attempt threw on its first transition
+     * and the user was told it was a network error.
+     */
     fun enqueue(context: Context, packageName: String, label: String, settings: StoreSettings) {
         val appContext = context.applicationContext
         CoroutineScope(Dispatchers.IO).launch {
             val repository = QueueRepository.getInstance(appContext)
-            val queueEntity = repository.enqueueAvailableUpdate(
+            val queueEntity = repository.enqueueManualInstall(
                 packageName = packageName,
                 label = label,
-                versionName = "",
-                versionCode = 0,
-                source = ManagedSource.RUSTORE,
-                priority = 10
-            )
+                source = ManagedSource.RUSTORE
+            ) ?: return@launch
             TransferDispatcher.dispatch(appContext, queueEntity.id)
         }
     }

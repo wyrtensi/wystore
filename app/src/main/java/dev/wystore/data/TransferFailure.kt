@@ -99,9 +99,12 @@ fun classifyThrowable(throwable: Throwable): TransferFailure {
             code = QueueErrorCode.NETWORK,
             detail = message.ifBlank { "Network I/O failure" }
         )
+        // Not an I/O failure and not one the app raised on purpose: this is the app itself going
+        // wrong. It used to be reported as a network error, which sent the user to check their
+        // connection over a bug in the queue.
         else -> TransferFailure(
             retryable = false,
-            code = QueueErrorCode.NETWORK,
+            code = QueueErrorCode.INTERNAL,
             detail = message.ifBlank { throwable.javaClass.simpleName }
         )
     }

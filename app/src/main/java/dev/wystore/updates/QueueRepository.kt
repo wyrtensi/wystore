@@ -224,6 +224,17 @@ class QueueRepository(
         errorDetail: String? = null
     ): QueueItemSnapshot? = withContext(Dispatchers.IO) {
         val entity = dao.getById(id) ?: return@withContext null
+
+        // Saying "not now" to Android's dialog is not a failed download. The verified APK is still
+        // on disk, so the row goes back to waiting rather than to an error whose only offered
+        // action is fetching the same two hundred megabytes again.
+        if (!success && errorCode == QueueErrorCode.INSTALL_CANCELED) {
+            val ready = resetReadyToInstall(id)
+            if (ready?.state == QueueState.READY_TO_INSTALL) {
+                dao.deleteSession(id)
+                return@withContext ready
+            }
+        }
         // INSTALLED is terminal. Parking a finished install in OFFER_NEXT left a row nothing ever
         // moved on, and every screen that reads the queue kept treating the app as busy.
         val target = if (success) QueueState.INSTALLED else QueueState.FAILED
@@ -268,6 +279,20 @@ class QueueRepository(
             .maxOfOrNull { it.updatedAt }
     }
 
+    /**
+     * Puts rows the user declined back into "downloaded, waiting for you".
+     *
+     * A declined install used to be recorded as an error, and rows written that way are still in
+     * the database. Their verified APKs are on disk, so the only thing the error achieved was
+     * offering to download all of it again.
+     */
+    suspend fun restoreDeclinedInstalls(): Int = withContext(Dispatchers.IO) {
+        dao.getAll()
+            .filter { it.errorCode == QueueErrorCode.INSTALL_CANCELED.name }
+            .filter { it.state == QueueState.FAILED.name || it.state == QueueState.CANCELED.name }
+            .count { entity -> resetReadyToInstall(entity.id)?.state == QueueState.READY_TO_INSTALL }
+    }
+
     /** Every item whose verified artifacts are on disk, for the consolidated ready notification. */
     suspend fun readyToInstallSnapshots(): List<QueueItemSnapshot> = withContext(Dispatchers.IO) {
         dao.getAll()
@@ -307,6 +332,14 @@ class QueueRepository(
 
     suspend fun nextEligible(): QueueItemSnapshot? = withContext(Dispatchers.IO) {
         dao.nextEligible()?.toSnapshot()
+    }
+
+    /**
+     * What the queue should offer next: something already downloaded before something that still
+     * has to be fetched.
+     */
+    suspend fun nextToOffer(): QueueItemSnapshot? = withContext(Dispatchers.IO) {
+        (dao.nextInstallable() ?: dao.nextEligible())?.toSnapshot()
     }
 
     /**
@@ -352,6 +385,20 @@ class QueueRepository(
             if (path !in keptPaths) File(path).delete()
         }
         copied
+    }
+
+    /**
+     * Records the name the source publishes for an app.
+     *
+     * A manual install knows only a package name for an app the device does not have, and that is
+     * what every queue row and every "ready to install" card then showed. The download step learns
+     * the real name on its way past the source, so it is written down there.
+     */
+    suspend fun updateLabel(id: String, label: String) = withContext(Dispatchers.IO) {
+        if (label.isBlank()) return@withContext
+        val entity = dao.getById(id) ?: return@withContext
+        if (entity.label == label) return@withContext
+        dao.update(entity.copy(label = label, updatedAt = System.currentTimeMillis()))
     }
 
     suspend fun markAccessed(id: String) = withContext(Dispatchers.IO) {
@@ -527,6 +574,63 @@ class QueueRepository(
         entity
     }
 
+    /**
+     * Prepares the queue for a manual install or update of [packageName].
+     *
+     * Returns the row a transfer can legally start from, or null when the queue is already handling
+     * the package. A stopped row is reused rather than left behind: enqueueing on top of a FAILED
+     * row made the worker's first transition throw, which is why an app that had failed once could
+     * never be installed again from its card.
+     */
+    suspend fun enqueueManualInstall(
+        packageName: String,
+        label: String,
+        source: ManagedSource,
+        priority: Int = 10
+    ): UpdateQueueEntity? = withContext(Dispatchers.IO) {
+        val rows = dao.getByPackage(packageName).filter { it.source == source.name }
+        val states = rows.mapNotNull { runCatching { QueueState.valueOf(it.state) }.getOrNull() }
+        if (ManualEnqueuePolicy.decide(states) == ManualEnqueueAction.IGNORE) return@withContext null
+
+        val target = rows.maxByOrNull { it.versionCode }
+        val prepared = if (target == null) {
+            UpdateQueueEntity(
+                id = UUID.randomUUID().toString(),
+                packageName = packageName,
+                label = label,
+                versionName = "",
+                versionCode = 0,
+                source = source.name,
+                state = QueueState.AVAILABLE.name,
+                priority = priority,
+                position = 0
+            )
+        } else {
+            target.copy(
+                // A label the user can read. Manual installs know only the package name at this
+                // point for an app that is not installed, so a better one is kept if it is there.
+                label = label.takeIf { it.isNotBlank() && it != packageName } ?: target.label,
+                state = QueueState.AVAILABLE.name,
+                priority = priority,
+                downloadedBytes = 0L,
+                totalBytes = 0L,
+                errorCode = null,
+                errorDetail = null,
+                updatedAt = System.currentTimeMillis()
+            )
+        }
+        if (target == null) dao.insertOrReplace(prepared) else dao.update(prepared)
+
+        // Other stopped rows for the same package are noise: they keep an old failure visible on
+        // every card that looks the package up.
+        rows.filter { it.id != prepared.id }
+            .filter { runCatching { QueueState.valueOf(it.state) }.getOrNull() !in ACTIVE_OR_READY }
+            .filter { dao.getArtifactsForQueue(it.id).none { artifact -> File(artifact.path).isFile } }
+            .forEach { dao.deleteById(it.id) }
+
+        prepared
+    }
+
     suspend fun remove(packageName: String) = withContext(Dispatchers.IO) {
         val items = dao.getByPackage(packageName)
         for (item in items) {
@@ -576,6 +680,16 @@ class QueueRepository(
     }
 
     companion object {
+        private val ACTIVE_OR_READY = setOf(
+            QueueState.CHECKING,
+            QueueState.DOWNLOADING,
+            QueueState.VERIFYING,
+            QueueState.INSTALLING,
+            QueueState.READY_TO_INSTALL,
+            QueueState.AWAITING_UNKNOWN_SOURCES_PERMISSION,
+            QueueState.AWAITING_USER_CONFIRMATION
+        )
+
         /** States in which verified artifacts are on disk and the item can still be installed. */
         private val INSTALLABLE_STATES = setOf(
             QueueState.READY_TO_INSTALL.name,

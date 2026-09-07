@@ -42,6 +42,15 @@ abstract class UpdateQueueDao {
     @Query("SELECT * FROM update_queue WHERE state = 'AVAILABLE' ORDER BY priority DESC, position ASC, packageName ASC, id ASC LIMIT 1")
     abstract suspend fun nextEligible(): UpdateQueueEntity?
 
+    /**
+     * The next item whose APK is already downloaded and verified.
+     *
+     * The queue only ever looked for something to download, so once everything was on disk it
+     * reported nothing to do and the chain of installs stopped after the first one.
+     */
+    @Query("SELECT * FROM update_queue WHERE state = 'READY_TO_INSTALL' ORDER BY priority DESC, position ASC, packageName ASC, id ASC LIMIT 1")
+    abstract suspend fun nextInstallable(): UpdateQueueEntity?
+
     @Query("SELECT COUNT(*) FROM update_queue WHERE state IN (:activeStates)")
     abstract suspend fun countActive(activeStates: List<String>): Int
 

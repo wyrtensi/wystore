@@ -63,9 +63,13 @@ class TransferFailureTest {
 
         // Integrity is no longer inferred from the wording of a message: the downloader raises a
         // typed failure, covered by the test below.
+        //
+        // Anything that is neither I/O nor a failure the app raised on purpose is the app going
+        // wrong, and says so. Calling it a network error sent users to check their connection over
+        // an illegal queue transition, which is exactly what a stuck download reported.
         val unknown = classifyThrowable(IllegalStateException("something the app did not raise"))
         assertFalse(unknown.retryable)
-        assertEquals(QueueErrorCode.NETWORK, unknown.code)
+        assertEquals(QueueErrorCode.INTERNAL, unknown.code)
     }
 
     /**

@@ -35,7 +35,13 @@ enum class QueueErrorCode {
     INSTALL_CANCELED,
     INSTALL_FAILED,
     ARTIFACT_MISSING,
-    TIMEOUT
+    TIMEOUT,
+
+    /**
+     * The app failed, not the network or the source. Reporting these as NETWORK sent users chasing
+     * their connection over a bug: an illegal queue transition was shown as "network error".
+     */
+    INTERNAL
 }
 
 data class QueueItemSnapshot(

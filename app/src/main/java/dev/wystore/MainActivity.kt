@@ -24,7 +24,9 @@ import dev.wystore.ui.theme.WyStoreTheme
 import dev.wystore.data.SigningVerifier
 import dev.wystore.updates.InstallCallbackStore
 import dev.wystore.updates.UserConfirmedInstaller
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -49,6 +51,19 @@ class MainActivity : AppCompatActivity() {
         }
         handleInstallStatus(intent)
         handleNotificationDeepLink(intent)
+
+        // Installing needs an Activity for Android's confirmation dialog, so the ViewModel asks for
+        // one install at a time and this carries it out. It is what lets "update all" walk the
+        // whole list instead of stopping after the first APK.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                storeViewModel.installRequest.collect { packageName ->
+                    if (packageName == null) return@collect
+                    storeViewModel.consumeInstallRequest()
+                    beginPendingInstall(packageName)
+                }
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
