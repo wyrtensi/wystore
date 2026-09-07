@@ -3,6 +3,7 @@ package dev.wystore.ui.components
 import android.content.res.Resources
 import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
+import dev.wystore.data.AndroidSdkCompatibility
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.PendingUpdate
@@ -35,7 +36,10 @@ object PackageUiStateReducer {
         val iconUrl = app?.iconUrl
         val publisher = app?.publisher
 
-        val minSdk = app?.minSdkVersion ?: app?.minAndroidVersion?.toIntOrNull()
+        // The source gives either an API level or a release number, and the two are not the same
+        // scale: read as an API level, "Android 9" is SDK 9 and passes on every device there is.
+        val minSdk = app?.minSdkVersion
+            ?: app?.minAndroidVersion?.let(AndroidSdkCompatibility::sdkForRelease)
         val effectiveSdk = if (deviceSdkInt > 0) deviceSdkInt else 35
         val isCompatible = minSdk == null || effectiveSdk >= minSdk
 

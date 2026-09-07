@@ -1,5 +1,6 @@
 package dev.wystore.ui.details
 
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,7 @@ import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
 import dev.wystore.isInFlight
 import dev.wystore.R
+import dev.wystore.data.AndroidSdkCompatibility
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
@@ -90,7 +92,14 @@ fun AppDetailsScreen(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val queueActive = queueItem?.status?.isInFlight == true
-    val canUpdate = (installed == null || app.versionCode > installed.versionCode) && !queueActive
+    // Most of what the catalogue carries needs a newer Android than this app's own minimum, and
+    // the page used to offer "Install" all the same: the download ran to the end and the source
+    // refused it. The requirement is on the page, so the answer belongs there too.
+    val requiredSdk = app.minSdkVersion
+        ?: app.minAndroidVersion?.let(AndroidSdkCompatibility::sdkForRelease)
+    val deviceTooOld = requiredSdk != null && Build.VERSION.SDK_INT < requiredSdk
+    val canUpdate = (installed == null || app.versionCode > installed.versionCode) &&
+        !queueActive && !deviceTooOld
     val installLabel = stringResource(
         when {
             pendingUpdate != null -> if (installed == null) R.string.details_install_downloaded else R.string.common_update
@@ -233,6 +242,15 @@ fun AppDetailsScreen(
                             add(stringResource(R.string.details_pending_downloaded, pendingUpdate.versionName))
                         } else if (installed != null && !canUpdate) {
                             add(stringResource(R.string.details_already_latest))
+                        }
+                        if (deviceTooOld && requiredSdk != null) {
+                            add(
+                                stringResource(
+                                    R.string.details_incompatible,
+                                    AndroidSdkCompatibility.label(requiredSdk),
+                                    AndroidSdkCompatibility.label(Build.VERSION.SDK_INT)
+                                )
+                            )
                         }
                         if (rootAvailable == false) add(stringResource(R.string.details_no_root))
                     }

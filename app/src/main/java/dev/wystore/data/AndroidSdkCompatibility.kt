@@ -12,6 +12,38 @@ object AndroidSdkCompatibility {
         }
     }
 
+    /**
+     * The API level behind a release number such as "9" or "8.1".
+     *
+     * The catalogue publishes the release the user sees, not the API level. Read as an API level -
+     * which is what the app used to do when the source left minSdkVersion out - "Android 9" became
+     * SDK 9, so every device on earth compared as new enough and the download failed instead.
+     */
+    fun sdkForRelease(release: String): Int? {
+        val trimmed = release.trim().removePrefix("Android").trim().substringBefore(' ')
+        val normalized = if (trimmed.endsWith(".0")) trimmed.dropLast(2) else trimmed
+        return RELEASE_TO_SDK[normalized]
+    }
+
+    private val RELEASE_TO_SDK = mapOf(
+        "5" to 21,
+        "5.1" to 22,
+        "6" to 23,
+        "7" to 24,
+        "7.1" to 25,
+        "8" to 26,
+        "8.1" to 27,
+        "9" to 28,
+        "10" to 29,
+        "11" to 30,
+        "12" to 31,
+        "12.1" to 32,
+        "13" to 33,
+        "14" to 34,
+        "15" to 35,
+        "16" to 36
+    )
+
     fun label(sdkVersion: Int): String {
         val release = when (sdkVersion) {
             21 -> "5.0"
