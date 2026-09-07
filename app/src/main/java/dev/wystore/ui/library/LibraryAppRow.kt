@@ -41,6 +41,7 @@ import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.WyDivider
 import dev.wystore.ui.components.managedSourceLabel
 import dev.wystore.ui.components.sourceBadgeLabel
+import dev.wystore.ui.components.shortVersionName
 
 /**
  * One installed app in the library.
@@ -98,7 +99,7 @@ fun LibraryAppRow(
                         // wide, which wrapped it into a column of letters and stretched the row
                         // to half a screen.
                         Text(
-                            app.versionName,
+                            shortVersionName(app.versionName) ?: app.versionName,
                             modifier = Modifier.weight(1f, fill = false),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

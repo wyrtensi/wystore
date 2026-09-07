@@ -79,13 +79,21 @@ fun AppRow(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            text = state.versionName ?: "—",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        // The catalogue does not state a version for every app, and a lone dash
+                        // in front of the badge says nothing worth a line.
+                        shortVersionName(state.versionName)?.let { version ->
+                            Text(
+                                text = version,
+                                // A long version string used to claim the whole line and squeeze
+                                // the source badge down to nothing: the badge is a word, the
+                                // version is the part that can be cut.
+                                modifier = Modifier.weight(1f, fill = false),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                         state.sourceProvenance?.let { source ->
                             // The reducer carries the raw enum name; the card shows the name the
                             // source actually goes by.
@@ -128,7 +136,12 @@ fun AppRow(
                 )
             }
 
-            if (state.progress != null || state.transferInfo != null) {
+            // Same for a row: until the download reports a size there is no fraction to draw,
+            // and the row showed a percentage that never moved.
+            if (state.progress != null ||
+                state.transferInfo != null ||
+                state.status.code == StatusCode.DOWNLOADING
+            ) {
                 TransferProgress(
                     progress = state.progress,
                     transferInfo = state.transferInfo
