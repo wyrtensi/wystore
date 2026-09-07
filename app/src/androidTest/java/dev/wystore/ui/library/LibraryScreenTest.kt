@@ -31,6 +31,7 @@ class LibraryScreenTest {
                 onUninstall = {},
                 onCheck = {},
                 onOpenDetails = {},
+                onOpenStorePage = {},
                 onLaunch = {},
                 onInstallPending = {}
             )

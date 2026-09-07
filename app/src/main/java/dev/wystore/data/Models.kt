@@ -158,6 +158,10 @@ data class StoreSettings(
     val quietHoursEnd: Int = 8,
     val respectBatterySaver: Boolean = true,
     val selfUpdateEnabled: Boolean = true,
+    /** Hand a downloaded update straight to the installer instead of waiting for a tap. */
+    val autoInstallUpdates: Boolean = false,
+    /** The same for an app being installed for the first time. */
+    val autoInstallNewApps: Boolean = false,
     val artifactRetentionDays: Int = 7,
     val artifactStorageLimitMb: Int = 2_048
 )

@@ -324,6 +324,7 @@
     <string name="updates_intro">Фоновая служба проверяет и скачивает проверенные обновления. Без root установка требует системного подтверждения Android.</string>
     <string name="updates_queue_title">Очередь (%1$d)</string>
     <string name="updates_queue_start">Запустить</string>
+    <string name="updates_check_now">Проверить</string>
     <string name="updates_ready_title">Готовы к установке (%1$d)</string>
     <string name="updates_managed_title">Принятые приложения (%1$d)</string>
     <string name="updates_managed_empty">Пока нет принятых приложений. Выберите приложения в Библиотеке или установите из каталога.</string>
@@ -401,11 +402,16 @@
     <string name="queue_error_install_failed">Android не смог установить приложение</string>
     <string name="queue_error_artifact_missing">Скачанный файл больше недоступен</string>
     <string name="queue_error_timeout">Истекло время ожидания</string>
+    <string name="queue_error_internal">Сбой самого Wy Store, а не сети</string>
     <string name="settings_queue_mode">Очередь обновлений</string>
     <string name="settings_queue_mode_smart">Умные подсказки</string>
     <string name="settings_queue_mode_manual">По одному</string>
     <string name="settings_queue_mode_hint">В умном режиме следующее обновление предлагается сразу после установки</string>
     <string name="settings_root_background_downloads">Скачивать обновления в фоне (root)</string>
+    <string name="settings_auto_install_title">Устанавливать сразу после скачивания</string>
+    <string name="settings_auto_install_hint">Без root Android всё равно спросит подтверждение; Wy Store покажет диалог, как только файл готов.</string>
+    <string name="settings_auto_install_updates">Обновления</string>
+    <string name="settings_auto_install_new_apps">Новые приложения</string>
     <string name="settings_retention_days">Хранить загрузки</string>
     <string name="settings_retention_days_value">%1$d дн.</string>
     <string name="settings_storage_limit">Лимит хранилища</string>
@@ -460,6 +466,8 @@
     <string name="search_start_title">Поиск сразу по двум источникам</string>
     <string name="search_start_message">RuStore и встроенный каталог GitHub.</string>
     <string name="library_open_page">Открыть страницу</string>
+    <string name="library_expand">Показать подробности</string>
+    <string name="library_collapse">Скрыть подробности</string>
     <string name="library_empty_title">Ничего не подходит</string>
     <string name="library_empty_message">Очистите поиск или выберите другой фильтр.</string>
     <string name="github_load_failed">Не удалось загрузить репозиторий</string>
@@ -568,6 +576,8 @@
     <string name="review_anonymous_author">Пользователь RuStore</string>
     <string name="details_reviews_count">Отзывы (%1$d)</string>
     <string name="details_reviews_show_more">Показать ещё %1$d</string>
+    <string name="details_reviews_loading">Загружаем отзывы…</string>
+    <string name="details_reviews_load_all">Загрузить все отзывы</string>
     <string name="details_reviews_show_less">Свернуть</string>
     <string name="details_share">Поделиться</string>
     <string name="details_share_subject">%1$s в RuStore</string>

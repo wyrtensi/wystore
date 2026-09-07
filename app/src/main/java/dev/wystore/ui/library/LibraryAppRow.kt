@@ -17,6 +17,15 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -36,9 +45,12 @@ import dev.wystore.ui.components.sourceLabel
 /**
  * One installed app in the library.
  *
- * The card has three bands: identity, the switches that govern how the app is updated, and the
- * actions. The actions used to sit in a single fixed `Row`, so on a narrow screen the last two of
- * five buttons were pushed off the edge; a [FlowRow] wraps them instead.
+ * A screen of full-height cards - identity, package name, two switches and a row of five buttons
+ * each - fitted three apps on the display. The row is one line until it is opened: icon, name, what
+ * it is, and the single action the user is most likely to want. Everything else appears on tap.
+ *
+ * Tapping the icon opens the app's page in the store rather than expanding the row, which is the
+ * gesture the same icon already performs everywhere else in the app.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -53,16 +65,23 @@ fun LibraryAppRow(
     onUninstall: (InstalledApp) -> Unit,
     onCheck: (ManagedApp) -> Unit,
     onOpenDetails: (ManagedApp) -> Unit,
+    onOpenStorePage: (String) -> Unit,
     onLaunch: (String) -> Unit,
     onInstallPending: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    WyCard(modifier = modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    var expanded by rememberSaveable(app.packageName) { mutableStateOf(false) }
+    WyCard(modifier = modifier.fillMaxWidth(), onClick = { expanded = !expanded }) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                InstalledAppIcon(app, Modifier.size(52.dp))
+                InstalledAppIcon(
+                    app,
+                    Modifier
+                        .size(44.dp)
+                        .clickable { onOpenStorePage(app.packageName) }
+                )
                 Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         app.label,
                         style = MaterialTheme.typography.titleSmall,
@@ -83,15 +102,8 @@ fun LibraryAppRow(
                             text = if (managed != null) managedSourceLabel(managed) else sourceLabel(app.source)
                         )
                     }
-                    Text(
-                        stringResource(R.string.library_updated_at, formatLastUpdated(app.lastUpdateTime)),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
                 }
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(8.dp))
                 // The step the user is most likely to want, kept on the identity line.
                 if (pendingUpdate != null) {
                     Button(onClick = { onInstallPending(app.packageName) }) {
@@ -102,10 +114,26 @@ fun LibraryAppRow(
                         Text(stringResource(R.string.common_open), maxLines = 1)
                     }
                 }
+                Icon(
+                    imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                    contentDescription = stringResource(
+                        if (expanded) R.string.library_collapse else R.string.library_expand
+                    ),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+
+            if (!expanded) return@Column
 
             Text(
                 app.packageName,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                stringResource(R.string.library_updated_at, formatLastUpdated(app.lastUpdateTime)),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,

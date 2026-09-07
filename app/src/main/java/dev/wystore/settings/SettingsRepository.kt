@@ -92,6 +92,8 @@ class SettingsRepository(private val context: Context) {
         val KEY_QUIET_HOURS_END = intPreferencesKey("quiet_hours_end")
         val KEY_RESPECT_BATTERY_SAVER = booleanPreferencesKey("respect_battery_saver")
         val KEY_SELF_UPDATE_ENABLED = booleanPreferencesKey("self_update_enabled")
+        val KEY_AUTO_INSTALL_UPDATES = booleanPreferencesKey("auto_install_updates")
+        val KEY_AUTO_INSTALL_NEW_APPS = booleanPreferencesKey("auto_install_new_apps")
         val KEY_ARTIFACT_RETENTION_DAYS = intPreferencesKey("retention_days")
         val KEY_ARTIFACT_STORAGE_LIMIT_MB = intPreferencesKey("storage_limit_mb")
 
@@ -135,6 +137,8 @@ class SettingsRepository(private val context: Context) {
         quietHoursEnd = this[KEY_QUIET_HOURS_END] ?: 8,
         respectBatterySaver = this[KEY_RESPECT_BATTERY_SAVER] ?: true,
         selfUpdateEnabled = this[KEY_SELF_UPDATE_ENABLED] ?: true,
+        autoInstallUpdates = this[KEY_AUTO_INSTALL_UPDATES] ?: false,
+        autoInstallNewApps = this[KEY_AUTO_INSTALL_NEW_APPS] ?: false,
         artifactRetentionDays = this[KEY_ARTIFACT_RETENTION_DAYS] ?: 7,
         artifactStorageLimitMb = this[KEY_ARTIFACT_STORAGE_LIMIT_MB] ?: 2_048
     )
@@ -173,6 +177,8 @@ class SettingsRepository(private val context: Context) {
             prefs[KEY_QUIET_HOURS_END] = updated.quietHoursEnd
             prefs[KEY_RESPECT_BATTERY_SAVER] = updated.respectBatterySaver
             prefs[KEY_SELF_UPDATE_ENABLED] = updated.selfUpdateEnabled
+            prefs[KEY_AUTO_INSTALL_UPDATES] = updated.autoInstallUpdates
+            prefs[KEY_AUTO_INSTALL_NEW_APPS] = updated.autoInstallNewApps
             prefs[KEY_ARTIFACT_RETENTION_DAYS] = updated.artifactRetentionDays
             prefs[KEY_ARTIFACT_STORAGE_LIMIT_MB] = updated.artifactStorageLimitMb
         }

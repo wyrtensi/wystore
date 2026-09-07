@@ -83,6 +83,7 @@ fun LibraryScreen(
     onUninstall: (InstalledApp) -> Unit,
     onCheck: (ManagedApp) -> Unit,
     onOpenDetails: (ManagedApp) -> Unit,
+    onOpenStorePage: (String) -> Unit,
     onLaunch: (String) -> Unit,
     onInstallPending: (String) -> Unit
 ) {
@@ -198,7 +199,7 @@ fun LibraryScreen(
             }
             items(filteredInstalled, key = { it.packageName }) { app ->
                 val managedApp = managedByPackage[app.packageName]
-                LibraryAppRow(app, managedApp, pendingByPackage[app.packageName], onAdopt, onUpdateManaged, onRequestForce, onRemoveManaged, onUninstall, onCheck, onOpenDetails, onLaunch, onInstallPending)
+                LibraryAppRow(app, managedApp, pendingByPackage[app.packageName], onAdopt, onUpdateManaged, onRequestForce, onRemoveManaged, onUninstall, onCheck, onOpenDetails, onOpenStorePage, onLaunch, onInstallPending)
             }
         }
     }

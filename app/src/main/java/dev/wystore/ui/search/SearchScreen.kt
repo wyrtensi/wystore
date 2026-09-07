@@ -58,6 +58,7 @@ import dev.wystore.isInFlight
 import dev.wystore.R
 import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.data.InstalledApp
+import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.CategoryPill
@@ -83,12 +84,14 @@ fun SearchScreen(
     operation: String?,
     installed: List<InstalledApp>,
     queue: List<InstallQueueItem>,
+    pendingUpdates: List<PendingUpdate> = emptyList(),
     githubResults: List<GitHubCatalogEntry> = emptyList(),
     onOpenGitHubApp: (GitHubCatalogEntry) -> Unit = {},
     onSearch: (String) -> Unit,
     onLoadMore: () -> Unit = {},
     onOpen: (StoreApp) -> Unit,
     onQuickInstall: (String) -> Unit,
+    onInstallPending: (String) -> Unit = {},
     onLaunch: (String) -> Unit
 ) {
     var text by remember(query) { mutableStateOf(query) }
@@ -216,8 +219,10 @@ fun SearchScreen(
                     app = app,
                     installed = installed.firstOrNull { it.packageName == app.packageName },
                     queueItem = queue.firstOrNull { it.packageName == app.packageName },
+                    pendingUpdate = pendingUpdates.firstOrNull { it.packageName == app.packageName },
                     onOpen = onOpen,
                     onQuickInstall = onQuickInstall,
+                    onInstallPending = onInstallPending,
                     onLaunch = onLaunch
                 )
             }
@@ -275,8 +280,10 @@ fun SearchCard(
     app: StoreApp,
     installed: InstalledApp?,
     queueItem: InstallQueueItem?,
+    pendingUpdate: PendingUpdate?,
     onOpen: (StoreApp) -> Unit,
     onQuickInstall: (String) -> Unit,
+    onInstallPending: (String) -> Unit,
     onLaunch: (String) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -319,7 +326,24 @@ fun SearchCard(
                 // growing a button strip under every result.
                 if (!inFlight && queueItem?.status != InstallQueueStatus.FAILED) {
                     Spacer(Modifier.width(10.dp))
-                    if (installed == null) {
+                    // A downloaded APK waiting for confirmation is the step the user is in the
+                    // middle of; the card used to ignore it and offer "Open", which opened the old
+                    // version and left the new one sitting on disk.
+                    if (pendingUpdate != null) {
+                        Button(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                onInstallPending(app.packageName)
+                            }
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (installed == null) R.string.common_install else R.string.common_update
+                                ),
+                                maxLines = 1
+                            )
+                        }
+                    } else if (installed == null) {
                         Button(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)

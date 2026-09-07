@@ -77,6 +77,9 @@ fun AppDetailsScreen(
     rootAvailable: Boolean?,
     busy: Boolean,
     queueItem: InstallQueueItem?,
+    reviewsLoading: Boolean,
+    canLoadMoreReviews: Boolean,
+    onLoadMoreReviews: () -> Unit,
     onBack: () -> Unit,
     onLaunch: (String) -> Unit,
     onInstallPending: (String) -> Unit,
@@ -287,10 +290,16 @@ fun AppDetailsScreen(
                 }
             }
 
-            if (app.reviews.isNotEmpty()) {
+            // Shown even with nothing embedded in the card: the source publishes reviews on a page
+            // of their own, and an app whose card carries none used to offer no way to reach them.
+            if (app.reviews.isNotEmpty() || canLoadMoreReviews) {
                 item {
                     SectionHeader(
-                        title = stringResource(R.string.details_reviews_count, app.reviews.size),
+                        title = if (app.reviews.isEmpty()) {
+                            stringResource(R.string.details_reviews)
+                        } else {
+                            stringResource(R.string.details_reviews_count, app.reviews.size)
+                        },
                         subtitle = stringResource(R.string.details_reviews_hint)
                     )
                 }
@@ -303,27 +312,36 @@ fun AppDetailsScreen(
                 ) { review ->
                     ReviewCard(review)
                 }
-                if (app.reviews.size > REVIEW_PAGE) {
+                // The page the app card comes from embeds exactly five reviews, so this used to be
+                // hidden behind `size > REVIEW_PAGE` and never appeared. The rest are fetched from
+                // the source's own review page the first time the user asks for them.
+                val remaining = app.reviews.size - shownReviews
+                if (remaining > 0 || canLoadMoreReviews || shownReviews > REVIEW_PAGE) {
                     item {
-                        val remaining = app.reviews.size - shownReviews
                         TextButton(
                             onClick = {
-                                shownReviews = if (remaining > 0) {
-                                    (shownReviews + REVIEW_PAGE).coerceAtMost(app.reviews.size)
-                                } else {
-                                    REVIEW_PAGE
+                                when {
+                                    remaining > 0 ->
+                                        shownReviews = (shownReviews + REVIEW_PAGE).coerceAtMost(app.reviews.size)
+                                    canLoadMoreReviews -> {
+                                        onLoadMoreReviews()
+                                        shownReviews += REVIEW_PAGE
+                                    }
+                                    else -> shownReviews = REVIEW_PAGE
                                 }
                             },
+                            enabled = !reviewsLoading,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                if (remaining > 0) {
-                                    stringResource(
+                                when {
+                                    reviewsLoading -> stringResource(R.string.details_reviews_loading)
+                                    remaining > 0 -> stringResource(
                                         R.string.details_reviews_show_more,
                                         remaining.coerceAtMost(REVIEW_PAGE)
                                     )
-                                } else {
-                                    stringResource(R.string.details_reviews_show_less)
+                                    canLoadMoreReviews -> stringResource(R.string.details_reviews_load_all)
+                                    else -> stringResource(R.string.details_reviews_show_less)
                                 }
                             )
                         }

@@ -2,6 +2,8 @@ package dev.wystore.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -210,34 +212,51 @@ fun CategoriesSection(
             // Categories carry their own icons from the source; a horizontal rail shows more of
             // them than a wrapped chip grid and keeps the section a fixed height.
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(categories, key = { it.slug }) { category ->
-                    CategoryTile(category = category, onClick = { onCategoryClick(category) })
+                itemsIndexed(categories, key = { _, category -> category.slug }) { index, category ->
+                    CategoryTile(
+                        category = category,
+                        accent = index,
+                        onClick = { onCategoryClick(category) }
+                    )
                 }
             }
         }
     }
 }
 
-/** One catalog section: source icon over its title, sized so a row of them scans quickly. */
+/**
+ * One catalog section.
+ *
+ * The tiles used to be identical grey squares with a small monochrome glyph, which read as one
+ * undifferentiated block of chrome. Each one now carries its own tone from the theme's container
+ * colours, so the rail is scannable by colour as well as by reading every label.
+ */
 @Composable
-private fun CategoryTile(category: StoreCategory, onClick: () -> Unit) {
+private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val tones = listOf(
+        scheme.primaryContainer to scheme.onPrimaryContainer,
+        scheme.tertiaryContainer to scheme.onTertiaryContainer,
+        scheme.secondaryContainer to scheme.onSecondaryContainer
+    )
+    val (container, onContainer) = tones[accent.mod(tones.size)]
     Surface(
         // Wide enough for the longest curated category name to break between words rather than
-        // mid-word ("Супермаркет / ы и рестора...").
-        modifier = Modifier.width(132.dp).clickable(onClick = onClick),
+        // mid-word ("Здоровье и / аптеки").
+        modifier = Modifier.width(124.dp).clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+        color = container
     ) {
         Column(
-            modifier = Modifier.padding(vertical = 14.dp, horizontal = 8.dp),
+            modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(46.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(onContainer.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
                 if (category.iconUrl != null) {
@@ -251,18 +270,19 @@ private fun CategoryTile(category: StoreCategory, onClick: () -> Unit) {
                         imageVector = Icons.AutoMirrored.Outlined.List,
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        tint = onContainer
                     )
                 }
             }
             Text(
                 category.title,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelLarge,
+                color = onContainer,
                 textAlign = TextAlign.Center,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 minLines = 2,
-                lineHeight = 15.sp
+                lineHeight = 16.sp
             )
         }
     }

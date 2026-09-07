@@ -265,6 +265,7 @@ fun queueErrorLabel(code: QueueErrorCode): String = when (code) {
     QueueErrorCode.INSTALL_FAILED -> stringResource(R.string.queue_error_install_failed)
     QueueErrorCode.ARTIFACT_MISSING -> stringResource(R.string.queue_error_artifact_missing)
     QueueErrorCode.TIMEOUT -> stringResource(R.string.queue_error_timeout)
+    QueueErrorCode.INTERNAL -> stringResource(R.string.queue_error_internal)
 }
 
 @Composable

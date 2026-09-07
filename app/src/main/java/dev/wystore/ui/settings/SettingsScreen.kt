@@ -314,6 +314,28 @@ fun SettingsScreen(
                 }
             }
 
+            // Without root the install still needs Android's dialog, so this means "ask me the
+            // moment it is downloaded" rather than "install behind my back".
+            SettingsGroup(
+                title = stringResource(R.string.settings_auto_install_title),
+                subtitle = stringResource(R.string.settings_auto_install_hint)
+            ) {
+                CompactSettingSwitch(
+                    stringResource(R.string.settings_auto_install_updates),
+                    editedSettings.autoInstallUpdates
+                ) {
+                    editedSettings = editedSettings.copy(autoInstallUpdates = it)
+                    onSave(editedSettings)
+                }
+                CompactSettingSwitch(
+                    stringResource(R.string.settings_auto_install_new_apps),
+                    editedSettings.autoInstallNewApps
+                ) {
+                    editedSettings = editedSettings.copy(autoInstallNewApps = it)
+                    onSave(editedSettings)
+                }
+            }
+
             // The queue coordinator has always read this; there was simply no way to set it.
             SettingsGroup(
                 title = stringResource(R.string.settings_queue_mode),

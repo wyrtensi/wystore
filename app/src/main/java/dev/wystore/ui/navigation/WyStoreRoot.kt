@@ -171,6 +171,9 @@ fun WyStoreRoot(
             rootAvailable = state.rootAvailable,
             busy = state.detailsLoading,
             queueItem = state.installQueue.firstOrNull { it.packageName == selected.packageName },
+            reviewsLoading = state.reviewsLoading,
+            canLoadMoreReviews = selected.packageName !in state.fullReviewsLoaded,
+            onLoadMoreReviews = viewModel::loadAllReviews,
             onBack = {
                 openedPackage = null
                 viewModel.clearDetails()
@@ -221,7 +224,7 @@ fun WyStoreRoot(
                         emptyList()
                     },
                     onGitHubPickClick = viewModel::openGitHubApp,
-                    onUpdateAll = { viewModel.startQueue() },
+                    onUpdateAll = { viewModel.updateAll() },
                     onRetryCatalog = homeViewModel::retry
                 )
                 is WyStoreDestination.Category -> CategoryScreen(
@@ -243,6 +246,8 @@ fun WyStoreRoot(
                     operation = state.operation,
                     installed = state.installed,
                     queue = state.installQueue,
+                    pendingUpdates = state.pendingUpdates,
+                    onInstallPending = onInstallPending,
                     githubResults = state.githubSearchResults,
                     onOpenGitHubApp = viewModel::openGitHubApp,
                     onSearch = viewModel::search,
@@ -272,6 +277,8 @@ fun WyStoreRoot(
                     updateCheckTask = state.updateCheckTask,
                     lastUpdateCheck = state.lastUpdateCheck,
                     queue = state.installQueue,
+                    packageIcons = state.packageIcons,
+                    onCheckUpdates = { viewModel.checkForUpdates() },
                     onOpen = { managedApp ->
                         if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
                             viewModel.openManagedGitHubRepository(managedApp)
@@ -293,6 +300,7 @@ fun WyStoreRoot(
                     pendingUpdates = state.pendingUpdates,
                     updateCheckTask = state.updateCheckTask,
                     onCheckUpdates = { viewModel.checkForUpdates() },
+                    onOpenStorePage = viewModel::openDetails,
                     onAdopt = { adoptDialog = it },
                     onUpdateManaged = viewModel::updateManaged,
                     onRequestForce = { forceDialog = it },

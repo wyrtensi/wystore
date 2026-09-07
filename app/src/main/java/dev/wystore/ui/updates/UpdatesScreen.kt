@@ -41,6 +41,8 @@ import dev.wystore.data.ManagedApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.UpdateCheckSummary
 import dev.wystore.ui.components.EmptyState
+import dev.wystore.ui.components.AppIcon
+import androidx.compose.ui.text.style.TextOverflow
 import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.SectionHeader
 import dev.wystore.ui.components.WyCard
@@ -59,7 +61,9 @@ fun UpdatesScreen(
     updateCheckTask: UpdateCheckTask?,
     lastUpdateCheck: UpdateCheckSummary?,
     queue: List<InstallQueueItem> = emptyList(),
+    packageIcons: Map<String, String> = emptyMap(),
     onOpen: (ManagedApp) -> Unit,
+    onCheckUpdates: () -> Unit = {},
     onInstallPending: (String) -> Unit,
     onQueueRetry: (String) -> Unit = {},
     onQueueCancel: (String) -> Unit = {},
@@ -95,6 +99,18 @@ fun UpdatesScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.updates_title)) },
+                actions = {
+                    // The only way to ask for a check used to be the Library tab, which is not
+                    // where anyone looks for it.
+                    TextButton(onClick = onCheckUpdates, enabled = updateCheckTask?.active != true) {
+                        Text(
+                            stringResource(
+                                if (updateCheckTask?.active == true) R.string.library_checking
+                                else R.string.updates_check_now
+                            )
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
@@ -137,6 +153,7 @@ fun UpdatesScreen(
                 items(actionableQueue, key = { "queue:${it.id}" }) { item ->
                     QueueItemCard(
                         item = item,
+                        iconUrl = packageIcons[item.packageName],
                         onRetry = { onQueueRetry(item.id) },
                         onCancel = { onQueueCancel(item.id) },
                         onSkip = { onQueueSkip(item.id) },
@@ -150,7 +167,7 @@ fun UpdatesScreen(
                     SectionHeader(title = stringResource(R.string.updates_ready_title, pendingUpdates.size))
                 }
                 items(pendingUpdates, key = { "pending:${it.packageName}" }) { pending ->
-                    PendingUpdateCard(pending, onInstallPending)
+                    PendingUpdateCard(pending, packageIcons[pending.packageName], onInstallPending)
                 }
             }
 
@@ -186,7 +203,11 @@ fun UpdatesScreen(
 }
 
 @Composable
-fun PendingUpdateCard(update: PendingUpdate, onInstallPending: (String) -> Unit) {
+fun PendingUpdateCard(
+    update: PendingUpdate,
+    iconUrl: String? = null,
+    onInstallPending: (String) -> Unit
+) {
     val onContainer = MaterialTheme.colorScheme.onPrimaryContainer
     WyCard(
         modifier = Modifier.fillMaxWidth(),
@@ -196,11 +217,24 @@ fun PendingUpdateCard(update: PendingUpdate, onInstallPending: (String) -> Unit)
             modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            AppIcon(
+                model = iconUrl,
+                contentDescription = null,
+                size = 44.dp,
+                fallbackPackageName = update.packageName
+            )
+            Spacer(Modifier.width(12.dp))
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(update.label, style = MaterialTheme.typography.titleSmall, color = onContainer)
+                Text(
+                    update.label.ifBlank { update.packageName },
+                    style = MaterialTheme.typography.titleSmall,
+                    color = onContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 Text(
                     stringResource(R.string.updates_downloaded_version, update.versionName),
                     style = MaterialTheme.typography.bodySmall,
@@ -266,6 +300,7 @@ fun formatCheckTime(time: Long): String =
 @Composable
 fun QueueItemCard(
     item: InstallQueueItem,
+    iconUrl: String? = null,
     onRetry: () -> Unit,
     onCancel: () -> Unit,
     onSkip: () -> Unit,
@@ -282,7 +317,32 @@ fun QueueItemCard(
         }
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(item.label.ifBlank { item.packageName }, style = MaterialTheme.typography.titleSmall)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIcon(
+                    model = iconUrl,
+                    contentDescription = null,
+                    size = 40.dp,
+                    fallbackPackageName = item.packageName
+                )
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        item.label.ifBlank { item.packageName },
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (item.label.isNotBlank() && item.label != item.packageName) {
+                        Text(
+                            item.packageName,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
             Text(
                 queueStatusLabel(item),
                 style = MaterialTheme.typography.bodySmall,

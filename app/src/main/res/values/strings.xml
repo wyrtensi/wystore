@@ -324,6 +324,7 @@
     <string name="updates_intro">The background service checks for and downloads verified updates. Without root, installing requires the Android system confirmation.</string>
     <string name="updates_queue_title">Queue (%1$d)</string>
     <string name="updates_queue_start">Start</string>
+    <string name="updates_check_now">Check</string>
     <string name="updates_ready_title">Ready to install (%1$d)</string>
     <string name="updates_managed_title">Accepted apps (%1$d)</string>
     <string name="updates_managed_empty">No accepted apps yet. Pick apps in Library or install them from the catalogue.</string>
@@ -401,11 +402,16 @@
     <string name="queue_error_install_failed">Android could not install the app</string>
     <string name="queue_error_artifact_missing">The downloaded file is no longer available</string>
     <string name="queue_error_timeout">The connection timed out</string>
+    <string name="queue_error_internal">Wy Store failed on this one, not the network</string>
     <string name="settings_queue_mode">Update queue</string>
     <string name="settings_queue_mode_smart">Smart prompts</string>
     <string name="settings_queue_mode_manual">One at a time</string>
     <string name="settings_queue_mode_hint">Smart mode offers the next update right after one finishes</string>
     <string name="settings_root_background_downloads">Download updates in background (root)</string>
+    <string name="settings_auto_install_title">Install right after download</string>
+    <string name="settings_auto_install_hint">Without root Android still asks for confirmation; Wy Store brings the dialog up as soon as the file is ready.</string>
+    <string name="settings_auto_install_updates">Updates</string>
+    <string name="settings_auto_install_new_apps">New apps</string>
     <string name="settings_retention_days">Keep downloads</string>
     <string name="settings_retention_days_value">%1$d d</string>
     <string name="settings_storage_limit">Storage limit</string>
@@ -460,6 +466,8 @@
     <string name="search_start_title">Search two sources at once</string>
     <string name="search_start_message">RuStore and the built-in GitHub catalogue.</string>
     <string name="library_open_page">Open page</string>
+    <string name="library_expand">Show details</string>
+    <string name="library_collapse">Hide details</string>
     <string name="library_empty_title">No apps match</string>
     <string name="library_empty_message">Clear the search or pick another filter.</string>
     <string name="github_load_failed">Could not load the repository</string>
@@ -568,6 +576,8 @@
     <string name="review_anonymous_author">RuStore user</string>
     <string name="details_reviews_count">Reviews (%1$d)</string>
     <string name="details_reviews_show_more">Show %1$d more</string>
+    <string name="details_reviews_loading">Loading reviews…</string>
+    <string name="details_reviews_load_all">Load all reviews</string>
     <string name="details_reviews_show_less">Show fewer</string>
     <string name="details_share">Share</string>
     <string name="details_share_subject">%1$s on RuStore</string>
