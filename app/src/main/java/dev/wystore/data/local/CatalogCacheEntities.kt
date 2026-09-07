@@ -53,6 +53,15 @@ abstract class CatalogCacheDao {
     @Query("SELECT * FROM catalog_apps WHERE slug = :slug AND page = :page ORDER BY position ASC")
     abstract suspend fun page(slug: String, page: Int): List<CatalogAppEntity>
 
+    /**
+     * The icon the catalogue last showed for a package, whichever section it came from.
+     *
+     * Queue rows carry no icon of their own, and an app that is not installed yet has none on the
+     * device either, so cards for it were drawn blank.
+     */
+    @Query("SELECT iconUrl FROM catalog_apps WHERE packageName = :packageName AND iconUrl IS NOT NULL LIMIT 1")
+    abstract suspend fun iconFor(packageName: String): String?
+
     @Query("DELETE FROM catalog_categories")
     abstract suspend fun clearCategories()
 

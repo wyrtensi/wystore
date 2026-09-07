@@ -34,6 +34,8 @@ class CatalogRepositoryTest {
             failCatalog?.let { throw it }
             return CatalogPage(listOf(storeApp("$slug.p$page")), page, lastPage = 3)
         }
+
+        override suspend fun reviews(packageName: String): List<StoreReview> = emptyList()
     }
 
     /** In-memory stand-in for the Room-backed store. */
@@ -58,6 +60,9 @@ class CatalogRepositoryTest {
             categories = emptyList()
             pages.clear()
         }
+
+        override suspend fun iconFor(packageName: String): String? =
+            pages.values.flatMap { it.apps }.firstOrNull { it.packageName == packageName }?.iconUrl
     }
 
     private var clock = 0L

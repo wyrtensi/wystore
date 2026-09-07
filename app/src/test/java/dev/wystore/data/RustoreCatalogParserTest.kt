@@ -111,6 +111,49 @@ class RustoreCatalogParserTest {
     }
 
     @Test
+    fun aCardTheSourceLeftEmptyIsNotAnApp() {
+        // The landing page emits an anchor per app but fills in only the ones it renders on the
+        // server; the rest arrive as `<a href="/catalog/app/..."></a>` and are filled in by the
+        // page's own scripts. Keeping them produced rows with no name and no icon, which is what
+        // scrolling Home showed.
+        val markup = """
+            <html><body>
+              <a data-testid="category" href="/catalog/tools">Полезные инструменты</a>
+              <a data-testid="app-card" href="/catalog/app/com.example.real">
+                <img src="https://static.rustore.ru/imgproxy/icon.png"/>
+                <p>Настоящее приложение</p><p>Инструменты</p>
+              </a>
+              <a data-testid="app-card" href="/catalog/app/com.example.placeholder"></a>
+            </body></html>
+        """.trimIndent()
+
+        val page = RustoreHtmlParser.parseCatalogPage(markup, "", 1)
+
+        assertEquals(listOf("com.example.real"), page.apps.map { it.packageName })
+    }
+
+    @Test
+    fun theSameAppListedTwiceOnAPageIsOneCard() {
+        // The landing page repeats apps across its rails, so the same package arrives more than
+        // once, sometimes complete and sometimes as an empty placeholder.
+        val markup = """
+            <html><body>
+              <a data-testid="category" href="/catalog/tools">Полезные инструменты</a>
+              <a data-testid="app-card" href="/catalog/app/com.example.real"></a>
+              <a data-testid="app-card" href="/catalog/app/com.example.real">
+                <img src="https://static.rustore.ru/imgproxy/icon.png"/>
+                <p>Настоящее приложение</p>
+              </a>
+            </body></html>
+        """.trimIndent()
+
+        val page = RustoreHtmlParser.parseCatalogPage(markup, "", 1)
+
+        assertEquals(1, page.apps.size)
+        assertEquals("Настоящее приложение", page.apps.first().name)
+    }
+
+    @Test
     fun catalogRejectsMarkupWithoutCards() {
         assertThrows(SourceFormatException::class.java) {
             RustoreHtmlParser.parseCatalogPage("<html><body><h1>Приложения</h1></body></html>", "tools", 1)

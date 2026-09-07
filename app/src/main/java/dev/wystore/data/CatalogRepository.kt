@@ -162,6 +162,15 @@ class CatalogRepository(
         return runCatching { cacheStore.readPage(slug, page) }.getOrNull()
     }
 
+    /**
+     * The icon the catalogue last showed for a package.
+     *
+     * Queue rows and downloaded-update cards carry no icon, and an app that is not installed has
+     * none on the device either, so they were drawn with a blank square next to a package name.
+     */
+    suspend fun cachedIcon(packageName: String): String? =
+        runCatching { cacheStore.iconFor(packageName) }.getOrNull()
+
     suspend fun cachedCategories(): List<StoreCategory> {
         mutex.withLock { categories }?.let { return it.value }
         return runCatching { cacheStore.readCategories() }.getOrDefault(emptyList())

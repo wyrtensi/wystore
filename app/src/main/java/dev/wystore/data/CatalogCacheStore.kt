@@ -20,6 +20,9 @@ interface CatalogCacheStore {
     suspend fun writePage(slug: String, page: CatalogPage)
     suspend fun clear()
 
+    /** The icon the catalogue last showed for a package, for rows that carry none of their own. */
+    suspend fun iconFor(packageName: String): String?
+
     /** Does nothing; used where persistence is not wanted, such as in tests. */
     object None : CatalogCacheStore {
         override suspend fun readCategories(): List<StoreCategory> = emptyList()
@@ -27,6 +30,7 @@ interface CatalogCacheStore {
         override suspend fun readPage(slug: String, page: Int): CatalogPage? = null
         override suspend fun writePage(slug: String, page: CatalogPage) = Unit
         override suspend fun clear() = Unit
+        override suspend fun iconFor(packageName: String): String? = null
     }
 }
 
@@ -93,6 +97,8 @@ class RoomCatalogCacheStore(
         dao.clearCategories()
         dao.clearApps()
     }
+
+    override suspend fun iconFor(packageName: String): String? = dao.iconFor(packageName)
 
     companion object {
         const val DEFAULT_MAX_CACHED_PAGES = 24

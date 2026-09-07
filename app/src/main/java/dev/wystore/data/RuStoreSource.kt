@@ -112,6 +112,17 @@ class RuStoreSource(context: Context) : StoreSource {
         RustoreHtmlParser.parseCategories(getText("https://www.rustore.ru/catalog"))
     }
 
+    /**
+     * The app page embeds a fixed five reviews, which is why "show more" had nothing to show. The
+     * source publishes the rest on a page of their own, in the same embedded format.
+     */
+    override suspend fun reviews(packageName: String): List<StoreReview> = withContext(Dispatchers.IO) {
+        val validPackageName = PackageNameValidator.requireValid(packageName)
+        RustoreHtmlParser.parseReviewPreviews(
+            getText("https://www.rustore.ru/catalog/app/$validPackageName/reviews")
+        )
+    }
+
     override suspend fun catalog(slug: String, page: Int): CatalogPage = withContext(Dispatchers.IO) {
         val section = CatalogSlugPolicy.requireValid(slug)
         val base = if (section.isEmpty()) "catalog" else "catalog/$section"
@@ -167,7 +178,13 @@ object RustoreHtmlParser {
             }
             return SearchPage(emptyList(), page, total ?: 0)
         }
-        return SearchPage(cards.mapNotNull(::parseAppCard), page, total)
+        return SearchPage(
+            cards.mapNotNull(::parseAppCard)
+                .filter { it.name.isNotBlank() }
+                .distinctBy { it.packageName },
+            page,
+            total
+        )
     }
 
     /** True when the page really is a rendered search screen that happens to hold no cards. */
@@ -207,7 +224,17 @@ object RustoreHtmlParser {
             .mapNotNull { it.attr("href").substringAfterLast("/page-", "").toIntOrNull() }
             .maxOrNull()
             ?.coerceAtLeast(page)
-        return CatalogPage(apps = cards.mapNotNull(::parseAppCard), page = page, lastPage = lastPage)
+        return CatalogPage(
+            // The landing page emits an anchor for every app but renders only some of them on the
+            // server; the rest arrive empty and are filled in by its own scripts. Those carry no
+            // name and no icon, so keeping them put blank rows in the list. The same app also
+            // appears on more than one rail, hence the de-duplication.
+            apps = cards.mapNotNull(::parseAppCard)
+                .filter { it.name.isNotBlank() }
+                .distinctBy { it.packageName },
+            page = page,
+            lastPage = lastPage
+        )
     }
 
     /**

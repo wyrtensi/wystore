@@ -34,12 +34,16 @@ class CuratedCategoriesTest {
     fun theCuratedSectionsAreTheOnesTheStoreOffers() {
         assertEquals(
             listOf(
-                "Банки",
+                "Банки и платежи",
                 "Маркетплейсы",
-                "Супермаркеты и рестораны",
-                "Государственное",
-                "Мессенджеры и соцсети",
-                "Для жизни"
+                "Продукты и еда",
+                "Госуслуги",
+                "Общение",
+                "Кино и музыка",
+                "Транспорт",
+                "Путешествия",
+                "Здоровье и аптеки",
+                "Связь"
             ),
             CuratedCategories.ALL.map { it.title }
         )
@@ -96,7 +100,7 @@ class CuratedCategoriesTest {
         val merged = CuratedCategories.merge(listOf(StoreCategory("wy-banks", "Something else")))
 
         assertEquals(CuratedCategories.ALL.size, merged.size)
-        assertEquals("Банки", merged.first { it.slug == "wy-banks" }.title)
+        assertEquals("Банки и платежи", merged.first { it.slug == "wy-banks" }.title)
     }
 
     @Test
@@ -118,6 +122,18 @@ class CuratedCategoriesTest {
             CuratedCategories.ALL.size,
             CuratedCategories.ALL.map { it.slug }.distinct().size
         )
+    }
+
+    @Test
+    fun everyCuratedPackageIsNamedOnlyOnceInItsCategory() {
+        // A package listed twice would show the same card twice in the section.
+        CuratedCategories.ALL.forEach { category ->
+            assertEquals(
+                category.slug,
+                category.packages.size,
+                category.packages.distinct().size
+            )
+        }
     }
 
     @Test

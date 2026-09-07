@@ -12,4 +12,12 @@ interface StoreSource {
      * One page of a catalog section. A blank [slug] means the source's own landing selection.
      */
     suspend fun catalog(slug: String, page: Int = 1): CatalogPage
+
+    /**
+     * Every review the source publishes for an app.
+     *
+     * The app page carries a fixed handful; this is the full list, fetched only when the user asks
+     * for more of them.
+     */
+    suspend fun reviews(packageName: String): List<StoreReview>
 }
