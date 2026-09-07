@@ -277,7 +277,9 @@ private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Un
                 }
             }
             Text(
-                category.title,
+                // Wy Store's own sections are translated; sections read from the source keep the
+                // name the catalogue publishes.
+                category.titleRes?.let { stringResource(it) } ?: category.title,
                 style = MaterialTheme.typography.labelLarge,
                 color = onContainer,
                 textAlign = TextAlign.Center,

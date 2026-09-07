@@ -1,5 +1,7 @@
 package dev.wystore.data
 
+import dev.wystore.R
+
 /**
  * A Wy Store category, assembled from the source catalogue rather than mirroring it.
  *
@@ -13,11 +15,14 @@ package dev.wystore.data
 data class CuratedCategory(
     val slug: String,
     val title: String,
+    val titleRes: Int,
     val iconUrl: String?,
     val sourceSlugs: List<String>,
     val packages: List<String> = emptyList()
 ) {
-    fun toStoreCategory(): StoreCategory = StoreCategory(slug = slug, title = title, iconUrl = iconUrl)
+    /** [title] stays as the value the cache and the tests read; [titleRes] is what a screen shows. */
+    fun toStoreCategory(): StoreCategory =
+        StoreCategory(slug = slug, title = title, iconUrl = iconUrl, titleRes = titleRes)
 
     /**
      * Orders and filters cards fetched from [sourceSlugs]. With an allowlist the result follows the
@@ -49,6 +54,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-banks",
             title = "Банки и платежи",
+            titleRes = R.string.wy_category_banks,
             iconUrl = "$ICON/finance.svg",
             sourceSlugs = listOf("finance"),
             packages = listOf(
@@ -80,6 +86,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-marketplaces",
             title = "Маркетплейсы",
+            titleRes = R.string.wy_category_marketplaces,
             iconUrl = "$ICON/purchases.svg",
             sourceSlugs = listOf("purchases"),
             packages = listOf(
@@ -114,6 +121,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-food",
             title = "Продукты и еда",
+            titleRes = R.string.wy_category_food,
             iconUrl = "$ICON/foodAndDrink.svg",
             sourceSlugs = listOf("foodanddrink"),
             packages = listOf(
@@ -151,6 +159,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-state",
             title = "Госуслуги",
+            titleRes = R.string.wy_category_state,
             iconUrl = "$ICON/state.svg",
             // "Налоги ФЛ" and "Мой налог" are filed under Финансы by the source but belong here.
             sourceSlugs = listOf("state", "finance"),
@@ -180,6 +189,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-social",
             title = "Общение",
+            titleRes = R.string.wy_category_social,
             iconUrl = "$ICON/social.svg",
             sourceSlugs = listOf("social", "tools"),
             packages = listOf(
@@ -199,6 +209,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-media",
             title = "Кино и музыка",
+            titleRes = R.string.wy_category_media,
             iconUrl = "$ICON/entertainment.svg",
             sourceSlugs = listOf("entertainment"),
             packages = listOf(
@@ -219,6 +230,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-transport",
             title = "Транспорт",
+            titleRes = R.string.wy_category_transport,
             iconUrl = "$ICON/transport.svg",
             sourceSlugs = listOf("transport"),
             packages = listOf(
@@ -242,6 +254,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-travel",
             title = "Путешествия",
+            titleRes = R.string.wy_category_travel,
             iconUrl = "$ICON/travelling.svg",
             sourceSlugs = listOf("travelling"),
             packages = listOf(
@@ -263,6 +276,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-health",
             title = "Здоровье и аптеки",
+            titleRes = R.string.wy_category_health,
             iconUrl = "$ICON/health.svg",
             sourceSlugs = listOf("health"),
             packages = listOf(
@@ -287,6 +301,7 @@ object CuratedCategories {
         CuratedCategory(
             slug = "wy-telecom",
             title = "Связь",
+            titleRes = R.string.wy_category_telecom,
             iconUrl = "$ICON/tools.svg",
             sourceSlugs = listOf("tools"),
             packages = listOf(

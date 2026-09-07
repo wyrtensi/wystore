@@ -49,6 +49,26 @@ class CuratedCategoriesTest {
         )
     }
 
+    /**
+     * The titles above are the Russian originals; what a screen shows comes from `titleRes`, so a
+     * section added without one would silently stay Russian in an English interface.
+     */
+    @Test
+    fun everyCuratedSectionCarriesATranslatableName() {
+        val untranslated = CuratedCategories.ALL.filter { it.titleRes == 0 }.map { it.slug }
+        assertEquals(emptyList<String>(), untranslated)
+        assertEquals(
+            CuratedCategories.ALL.map { it.titleRes }.distinct().size,
+            CuratedCategories.ALL.size
+        )
+    }
+
+    @Test
+    fun aStoreCategoryKeepsTheResourceForItsName() {
+        val banks = CuratedCategories.find("wy-banks")!!
+        assertEquals(banks.titleRes, banks.toStoreCategory().titleRes)
+    }
+
     @Test
     fun anAllowlistDecidesBothMembershipAndOrder() {
         val banks = CuratedCategories.find("wy-banks")!!

@@ -65,7 +65,15 @@ data class SearchPage(
 data class StoreCategory(
     val slug: String,
     val title: String,
-    val iconUrl: String? = null
+    val iconUrl: String? = null,
+    /**
+     * The name of a section Wy Store assembles itself, translated with the interface.
+     *
+     * Sections read from the source keep [title], which is whatever the catalogue publishes and is
+     * not the app's to translate. Wy Store's own sections had their names written into the code in
+     * Russian, so an English interface showed a rail of Russian tiles.
+     */
+    val titleRes: Int? = null
 )
 
 /**

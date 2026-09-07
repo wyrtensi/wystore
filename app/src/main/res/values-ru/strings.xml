@@ -616,4 +616,14 @@
     <string name="details_incompatible">Нужен %1$s, на устройстве %2$s. Установить не получится.</string>
     <string name="source_other_short">Другое</string>
     <string name="updates_discard_pending">Убрать скачанное</string>
+    <string name="wy_category_banks">Банки и платежи</string>
+    <string name="wy_category_marketplaces">Маркетплейсы</string>
+    <string name="wy_category_food">Продукты и еда</string>
+    <string name="wy_category_state">Госуслуги</string>
+    <string name="wy_category_social">Общение</string>
+    <string name="wy_category_media">Кино и музыка</string>
+    <string name="wy_category_transport">Транспорт</string>
+    <string name="wy_category_travel">Путешествия</string>
+    <string name="wy_category_health">Здоровье и аптеки</string>
+    <string name="wy_category_telecom">Связь</string>
 </resources>

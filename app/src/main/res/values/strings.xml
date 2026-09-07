@@ -616,4 +616,14 @@
     <string name="details_incompatible">Needs %1$s; this device runs %2$s. It cannot be installed here.</string>
     <string name="source_other_short">Other</string>
     <string name="updates_discard_pending">Discard the download</string>
+    <string name="wy_category_banks">Banks and payments</string>
+    <string name="wy_category_marketplaces">Marketplaces</string>
+    <string name="wy_category_food">Groceries and food</string>
+    <string name="wy_category_state">Government services</string>
+    <string name="wy_category_social">Messaging</string>
+    <string name="wy_category_media">Films and music</string>
+    <string name="wy_category_transport">Transport</string>
+    <string name="wy_category_travel">Travel</string>
+    <string name="wy_category_health">Health and pharmacies</string>
+    <string name="wy_category_telecom">Mobile operators</string>
 </resources>
