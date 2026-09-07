@@ -144,6 +144,7 @@ behaviour are documented in [docs/RUSTORE_API_COMPATIBILITY_RU.md](docs/RUSTORE_
   often need something newer, and each app's page states which version
 - Permission to install unknown apps, which Android asks for on the first install
 - Root is optional: without it everything works except installing with no dialogs
+- Small screens: the layout is tested on an Asus Zenfone 10 as well as on a large phone
 
 ## Build
 
