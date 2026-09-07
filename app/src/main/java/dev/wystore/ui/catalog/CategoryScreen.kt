@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.wystore.data.InstalledApp
+import dev.wystore.data.ManagedApp
 import dev.wystore.ui.components.AppRow
 import dev.wystore.ui.components.EmptyState
 import dev.wystore.ui.components.ScreenPadding
@@ -48,6 +49,9 @@ import dev.wystore.R
 fun CategoryScreen(
     state: CategoryUiState,
     installed: List<InstalledApp> = emptyList(),
+    // Without this the same app is badged "RuStore" on Home and "Другое" here: the reducer falls
+    // back to how the APK got onto the device when nobody tells it which source manages the app.
+    managed: List<ManagedApp> = emptyList(),
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     onAppClick: (String) -> Unit = {},
@@ -98,6 +102,7 @@ fun CategoryScreen(
                 val uiState = PackageUiStateReducer.reduce(
                     app = app,
                     installed = installed.firstOrNull { it.packageName == app.packageName },
+                    managed = managed.firstOrNull { it.packageName == app.packageName },
                     resources = LocalResources.current
                 )
                 AppRow(

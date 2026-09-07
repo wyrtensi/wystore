@@ -11,8 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.wystore.R
+import dev.wystore.data.InstallSource
 import dev.wystore.data.ManagedSource
 
 /**
@@ -31,13 +33,19 @@ fun SourceLabel(source: ManagedSource, modifier: Modifier = Modifier) {
 }
 
 /**
- * Maps whatever the reducer carried (a [ManagedSource] name, or a legacy literal) to the name the
- * source actually goes by.
+ * Maps whatever the reducer carried (a [ManagedSource] or [InstallSource] name, or a legacy
+ * literal) to the name the source actually goes by.
+ *
+ * The install sources were missing from this table, so a card for an app the device got from Play
+ * printed the enum constant: a badge reading "GOOGLE_PLAY".
  */
 @Composable
 fun sourceDisplayName(raw: String): String = when (raw.uppercase()) {
     ManagedSource.RUSTORE.name, "RUSTORE" -> stringResource(R.string.source_rustore)
     ManagedSource.GITHUB.name -> stringResource(R.string.source_github)
+    InstallSource.GOOGLE_PLAY.name -> "Play"
+    InstallSource.WY_STORE.name -> "Wy Store"
+    InstallSource.OTHER.name -> stringResource(R.string.source_other_short)
     else -> raw
 }
 
@@ -52,7 +60,10 @@ fun SourceLabel(text: String, modifier: Modifier = Modifier) {
             text = text,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            // A source is a word. Squeezed, it used to wrap into a column of letters.
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

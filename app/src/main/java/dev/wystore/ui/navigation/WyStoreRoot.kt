@@ -230,6 +230,7 @@ fun WyStoreRoot(
                 is WyStoreDestination.Category -> CategoryScreen(
                     state = categoryState,
                     installed = state.installed,
+                    managed = state.managed,
                     modifier = screenModifier,
                     onBack = { destination = WyStoreDestination.Home },
                     onAppClick = { packageName -> viewModel.openDetails(packageName) },
