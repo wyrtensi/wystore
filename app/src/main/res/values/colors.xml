@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        The tint Android applies to the small icon and the app name in the shade. Without it every
+        entry is drawn in the system's default grey, which is what made the notifications read as
+        plain black boxes next to every other app's coloured ones.
+    -->
+    <color name="notification_accent">#FF00A5B5</color>
+</resources>

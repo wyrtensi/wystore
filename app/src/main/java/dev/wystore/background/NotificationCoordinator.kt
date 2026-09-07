@@ -6,10 +6,12 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import dev.wystore.R
 import dev.wystore.data.DownloadProgress
 import dev.wystore.settings.AppSettings
 import dev.wystore.settings.SettingsRepository
+import dev.wystore.updates.QueueErrorStrings
 import dev.wystore.updates.model.QueueItemSnapshot
 import java.util.Calendar
 import java.util.Locale
@@ -70,10 +72,15 @@ class NotificationCoordinator(
         }
 
         val percent = if (totalBytes > 0) ((downloadedBytes * 100) / totalBytes).toInt().coerceIn(0, 100) else 0
+        // Speed and time left were computed by the downloader, handed to this method, and then
+        // dropped on the floor: the line said only how many megabytes had arrived.
         val contentText = if (totalBytes > 0) {
             val mbDownloaded = downloadedBytes / 1_048_576.0
             val mbTotal = totalBytes / 1_048_576.0
-            appContext.getString(R.string.notif_downloading_progress, mbDownloaded, mbTotal, percent)
+            listOfNotNull(
+                appContext.getString(R.string.notif_downloading_progress, mbDownloaded, mbTotal, percent),
+                speed.takeIf { it > 0 }?.let(::speedText)
+            ).joinToString(" · ")
         } else {
             appContext.getString(R.string.notif_downloading_indeterminate)
         }
@@ -86,9 +93,13 @@ class NotificationCoordinator(
 
         val notification = NotificationCompat.Builder(appContext, CHANNEL_TRANSFERS)
             .setSmallIcon(R.drawable.ic_stat_wystore)
+            .setLargeIcon(NotificationArt.iconFor(appContext, item.packageName))
+            .setColor(accentColor())
             .setContentTitle(appContext.getString(R.string.notif_downloading_title, item.label))
             .setContentText(contentText)
+            .setSubText(etaText(eta))
             .setProgress(100, percent, totalBytes <= 0)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setOngoing(true)
             .setSilent(true)
             .setContentIntent(openIntent)
@@ -121,7 +132,8 @@ class NotificationCoordinator(
 
         val builder = NotificationCompat.Builder(appContext, CHANNEL_READY)
             .setSmallIcon(R.drawable.ic_stat_wystore)
-            .setContentIntent(NotificationIntentFactory.createReadySummaryPendingIntent(appContext))
+            .setColor(accentColor())
+            .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setSilent(!decision.alert)
@@ -129,11 +141,33 @@ class NotificationCoordinator(
         if (items.size == 1) {
             val single = items.first()
             builder
+                .setContentIntent(
+                    NotificationIntentFactory.createReadyPackagePendingIntent(
+                        context = appContext,
+                        packageName = single.packageName,
+                        queueId = single.id
+                    )
+                )
+                .setLargeIcon(NotificationArt.iconFor(appContext, single.packageName))
                 .setContentTitle(appContext.getString(R.string.notif_ready_title))
                 .setContentText(
                     appContext.getString(R.string.notif_ready_text, single.label, single.versionName)
                 )
+                // Expanded, the entry says why nothing has been installed yet, so the missing step
+                // reads as Android's rule rather than as the store having stalled.
+                .setStyle(
+                    NotificationCompat.BigTextStyle().bigText(
+                        appContext.getString(R.string.notif_ready_text, single.label, single.versionName) +
+                            "\n" + appContext.getString(R.string.notif_ready_hint)
+                    )
+                )
+                .addAction(
+                    R.drawable.ic_stat_wystore,
+                    appContext.getString(R.string.notif_action_install),
+                    NotificationIntentFactory.createInstallPendingIntent(appContext, single.packageName)
+                )
         } else {
+            builder.setContentIntent(NotificationIntentFactory.createReadySummaryPendingIntent(appContext))
             val style = NotificationCompat.InboxStyle()
                 .setBigContentTitle(appContext.getString(R.string.notif_ready_summary_title))
             items.take(NotificationPolicy.MAX_LISTED_ITEMS).forEach { style.addLine("${it.label} ${it.versionName}") }
@@ -149,6 +183,11 @@ class NotificationCoordinator(
                 .setContentTitle(appContext.getString(R.string.notif_ready_summary_title))
                 .setContentText(appContext.getString(R.string.notif_ready_summary_count, items.size))
                 .setStyle(style)
+                .addAction(
+                    R.drawable.ic_stat_wystore,
+                    appContext.getString(R.string.notif_action_install_all),
+                    NotificationIntentFactory.createInstallAllPendingIntent(appContext)
+                )
         }
 
         safeNotify(NOTIFICATION_ID_READY_SUMMARY, builder.build())
@@ -181,12 +220,25 @@ class NotificationCoordinator(
         } else {
             appContext.getString(R.string.notif_errors_text, items.size)
         }
+        // Each line now carries the reason as well as the name. "3 apps need attention" told the
+        // user only that something was wrong, and the reason was two taps away inside the app.
         val style = NotificationCompat.InboxStyle()
             .setBigContentTitle(appContext.getString(R.string.notif_errors_title))
-        items.take(NotificationPolicy.MAX_LISTED_ITEMS).forEach { style.addLine(it.label) }
+            .setSummaryText(appContext.getString(R.string.notif_errors_fix_hint))
+        items.take(NotificationPolicy.MAX_LISTED_ITEMS).forEach { style.addLine(errorLine(it)) }
+        if (items.size > NotificationPolicy.MAX_LISTED_ITEMS) {
+            style.addLine(
+                appContext.getString(
+                    R.string.notif_ready_summary_more,
+                    items.size - NotificationPolicy.MAX_LISTED_ITEMS
+                )
+            )
+        }
 
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ERRORS)
             .setSmallIcon(R.drawable.ic_stat_wystore)
+            .setColor(accentColor())
+            .setLargeIcon(items.singleOrNull()?.let { NotificationArt.iconFor(appContext, it.packageName) })
             .setContentTitle(appContext.getString(R.string.notif_errors_title))
             .setContentText(text)
             .setStyle(style)
@@ -224,6 +276,7 @@ class NotificationCoordinator(
 
         val notification = NotificationCompat.Builder(appContext, CHANNEL_CHECKS)
             .setSmallIcon(R.drawable.ic_stat_wystore)
+            .setColor(accentColor())
             .setContentTitle(appContext.getString(R.string.notif_check_summary_title))
             .setContentText(text)
             .setContentIntent(NotificationIntentFactory.createReadySummaryPendingIntent(appContext))
@@ -252,17 +305,29 @@ class NotificationCoordinator(
     } else {
         appContext.getString(
             R.string.notif_speed_mb,
-            String.format(Locale.US, "%.1f", bytesPerSecond / 1024.0 / 1024.0)
+            // The user's locale, not the machine's: in a Russian notification "9.3 МБ/с" is wrong
+            // where every other number on the screen is written "9,3".
+            String.format(Locale.getDefault(), "%.1f", bytesPerSecond / 1024.0 / 1024.0)
         )
     }
 
-    private fun etaSuffix(etaSeconds: Long?): String = etaSeconds?.let {
-        " · " + if (it < 60) {
+    private fun etaText(etaSeconds: Long?): String? = etaSeconds?.let {
+        if (it < 60) {
             appContext.getString(R.string.notif_eta_seconds, it)
         } else {
             appContext.getString(R.string.notif_eta_minutes, it / 60)
         }
-    }.orEmpty()
+    }
+
+    private fun errorLine(item: QueueItemSnapshot): String {
+        val reason = item.errorCode?.let { appContext.getString(QueueErrorStrings.stringRes(it)) }
+            ?: item.errorDetail
+            ?: return item.label
+        return appContext.getString(R.string.notif_error_line, item.label, reason)
+    }
+
+    /** The tint Android puts on the small icon and the app name; without it the entry is grey. */
+    private fun accentColor(): Int = ContextCompat.getColor(appContext, R.color.notification_accent)
 
     private fun safeNotify(id: Int, notification: android.app.Notification) {
         try {

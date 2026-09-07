@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Lighter on a dark shade, where the daytime teal loses against the background. -->
+    <color name="notification_accent">#FF4FD8EB</color>
+</resources>

@@ -210,6 +210,12 @@ class MainActivity : AppCompatActivity() {
         if (intent == null) return
         val destination = intent.getStringExtra(NotificationIntentFactory.EXTRA_DESTINATION)
         val packageName = intent.getStringExtra(NotificationIntentFactory.EXTRA_PACKAGE_NAME)
+        // The notification's own button asks for the install itself; only the body of the
+        // notification opens the page and waits for the user to press something.
+        if (intent.getBooleanExtra(NotificationIntentFactory.EXTRA_START_INSTALL, false)) {
+            storeViewModel.requestInstallFromNotification(packageName?.takeIf { it.isNotBlank() })
+            return
+        }
         if (!packageName.isNullOrBlank() && destination?.startsWith("updates/") == true) {
             storeViewModel.openDetails(packageName)
         }

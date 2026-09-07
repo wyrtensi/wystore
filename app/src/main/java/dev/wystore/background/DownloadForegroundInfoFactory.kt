@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.work.ForegroundInfo
 import dev.wystore.R
 import dev.wystore.data.DownloadProgress
@@ -12,7 +13,8 @@ object DownloadForegroundInfoFactory {
     fun createForegroundInfo(
         context: Context,
         label: String,
-        progress: DownloadProgress? = null
+        progress: DownloadProgress? = null,
+        packageName: String? = null
     ): ForegroundInfo {
         val percent = progress?.let { (it.fraction * 100).toInt().coerceIn(0, 100) }
         val contentText = if (progress != null && progress.totalBytes > 0) {
@@ -25,8 +27,13 @@ object DownloadForegroundInfoFactory {
 
         val notification = NotificationCompat.Builder(context, NotificationCoordinator.CHANNEL_TRANSFERS)
             .setSmallIcon(R.drawable.ic_stat_wystore)
+            // The same face as the progress notification this one is replaced by, so the entry does
+            // not change appearance the moment the first bytes arrive.
+            .setLargeIcon(packageName?.let { NotificationArt.iconFor(context, it) })
+            .setColor(ContextCompat.getColor(context, R.color.notification_accent))
             .setContentTitle(context.getString(R.string.notif_downloading_title, label))
             .setContentText(contentText)
+            .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setProgress(100, percent ?: 0, progress == null || progress.totalBytes <= 0)
             .setOngoing(true)
             .build()

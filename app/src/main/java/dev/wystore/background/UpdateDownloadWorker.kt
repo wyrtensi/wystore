@@ -42,7 +42,13 @@ class UpdateDownloadWorker(
         val queueId = inputData.getString(KEY_QUEUE_ID) ?: return Result.failure()
         val item = queueRepository.getById(queueId) ?: return Result.failure()
 
-        setForeground(DownloadForegroundInfoFactory.createForegroundInfo(applicationContext, item.label))
+        setForeground(
+            DownloadForegroundInfoFactory.createForegroundInfo(
+                context = applicationContext,
+                label = item.label,
+                packageName = item.packageName
+            )
+        )
 
         return try {
             executor.execute(queueId)
@@ -132,6 +138,13 @@ class UpdateDownloadWorker(
                         val repo = GitHubRepository(
                             owner = entity.githubRepositoryOwner ?: error("Missing GitHub owner"),
                             name = entity.githubRepositoryName ?: error("Missing GitHub repo name")
+                        )
+                        // Rows written by an older build were named after the asset file. The name
+                        // of the app is what belongs in a list of apps, so it is corrected here too
+                        // and not only where the row is created.
+                        queueRepository.updateLabel(
+                            queueId,
+                            GitHubCatalog.find(repo.displayName)?.title ?: repo.name
                         )
                         val releases = gitHubSource.releases(repo)
                         val assetPattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
