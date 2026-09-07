@@ -62,10 +62,14 @@ jobs:
           "$BUILD_TOOLS/apksigner" verify --print-certs "$APK"
           echo "APK_PATH=$APK" >> "$GITHUB_ENV"
 
+      # Two copies of the same APK. The versioned name is what a downloaded file should be
+      # called; the plain one keeps /releases/latest/download/wystore.apk pointing at the current
+      # build, which is the link the README button uses.
       - name: Name the artifact after its version
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           cp "$APK_PATH" "wystore-$VERSION.apk"
+          cp "$APK_PATH" "wystore.apk"
           echo "RELEASE_APK=wystore-$VERSION.apk" >> "$GITHUB_ENV"
 
       - name: Remove the keystore
@@ -86,7 +90,9 @@ jobs:
       - name: Publish the release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.RELEASE_APK }}
+          files: |
+            ${{ env.RELEASE_APK }}
+            wystore.apk
           body: ${{ env.NOTES }}
           generate_release_notes: true
           fail_on_unmatched_files: true

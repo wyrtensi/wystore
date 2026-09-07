@@ -4,7 +4,7 @@
 
 **An Android store client with no account, no backend and no telemetry**
 
-[![Download APK](https://img.shields.io/badge/Download%20APK-0B57D0?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest)
+[![Download APK](https://img.shields.io/badge/Download%20APK-0B57D0?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
 
 [![Latest release](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=release&color=0B57D0)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Build](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=build)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)

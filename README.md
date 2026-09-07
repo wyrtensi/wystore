@@ -4,7 +4,7 @@
 
 **Магазин приложений для Android без аккаунта, без сервера и без телеметрии**
 
-[![Скачать APK](https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C%20APK-0B57D0?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest)
+[![Скачать APK](https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C%20APK-0B57D0?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
 
 [![Последний релиз](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%D1%80%D0%B5%D0%BB%D0%B8%D0%B7&color=0B57D0)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Сборка](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%D1%81%D0%B1%D0%BE%D1%80%D0%BA%D0%B0)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
@@ -39,12 +39,12 @@ Wy Store сделан для тех, у кого привычные магази
 > приложения, и если устройство её не тянет, Wy Store говорит об этом до загрузки, а не после
 > двухсот скачанных мегабайт.
 
+**[Подробный обзор со скриншотами](https://telegra.ph/Wy-Store--alternativnyj-magazin-prilozhenij-dlya-teh-komu-prihoditsya-polzovatsya-RuStore-09-07)**
+— как магазин выглядит в работе: первый экран, карточка приложения, обновления.
+
 | Главная | Страница приложения | Библиотека |
 |---|---|---|
 | ![Главная](docs/screenshots/home.png) | ![Страница приложения](docs/screenshots/app-page.png) | ![Библиотека](docs/screenshots/library.png) |
-
-**[Подробный обзор со скриншотами](https://telegra.ph/Wy-Store--alternativnyj-magazin-prilozhenij-dlya-teh-komu-prihoditsya-polzovatsya-RuStore-09-07)**
-— как магазин выглядит в работе: первый экран, карточка приложения, обновления.
 
 ## Установка
 
