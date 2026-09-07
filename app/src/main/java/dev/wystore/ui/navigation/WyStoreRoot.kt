@@ -287,6 +287,7 @@ fun WyStoreRoot(
                         }
                     },
                     onInstallPending = onInstallPending,
+                    onDiscardPending = viewModel::discardPendingUpdate,
                     onQueueRetry = viewModel::queueRetry,
                     onQueueCancel = viewModel::queueCancel,
                     onQueueSkip = viewModel::queueSkip,

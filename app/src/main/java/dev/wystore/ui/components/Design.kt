@@ -228,7 +228,7 @@ fun FactRow(label: String, value: String, modifier: Modifier = Modifier) {
     ) {
         Text(
             label,
-            modifier = Modifier.width(132.dp),
+            modifier = Modifier.width(fontScaledWidth(132.dp)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

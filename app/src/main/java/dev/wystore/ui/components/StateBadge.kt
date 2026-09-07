@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -22,6 +23,10 @@ fun StateBadge(
         modifier = modifier
             .background(containerColor, MaterialTheme.shapes.extraSmall)
             .padding(horizontal = 8.dp, vertical = 4.dp),
-        style = MaterialTheme.typography.labelMedium
+        style = MaterialTheme.typography.labelMedium,
+        // A badge is a word, never a paragraph. Given too little room it used to wrap into a
+        // column of single letters and drag the row it sits in out of shape.
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
     )
 }

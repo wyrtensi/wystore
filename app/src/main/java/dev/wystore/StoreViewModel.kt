@@ -51,6 +51,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -303,11 +305,30 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         _installRequest.value = null
     }
 
+    /**
+     * An install asked for by a notification's own button rather than from a screen.
+     *
+     * The pending list is filled by a flow, so opened cold from the shade the state is still empty
+     * when the intent arrives and asking straight away would report the APK as missing. This waits
+     * for the item to turn up instead, and gives up quietly if it never does.
+     */
+    fun requestInstallFromNotification(packageName: String?) {
+        viewModelScope.launch {
+            val pending = withTimeoutOrNull(NOTIFICATION_INSTALL_WAIT_MILLIS) {
+                queueRepository.observePendingUpdates().first { list ->
+                    if (packageName == null) list.isNotEmpty() else list.any { it.packageName == packageName }
+                }
+            } ?: return@launch
+            _state.update { it.copy(pendingUpdates = pending) }
+            if (packageName == null) updateAll() else _installRequest.value = packageName
+        }
+    }
+
     init {
         viewModelScope.launch {
             queueRepository.observePendingUpdates().collect { pending ->
                 _state.update { it.copy(pendingUpdates = pending) }
-                resolveIcons(pending.map { update -> update.packageName })
+                resolvePendingIcons(pending)
                 requestAutoInstalls(pending)
             }
         }
@@ -661,6 +682,23 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     fun installedApp(packageName: String): InstalledApp? = repository.installedApps().firstOrNull { it.packageName == packageName }
 
+    /**
+     * Throws away a downloaded APK the user does not want after all.
+     *
+     * The only thing offered on a "ready to install" row was Install, so downloading something by
+     * mistake left it on the device with no way out except installing it.
+     */
+    fun discardPendingUpdate(packageName: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                queueRepository.remove(packageName)
+                PendingUpdateNotifier(getApplication()).refresh()
+            }
+            val pending = withContext(Dispatchers.IO) { queueRepository.getPendingUpdates() }
+            _state.update { it.copy(pendingUpdates = pending) }
+        }
+    }
+
     fun refreshPendingUpdates() {
         viewModelScope.launch(Dispatchers.IO) {
             val pending = queueRepository.getPendingUpdates()
@@ -745,13 +783,36 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * Only the ones not resolved yet, and only from what the catalogue cache already holds: this
      * runs on every queue change and must not turn into a request per row.
      */
+    /**
+     * Icons for the downloaded-and-waiting rows.
+     *
+     * A GitHub release adopts the package name written inside its APK, which is in no catalogue
+     * this app caches and belongs to nothing installed yet - so those rows were the only ones in
+     * "ready to install" with an empty grey tile. The row still remembers which repository it came
+     * from, and the repository has a picture.
+     */
+    private fun resolvePendingIcons(pending: List<PendingUpdate>) {
+        resolveIcons(pending.map { update -> update.packageName })
+        val fromGitHub = pending.mapNotNull { update ->
+            val repository = update.githubRepository ?: return@mapNotNull null
+            dev.wystore.data.GitHubCatalog.find(repository.displayName)
+                ?.iconUrl
+                ?.let { update.packageName to it }
+        }
+        if (fromGitHub.isEmpty()) return
+        // Whatever the catalogue cache already knows wins; this only fills the gaps.
+        _state.update { it.copy(packageIcons = fromGitHub.toMap() + it.packageIcons) }
+    }
+
     private fun resolveIcons(packages: List<String>) {
         val known = _state.value.packageIcons
         val missing = packages.distinct().filter { it.isNotBlank() && it !in known }
         if (missing.isEmpty()) return
         viewModelScope.launch(Dispatchers.IO) {
             val found = missing.mapNotNull { packageName ->
-                catalogRepository.cachedIcon(packageName)?.let { packageName to it }
+                val icon = catalogRepository.cachedIcon(packageName)
+                    ?: dev.wystore.data.GitHubCatalog.findByPlaceholder(packageName)?.iconUrl
+                icon?.let { packageName to it }
             }
             if (found.isEmpty()) return@launch
             _state.update { it.copy(packageIcons = it.packageIcons + found) }
@@ -1148,4 +1209,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         _state.value = _state.value.copy(message = null)
     }
 
+    private companion object {
+        /** Long enough for the queue to be read from disk after a cold start, short enough to fail. */
+        const val NOTIFICATION_INSTALL_WAIT_MILLIS = 5_000L
+    }
 }

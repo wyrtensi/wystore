@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import dev.wystore.R
+import dev.wystore.ui.components.fontScaledWidth
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreCategory
 import dev.wystore.ui.components.AppIcon
@@ -242,8 +243,9 @@ private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Un
     val (container, onContainer) = tones[accent.mod(tones.size)]
     Surface(
         // Wide enough for the longest curated category name to break between words rather than
-        // mid-word ("Здоровье и / аптеки").
-        modifier = Modifier.width(124.dp).clickable(onClick = onClick),
+        // mid-word ("Здоровье и / аптеки"), and it grows with the system font size so that stays
+        // true when the text does not fit the width it was measured for.
+        modifier = Modifier.width(fontScaledWidth(124.dp)).clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
         color = container
     ) {
@@ -297,7 +299,7 @@ internal fun GitHubPickTile(
     onClick: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.width(150.dp).clickable(onClick = onClick),
+        modifier = Modifier.width(fontScaledWidth(150.dp)).clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {

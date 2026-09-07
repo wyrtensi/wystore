@@ -40,7 +40,7 @@ import dev.wystore.ui.components.StateBadge
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.WyDivider
 import dev.wystore.ui.components.managedSourceLabel
-import dev.wystore.ui.components.sourceLabel
+import dev.wystore.ui.components.sourceBadgeLabel
 
 /**
  * One installed app in the library.
@@ -92,14 +92,21 @@ fun LibraryAppRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // The badge is measured first, at whatever short word it needs, and the
+                        // version takes the rest. The other way round a version like
+                        // "1.423.966222932" took the whole line and left the badge one character
+                        // wide, which wrapped it into a column of letters and stretched the row
+                        // to half a screen.
                         Text(
                             app.versionName,
+                            modifier = Modifier.weight(1f, fill = false),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         StateBadge(
-                            text = if (managed != null) managedSourceLabel(managed) else sourceLabel(app.source)
+                            text = if (managed != null) managedSourceLabel(managed) else sourceBadgeLabel(app.source)
                         )
                     }
                 }

@@ -70,10 +70,17 @@ fun RatingPill(rating: Double, count: Int?) {
     }
 }
 
+/**
+ * One category tag under an app.
+ *
+ * [category] is the source's own slug, which is what used to be printed here; [CategoryLabels]
+ * turns it into the name the catalogue itself uses.
+ */
 @Composable
 fun CategoryPill(category: String) {
     Text(
-        text = category,
+        text = CategoryLabels.stringRes(category)?.let { stringResource(it) }
+            ?: CategoryLabels.humanize(category),
         modifier = Modifier
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.extraSmall)
             .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -252,27 +259,27 @@ fun queueStatusLabel(item: InstallQueueItem): String = when (item.status) {
 }
 
 @Composable
-fun queueErrorLabel(code: QueueErrorCode): String = when (code) {
-    QueueErrorCode.NETWORK -> stringResource(R.string.queue_error_network)
-    QueueErrorCode.RATE_LIMITED -> stringResource(R.string.queue_error_rate_limited)
-    QueueErrorCode.SOURCE_CHANGED -> stringResource(R.string.queue_error_source_changed)
-    QueueErrorCode.STORAGE_FULL -> stringResource(R.string.queue_error_storage_full)
-    QueueErrorCode.INTEGRITY -> stringResource(R.string.queue_error_integrity)
-    QueueErrorCode.SIGNATURE -> stringResource(R.string.queue_error_signature)
-    QueueErrorCode.INCOMPATIBLE -> stringResource(R.string.queue_error_incompatible)
-    QueueErrorCode.PERMISSION -> stringResource(R.string.queue_error_permission)
-    QueueErrorCode.INSTALL_CANCELED -> stringResource(R.string.queue_error_install_canceled)
-    QueueErrorCode.INSTALL_FAILED -> stringResource(R.string.queue_error_install_failed)
-    QueueErrorCode.ARTIFACT_MISSING -> stringResource(R.string.queue_error_artifact_missing)
-    QueueErrorCode.TIMEOUT -> stringResource(R.string.queue_error_timeout)
-    QueueErrorCode.INTERNAL -> stringResource(R.string.queue_error_internal)
-}
+fun queueErrorLabel(code: QueueErrorCode): String =
+    stringResource(dev.wystore.updates.QueueErrorStrings.stringRes(code))
 
 @Composable
 fun sourceLabel(source: InstallSource): String = when (source) {
     InstallSource.GOOGLE_PLAY -> "Google Play"
     InstallSource.WY_STORE -> "Wy Store"
     InstallSource.OTHER -> stringResource(R.string.source_other)
+}
+
+/**
+ * The same source, in the width a badge on a list row actually has.
+ *
+ * On a compact screen the row has room for a version and a short word, not for "Google Play" - the
+ * badge came out as "Goog..." and named nothing. The full name is still what the app page uses.
+ */
+@Composable
+fun sourceBadgeLabel(source: InstallSource): String = when (source) {
+    InstallSource.GOOGLE_PLAY -> "Play"
+    InstallSource.WY_STORE -> "Wy Store"
+    InstallSource.OTHER -> stringResource(R.string.source_other_short)
 }
 
 @Composable

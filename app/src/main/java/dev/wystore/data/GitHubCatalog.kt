@@ -354,6 +354,20 @@ object GitHubCatalog {
 
     fun find(slug: String, userRepositories: List<GitHubRepository> = emptyList()): GitHubCatalogEntry? =
         entries(userRepositories).firstOrNull { it.slug.equals(slug, ignoreCase = true) }
+
+    /**
+     * The entry a queue row belongs to, found by the placeholder name the row was created with.
+     *
+     * A release asset has no package name until the APK is opened, so a GitHub row carries a
+     * placeholder instead - and a placeholder matches nothing in the catalogue cache, which is why
+     * these rows were the only ones in the list with no icon.
+     */
+    fun findByPlaceholder(
+        placeholder: String,
+        userRepositories: List<GitHubRepository> = emptyList()
+    ): GitHubCatalogEntry? = entries(userRepositories).firstOrNull {
+        dev.wystore.updates.GitHubInstallScheduler.placeholderPackageName(it.repository) == placeholder
+    }
 }
 
 /**

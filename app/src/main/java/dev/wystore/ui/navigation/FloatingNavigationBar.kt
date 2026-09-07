@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.Home
@@ -14,17 +16,19 @@ import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.wystore.R
 
 /**
@@ -49,9 +53,13 @@ fun FloatingNavigationBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(66.dp)
-                .padding(horizontal = 4.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
+                // A minimum rather than a fixed height: at a large system font size the label needs
+                // the extra few dp, and pinning the bar at 66 cropped it.
+                .heightIn(min = 66.dp)
+                // Enough to clear the pill's rounded ends: the first and last labels are as wide
+                // as their share of the bar, and at the corners that share is cut by the curve.
+                .padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(0.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Destination(
@@ -102,6 +110,10 @@ private fun RowScope.Destination(
     onNavigate: (WyStoreDestination) -> Unit
 ) {
     NavigationBarItem(
+        // An equal fifth each. Laid out by content width, the first tabs took what they wanted and
+        // the last ones were left with whatever remained, which on a compact screen broke
+        // "Обновления" across two lines and pushed "Настройки" against the edge.
+        modifier = Modifier.weight(1f),
         selected = currentDestination == destination,
         onClick = { onNavigate(destination) },
         icon = {
@@ -112,7 +124,20 @@ private fun RowScope.Destination(
                 contentDescription = null
             )
         },
-        label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+        label = {
+            // The label shrinks to fit its fifth of the bar instead of wrapping or being clipped,
+            // which is what a long word plus a large system font size used to do to it.
+            BasicText(
+                text = label,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = LocalContentColor.current,
+                    textAlign = TextAlign.Center
+                ),
+                maxLines = 1,
+                softWrap = false,
+                autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 12.sp)
+            )
+        },
         colors = NavigationBarItemDefaults.colors(
             selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
             selectedTextColor = MaterialTheme.colorScheme.onSurface,

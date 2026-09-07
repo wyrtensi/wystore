@@ -3,6 +3,7 @@ package dev.wystore.updates
 import android.content.Context
 import dev.wystore.background.TransferDispatcher
 import dev.wystore.data.GitHubAsset
+import dev.wystore.data.GitHubCatalog
 import dev.wystore.data.GitHubRepository
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.StoreSettings
@@ -51,7 +52,10 @@ object GitHubInstallScheduler {
             val queueRepo = QueueRepository.getInstance(appContext)
             val queueEntity = queueRepo.enqueueAvailableUpdate(
                 packageName = placeholderPackageName(repository),
-                label = asset.name,
+                // The name of the app, not the name of the file inside the release. The queue and
+                // the "ready to install" list were showing rows called
+                // "ByeByeDPI-v1.7.8-arm64-v8a-release.apk".
+                label = GitHubCatalog.find(repository.displayName)?.title ?: repository.name,
                 versionName = "",
                 versionCode = releaseId ?: asset.id,
                 source = ManagedSource.GITHUB,

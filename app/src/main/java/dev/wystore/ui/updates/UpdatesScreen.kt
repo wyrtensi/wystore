@@ -2,12 +2,15 @@ package dev.wystore.ui.updates
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
@@ -65,6 +69,7 @@ fun UpdatesScreen(
     onOpen: (ManagedApp) -> Unit,
     onCheckUpdates: () -> Unit = {},
     onInstallPending: (String) -> Unit,
+    onDiscardPending: (String) -> Unit,
     onQueueRetry: (String) -> Unit = {},
     onQueueCancel: (String) -> Unit = {},
     onQueueSkip: (String) -> Unit = {},
@@ -167,7 +172,12 @@ fun UpdatesScreen(
                     SectionHeader(title = stringResource(R.string.updates_ready_title, pendingUpdates.size))
                 }
                 items(pendingUpdates, key = { "pending:${it.packageName}" }) { pending ->
-                    PendingUpdateCard(pending, packageIcons[pending.packageName], onInstallPending)
+                    PendingUpdateCard(
+                        update = pending,
+                        iconUrl = packageIcons[pending.packageName],
+                        onInstallPending = onInstallPending,
+                        onDiscardPending = onDiscardPending
+                    )
                 }
             }
 
@@ -206,7 +216,8 @@ fun UpdatesScreen(
 fun PendingUpdateCard(
     update: PendingUpdate,
     iconUrl: String? = null,
-    onInstallPending: (String) -> Unit
+    onInstallPending: (String) -> Unit,
+    onDiscardPending: (String) -> Unit = {}
 ) {
     val onContainer = MaterialTheme.colorScheme.onPrimaryContainer
     WyCard(
@@ -235,26 +246,41 @@ fun PendingUpdateCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                // One line, and only the version. The screen's own text above already says that
+                // Android asks for confirmation; repeated under every card on a narrow screen it
+                // wrapped into four lines of the same sentence.
                 Text(
                     stringResource(R.string.updates_downloaded_version, update.versionName),
                     style = MaterialTheme.typography.bodySmall,
-                    color = onContainer.copy(alpha = 0.8f)
-                )
-                Text(
-                    stringResource(R.string.updates_needs_confirmation),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = onContainer.copy(alpha = 0.7f)
+                    color = onContainer.copy(alpha = 0.8f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Spacer(Modifier.width(10.dp))
             Button(
                 onClick = { onInstallPending(update.packageName) },
+                // Tighter than the default so the name and the version keep their room on a narrow
+                // screen once the discard button is standing next to it.
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = onContainer,
                     contentColor = MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
                 Text(stringResource(R.string.common_install), maxLines = 1)
+            }
+            // A downloaded APK used to be a one-way street: install it or live with it.
+            IconButton(
+                onClick = { onDiscardPending(update.packageName) },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = stringResource(R.string.updates_discard_pending),
+                    modifier = Modifier.size(20.dp),
+                    tint = onContainer
+                )
             }
         }
     }

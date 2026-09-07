@@ -275,6 +275,7 @@ private fun DisclaimerNote(text: String) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchCard(
     app: StoreApp,
@@ -314,9 +315,11 @@ fun SearchCard(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Row(
+                    // A flow rather than a row: on a narrow screen the category drops under the
+                    // rating instead of being squeezed down to "Объ...".
+                    FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         app.rating?.let { RatingPill(it, app.ratingCount) }
                         app.categories.firstOrNull()?.let { CategoryPill(it) }
