@@ -32,10 +32,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import dev.wystore.R
+import dev.wystore.data.BackupLocation
 import dev.wystore.ui.components.WyCard
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @Composable
 fun BackupSettingsSection(
@@ -53,8 +51,16 @@ fun BackupSettingsSection(
     var textBackupContent by remember { mutableStateOf("") }
     var mergeMode by remember { mutableStateOf(true) }
 
+    // The file the export went to is remembered and rewritten at every start, so this section has
+    // to say so - a copy that maintains itself is a different promise from one that does not.
+    val backupLocation = remember { BackupLocation(context) }
+    var keptCurrent by remember { mutableStateOf(backupLocation.uri != null) }
+
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) onExportUri(uri)
+        if (uri != null) {
+            onExportUri(uri)
+            keptCurrent = true
+        }
     }
 
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -79,8 +85,10 @@ fun BackupSettingsSection(
                 OutlinedButton(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                        val timestamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())
-                        exportLauncher.launch("wystore_backup_$timestamp.json")
+                        // One name, not a timestamped snapshot: this file is kept current from
+                        // now on, and a name claiming the hour it was written would stop being true
+                        // with the next start.
+                        exportLauncher.launch("wystore_backup.json")
                     },
                     modifier = Modifier.weight(1f)
                 ) {
@@ -94,6 +102,25 @@ fun BackupSettingsSection(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(stringResource(R.string.backup_import))
+                }
+            }
+
+            if (keptCurrent) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        stringResource(R.string.backup_kept_current),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = {
+                        backupLocation.forget()
+                        keptCurrent = false
+                    }) { Text(stringResource(R.string.backup_forget)) }
                 }
             }
 

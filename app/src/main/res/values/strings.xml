@@ -317,6 +317,8 @@
 
     <string name="backup_title">Backup and transfer</string>
     <string name="backup_counts">Managed apps: %1$d · GitHub repositories: %2$d</string>
+    <string name="backup_kept_current">The copy refreshes itself on every start</string>
+    <string name="backup_forget">Stop refreshing</string>
     <string name="backup_export">Export</string>
     <string name="backup_import">Import</string>
     <string name="backup_text_link">Back up as text / via clipboard</string>

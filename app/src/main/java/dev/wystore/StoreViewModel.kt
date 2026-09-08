@@ -27,6 +27,7 @@ import dev.wystore.data.UpdateCheckSummary
 import dev.wystore.R
 import dev.wystore.data.AdoptionCandidate
 import dev.wystore.data.GoogleAdoptionPolicy
+import dev.wystore.data.BackupLocation
 import dev.wystore.data.InstallSource
 import dev.wystore.data.PendingUpdate
 import dev.wystore.root.RootInstaller
@@ -1038,6 +1039,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 output.write(json.toByteArray(Charsets.UTF_8))
             } ?: error(string(R.string.vm_backup_write_failed))
         }.onSuccess {
+            // Remembered, so every later change to the library reaches this file by itself. A copy
+            // that is only as current as the last time someone thought to export is not a copy.
+            BackupLocation(getApplication()).remember(uri)
             _state.update { it.copy(message = string(R.string.vm_backup_saved)) }
         }.onFailure { error ->
             _state.update { it.copy(message = error.message ?: string(R.string.vm_backup_export_failed)) }

@@ -13,7 +13,9 @@ import coil.decode.SvgDecoder
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.request.CachePolicy
+import dev.wystore.data.BackupLocation
 import dev.wystore.data.CatalogRepository
+import dev.wystore.data.StoreRepository
 import dev.wystore.data.GoogleAdoptionPolicy
 import dev.wystore.settings.SettingsRepository
 import dev.wystore.settings.toStoreSettings
@@ -93,6 +95,17 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
 
         val settingsRepository = SettingsRepository(this)
         settingsRepository.warmUp(applicationScope)
+
+        // Android clears the installer of record on every app Wy Store installed the moment Wy
+        // Store is uninstalled, so nothing here can be rebuilt from the system afterwards. The
+        // user's own backup file is the only thing that survives, and it is only worth having if
+        // it is current - so it is rewritten here rather than whenever someone remembers to.
+        applicationScope.launch(Dispatchers.IO) {
+            runCatching {
+                BackupLocation(this@WyStoreApplication)
+                    .refresh(StoreRepository(this@WyStoreApplication).exportBackupJson())
+            }
+        }
 
         // The first screen the user sees is Home, and its content is already on disk from the last
         // run. Pulling it into the in-memory cache while the Activity is still being created means

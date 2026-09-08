@@ -317,6 +317,8 @@
 
     <string name="backup_title">Резервная копия и перенос</string>
     <string name="backup_counts">Управляемых приложений: %1$d · Репозиториев GitHub: %2$d</string>
+    <string name="backup_kept_current">Копия обновляется сама при каждом запуске</string>
+    <string name="backup_forget">Не обновлять</string>
     <string name="backup_export">Экспорт</string>
     <string name="backup_import">Импорт</string>
     <string name="backup_text_link">Резервная копия текстом / через буфер</string>
