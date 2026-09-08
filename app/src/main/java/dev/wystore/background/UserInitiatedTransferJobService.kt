@@ -4,6 +4,7 @@ import android.app.job.JobParameters
 import android.app.job.JobService
 import android.os.Build
 import dev.wystore.data.classifyThrowable
+import dev.wystore.data.logInternalFailure
 import dev.wystore.updates.QueueRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +38,7 @@ class UserInitiatedTransferJobService : JobService() {
         if (queueId.isNullOrBlank()) return false
 
         val repository = QueueRepository.getInstance(applicationContext)
+        val attempts = TransferAttemptStore(applicationContext)
         val job = serviceScope.launch {
             try {
                 val item = repository.getById(queueId)
@@ -44,19 +46,27 @@ class UserInitiatedTransferJobService : JobService() {
                 publishJobNotification(params, item?.label.orEmpty())
 
                 UpdateDownloadWorker.TransferExecutor(applicationContext, repository).execute(queueId)
+                attempts.clear(queueId)
                 jobFinished(params, false)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (error: Throwable) {
                 val failure = classifyThrowable(error)
-                if (failure.retryable) {
+                logInternalFailure(queueId, failure, error)
+                // JobScheduler carries no run count, so nothing here used to stop asking to be run
+                // again: a download that could not succeed rescheduled itself for ever, waking the
+                // device on JobScheduler's backoff until something else cleared the queue.
+                val attempt = runCatching { attempts.record(queueId) }.getOrDefault(1)
+                val retry = TransferRetryPolicy.shouldReschedule(failure.retryable, attempt)
+                if (retry) {
                     // The executor left the item mid-flight; park it so the rescheduled run can
                     // legally start a fresh download instead of throwing on its first transition.
                     runCatching { repository.resetForRetry(queueId, failure.code, failure.detail) }
                 } else {
                     runCatching { repository.markFailed(queueId, failure.code, failure.detail) }
+                    runCatching { attempts.clear(queueId) }
                 }
-                jobFinished(params, failure.retryable)
+                jobFinished(params, retry)
             } finally {
                 runningJobs.remove(params.jobId)
             }

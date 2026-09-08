@@ -42,6 +42,8 @@ object TransferDispatcher {
      * itself, so both WorkManager and the JobScheduler entry have to be torn down here.
      */
     fun cancel(context: Context, queueId: String) {
+        // Whatever went wrong before, a transfer the user starts again begins with a full budget.
+        runCatching { TransferAttemptStore(context).clear(queueId) }
         WorkManager.getInstance(context).cancelUniqueWork(downloadWorkName(queueId))
         if (Build.VERSION.SDK_INT >= 34) {
             runCatching { context.getSystemService(JobScheduler::class.java)?.cancel(jobIdFor(queueId)) }
