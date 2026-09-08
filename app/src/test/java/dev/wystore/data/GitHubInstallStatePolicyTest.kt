@@ -43,4 +43,21 @@ class GitHubInstallStatePolicyTest {
         assertEquals(GitHubInstallState.Unknown, state("1.2.3", "nightly"))
         assertEquals(GitHubInstallState.Unknown, state("stable-channel", "v1.2.3"))
     }
+
+    /**
+     * The tag ByeByeDPI actually publishes. The background check kept queueing this release for a
+     * phone already running it, downloading it and failing verification on "not newer than
+     * installed" - which the user was shown as a signature problem.
+     */
+    @Test
+    fun aReleaseTaggedWithADotAfterTheVIsStillTheInstalledVersion() {
+        assertEquals(
+            GitHubInstallState.Current,
+            GitHubInstallStatePolicy.stateFor(installedVersionName = "1.7.8", releaseTag = "v.1.7.8")
+        )
+        assertEquals(
+            GitHubInstallState.UpdateAvailable,
+            GitHubInstallStatePolicy.stateFor(installedVersionName = "1.7.8", releaseTag = "v.1.7.9")
+        )
+    }
 }

@@ -61,6 +61,8 @@ import dev.wystore.data.InstalledApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.UninstallIconButton
+import dev.wystore.data.SignatureCompatibility
+import dev.wystore.data.SignatureCompatibilityPolicy
 import dev.wystore.ui.components.installerLabel
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.DetailFacts
@@ -287,9 +289,31 @@ fun AppDetailsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                if (owner != context.packageName) {
+                                // What the store signs with against what the phone installed
+                                // under. A different key is not a smaller version of the same
+                                // problem - no update can install over it at all - so it is said
+                                // here rather than discovered as a red row after the download.
+                                val compatibility = SignatureCompatibilityPolicy.evaluate(
+                                    installed.signingDigests,
+                                    app.signatureHint
+                                )
+                                if (compatibility == SignatureCompatibility.MISMATCH) {
+                                    Text(
+                                        stringResource(R.string.details_signature_incompatible),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                } else if (owner != context.packageName) {
                                     Text(
                                         stringResource(R.string.details_take_over_hint),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    // Said before it happens: an app Wy Store did not install
+                                    // stops on Android's dialog once, and people read that dialog
+                                    // as something having gone wrong rather than as the handover.
+                                    Text(
+                                        stringResource(R.string.details_first_update_manual),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )

@@ -449,8 +449,8 @@
     <string name="verify_mixed_signatures">Подписи APK в комплекте не совпадают</string>
     <string name="verify_source_fingerprint">Подпись APK не совпадает с отпечатком источника</string>
     <string name="verify_wrong_package_update">Обновление предназначено для другого пакета</string>
-    <string name="verify_downgrade">Понижение версии запрещено</string>
-    <string name="verify_signature_mismatch">Подпись обновления не совпадает с установленным приложением</string>
+    <string name="verify_downgrade">Эта версия не новее установленной — обновлять нечего</string>
+    <string name="verify_signature_mismatch">Подпись не совпадает с установленным приложением: Android не даст обновить его поверх. Обновите там, откуда ставили, или удалите и поставьте заново</string>
     <string name="details_changelog">Что нового</string>
     <string name="details_changelog_meta">Версия %1$s · %2$s</string>
     <string name="details_label_version">Версия</string>
@@ -590,6 +590,8 @@
     <string name="details_owner">Обновления контролирует: %1$s</string>
     <string name="details_owner_none">никто — установлено вручную</string>
     <string name="details_take_over">Передать обновления Wy Store</string>
+    <string name="details_signature_incompatible">Обновление отсюда не встанет поверх установленного: приложение подписано другим ключом. Его придётся удалить и установить заново — данные при этом, как правило, не сохраняются.</string>
+    <string name="details_first_update_manual">Первое обновление через Wy Store придётся подтвердить вручную. После него контроль перейдёт к Wy Store, и дальше он сможет обновлять приложение сам.</string>
     <string name="details_take_over_hint">Android разрешает тихо обновлять только тому, кто приложение установил. Переустановка через Wy Store делает контролирующим его.</string>
     <string name="details_uninstall">Удалить</string>
     <string name="details_share">Поделиться</string>

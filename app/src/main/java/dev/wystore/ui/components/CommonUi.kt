@@ -33,6 +33,8 @@ import dev.wystore.InstallQueueStatus
 import dev.wystore.updates.model.QueueErrorCode
 import dev.wystore.R
 import dev.wystore.data.InstallSource
+import dev.wystore.data.VerificationError
+import dev.wystore.localization.VerificationTextResolver
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.StoreApp
@@ -251,10 +253,28 @@ fun queueStatusLabel(item: InstallQueueItem): String = when (item.status) {
     InstallQueueStatus.COMPLETE -> stringResource(R.string.queue_status_complete)
     InstallQueueStatus.CANCELED -> stringResource(R.string.queue_status_canceled)
     // Failure text comes from the typed code, because the raw detail is an exception message from
-    // the data layer and is not translated.
-    InstallQueueStatus.FAILED -> item.errorCode?.let { queueErrorLabel(it) }
+    // the data layer and is not translated. A verification failure is the exception: it records
+    // which of the ten checks refused the file, and the ten mean very different things.
+    InstallQueueStatus.FAILED -> verificationLabel(item.detail)
+        ?: item.errorCode?.let { queueErrorLabel(it) }
         ?: item.detail
         ?: stringResource(R.string.queue_status_failed)
+}
+
+/**
+ * The sentence for a rejected APK, when the row carries one.
+ *
+ * Every verification failure used to arrive as "the APK signature did not pass" - a downgrade, a
+ * package mismatch, a missing base APK, all of them. An update whose version is simply already
+ * installed was announced as if the file had been tampered with, which is both wrong and the most
+ * alarming thing the app can say. The reason was recorded all along and only ever thrown away.
+ */
+@Composable
+fun verificationLabel(detail: String?): String? {
+    val error = detail?.let { name ->
+        VerificationError.entries.firstOrNull { it.name == name }
+    } ?: return null
+    return stringResource(VerificationTextResolver.stringRes(error))
 }
 
 @Composable
@@ -276,7 +296,7 @@ fun sourceLabel(source: InstallSource): String = when (source) {
  */
 @Composable
 fun sourceBadgeLabel(source: InstallSource): String = when (source) {
-    InstallSource.GOOGLE_PLAY -> "Play"
+    InstallSource.GOOGLE_PLAY -> "Google"
     InstallSource.WY_STORE -> "Wy Store"
     InstallSource.OTHER -> stringResource(R.string.source_other_short)
 }

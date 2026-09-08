@@ -449,8 +449,8 @@
     <string name="verify_mixed_signatures">The APKs in the set are signed differently</string>
     <string name="verify_source_fingerprint">The APK signature does not match the fingerprint declared by the source</string>
     <string name="verify_wrong_package_update">This update is for a different package</string>
-    <string name="verify_downgrade">Downgrading is not allowed</string>
-    <string name="verify_signature_mismatch">The update signature does not match the installed app</string>
+    <string name="verify_downgrade">This version is no newer than the installed one</string>
+    <string name="verify_signature_mismatch">The signature does not match the installed app, so Android will not update it in place. Update it where you got it, or uninstall and install it again</string>
     <string name="details_changelog">What is new</string>
     <string name="details_changelog_meta">Version %1$s · %2$s</string>
     <string name="details_label_version">Version</string>
@@ -590,6 +590,8 @@
     <string name="details_owner">Updates are handled by: %1$s</string>
     <string name="details_owner_none">nobody — installed by hand</string>
     <string name="details_take_over">Hand updates to Wy Store</string>
+    <string name="details_signature_incompatible">An update from here cannot install over what you have: the app is signed with a different key. It has to be uninstalled and installed again, and its data is usually lost.</string>
+    <string name="details_first_update_manual">The first update through Wy Store has to be confirmed by hand. After it Wy Store becomes the installer of record and can update the app on its own.</string>
     <string name="details_take_over_hint">Android lets only the installer of record update an app quietly. Reinstalling it through Wy Store makes that Wy Store.</string>
     <string name="details_uninstall">Uninstall</string>
     <string name="details_share">Share</string>

@@ -61,7 +61,10 @@ object GitHubInstallScheduler {
                 source = ManagedSource.GITHUB,
                 priority = if (automatic) 0 else 10,
                 githubRepository = repository,
-                githubReleaseId = releaseId ?: asset.id
+                // Only a real release id, never the asset's. They come from different numbering,
+                // so recording one in place of the other guaranteed that no later check could ever
+                // match it and the same release was offered again forever.
+                githubReleaseId = releaseId
             )
             TransferDispatcher.dispatch(appContext, queueEntity.id)
         }

@@ -12,7 +12,15 @@ data class ArchiveIdentity(
     val versionName: String,
     val versionCode: Long,
     val splitName: String?,
-    val signingDigests: Set<String>
+    val signingDigests: Set<String>,
+    /**
+     * Every certificate this APK proves it descends from, newest last.
+     *
+     * A developer may rotate a signing key: the new APK carries a lineage showing the old
+     * certificate signed over the new one, and Android accepts it as an update to an app installed
+     * under the old key. Comparing only the current signer rejects exactly those updates.
+     */
+    val signingLineage: Set<String> = emptySet()
 )
 
 /**
@@ -52,6 +60,24 @@ object SigningVerifier {
         .map { signature -> sha256(signature.toByteArray()) }
         .toSet()
 
+    /**
+     * The certificates an APK's signing history proves it succeeds, empty when it has none.
+     *
+     * Only meaningful for a single-signer APK: with several signers there is no rotation to speak
+     * of and the platform reports none.
+     */
+    fun lineageDigests(info: PackageInfo): Set<String> {
+        if (Build.VERSION.SDK_INT < 28) return emptySet()
+        val signingInfo = info.signingInfo ?: return emptySet()
+        if (signingInfo.hasMultipleSigners()) return emptySet()
+        return runCatching {
+            signingInfo.signingCertificateHistory
+                ?.map { certificate -> sha256(certificate.toByteArray()) }
+                ?.toSet()
+                .orEmpty()
+        }.getOrDefault(emptySet())
+    }
+
     @Suppress("DEPRECATION")
     fun archiveIdentity(packageManager: PackageManager, file: File): ArchiveIdentity? {
         val flags = SigningFlags.forSdk(Build.VERSION.SDK_INT)
@@ -61,7 +87,8 @@ object SigningVerifier {
             versionName = info.versionName.orEmpty(),
             versionCode = info.versionCodeCompat(),
             splitName = info.splitNames?.singleOrNull(),
-            signingDigests = installedDigests(info)
+            signingDigests = installedDigests(info),
+            signingLineage = lineageDigests(info)
         )
     }
 
@@ -92,7 +119,14 @@ object SigningVerifier {
         if (installed != null) {
             if (installed.packageName != base.packageName) return invalid(VerificationError.WRONG_PACKAGE_FOR_UPDATE)
             if (base.versionCode <= installed.versionCode) return invalid(VerificationError.DOWNGRADE)
-            if (installed.signingDigests != base.signingDigests) return invalid(VerificationError.SIGNATURE_MISMATCH)
+            if (!SigningContinuity.allows(
+                    installedDigests = installed.signingDigests,
+                    archiveDigests = base.signingDigests,
+                    archiveLineage = base.signingLineage
+                )
+            ) {
+                return invalid(VerificationError.SIGNATURE_MISMATCH)
+            }
         }
         // Some Android 16 builds do not expose signing data for standalone split APKs.
         // The base APK is checked here; Package Manager revalidates every split and its signature at session commit.

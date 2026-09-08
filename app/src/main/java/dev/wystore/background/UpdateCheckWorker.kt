@@ -5,12 +5,17 @@ import android.os.PowerManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import dev.wystore.data.GitHubCatalog
+import dev.wystore.data.GitHubInstallState
+import dev.wystore.data.GitHubInstallStatePolicy
 import dev.wystore.data.GitHubReleasePolicy
 import dev.wystore.data.GitHubReleaseSource
 import dev.wystore.data.InstallSource
+import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.RuStoreSource
+import dev.wystore.data.SignatureCompatibility
+import dev.wystore.data.SignatureCompatibilityPolicy
 import dev.wystore.R
 import dev.wystore.data.StoreRepository
 import dev.wystore.data.StoreSettings
@@ -99,8 +104,8 @@ class UpdateCheckWorker(
 
             try {
                 val queuedId = when (managed.source) {
-                    ManagedSource.RUSTORE -> checkRuStoreUpdate(managed, local.versionCode)
-                    ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionCode)
+                    ManagedSource.RUSTORE -> checkRuStoreUpdate(managed, local)
+                    ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionName)
                     null -> null
                 }
                 if (queuedId != null) {
@@ -191,10 +196,22 @@ class UpdateCheckWorker(
         }
 
     /** Returns the queue id when an update was queued for this app, or null when it is current. */
-    private suspend fun checkRuStoreUpdate(managed: ManagedApp, localVersionCode: Long): String? {
+    private suspend fun checkRuStoreUpdate(managed: ManagedApp, local: InstalledApp): String? {
         val app = runCatching { ruStoreSource.details(managed.packageName, includeReviews = false) }
             .getOrNull() ?: return null
-        if (app.versionCode <= localVersionCode) return null
+        if (app.versionCode <= local.versionCode) return null
+
+        // The store states the certificate it signs with, and the phone knows the one it installed
+        // under. When they are different, Android will not update in place whatever we download,
+        // so an automatic check has no business fetching a hundred megabytes to find that out at
+        // the end. The app's page says so instead, and a download the user starts by hand still
+        // goes through - only the archive itself carries the signing lineage that could prove the
+        // two certificates are the same developer after a key rotation.
+        if (SignatureCompatibilityPolicy.evaluate(local.signingDigests, app.signatureHint) ==
+            SignatureCompatibility.MISMATCH
+        ) {
+            return null
+        }
         return queueRepository.enqueueAvailableUpdate(
             packageName = managed.packageName,
             label = app.name.ifBlank { managed.label },
@@ -205,7 +222,7 @@ class UpdateCheckWorker(
     }
 
     /** Returns the queue id when an update was queued for this app, or null when it is current. */
-    private suspend fun checkGitHubUpdate(managed: ManagedApp, localVersionCode: Long): String? {
+    private suspend fun checkGitHubUpdate(managed: ManagedApp, localVersionName: String): String? {
         val repo = managed.githubRepository ?: return null
         val assetPattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
         // Skips rolling nightly tags and releases with no installable APK; see GitHubReleasePolicy.
@@ -217,6 +234,18 @@ class UpdateCheckWorker(
         // for an app that was already current. The installed release is tracked instead.
         val installedReleaseId = managed.githubReleaseId
         if (installedReleaseId != null && latest.id == installedReleaseId) return null
+
+        // ...and the release id on its own is not enough either. It is absent for an app adopted
+        // rather than installed here, and older installs recorded an asset id in its place, which
+        // belongs to a different numbering entirely and can never match. Either way the check kept
+        // offering a release the phone was already running, downloading it, and failing
+        // verification on "not newer than installed" - reported to the user as a signature
+        // problem. The tag says what the release is; that is what gets compared.
+        if (GitHubInstallStatePolicy.stateFor(localVersionName, latest.tagName) ==
+            GitHubInstallState.Current
+        ) {
+            return null
+        }
 
         return queueRepository.enqueueAvailableUpdate(
             packageName = managed.packageName,
