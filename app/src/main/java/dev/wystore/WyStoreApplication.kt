@@ -55,9 +55,6 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
         )
 
         val settingsRepository = SettingsRepository(this)
-        // Defaults that changed since this phone last wrote its settings. Runs before the cache is
-        // warmed so the first reader sees the raised values rather than the stale record.
-        applicationScope.launch { runCatching { settingsRepository.applyDefaultRevision() } }
         settingsRepository.warmUp(applicationScope)
 
         // The first screen the user sees is Home, and its content is already on disk from the last
