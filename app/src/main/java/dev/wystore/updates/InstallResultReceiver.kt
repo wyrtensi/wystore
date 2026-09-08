@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
+import dev.wystore.background.QueuePump
 import dev.wystore.updates.model.QueueErrorCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -98,6 +99,8 @@ class InstallResultReceiver : BroadcastReceiver() {
             } catch (error: Throwable) {
                 android.util.Log.w("InstallResultReceiver", "Could not record install result for $queueId", error)
             } finally {
+                // The install slot is free either way, so whatever is queued behind can start.
+                runCatching { QueuePump.startNext(context) }
                 pendingResult.finish()
             }
         }

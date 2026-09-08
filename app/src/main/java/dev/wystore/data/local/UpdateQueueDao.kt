@@ -10,6 +10,19 @@ import androidx.room.Update
 import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.flow.Flow
 
+/**
+ * One transfer is already running.
+ *
+ * The queue moves one item at a time on purpose - two downloads over one connection help nobody,
+ * and two installs at once are not a thing Android does. What was wrong was the reaction: starting
+ * a second item threw a plain illegal-state error, which the app reported as "Wy Store itself
+ * failed" over a queue that was simply doing its job. Waiting is the answer, so this is a distinct
+ * exception rather than a message a caller would have to read.
+ */
+class QueueBusyException(val activeIds: List<String>) :
+    IllegalStateException("Another queue item is active: $activeIds")
+
+
 @Dao
 abstract class UpdateQueueDao {
 
@@ -79,9 +92,7 @@ abstract class UpdateQueueDao {
     open suspend fun upsertAtomic(entity: UpdateQueueEntity) {
         if (entity.state in ACTIVE_STATES) {
             val active = getActive(ACTIVE_STATES).filter { it.id != entity.id }
-            check(active.isEmpty()) {
-                "Only one active item allowed in queue, but found active: ${active.map { it.id }}"
-            }
+            if (active.isNotEmpty()) throw QueueBusyException(active.map { it.id })
         }
         val existing = find(entity.packageName, entity.versionCode, entity.source)
         if (existing != null) {
@@ -102,9 +113,7 @@ abstract class UpdateQueueDao {
         val current = getById(id) ?: throw IllegalArgumentException("Item not found: $id")
         if (targetState in ACTIVE_STATES) {
             val active = getActive(ACTIVE_STATES).filter { it.id != id }
-            check(active.isEmpty()) {
-                "Cannot transition $id to $targetState: another item is already active: ${active.map { it.id }}"
-            }
+            if (active.isNotEmpty()) throw QueueBusyException(active.map { it.id })
         }
         update(
             current.copy(

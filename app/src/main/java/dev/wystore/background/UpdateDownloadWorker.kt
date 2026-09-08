@@ -14,6 +14,7 @@ import dev.wystore.data.SecureArtifactDownloader
 import dev.wystore.data.SigningVerifier
 import dev.wystore.data.VerificationError
 import dev.wystore.data.StoreRepository
+import dev.wystore.data.local.QueueBusyException
 import dev.wystore.data.invalidateInstalledApps
 import dev.wystore.data.classifyThrowable
 import dev.wystore.data.logInternalFailure
@@ -24,6 +25,7 @@ import dev.wystore.updates.InstallMode
 import dev.wystore.updates.InstallModePolicy
 import dev.wystore.updates.AutoInstallStore
 import dev.wystore.updates.BackgroundInstaller
+import dev.wystore.updates.QueueOrigin
 import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.model.QueueAction
 import dev.wystore.updates.model.QueueState
@@ -56,6 +58,13 @@ class UpdateDownloadWorker(
 
         return try {
             executor.execute(queueId)
+            // The transfer slot is free again; whatever is queued behind this can have it. Without
+            // this the next item would sit at AVAILABLE until someone pressed "start" by hand.
+            QueuePump.startNext(applicationContext)
+            Result.success()
+        } catch (busy: QueueBusyException) {
+            // Another item holds the one transfer slot. This row stays AVAILABLE and is started by
+            // whoever finishes; being second in line is not a failure and must not be shown as one.
             Result.success()
         } catch (cancellation: CancellationException) {
             runCatching { queueRepository.transition(queueId, QueueAction.Cancel) }
@@ -81,6 +90,7 @@ class UpdateDownloadWorker(
                     NotificationCoordinator(applicationContext)
                         .publishErrors(queueRepository.failedSnapshots())
                 }
+                QueuePump.startNext(applicationContext)
                 Result.failure()
             }
         }
@@ -216,7 +226,11 @@ class UpdateDownloadWorker(
                     files = downloadedFiles,
                     installed = installed,
                     expectedPackageName = expectedPackageName,
-                    expectedSourceDigest = sourceSignatureHint
+                    expectedSourceDigest = sourceSignatureHint,
+                    // "Hand updates to Wy Store" and "reinstall" are requests to install the
+                    // version that is already there - that install is the whole point, since it is
+                    // what makes Wy Store the installer of record.
+                    allowReinstall = QueueOrigin.isUserRequested(entity.priority)
                 )
                 // Not newer than what is installed means there was nothing to fetch, which is
                 // neither a failure nor an install. Reported as a failure it left a red row about

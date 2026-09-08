@@ -330,6 +330,11 @@ class QueueRepository(
         dao.getById(id)
     }
 
+    /** Ids of the items holding the single transfer slot - empty when the queue is free to start. */
+    suspend fun activeIds(): List<String> = withContext(Dispatchers.IO) {
+        dao.getActive(UpdateQueueDao.ACTIVE_STATES).map { it.id }
+    }
+
     suspend fun nextEligible(): QueueItemSnapshot? = withContext(Dispatchers.IO) {
         dao.nextEligible()?.toSnapshot()
     }

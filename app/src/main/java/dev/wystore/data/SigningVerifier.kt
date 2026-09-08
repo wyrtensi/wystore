@@ -92,12 +92,19 @@ object SigningVerifier {
         )
     }
 
+    /**
+     * @param allowReinstall lets the same version through. A reinstall is what "hand updates to Wy
+     * Store" and "reinstall" actually are: the file is not newer, and that is the point - the
+     * install is what makes Wy Store the installer of record. Refusing it as a downgrade meant
+     * those buttons could never do anything. An older version is still refused either way.
+     */
     fun verifyArtifacts(
         packageManager: PackageManager,
         files: List<File>,
         installed: InstalledApp?,
         expectedPackageName: String?,
-        expectedSourceDigest: String? = null
+        expectedSourceDigest: String? = null,
+        allowReinstall: Boolean = false
     ): VerificationResult {
         if (files.isEmpty() || files.any { !isApkContainer(it) }) {
             return invalid(VerificationError.NOT_AN_APK)
@@ -118,7 +125,10 @@ object SigningVerifier {
         }
         if (installed != null) {
             if (installed.packageName != base.packageName) return invalid(VerificationError.WRONG_PACKAGE_FOR_UPDATE)
-            if (base.versionCode <= installed.versionCode) return invalid(VerificationError.DOWNGRADE)
+            if (base.versionCode < installed.versionCode) return invalid(VerificationError.DOWNGRADE)
+            if (base.versionCode == installed.versionCode && !allowReinstall) {
+                return invalid(VerificationError.DOWNGRADE)
+            }
             if (!SigningContinuity.allows(
                     installedDigests = installed.signingDigests,
                     archiveDigests = base.signingDigests,
