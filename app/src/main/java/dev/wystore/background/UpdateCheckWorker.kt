@@ -72,8 +72,22 @@ class UpdateCheckWorker(
         // found rather than everything ever left in the queue.
         val queuedThisRun = mutableListOf<String>()
 
-        for (managed in candidates) {
+        for ((index, managed) in candidates.withIndex()) {
             currentCoroutineContext().ensureActive()
+            // Nothing was ever published here, so the card the Library shows while a check runs
+            // had no counts to display and the check button's only feedback was going grey.
+            runCatching {
+                setProgress(
+                    UpdateCheckReport.progress(
+                        checked = index,
+                        total = candidates.size,
+                        updates = updatesFound,
+                        detail = applicationContext.getString(
+                            R.string.check_progress_detail, index, candidates.size
+                        )
+                    )
+                )
+            }
             val local = installed[managed.packageName] ?: continue
             if (local.source == InstallSource.GOOGLE_PLAY && !managed.forceWyStore && !isManualCheck) {
                 continue
@@ -115,13 +129,13 @@ class UpdateCheckWorker(
             }
         }
 
-        // Root makes an update possible without the user present: the download can run
-        // unattended and UpdateDownloadWorker installs it silently. The policy for this was
-        // written and tested but never called, so both switches did nothing on their own and
-        // every update still waited behind a button press.
+        // Finding an update is only half of what the user asked for. Fetching it used to require
+        // root, so on an ordinary phone the check announced the update and then stood still.
         if (queuedThisRun.isNotEmpty()) {
-            startUnattendedDownloads(settings, queuedThisRun)
+            startDownloads(settings, queuedThisRun, isManualCheck)
         }
+
+        val detail = describe(candidates.size, updatesFound, problems)
 
         // The Updates screen has always had a "last check" card, and StoreRepository has always had
         // somewhere to put the result — but nothing ever wrote it, so the card never appeared.
@@ -129,9 +143,7 @@ class UpdateCheckWorker(
             repository.saveLastUpdateCheck(
                 UpdateCheckSummary(
                     finishedAt = System.currentTimeMillis(),
-                    detail = applicationContext.getString(
-                        if (problems > 0) R.string.check_finished_with_problems else R.string.check_completed
-                    ),
+                    detail = detail,
                     checked = candidates.size,
                     total = managedApps.size,
                     updates = updatesFound,
@@ -154,9 +166,29 @@ class UpdateCheckWorker(
         return if (anyRetryableFailure) {
             Result.retry()
         } else {
-            Result.success()
+            // Progress is dropped the moment a worker finishes, so the closing line has to travel
+            // in the output data or the screen that started the check is told nothing.
+            Result.success(
+                UpdateCheckReport.result(
+                    checked = candidates.size,
+                    total = managedApps.size,
+                    updates = updatesFound,
+                    detail = detail
+                )
+            )
         }
     }
+
+    /** One line for the snackbar: what was looked at, what was found, what could not be reached. */
+    private fun describe(checked: Int, updates: Int, problems: Int): String =
+        when (UpdateCheckReport.outcome(updates, problems)) {
+            CheckOutcome.UP_TO_DATE ->
+                applicationContext.getString(R.string.check_result_up_to_date, checked)
+            CheckOutcome.UPDATES_FOUND ->
+                applicationContext.getString(R.string.check_result_updates, checked, updates)
+            CheckOutcome.PROBLEMS ->
+                applicationContext.getString(R.string.check_result_problems, checked, updates, problems)
+        }
 
     /** Returns the queue id when an update was queued for this app, or null when it is current. */
     private suspend fun checkRuStoreUpdate(managed: ManagedApp, localVersionCode: Long): String? {
@@ -199,21 +231,42 @@ class UpdateCheckWorker(
     }
 
     /**
-     * Downloads what was just found, without the user present.
+     * Fetches what was just found.
      *
-     * Only with root: without it the install still needs the Android confirmation dialog, so
-     * downloading ahead of time would fill storage with files that cannot be installed unattended
-     * anyway. Checking for root runs a shell command, so it happens once and only when the setting
-     * asks for it.
+     * A manual check is someone standing in front of the phone waiting for an answer, so its
+     * downloads start immediately, the way a tap on Update does. A periodic check is not, so its
+     * downloads keep the unattended constraints - Wi-Fi only and charging, if that is what the
+     * settings say - and wait until they are met.
+     *
+     * Checking for root runs a shell command, so it only happens when auto-download is off and the
+     * root path is the only thing that could still start a transfer.
      */
-    private suspend fun startUnattendedDownloads(settings: StoreSettings, queueIds: List<String>) {
-        if (!settings.rootBackgroundDownloadsEnabled) return
-        val rootAvailable = runCatching { RootInstaller().isAvailable() }.getOrDefault(false)
-        if (!UpdateCheckPolicy.shouldEnqueueDownload(settings.rootBackgroundDownloadsEnabled, rootAvailable)) {
+    private suspend fun startDownloads(
+        settings: StoreSettings,
+        queueIds: List<String>,
+        isManualCheck: Boolean
+    ) {
+        val rootAvailable = if (settings.autoDownloadUpdates) {
+            false
+        } else {
+            runCatching { RootInstaller().isAvailable() }.getOrDefault(false)
+        }
+        if (!UpdateCheckPolicy.shouldEnqueueDownload(
+                autoDownloadEnabled = settings.autoDownloadUpdates,
+                rootBackgroundDownloadsEnabled = settings.rootBackgroundDownloadsEnabled,
+                isRootAvailable = rootAvailable
+            )
+        ) {
             return
         }
         queueIds.forEach { id ->
-            runCatching { TransferDispatcher.dispatchUnattended(applicationContext, id, settings) }
+            runCatching {
+                if (isManualCheck) {
+                    TransferDispatcher.dispatch(applicationContext, id)
+                } else {
+                    TransferDispatcher.dispatchUnattended(applicationContext, id, settings)
+                }
+            }
         }
     }
 
