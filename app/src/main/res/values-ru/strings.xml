@@ -72,7 +72,6 @@
     <string name="details_size_android">Размер: %1$s · Android от %2$s</string>
     <string name="details_rating">Рейтинг: %1$s (%2$d)</string>
     <string name="details_downloads">Скачивания: %1$s</string>
-    <string name="details_signature_hint">Заявленный RuStore отпечаток (не проверен): %1$s</string>
 
     <string name="rustore_task_queued">Проверка APK RuStore в очереди</string>
     <string name="rustore_task_preparing">Готовим проверку APK RuStore</string>
@@ -193,6 +192,8 @@
     <string name="library_checking">Проверяем</string>
     <string name="library_install_count">Установить (%1$d)</string>
     <string name="library_check_and_install">Проверить и установить</string>
+    <string name="library_expand_all">Раскрыть все</string>
+    <string name="library_collapse_all">Скрыть все</string>
     <string name="library_intro">Сначала показаны приложения, которые Wy Store уже установил или обновлял. Google Play-приложения исключены, пока не включишь форсирование.</string>
     <string name="library_search_label">Поиск среди установленных</string>
     <string name="library_search_placeholder">Название или package name</string>
@@ -374,6 +375,7 @@
     <string name="github_fact_published">Опубликовано</string>
     <string name="github_fact_size">Размер</string>
     <string name="github_fact_stars">Звёзды</string>
+    <string name="github_fact_owner">Обновляет</string>
     <string name="github_fact_installed">Установлено</string>
     <string name="github_fact_unknown">не указано</string>
     <string name="github_archived">Репозиторий архивирован и больше не обновляется</string>
@@ -407,6 +409,12 @@
     <string name="settings_queue_mode_manual">По одному</string>
     <string name="settings_queue_mode_hint">В умном режиме следующее обновление предлагается сразу после установки</string>
     <string name="settings_root_background_downloads">Скачивать обновления в фоне (root)</string>
+    <string name="settings_silent_updates_title">Обновлять без вопросов</string>
+    <string name="settings_silent_updates_hint">Android разрешает магазину обновлять то, что он сам установил, без окна подтверждения. Первая установка спросит всегда, и всё, что поставил другой магазин, — тоже.</string>
+    <string name="settings_silent_updates_switch">Не спрашивать при обновлении</string>
+    <string name="settings_auto_download_title">Скачивать обновления сразу</string>
+    <string name="settings_auto_download_hint">Проверка нашла обновление — сразу качает, и предложение установить приходит с готовым файлом. Установка всё равно спросит.</string>
+    <string name="settings_auto_download_updates">Скачивать автоматически</string>
     <string name="settings_auto_install_title">Устанавливать сразу после скачивания</string>
     <string name="settings_auto_install_hint">Без root Android всё равно спросит подтверждение; Wy Store покажет диалог, как только файл готов.</string>
     <string name="settings_auto_install_updates">Обновления</string>
@@ -421,6 +429,7 @@
     <string name="offer_next_dismiss">Позже</string>
     <string name="github_install_primary">Установить</string>
     <string name="github_update_primary">Обновить</string>
+    <string name="github_reinstall">Переустановить</string>
     <string name="github_other_version">Другая версия</string>
     <string name="github_hide_versions">Скрыть</string>
     <string name="github_screenshots">Скриншоты</string>
@@ -457,7 +466,7 @@
     <string name="details_label_fingerprint">Отпечаток RuStore</string>
     <string name="details_min_android_value">Android от %1$s</string>
     <string name="details_rating_value">%1$s (%2$d)</string>
-    <string name="details_fingerprint_note">Заявлен источником, не проверен</string>
+    <string name="details_fingerprint_note">Заявлен источником RuStore — сверяется перед установкой</string>
     <string name="home_tagline">Приложения без регистрации</string>
     <string name="home_empty_featured_title">Пока нечего показать</string>
     <string name="search_empty_title">Ничего не найдено</string>
@@ -570,6 +579,10 @@
     <string name="root_error_timeout">Root-команда выполнялась слишком долго и была остановлена.</string>
     <string name="root_error_unavailable">Root недоступен.</string>
     <string name="check_completed">Проверка завершена</string>
+    <string name="check_result_up_to_date">Проверено: %1$d — всё актуально</string>
+    <string name="check_result_updates">Проверено: %1$d — обновлений: %2$d</string>
+    <string name="check_result_problems">Проверено: %1$d — обновлений: %2$d, недоступно: %3$d</string>
+    <string name="check_progress_detail">%1$d из %2$d</string>
     <string name="backup_restored_summary">Восстановлено приложений: %1$d, репозиториев: %2$d</string>
     <string name="backup_invalid_json">Файл резервной копии в формате, который Wy Store не понимает.</string>
     <string name="review_anonymous_author">Пользователь RuStore</string>
@@ -578,6 +591,11 @@
     <string name="details_reviews_loading">Загружаем отзывы…</string>
     <string name="details_reviews_load_all">Загрузить все отзывы</string>
     <string name="details_reviews_show_less">Свернуть</string>
+    <string name="details_owner">Обновления контролирует: %1$s</string>
+    <string name="details_owner_none">никто — установлено вручную</string>
+    <string name="details_take_over">Передать обновления Wy Store</string>
+    <string name="details_take_over_hint">Android разрешает тихо обновлять только тому, кто приложение установил. Переустановка через Wy Store делает контролирующим его.</string>
+    <string name="details_uninstall">Удалить</string>
     <string name="details_share">Поделиться</string>
     <string name="details_share_subject">%1$s в RuStore</string>
     <string name="details_share_chooser">Поделиться ссылкой на приложение</string>

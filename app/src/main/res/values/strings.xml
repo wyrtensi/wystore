@@ -72,7 +72,6 @@
     <string name="details_size_android">Size: %1$s · Android %2$s and up</string>
     <string name="details_rating">Rating: %1$s (%2$d)</string>
     <string name="details_downloads">Downloads: %1$s</string>
-    <string name="details_signature_hint">Declared RuStore fingerprint (unverified): %1$s</string>
 
     <string name="rustore_task_queued">RuStore APK check queued</string>
     <string name="rustore_task_preparing">Preparing RuStore APK check</string>
@@ -193,6 +192,8 @@
     <string name="library_checking">Checking</string>
     <string name="library_install_count">Install (%1$d)</string>
     <string name="library_check_and_install">Check and install</string>
+    <string name="library_expand_all">Expand all</string>
+    <string name="library_collapse_all">Collapse all</string>
     <string name="library_intro">Apps that Wy Store has already installed or updated are shown first. Google Play apps are excluded until you turn on forcing.</string>
     <string name="library_search_label">Search installed apps</string>
     <string name="library_search_placeholder">Name or package name</string>
@@ -374,6 +375,7 @@
     <string name="github_fact_published">Published</string>
     <string name="github_fact_size">Size</string>
     <string name="github_fact_stars">Stars</string>
+    <string name="github_fact_owner">Updated by</string>
     <string name="github_fact_installed">Installed</string>
     <string name="github_fact_unknown">not specified</string>
     <string name="github_archived">The repository is archived and no longer updated</string>
@@ -407,6 +409,12 @@
     <string name="settings_queue_mode_manual">One at a time</string>
     <string name="settings_queue_mode_hint">Smart mode offers the next update right after one finishes</string>
     <string name="settings_root_background_downloads">Download updates in background (root)</string>
+    <string name="settings_silent_updates_title">Update without asking</string>
+    <string name="settings_silent_updates_hint">Android lets an app store update what it installed itself without a confirmation dialog. First installs always ask, and so does anything another store installed.</string>
+    <string name="settings_silent_updates_switch">Skip the confirmation for updates</string>
+    <string name="settings_auto_download_title">Download updates as they are found</string>
+    <string name="settings_auto_download_hint">A check that finds an update fetches it straight away, so the install offer arrives with the file already there. Installing still asks.</string>
+    <string name="settings_auto_download_updates">Download automatically</string>
     <string name="settings_auto_install_title">Install right after download</string>
     <string name="settings_auto_install_hint">Without root Android still asks for confirmation; Wy Store brings the dialog up as soon as the file is ready.</string>
     <string name="settings_auto_install_updates">Updates</string>
@@ -421,6 +429,7 @@
     <string name="offer_next_dismiss">Later</string>
     <string name="github_install_primary">Install</string>
     <string name="github_update_primary">Update</string>
+    <string name="github_reinstall">Reinstall</string>
     <string name="github_other_version">Other version</string>
     <string name="github_hide_versions">Hide</string>
     <string name="github_screenshots">Screenshots</string>
@@ -457,7 +466,7 @@
     <string name="details_label_fingerprint">RuStore fingerprint</string>
     <string name="details_min_android_value">Android %1$s and up</string>
     <string name="details_rating_value">%1$s (%2$d)</string>
-    <string name="details_fingerprint_note">Declared by the source, not verified</string>
+    <string name="details_fingerprint_note">Declared by RuStore — checked before installing</string>
     <string name="home_tagline">Apps without registration</string>
     <string name="home_empty_featured_title">Nothing to show yet</string>
     <string name="search_empty_title">Nothing found</string>
@@ -570,6 +579,10 @@
     <string name="root_error_timeout">The root command took too long and was stopped.</string>
     <string name="root_error_unavailable">Root is not available.</string>
     <string name="check_completed">Check completed</string>
+    <string name="check_result_up_to_date">Checked %1$d — everything is current</string>
+    <string name="check_result_updates">Checked %1$d — updates: %2$d</string>
+    <string name="check_result_problems">Checked %1$d — updates: %2$d, unreachable: %3$d</string>
+    <string name="check_progress_detail">%1$d of %2$d</string>
     <string name="backup_restored_summary">Restored %1$d apps and %2$d repositories</string>
     <string name="backup_invalid_json">The backup file is not in a format Wy Store understands.</string>
     <string name="review_anonymous_author">RuStore user</string>
@@ -578,6 +591,11 @@
     <string name="details_reviews_loading">Loading reviews…</string>
     <string name="details_reviews_load_all">Load all reviews</string>
     <string name="details_reviews_show_less">Show fewer</string>
+    <string name="details_owner">Updates are handled by: %1$s</string>
+    <string name="details_owner_none">nobody — installed by hand</string>
+    <string name="details_take_over">Hand updates to Wy Store</string>
+    <string name="details_take_over_hint">Android lets only the installer of record update an app quietly. Reinstalling it through Wy Store makes that Wy Store.</string>
+    <string name="details_uninstall">Uninstall</string>
     <string name="details_share">Share</string>
     <string name="details_share_subject">%1$s on RuStore</string>
     <string name="details_share_chooser">Share a link to the app</string>
