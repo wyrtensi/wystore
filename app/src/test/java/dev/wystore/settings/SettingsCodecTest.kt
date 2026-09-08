@@ -84,6 +84,25 @@ class SettingsCodecTest {
         assertTrue(read.checkSummaryNotificationsEnabled)
     }
 
+    /**
+     * `wifi_only` and `allow_mobile_data` are read from the same pre-DataStore key with opposite
+     * senses, so a write that touched only one of them would leave the legacy value still deciding
+     * the other. The network choice sets both, which is what keeps the two in step.
+     */
+    @Test
+    fun choosingTheNetworkOverridesTheLegacyKeyOnBothSides() {
+        val prefs = mutablePreferencesOf(SettingsCodec.KEY_LEGACY_ALLOW_MOBILE to true)
+        val current = SettingsCodec.read(prefs)
+        assertFalse(current.wifiOnly)
+        assertTrue(current.allowMobileData)
+
+        SettingsCodec.write(prefs, current, current.copy(wifiOnly = true, allowMobileData = false))
+
+        val read = SettingsCodec.read(prefs)
+        assertTrue(read.wifiOnly)
+        assertFalse(read.allowMobileData)
+    }
+
     /** An unreadable enum name must not take the whole record down with it. */
     @Test
     fun anUnknownStoredEnumFallsBackToTheDefault() {
