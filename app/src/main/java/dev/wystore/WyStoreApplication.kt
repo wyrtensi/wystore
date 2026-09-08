@@ -49,20 +49,24 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
      * actually went away.
      */
     private fun finishPendingReinstall(removedPackage: String) {
-        val store = PendingReinstallStore(this)
-        val pending = store.read() ?: return
-        if (pending.removedPackageName != removedPackage) return
-        store.clear()
-        // A handover the user walked away from must not install something days later.
-        if (!GoogleAdoptionPolicy.isPendingFresh(pending.startedAt, System.currentTimeMillis())) {
-            return
+        // onReceive is the main thread, and both reads below go to disk - the settings one can
+        // even block on a cold cache when the broadcast is what started the process.
+        applicationScope.launch(Dispatchers.IO) {
+            val store = PendingReinstallStore(this@WyStoreApplication)
+            val pending = store.read() ?: return@launch
+            if (pending.removedPackageName != removedPackage) return@launch
+            store.clear()
+            // A handover the user walked away from must not install something days later.
+            if (!GoogleAdoptionPolicy.isPendingFresh(pending.startedAt, System.currentTimeMillis())) {
+                return@launch
+            }
+            ManualInstallScheduler.enqueue(
+                context = this@WyStoreApplication,
+                packageName = pending.installPackageName,
+                label = pending.label,
+                settings = SettingsRepository(this@WyStoreApplication).currentSettings().toStoreSettings()
+            )
         }
-        ManualInstallScheduler.enqueue(
-            context = this,
-            packageName = pending.installPackageName,
-            label = pending.label,
-            settings = SettingsRepository(this).currentSettings().toStoreSettings()
-        )
     }
 
     override fun onCreate() {

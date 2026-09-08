@@ -241,8 +241,12 @@ class UpdateCheckWorker(
         // offering a release the phone was already running, downloading it, and failing
         // verification on "not newer than installed" - reported to the user as a signature
         // problem. The tag says what the release is; that is what gets compared.
-        if (GitHubInstallStatePolicy.stateFor(localVersionName, latest.tagName) ==
-            GitHubInstallState.Current
+        // Only a release that is demonstrably newer. "Current" is the case above; "Unknown" means
+        // one of the two version strings could not be read, and queueing on that guess is how the
+        // loop started - the archive would be fetched and then refused for not being newer anyway.
+        // The app's own page still offers a reinstall by hand when that is what someone wants.
+        if (GitHubInstallStatePolicy.stateFor(localVersionName, latest.tagName) !=
+            GitHubInstallState.UpdateAvailable
         ) {
             return null
         }

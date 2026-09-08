@@ -60,4 +60,21 @@ class GitHubInstallStatePolicyTest {
             GitHubInstallStatePolicy.stateFor(installedVersionName = "1.7.8", releaseTag = "v.1.7.9")
         )
     }
+
+    /**
+     * A version string neither side can read is not an invitation to guess. The background check
+     * queues on UpdateAvailable alone, because queueing on Unknown is how the same release came
+     * round again on every check.
+     */
+    @Test
+    fun anUnreadableVersionIsNotAnUpdate() {
+        assertEquals(
+            GitHubInstallState.Unknown,
+            GitHubInstallStatePolicy.stateFor(installedVersionName = "nightly", releaseTag = "v2.0")
+        )
+        assertEquals(
+            GitHubInstallState.Unknown,
+            GitHubInstallStatePolicy.stateFor(installedVersionName = "1.0", releaseTag = "rolling")
+        )
+    }
 }
