@@ -13,10 +13,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import androidx.annotation.StringRes
+import dev.wystore.ui.components.WySpinner
 import dev.wystore.R
 import dev.wystore.UpdateCheckTask
 import dev.wystore.data.InstalledApp
@@ -144,10 +145,10 @@ fun LibraryScreen(
                 )
             },
             actions = {
-                TextButton(onClick = onCheckUpdates, enabled = updateCheckTask?.active != true) {
+                TextButton(onClick = onCheckUpdates, enabled = updateCheckTask?.running != true) {
                     Text(
                         when {
-                            updateCheckTask?.active == true -> stringResource(R.string.library_checking)
+                            updateCheckTask?.running == true -> stringResource(R.string.library_checking)
                             pendingUpdates.isNotEmpty() -> stringResource(R.string.library_install_count, pendingUpdates.size)
                             else -> stringResource(R.string.library_check_and_install)
                         }
@@ -178,6 +179,8 @@ fun LibraryScreen(
                 item { UpdateCheckStatusCard(task) }
             }
             item {
+                val allExpanded = filteredInstalled.isNotEmpty() &&
+                    filteredInstalled.all { expandedPackages.contains(it.packageName) }
                 TextField(
                     value = query,
                     onValueChange = { query = it },
@@ -187,6 +190,40 @@ fun LibraryScreen(
                     singleLine = true,
                     placeholder = { Text(stringResource(R.string.library_search_placeholder)) },
                     leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                    // Open-everything rides in the search field rather than beside the filters,
+                    // where it was a bare chevron the filter rail scrolled underneath. Here it
+                    // lines up with the chevron on each row, which is what it operates, and costs
+                    // the screen no height of its own. While something is typed the slot does the
+                    // more obvious job and clears the query.
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { query = "" }) {
+                                Icon(
+                                    Icons.Outlined.Close,
+                                    contentDescription = stringResource(R.string.library_search_clear)
+                                )
+                            }
+                        } else if (filteredInstalled.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    expandedPackages = if (allExpanded) {
+                                        emptySet()
+                                    } else {
+                                        filteredInstalled.map { it.packageName }.toSet()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = if (allExpanded) Icons.Outlined.KeyboardArrowUp
+                                    else Icons.Outlined.KeyboardArrowDown,
+                                    contentDescription = stringResource(
+                                        if (allExpanded) R.string.library_collapse_all
+                                        else R.string.library_expand_all
+                                    )
+                                )
+                            }
+                        }
+                    },
                     shape = MaterialTheme.shapes.extraLarge,
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -198,43 +235,18 @@ fun LibraryScreen(
                 )
             }
             item {
-                // Open-everything sits with the filters rather than in the app bar: up there it
-                // competed with the title, and on a compact screen at a raised font size the word
-                // "Библиотека" broke across two lines to make room for it.
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // The filter rail scrolls sideways instead of wrapping onto three lines and
-                    // pushing the list itself below the fold.
-                    LazyRow(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(LibrarySort.entries, key = { it.name }) { option ->
-                            FilterChip(
-                                selected = sort == option,
-                                onClick = { sort = option },
-                                label = { Text(stringResource(option.labelRes)) }
-                            )
-                        }
-                    }
-                    val allExpanded = filteredInstalled.isNotEmpty() &&
-                        filteredInstalled.all { expandedPackages.contains(it.packageName) }
-                    IconButton(
-                        onClick = {
-                            expandedPackages = if (allExpanded) {
-                                emptySet()
-                            } else {
-                                filteredInstalled.map { it.packageName }.toSet()
-                            }
-                        },
-                        enabled = filteredInstalled.isNotEmpty()
-                    ) {
-                        Icon(
-                            imageVector = if (allExpanded) Icons.Outlined.KeyboardArrowUp
-                            else Icons.Outlined.KeyboardArrowDown,
-                            contentDescription = stringResource(
-                                if (allExpanded) R.string.library_collapse_all
-                                else R.string.library_expand_all
-                            )
+                // The filter rail scrolls sideways instead of wrapping onto three lines and
+                // pushing the list itself below the fold. It gets the whole width: sharing the row
+                // with a button cut the last chip in half at that button's edge.
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(LibrarySort.entries, key = { it.name }) { option ->
+                        FilterChip(
+                            selected = sort == option,
+                            onClick = { sort = option },
+                            label = { Text(stringResource(option.labelRes)) }
                         )
                     }
                 }
@@ -288,7 +300,7 @@ fun UpdateCheckStatusCard(task: UpdateCheckTask) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                if (task.active) CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                if (task.active) WySpinner(size = 18.dp, strokeWidth = 2.dp)
             }
             task.detail?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
             if (task.total > 0) {

@@ -132,7 +132,7 @@ class UpdateCheckWorker(
         // Finding an update is only half of what the user asked for. Fetching it used to require
         // root, so on an ordinary phone the check announced the update and then stood still.
         if (queuedThisRun.isNotEmpty()) {
-            startDownloads(settings, queuedThisRun, isManualCheck)
+            startDownloads(settings, queuedThisRun)
         }
 
         val detail = describe(candidates.size, updatesFound, problems)
@@ -233,18 +233,17 @@ class UpdateCheckWorker(
     /**
      * Fetches what was just found.
      *
-     * A manual check is someone standing in front of the phone waiting for an answer, so its
-     * downloads start immediately, the way a tap on Update does. A periodic check is not, so its
-     * downloads keep the unattended constraints - Wi-Fi only and charging, if that is what the
-     * settings say - and wait until they are met.
+     * These downloads keep the unattended constraints - Wi-Fi only and charging, if that is what
+     * the settings say - even when a person started the check. Pressing "check" asks for version
+     * numbers, not for a hundred megabytes over mobile data; a tap on Update or Download is the
+     * explicit request, and that one still starts immediately through [TransferDispatcher.dispatch].
      *
      * Checking for root runs a shell command, so it only happens when auto-download is off and the
      * root path is the only thing that could still start a transfer.
      */
     private suspend fun startDownloads(
         settings: StoreSettings,
-        queueIds: List<String>,
-        isManualCheck: Boolean
+        queueIds: List<String>
     ) {
         val rootAvailable = if (settings.autoDownloadUpdates) {
             false
@@ -260,13 +259,7 @@ class UpdateCheckWorker(
             return
         }
         queueIds.forEach { id ->
-            runCatching {
-                if (isManualCheck) {
-                    TransferDispatcher.dispatch(applicationContext, id)
-                } else {
-                    TransferDispatcher.dispatchUnattended(applicationContext, id, settings)
-                }
-            }
+            runCatching { TransferDispatcher.dispatchUnattended(applicationContext, id, settings) }
         }
     }
 

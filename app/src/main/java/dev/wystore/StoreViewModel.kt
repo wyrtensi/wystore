@@ -147,7 +147,16 @@ data class UpdateCheckTask(
     val checked: Int = 0,
     val total: Int = 0,
     val updates: Int = 0,
-    val active: Boolean = false
+    val active: Boolean = false,
+    /**
+     * Whether the check is on a thread right now rather than waiting for its constraints.
+     *
+     * The check button is disabled while a check is under way, and it used to read [active], which
+     * is also true for a run that is merely queued. A check that could not start - no network it
+     * was allowed to use, say - therefore disabled the only control that could enqueue a new one,
+     * and the screen stayed on "queued" with nothing the user could do about it.
+     */
+    val running: Boolean = false
 )
 
 data class StoreUiState(
@@ -275,7 +284,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             checked = progress.getInt("checked", info.outputData.getInt("checked", 0)),
             total = progress.getInt("total", info.outputData.getInt("total", 0)),
             updates = progress.getInt("updates", info.outputData.getInt("updates", 0)),
-            active = !terminal
+            active = !terminal,
+            running = info.state == WorkInfo.State.RUNNING
         )
         _state.update { it.copy(updateCheckTask = task) }
         if (terminal && lastUpdateCheckTerminalId != info.id) {
@@ -1087,25 +1097,6 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     fun updateManaged(app: ManagedApp) {
         repository.saveManaged(app)
         refreshLibrary()
-    }
-
-    fun uninstall(app: InstalledApp) = viewModelScope.launch {
-        if (!installer.isAvailable()) {
-            _state.value = _state.value.copy(message = string(R.string.vm_root_denied))
-            return@launch
-        }
-        _state.value = _state.value.copy(message = null)
-        val result = installer.uninstall(app.packageName)
-        if (result.success) {
-            repository.removeManaged(app.packageName)
-            refreshLibrary()
-            _state.value = _state.value.copy(message = string(R.string.vm_uninstalled, app.label))
-        } else {
-            _state.value = _state.value.copy(
-                message = RootTextResolver.describe(getApplication(), result)
-                    .ifBlank { string(R.string.vm_uninstall_failed, app.label) }
-            )
-        }
     }
 
     fun checkManagedApp(app: ManagedApp) {

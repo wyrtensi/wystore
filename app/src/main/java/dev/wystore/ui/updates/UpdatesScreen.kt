@@ -108,10 +108,10 @@ fun UpdatesScreen(
                 actions = {
                     // The only way to ask for a check used to be the Library tab, which is not
                     // where anyone looks for it.
-                    TextButton(onClick = onCheckUpdates, enabled = updateCheckTask?.active != true) {
+                    TextButton(onClick = onCheckUpdates, enabled = updateCheckTask?.running != true) {
                         Text(
                             stringResource(
-                                if (updateCheckTask?.active == true) R.string.library_checking
+                                if (updateCheckTask?.running == true) R.string.library_checking
                                 else R.string.updates_check_now
                             )
                         )

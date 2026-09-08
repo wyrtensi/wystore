@@ -59,6 +59,47 @@ class UpdateCheckPolicyTest {
         assertTrue(withoutRoot)
     }
 
+    /**
+     * The check the user pressed has to run on the connection the phone has. Requiring an unmetered
+     * one left the job with an unsatisfied CONNECTIVITY constraint on mobile data, and the Library
+     * said "queued" until the phone found Wi-Fi - which on a phone that never does is forever.
+     */
+    @Test
+    fun aManualCheckRunsOnWhateverConnectionThereIs() {
+        assertFalse(
+            UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
+                isManualCheck = true,
+                wifiOnly = true,
+                allowMobileData = false
+            )
+        )
+    }
+
+    @Test
+    fun aPeriodicCheckStillKeepsTheWifiOnlySetting() {
+        assertTrue(
+            UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
+                isManualCheck = false,
+                wifiOnly = true,
+                allowMobileData = false
+            )
+        )
+        assertFalse(
+            UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
+                isManualCheck = false,
+                wifiOnly = true,
+                allowMobileData = true
+            )
+        )
+        assertFalse(
+            UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
+                isManualCheck = false,
+                wifiOnly = false,
+                allowMobileData = false
+            )
+        )
+    }
+
     @Test
     fun manualPackageChecksRunEvenWhenAppAutoCheckFlagIsFalse() {
         // App has autoCheck = false

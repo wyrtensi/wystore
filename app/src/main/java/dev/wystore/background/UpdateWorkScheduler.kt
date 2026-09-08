@@ -48,6 +48,21 @@ object UpdateCheckPolicy {
         return autoDownloadEnabled || (rootBackgroundDownloadsEnabled && isRootAvailable)
     }
 
+    /**
+     * The network a check may run on.
+     *
+     * A periodic check is unattended traffic and keeps the Wi-Fi-only setting. A manual one is a
+     * button someone just pressed: it used to inherit the same rule, so on mobile data the job sat
+     * with an unsatisfied CONNECTIVITY constraint and the screen said "queued" for as long as the
+     * phone stayed off Wi-Fi. What it fetches is a few kilobytes of version numbers; the setting is
+     * there to protect downloads, and downloads still honour it.
+     */
+    fun checkRequiresUnmeteredNetwork(
+        isManualCheck: Boolean,
+        wifiOnly: Boolean,
+        allowMobileData: Boolean
+    ): Boolean = !isManualCheck && wifiOnly && !allowMobileData
+
     fun shouldRetryWorker(error: Throwable): Boolean {
         return try {
             val failure = classifyThrowable(error)
@@ -84,7 +99,13 @@ object UpdateWorkScheduler {
             return
         }
 
-        val network = if (settings.allowMobileData || !settings.wifiOnly) NetworkType.CONNECTED else NetworkType.UNMETERED
+        val network = if (
+            UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
+                isManualCheck = false,
+                wifiOnly = settings.wifiOnly,
+                allowMobileData = settings.allowMobileData
+            )
+        ) NetworkType.UNMETERED else NetworkType.CONNECTED
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(network)
             .setRequiresCharging(settings.requiresCharging)
@@ -110,7 +131,13 @@ object UpdateWorkScheduler {
     }
 
     fun checkPackageNow(context: Context, settings: StoreSettings, packageName: String?) {
-        val network = if (settings.allowMobileData || !settings.wifiOnly) NetworkType.CONNECTED else NetworkType.UNMETERED
+        val network = if (
+            UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
+                isManualCheck = true,
+                wifiOnly = settings.wifiOnly,
+                allowMobileData = settings.allowMobileData
+            )
+        ) NetworkType.UNMETERED else NetworkType.CONNECTED
         val request = OneTimeWorkRequestBuilder<UpdateCheckWorker>()
             .setInputData(
                 Data.Builder()
