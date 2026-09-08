@@ -28,6 +28,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import dev.wystore.ui.components.WySpinner
 import dev.wystore.InstallQueueItem
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.rememberCoroutineScope
+import dev.wystore.data.DiagnosticsCollector
+import dev.wystore.data.DiagnosticsReport
+import kotlinx.coroutines.launch
 import dev.wystore.R
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreSettings
@@ -150,6 +159,16 @@ fun AboutSettingsScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(stringResource(R.string.about_disclaimer_link)) }
+                    WyDivider()
+                    // The answers to the first three questions anyone asks about a bug - which
+                    // Android, which device, is there root - plus what the queue actually did.
+                    // Collected on demand rather than kept: root has to be asked, not remembered.
+                    Text(
+                        stringResource(R.string.about_diagnostics_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    DiagnosticsButtons()
                 }
             }
 
@@ -298,3 +317,73 @@ private val QUEUE_STATES = setOf(
     StatusCode.FAILED_SIGNATURE,
     StatusCode.FAILED_GENERIC
 )
+
+/**
+ * Saves or shares a plain-text report about this install.
+ *
+ * Both ways out are offered because a bug report travels differently every time: a file to attach
+ * to an issue, or text handed straight to a chat. The report is built when the button is pressed -
+ * it asks the system for the root state, and an answer from an hour ago would be worse than none.
+ */
+@Composable
+private fun DiagnosticsButtons() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val savedMessage = stringResource(R.string.about_diagnostics_saved)
+    val failedMessage = stringResource(R.string.about_diagnostics_failed)
+    var report by remember { mutableStateOf<String?>(null) }
+    var notice by remember { mutableStateOf<String?>(null) }
+
+    val saveLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain")
+    ) { uri ->
+        val text = report
+        if (uri == null || text == null) return@rememberLauncherForActivityResult
+        notice = runCatching {
+            context.contentResolver.openOutputStream(uri, "wt")?.use { stream ->
+                stream.write(text.toByteArray(Charsets.UTF_8))
+            } ?: error("no stream")
+        }.fold(onSuccess = { savedMessage }, onFailure = { failedMessage })
+    }
+
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(
+            onClick = {
+                scope.launch {
+                    report = DiagnosticsReport.render(
+                        DiagnosticsCollector(context).collect(),
+                        System.currentTimeMillis()
+                    )
+                    saveLauncher.launch("wystore-diagnostics.txt")
+                }
+            },
+            modifier = Modifier.weight(1f)
+        ) { Text(stringResource(R.string.about_diagnostics)) }
+        OutlinedButton(
+            onClick = {
+                scope.launch {
+                    val text = DiagnosticsReport.render(
+                        DiagnosticsCollector(context).collect(),
+                        System.currentTimeMillis()
+                    )
+                    report = text
+                    runCatching {
+                        context.startActivity(
+                            Intent.createChooser(
+                                Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, text)
+                                },
+                                null
+                            )
+                        )
+                    }
+                }
+            },
+            modifier = Modifier.weight(1f)
+        ) { Text(stringResource(R.string.about_diagnostics_share)) }
+    }
+    notice?.let {
+        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}

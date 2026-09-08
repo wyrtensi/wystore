@@ -512,6 +512,11 @@
     <string name="settings_background_hint">Проверки выполняются с гибким окном, чтобы система объединяла их с другими пробуждениями. Если нет добавленных приложений, периодическая задача не планируется вовсе.</string>
     <string name="settings_hub_about_title">О Wy Store</string>
     <string name="settings_hub_about_subtitle">Версия, исходный код, самообновление</string>
+    <string name="about_diagnostics">Отчёт для сообщения об ошибке</string>
+    <string name="about_diagnostics_hint">Версия Android, модель устройства, состояние root, разрешения, очередь и последние сбои — то, о чём спросят первым делом. Ни аккаунтов, ни ссылок, ни путей к файлам в отчёте нет.</string>
+    <string name="about_diagnostics_saved">Отчёт сохранён</string>
+    <string name="about_diagnostics_failed">Не удалось сохранить отчёт</string>
+    <string name="about_diagnostics_share">Поделиться отчётом</string>
     <string name="about_version">Установленная версия</string>
     <string name="about_source">Исходный код</string>
     <string name="about_check">Проверить обновления</string>

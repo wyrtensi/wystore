@@ -2,6 +2,7 @@ package dev.wystore.updates
 
 import android.content.Context
 import dev.wystore.data.GitHubRepository
+import dev.wystore.data.EventLog
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.ArchiveIdentity
 import dev.wystore.data.PendingUpdate
@@ -193,6 +194,9 @@ class QueueRepository(
             updatedAt = System.currentTimeMillis()
         )
         dao.update(failed)
+        // Kept for the diagnostics report: the row itself is gone the moment it is retried or
+        // cleared, and Logcat is not somewhere the person reporting a problem can reach.
+        runCatching { EventLog(context).record(entity.packageName, errorCode.name, errorDetail) }
         failed.toSnapshot()
     }
 
@@ -315,6 +319,11 @@ class QueueRepository(
             .filter { it.state == QueueState.READY_TO_INSTALL.name }
             .filter { entity -> dao.getArtifactsForQueue(entity.id).any { File(it.path).isFile } }
             .map { it.toSnapshot() }
+    }
+
+    /** Every row as it stands, for the diagnostics report. */
+    suspend fun snapshotAll(): List<QueueItemSnapshot> = withContext(Dispatchers.IO) {
+        dao.getAll().map { it.toSnapshot() }
     }
 
     /**
