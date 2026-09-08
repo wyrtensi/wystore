@@ -12,6 +12,7 @@ import dev.wystore.data.ManagedSource
 import dev.wystore.data.RuStoreSource
 import dev.wystore.data.SecureArtifactDownloader
 import dev.wystore.data.SigningVerifier
+import dev.wystore.data.VerificationError
 import dev.wystore.data.StoreRepository
 import dev.wystore.data.invalidateInstalledApps
 import dev.wystore.data.classifyThrowable
@@ -217,6 +218,15 @@ class UpdateDownloadWorker(
                     expectedPackageName = expectedPackageName,
                     expectedSourceDigest = sourceSignatureHint
                 )
+                // Not newer than what is installed means there was nothing to fetch, which is
+                // neither a failure nor an install. Reported as a failure it left a red row about
+                // an app that is perfectly up to date - and the file it had just downloaded for
+                // nothing sitting on disk behind it.
+                if (verification.error == VerificationError.DOWNGRADE) {
+                    tempDir.deleteRecursively()
+                    queueRepository.discard(queueId)
+                    return@withContext
+                }
                 if (!verification.isValid) {
                     // Surfaced to the user through the queue's typed error code, not this text.
                     throw dev.wystore.data.TransferFailure(

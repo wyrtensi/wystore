@@ -631,6 +631,22 @@ class QueueRepository(
         prepared
     }
 
+    /**
+     * Drops one row and whatever it downloaded.
+     *
+     * For an outcome that is not a failure and not an install: an archive that turns out to be no
+     * newer than what is on the phone leaves nothing to do, so leaving the row behind means a red
+     * card about an app that is perfectly up to date, plus its APK sitting on disk.
+     */
+    suspend fun discard(id: String) = withContext(Dispatchers.IO) {
+        val artifacts = dao.getArtifactsForQueue(id)
+        dao.deleteById(id)
+        for (artifact in artifacts) {
+            File(artifact.path).delete()
+        }
+        File(rootDirectory, id).deleteRecursively()
+    }
+
     suspend fun remove(packageName: String) = withContext(Dispatchers.IO) {
         val items = dao.getByPackage(packageName)
         for (item in items) {
