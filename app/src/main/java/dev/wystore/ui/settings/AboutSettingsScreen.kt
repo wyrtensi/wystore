@@ -41,8 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import dev.wystore.ui.components.WySpinner
 import dev.wystore.InstallQueueItem
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.rememberCoroutineScope
 import dev.wystore.data.DiagnosticsCollector
 import dev.wystore.data.DiagnosticsReport
@@ -168,7 +166,7 @@ fun AboutSettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    DiagnosticsButtons()
+                    DiagnosticsButton()
                 }
             }
 
@@ -319,71 +317,62 @@ private val QUEUE_STATES = setOf(
 )
 
 /**
- * Saves or shares a plain-text report about this install.
+ * Hands over a plain-text report about this install.
  *
- * Both ways out are offered because a bug report travels differently every time: a file to attach
- * to an issue, or text handed straight to a chat. The report is built when the button is pressed -
- * it asks the system for the root state, and an answer from an hour ago would be worse than none.
+ * One action, because there is only one thing to do with it: the share sheet carries the report
+ * both ways at once - as a file for whoever wants to attach it to an issue, and as text for a chat
+ * that only takes text - so choosing between them beforehand was a choice nobody needed to make.
+ *
+ * The report is built when the button is pressed. It asks the system whether root is there, and an
+ * answer from an hour ago would be worse than none.
  */
 @Composable
-private fun DiagnosticsButtons() {
+private fun DiagnosticsButton() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val savedMessage = stringResource(R.string.about_diagnostics_saved)
     val failedMessage = stringResource(R.string.about_diagnostics_failed)
-    var report by remember { mutableStateOf<String?>(null) }
     var notice by remember { mutableStateOf<String?>(null) }
+    var busy by remember { mutableStateOf(false) }
 
-    val saveLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("text/plain")
-    ) { uri ->
-        val text = report
-        if (uri == null || text == null) return@rememberLauncherForActivityResult
-        notice = runCatching {
-            context.contentResolver.openOutputStream(uri, "wt")?.use { stream ->
-                stream.write(text.toByteArray(Charsets.UTF_8))
-            } ?: error("no stream")
-        }.fold(onSuccess = { savedMessage }, onFailure = { failedMessage })
-    }
-
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(
-            onClick = {
-                scope.launch {
-                    report = DiagnosticsReport.render(
-                        DiagnosticsCollector(context).collect(),
-                        System.currentTimeMillis()
-                    )
-                    saveLauncher.launch("wystore-diagnostics.txt")
-                }
-            },
-            modifier = Modifier.weight(1f)
-        ) { Text(stringResource(R.string.about_diagnostics)) }
-        OutlinedButton(
-            onClick = {
-                scope.launch {
+    OutlinedButton(
+        onClick = {
+            if (busy) return@OutlinedButton
+            busy = true
+            scope.launch {
+                notice = runCatching {
                     val text = DiagnosticsReport.render(
                         DiagnosticsCollector(context).collect(),
                         System.currentTimeMillis()
                     )
-                    report = text
-                    runCatching {
-                        context.startActivity(
-                            Intent.createChooser(
-                                Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(Intent.EXTRA_TEXT, text)
-                                },
-                                null
-                            )
-                        )
-                    }
-                }
-            },
-            modifier = Modifier.weight(1f)
-        ) { Text(stringResource(R.string.about_diagnostics_share)) }
-    }
+                    context.startActivity(Intent.createChooser(shareIntent(context, text), null))
+                }.fold(onSuccess = { null }, onFailure = { failedMessage })
+                busy = false
+            }
+        },
+        enabled = !busy,
+        modifier = Modifier.fillMaxWidth()
+    ) { Text(stringResource(R.string.about_diagnostics)) }
+
     notice?.let {
         Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+private fun shareIntent(context: android.content.Context, text: String): Intent {
+    val directory = java.io.File(context.cacheDir, "diagnostics").apply { mkdirs() }
+    val file = java.io.File(directory, "wystore-diagnostics.txt")
+    file.writeText(text)
+    val uri = androidx.core.content.FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.pending-updates",
+        file
+    )
+    return Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        // Both, on purpose: a file for an issue tracker, the same words for a chat that takes only
+        // text. Whichever the target understands is the one it uses.
+        putExtra(Intent.EXTRA_TEXT, text)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 }

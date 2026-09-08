@@ -3,4 +3,7 @@
     <files-path
         name="pending_updates"
         path="pending_updates/" />
+    <cache-path
+        name="diagnostics"
+        path="diagnostics/" />
 </paths>
