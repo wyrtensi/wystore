@@ -45,11 +45,19 @@ class UserConfirmedInstaller(private val activity: Activity) {
             throw error
         }
 
-        queueRepository.transitionIfIn(
-            id = queueId,
-            allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),
-            action = QueueAction.StartInstall
-        )
+        // A download may still hold the single slot. The prepared session is dropped and the row
+        // goes back to waiting, so the install happens when the queue reaches it, rather than
+        // reporting a failure for standing in a queue.
+        if (!queueRepository.transitionIfFree(
+                id = queueId,
+                allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),
+                action = QueueAction.StartInstall
+            )
+        ) {
+            runCatching { sessionWriter.abandon(queueId) }
+            rollbackToReady(queueId)
+            return@withContext
+        }
 
         try {
             withContext(Dispatchers.Main) {

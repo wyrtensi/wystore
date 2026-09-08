@@ -213,6 +213,22 @@ class QueueRepository(
     }
 
     /**
+     * Like [transitionIfIn], but answers "not now" instead of throwing when the single transfer
+     * slot is taken. An install that has to wait for a download to finish is an ordinary thing to
+     * happen; treating it as a failure is what put "Wy Store itself failed" on a working queue.
+     */
+    suspend fun transitionIfFree(
+        id: String,
+        allowedFrom: Set<QueueState>,
+        action: QueueAction
+    ): Boolean = try {
+        transitionIfIn(id, allowedFrom, action)
+        true
+    } catch (busy: dev.wystore.data.local.QueueBusyException) {
+        false
+    }
+
+    /**
      * Records the outcome of a PackageInstaller callback without depending on the row already being
      * INSTALLING. Callbacks arrive after process death, after a reboot, and for sessions this app no
      * longer tracks, so the outcome is written directly instead of being pushed through the reducer.

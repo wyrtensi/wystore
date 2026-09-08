@@ -333,11 +333,17 @@ class UpdateDownloadWorker(
                 setOf(QueueState.READY_TO_INSTALL),
                 QueueAction.RequestInstallConfirmation
             )
-            queueRepository.transitionIfIn(
-                queueId,
-                setOf(QueueState.AWAITING_USER_CONFIRMATION),
-                QueueAction.StartInstall
-            )
+            // The root path is no more entitled to the slot than any other; if it is taken, this
+            // item keeps its files and is installed when its turn comes.
+            if (!queueRepository.transitionIfFree(
+                    queueId,
+                    setOf(QueueState.AWAITING_USER_CONFIRMATION),
+                    QueueAction.StartInstall
+                )
+            ) {
+                queueRepository.resetReadyToInstall(queueId)
+                return false
+            }
 
             val result = rootInstaller.install(plan, update = isUpdate)
             return if (result.success) {

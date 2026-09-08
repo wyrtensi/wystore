@@ -4,6 +4,7 @@ import android.app.job.JobParameters
 import android.app.job.JobService
 import android.os.Build
 import dev.wystore.data.classifyThrowable
+import dev.wystore.data.local.QueueBusyException
 import dev.wystore.data.logInternalFailure
 import dev.wystore.updates.QueueRepository
 import kotlinx.coroutines.CancellationException
@@ -47,9 +48,17 @@ class UserInitiatedTransferJobService : JobService() {
 
                 UpdateDownloadWorker.TransferExecutor(applicationContext, repository).execute(queueId)
                 attempts.clear(queueId)
+                // The transfer slot is free; whatever is queued behind can have it. This is the
+                // path Android 14 and later actually take, so without it nothing passed the turn on.
+                QueuePump.startNext(applicationContext)
                 jobFinished(params, false)
             } catch (cancellation: CancellationException) {
                 throw cancellation
+            } catch (busy: QueueBusyException) {
+                // Another item holds the single transfer slot. This row stays AVAILABLE and is
+                // started by whoever finishes; being second in line is not a failure, and marking
+                // it as one is what put "Wy Store itself failed" on a perfectly ordinary queue.
+                jobFinished(params, false)
             } catch (error: Throwable) {
                 val failure = classifyThrowable(error)
                 logInternalFailure(queueId, failure, error)
@@ -66,6 +75,7 @@ class UserInitiatedTransferJobService : JobService() {
                     runCatching { repository.markFailed(queueId, failure.code, failure.detail) }
                     runCatching { attempts.clear(queueId) }
                 }
+                QueuePump.startNext(applicationContext)
                 jobFinished(params, retry)
             } finally {
                 runningJobs.remove(params.jobId)

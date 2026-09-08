@@ -61,11 +61,17 @@ class BackgroundInstaller(context: Context) {
             return@withContext false
         }
 
-        queueRepository.transitionIfIn(
-            id = queueId,
-            allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),
-            action = QueueAction.StartInstall
-        )
+        // Something else is transferring; this one keeps its verified files and waits its turn.
+        if (!queueRepository.transitionIfFree(
+                id = queueId,
+                allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),
+                action = QueueAction.StartInstall
+            )
+        ) {
+            runCatching { sessionWriter.abandon(queueId) }
+            queueRepository.resetReadyToInstall(queueId)
+            return@withContext false
+        }
 
         try {
             sessionWriter.commitSession(prepared)
