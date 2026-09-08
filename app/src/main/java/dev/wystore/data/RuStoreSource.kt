@@ -145,7 +145,16 @@ class RuStoreSource(context: Context) : StoreSource {
             client.newCall(Request.Builder().url(url).header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}").build()).execute()
         }
         return response.use {
-            if (!it.isSuccessful) throw SourceFormatException(SourceError.RUSTORE_UNAVAILABLE, "RuStore HTTP ${it.code}")
+            if (!it.isSuccessful) {
+                // 4xx is an answer about this request - most often a package the store does not
+                // carry - and waiting changes nothing. Only 5xx and the like are worth retrying.
+                val error = if (it.code in 400..499) {
+                    SourceError.RUSTORE_NOT_FOUND
+                } else {
+                    SourceError.RUSTORE_UNAVAILABLE
+                }
+                throw SourceFormatException(error, "RuStore HTTP ${it.code}")
+            }
             it.body?.string() ?: throw SourceFormatException(SourceError.RUSTORE_EMPTY_RESPONSE, "Empty response body")
         }
     }

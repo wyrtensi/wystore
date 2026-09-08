@@ -165,6 +165,9 @@ class QueueRepository(
         errorDetail: String?
     ): QueueItemSnapshot? = withContext(Dispatchers.IO) {
         val entity = dao.getById(id) ?: return@withContext null
+        if (errorCode != null) {
+            runCatching { EventLog(context).record(entity.packageName, errorCode.name, errorDetail) }
+        }
         val reset = entity.copy(
             state = QueueState.AVAILABLE.name,
             downloadedBytes = 0L,
@@ -258,6 +261,11 @@ class QueueRepository(
         // INSTALLED is terminal. Parking a finished install in OFFER_NEXT left a row nothing ever
         // moved on, and every screen that reads the queue kept treating the app as busy.
         val target = if (success) QueueState.INSTALLED else QueueState.FAILED
+        // An install that Android refused never passes through markFailed, so without this the one
+        // failure a user is most likely to be asking about was the one missing from the report.
+        if (!success) {
+            runCatching { EventLog(context).record(entity.packageName, errorCode.name, errorDetail) }
+        }
         val updated = entity.copy(
             state = target.name,
             errorCode = if (success) null else errorCode.name,

@@ -63,6 +63,19 @@ object UpdateCheckPolicy {
         allowMobileData: Boolean
     ): Boolean = !isManualCheck && wifiOnly && !allowMobileData
 
+    /**
+     * Whether the whole check is worth running again.
+     *
+     * Retrying used to follow from a single app: one package the source could not answer for sent
+     * the entire check back through WorkManager's backoff, again and again, and an app the store
+     * simply does not carry made that permanent. If anything at all was checked successfully, the
+     * network and the source are evidently up, and running the same round again would fail on the
+     * same app - the failures are counted and reported instead. Only a round where every attempt
+     * failed for a reason that could pass looks like a check worth repeating.
+     */
+    fun shouldRetryCheck(attempted: Int, retryableFailures: Int): Boolean =
+        attempted > 0 && retryableFailures == attempted
+
     fun shouldRetryWorker(error: Throwable): Boolean {
         return try {
             val failure = classifyThrowable(error)

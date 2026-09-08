@@ -24,6 +24,7 @@ object SourceTextResolver {
         SourceError.GITHUB_NO_DOWNLOAD_LOCATION -> R.string.source_error_github_no_location
         SourceError.GITHUB_TOO_MANY_REDIRECTS -> R.string.source_error_github_redirects
         SourceError.RUSTORE_UNAVAILABLE -> R.string.source_error_rustore_unavailable
+        SourceError.RUSTORE_NOT_FOUND -> R.string.source_error_rustore_not_found
         SourceError.RUSTORE_EMPTY_RESPONSE -> R.string.source_error_rustore_empty
         SourceError.RUSTORE_API_REJECTED -> R.string.source_error_rustore_api
         SourceError.RUSTORE_NO_DOWNLOAD_LINK -> R.string.source_error_no_download_link

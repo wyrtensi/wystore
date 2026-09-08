@@ -154,4 +154,16 @@ class UpdateCheckPolicyTest {
         val permanentNotFound = IllegalStateException("HTTP 404: Not Found")
         assertFalse(UpdateCheckPolicy.shouldRetryWorker(permanentNotFound))
     }
+
+    /**
+     * One app the source cannot answer for is a problem to report, not a reason to run the whole
+     * round again - and with an app the store simply does not carry, "again" never ends.
+     */
+    @Test
+    fun aCheckIsRepeatedOnlyWhenEveryAttemptFailed() {
+        assertFalse(UpdateCheckPolicy.shouldRetryCheck(attempted = 17, retryableFailures = 1))
+        assertFalse(UpdateCheckPolicy.shouldRetryCheck(attempted = 0, retryableFailures = 0))
+        assertFalse(UpdateCheckPolicy.shouldRetryCheck(attempted = 5, retryableFailures = 0))
+        assertTrue(UpdateCheckPolicy.shouldRetryCheck(attempted = 5, retryableFailures = 5))
+    }
 }

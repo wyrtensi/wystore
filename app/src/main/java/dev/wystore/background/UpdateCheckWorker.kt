@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.PowerManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import dev.wystore.data.EventLog
 import dev.wystore.data.GitHubCatalog
 import dev.wystore.data.GitHubInstallState
 import dev.wystore.data.GitHubInstallStatePolicy
@@ -70,7 +71,8 @@ class UpdateCheckWorker(
             )
         }
 
-        var anyRetryableFailure = false
+        var attempted = 0
+        var retryableFailures = 0
         var updatesFound = 0
         var problems = 0
         // Queue rows created by this run, so an unattended download starts only what was just
@@ -103,6 +105,7 @@ class UpdateCheckWorker(
             }
 
             try {
+                attempted++
                 val queuedId = when (managed.source) {
                     ManagedSource.RUSTORE -> checkRuStoreUpdate(managed, local)
                     ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionName)
@@ -116,8 +119,16 @@ class UpdateCheckWorker(
                 throw c
             } catch (error: Throwable) {
                 problems++
+                // The count alone tells nobody which app or why; the report needs both.
+                runCatching {
+                    EventLog(applicationContext).record(
+                        packageName = managed.packageName,
+                        code = "CHECK_FAILED",
+                        detail = error.message ?: error::class.java.simpleName
+                    )
+                }
                 if (UpdateCheckPolicy.shouldRetryWorker(error)) {
-                    anyRetryableFailure = true
+                    retryableFailures++
                 }
             }
         }
@@ -130,6 +141,16 @@ class UpdateCheckWorker(
                 if (status is SelfUpdateStatus.Available) {
                     queuedThisRun += SelfUpdateChecker(applicationContext).enqueue(status.release)
                     updatesFound++
+                }
+            }.onFailure { error ->
+                // The store failing to check itself is worth the same words as any other app.
+                problems++
+                runCatching {
+                    EventLog(applicationContext).record(
+                        packageName = applicationContext.packageName,
+                        code = "SELF_UPDATE_CHECK_FAILED",
+                        detail = error.message ?: error::class.java.simpleName
+                    )
                 }
             }
         }
@@ -168,7 +189,7 @@ class UpdateCheckWorker(
             )
         }
 
-        return if (anyRetryableFailure) {
+        return if (UpdateCheckPolicy.shouldRetryCheck(attempted, retryableFailures)) {
             Result.retry()
         } else {
             // Progress is dropped the moment a worker finishes, so the closing line has to travel
@@ -197,8 +218,11 @@ class UpdateCheckWorker(
 
     /** Returns the queue id when an update was queued for this app, or null when it is current. */
     private suspend fun checkRuStoreUpdate(managed: ManagedApp, local: InstalledApp): String? {
-        val app = runCatching { ruStoreSource.details(managed.packageName, includeReviews = false) }
-            .getOrNull() ?: return null
+        // Not caught here on purpose. Swallowing the failure made an unreachable source look like
+        // an app that is already current: the run counted no problem, and the summary said
+        // "everything up to date" while every request had failed. The loop above counts it and
+        // decides whether the whole check is worth retrying.
+        val app = ruStoreSource.details(managed.packageName, includeReviews = false)
         if (app.versionCode <= local.versionCode) return null
 
         // The store states the certificate it signs with, and the phone knows the one it installed
@@ -293,6 +317,17 @@ class UpdateCheckWorker(
         }
         queueIds.forEach { id ->
             runCatching { TransferDispatcher.dispatchUnattended(applicationContext, id, settings) }
+                .onFailure { error ->
+                    // The row is queued and nothing is coming for it. Silent, this looks exactly
+                    // like an update that is simply taking its time.
+                    runCatching {
+                        EventLog(applicationContext).record(
+                            packageName = id,
+                            code = "DISPATCH_FAILED",
+                            detail = error.message ?: error::class.java.simpleName
+                        )
+                    }
+                }
         }
     }
 

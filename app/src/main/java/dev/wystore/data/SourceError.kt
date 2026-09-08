@@ -18,6 +18,13 @@ enum class SourceError {
     GITHUB_TOO_MANY_REDIRECTS,
 
     RUSTORE_UNAVAILABLE,
+
+    /**
+     * The source answered, and its answer was no: this package is not there. Reported as
+     * "RuStore unavailable" it looked transient, so a check kept retrying an app the store simply
+     * does not carry - for ever, with the backoff growing each time.
+     */
+    RUSTORE_NOT_FOUND,
     RUSTORE_EMPTY_RESPONSE,
     RUSTORE_API_REJECTED,
     RUSTORE_NO_DOWNLOAD_LINK,

@@ -1,6 +1,7 @@
 package dev.wystore.background
 
 import android.content.Context
+import dev.wystore.data.EventLog
 import dev.wystore.updates.QueueRepository
 
 /**
@@ -17,11 +18,22 @@ import dev.wystore.updates.QueueRepository
 object QueuePump {
 
     suspend fun startNext(context: Context) {
-        runCatching {
-            val repository = QueueRepository.getInstance(context.applicationContext)
+        val repository = QueueRepository.getInstance(context.applicationContext)
+        val next = runCatching {
             if (repository.activeIds().isNotEmpty()) return
-            val next = repository.nextEligible() ?: return
-            TransferDispatcher.dispatch(context.applicationContext, next.id)
-        }
+            repository.nextEligible()
+        }.getOrNull() ?: return
+        runCatching { TransferDispatcher.dispatch(context.applicationContext, next.id) }
+            .onFailure { error ->
+                // If the turn cannot be passed on, the whole queue stops here. Written down, since
+                // from the outside it is indistinguishable from a queue with nothing left to do.
+                runCatching {
+                    EventLog(context).record(
+                        packageName = next.packageName,
+                        code = "DISPATCH_FAILED",
+                        detail = error.message ?: error::class.java.simpleName
+                    )
+                }
+            }
     }
 }

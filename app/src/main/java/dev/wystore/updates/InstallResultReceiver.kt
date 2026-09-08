@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import dev.wystore.background.QueuePump
+import dev.wystore.data.EventLog
 import dev.wystore.updates.model.QueueErrorCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -79,6 +80,18 @@ class InstallResultReceiver : BroadcastReceiver() {
                         // receives an update, because nothing marks it as managed.
                         repository.getEntityById(queueId)?.let { entity ->
                             runCatching { InstalledAppRegistrar.register(context, entity) }
+                                .onFailure { error ->
+                                    // The app is installed but nothing marks it as managed, so it
+                                    // will never be offered an update again - and the install
+                                    // looked like a complete success.
+                                    runCatching {
+                                        EventLog(context).record(
+                                            packageName = entity.packageName,
+                                            code = "REGISTER_FAILED",
+                                            detail = error.message ?: error::class.java.simpleName
+                                        )
+                                    }
+                                }
                         }
                         repository.reconcileInstallResult(queueId, success = true)
                     }

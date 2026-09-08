@@ -533,6 +533,7 @@
     <string name="source_error_github_invalid_url">Enter a link like https://github.com/owner/repository</string>
     <string name="source_error_github_no_location">GitHub did not return a download address.</string>
     <string name="source_error_github_redirects">GitHub sent too many redirects.</string>
+    <string name="source_error_rustore_not_found">RuStore has no such app</string>
     <string name="source_error_rustore_unavailable">RuStore is unavailable right now.</string>
     <string name="source_error_rustore_empty">RuStore returned an empty response.</string>
     <string name="source_error_rustore_api">RuStore rejected the API version code.</string>

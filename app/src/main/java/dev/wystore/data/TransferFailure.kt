@@ -138,6 +138,7 @@ val SourceError.queueCode: QueueErrorCode
         SourceError.ARTIFACT_TOO_LARGE,
         SourceError.ARTIFACT_WRITE_FAILED -> QueueErrorCode.STORAGE_FULL
         SourceError.INCOMPATIBLE_ANDROID -> QueueErrorCode.INCOMPATIBLE
+        SourceError.RUSTORE_NOT_FOUND -> QueueErrorCode.SOURCE_CHANGED
         else -> QueueErrorCode.SOURCE_CHANGED
     }
 
