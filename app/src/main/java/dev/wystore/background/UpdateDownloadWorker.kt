@@ -15,12 +15,14 @@ import dev.wystore.data.SigningVerifier
 import dev.wystore.data.StoreRepository
 import dev.wystore.data.invalidateInstalledApps
 import dev.wystore.data.classifyThrowable
+import dev.wystore.data.logInternalFailure
 import dev.wystore.root.RootInstaller
 import dev.wystore.selfupdate.SelfUpdateChecker
 import dev.wystore.updates.GitHubInstallScheduler
 import dev.wystore.updates.InstallMode
 import dev.wystore.updates.InstallModePolicy
 import dev.wystore.updates.AutoInstallStore
+import dev.wystore.updates.BackgroundInstaller
 import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.model.QueueAction
 import dev.wystore.updates.model.QueueState
@@ -60,6 +62,7 @@ class UpdateDownloadWorker(
             throw cancellation
         } catch (error: Throwable) {
             val failure = classifyThrowable(error)
+            logInternalFailure(queueId, failure, error)
             // A WorkManager retry re-enters doWork() and starts from StartDownload, which is only
             // legal from AVAILABLE/CHECKING. Parking a retryable failure in FAILED would make the
             // next attempt throw on its very first transition, so the row is reset to AVAILABLE
@@ -238,7 +241,13 @@ class UpdateDownloadWorker(
                 // setting did nothing and every update still needed the Android dialog.
                 if (installSilentlyIfEnabled(queueId, installed != null)) return@withContext
 
-                // Without root the install still needs Android's confirmation dialog, which needs an
+                // An update Wy Store installed itself needs no dialog and therefore no Activity,
+                // so it can be finished here and now rather than waiting for the app to be opened.
+                if (BackgroundInstaller(context).install(queueId, verification.identity.packageName)) {
+                    return@withContext
+                }
+
+                // Everything else still needs Android's confirmation dialog, which needs an
                 // Activity. The request is recorded here and carried out the next time the app is on
                 // screen, so "install as soon as it is downloaded" means what it says on a device
                 // where silent installs are not possible.

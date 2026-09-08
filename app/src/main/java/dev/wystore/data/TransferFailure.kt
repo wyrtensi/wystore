@@ -151,3 +151,17 @@ val SourceError.retryable: Boolean
         SourceError.DOWNLOAD_FAILED -> true
         else -> false
     }
+
+/**
+ * Writes down a failure the user is told is ours.
+ *
+ * An INTERNAL failure means the transfer died on something that was not I/O - a bug, in other
+ * words - and the app says exactly that to the user: "Wy Store failed on this one, not the
+ * network". Until now that was the only trace it left anywhere: the throwable was classified,
+ * turned into a queue row and dropped, so the one message that asks a developer to look had
+ * nothing for them to look at.
+ */
+fun logInternalFailure(queueId: String, failure: TransferFailure, error: Throwable) {
+    if (failure.code != QueueErrorCode.INTERNAL) return
+    android.util.Log.w("WyStoreTransfer", "Internal failure on queue item $queueId", error)
+}

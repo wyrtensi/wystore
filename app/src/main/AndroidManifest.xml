@@ -10,6 +10,17 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Lets an update to an app Wy Store installed itself skip Android's confirmation
+         dialog. A normal permission: nothing is asked of the user, and the system still
+         decides case by case. -->
+    <!-- Without this Android refuses to raise the uninstall dialog at all, and the intent is
+         dropped in silence: the button looked dead because nothing was allowed to happen. -->
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+    <!-- Lets Wy Store claim responsibility for the future updates of what it installs, so another
+         store has to tell the user before it takes an app over. A normal permission: granted at
+         install, nothing is asked. -->
+    <uses-permission android:name="android.permission.ENFORCE_UPDATE_OWNERSHIP" />
     <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
 
     <application

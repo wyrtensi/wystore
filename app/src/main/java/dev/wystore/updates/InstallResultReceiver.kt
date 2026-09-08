@@ -1,5 +1,6 @@
 package dev.wystore.updates
 
+import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -10,6 +11,35 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class InstallResultReceiver : BroadcastReceiver() {
+
+    private fun canConfirmNow(context: Context): Boolean = runCatching {
+        val importance = ActivityManager.RunningAppProcessInfo().also {
+            ActivityManager.getMyMemoryState(it)
+        }.importance
+        PendingUserActionPolicy.canConfirmNow(importance)
+    }.getOrDefault(false)
+
+    /** Hands the item back to the queue, and to the notification the user can act on. */
+    private fun deferConfirmation(context: Context, queueId: String) {
+        val pendingResult = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val repository = QueueRepository.getInstance(context)
+                repository.getEntityById(queueId)?.let { entity ->
+                    runCatching { AutoInstallStore(context).request(entity.packageName) }
+                }
+                repository.resetReadyToInstall(queueId)
+                runCatching {
+                    dev.wystore.background.NotificationCoordinator(context)
+                        .publishReady(repository.readyToInstallSnapshots())
+                }
+            } catch (error: Throwable) {
+                android.util.Log.w("InstallResultReceiver", "Could not defer install $queueId", error)
+            } finally {
+                pendingResult.finish()
+            }
+        }
+    }
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != InstallSessionWriter.ACTION_INSTALL_RESULT) return
 
@@ -22,8 +52,13 @@ class InstallResultReceiver : BroadcastReceiver() {
             val confirmation = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)?.apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            if (confirmation != null) {
+            if (confirmation != null && canConfirmNow(context)) {
                 context.startActivity(confirmation)
+            } else {
+                // Android refuses a background activity start without a word, so this row would
+                // sit in INSTALLING forever with nothing ever coming back for it. Put it back
+                // where the user can reach it and leave the standing request to install.
+                deferConfirmation(context, queueId)
             }
             return
         }

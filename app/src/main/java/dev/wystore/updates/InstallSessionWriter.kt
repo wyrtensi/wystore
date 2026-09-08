@@ -66,9 +66,20 @@ class InstallSessionWriter(private val context: Context) {
             )
         }
 
+        val silent = SilentUpdatePolicy.allows(
+            enabled = storeRepository.settings().silentUpdatesEnabled,
+            // Asked of the package manager rather than of the library: StoreRepository leaves Wy
+            // Store out of the installed list on purpose, and reading "is this an update?" from
+            // there made every self-update look like a first install.
+            isUpdate = isInstalled(entity.packageName),
+            installerOfRecord = installerOfRecord(entity.packageName),
+            ownPackageName = appContext.packageName
+        )
+
         when (UserInstallRouting.select(Build.VERSION.SDK_INT, files.size)) {
             UserInstallRoute.LEGACY_SINGLE_APK -> prepareLegacySingleApk(queueId, entity.packageName, files.single())
-            UserInstallRoute.PACKAGE_INSTALLER_SESSION -> prepareSession(queueId, entity.packageName, files)
+            UserInstallRoute.PACKAGE_INSTALLER_SESSION ->
+                prepareSession(queueId, entity.packageName, files, silent)
         }
     }
 
@@ -83,11 +94,46 @@ class InstallSessionWriter(private val context: Context) {
         return PreparedInstall.LegacySingleApk(queueId, packageName, intent)
     }
 
-    private suspend fun prepareSession(queueId: String, packageName: String, files: List<File>): PreparedInstall.Session {
+    private fun isInstalled(packageName: String): Boolean = runCatching {
+        appContext.packageManager.getPackageInfo(packageName, 0)
+    }.isSuccess
+
+    /** Who Android considers responsible for this app, or null when nobody was given the job. */
+    private fun installerOfRecord(packageName: String): String? = runCatching {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            appContext.packageManager.getInstallSourceInfo(packageName).installingPackageName
+        } else {
+            @Suppress("DEPRECATION")
+            appContext.packageManager.getInstallerPackageName(packageName)
+        }
+    }.getOrNull()
+
+    private suspend fun prepareSession(
+        queueId: String,
+        packageName: String,
+        files: List<File>,
+        silent: Boolean
+    ): PreparedInstall.Session {
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
             setAppPackageName(packageName)
+            // A request, not an instruction. When Android declines - the app targets too old an
+            // API, someone else has since become its installer - the session reports that user
+            // action is needed and the ordinary confirmation runs, exactly as it did before.
+            if (silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
+            }
+            // Android 14 lets an installer claim responsibility for an app's future updates, and
+            // it can only be claimed while installing. Claiming it is what "hand updates to Wy
+            // Store" actually does: another store updating it afterwards has to say so first.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                runCatching { setRequestUpdateOwnership(true) }
+            }
         }
         val sessionId = packageInstaller.createSession(params)
+        // Recorded against the row so a session can be told from a later one in the database;
+        // it is not a security check. Nothing needs one here: the result comes back to a receiver
+        // declared exported="false" through an explicit intent, so no other app can deliver to it,
+        // and the queue id in the same intent already says which item the result belongs to.
         val callbackToken = UUID.randomUUID().toString()
 
         try {
@@ -124,7 +170,6 @@ class InstallSessionWriter(private val context: Context) {
             action = ACTION_INSTALL_RESULT
             putExtra(EXTRA_QUEUE_ID, session.queueId)
             putExtra(EXTRA_PACKAGE_NAME, session.packageName)
-            putExtra(EXTRA_CALLBACK_TOKEN, session.callbackToken)
             putExtra(EXTRA_SESSION_ID, session.sessionId)
         }
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or
@@ -151,7 +196,6 @@ class InstallSessionWriter(private val context: Context) {
         const val ACTION_INSTALL_RESULT = "dev.wystore.action.INSTALL_RESULT"
         const val EXTRA_QUEUE_ID = "extra_queue_id"
         const val EXTRA_PACKAGE_NAME = "extra_package_name"
-        const val EXTRA_CALLBACK_TOKEN = "extra_callback_token"
         const val EXTRA_SESSION_ID = "extra_session_id"
     }
 }
