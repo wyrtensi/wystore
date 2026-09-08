@@ -105,6 +105,13 @@
 
     <string name="dialog_install_existing_title">Обновление существующего приложения</string>
     <string name="dialog_install_existing_text">Это приложение уже установлено из другого источника. После установки Wy Store станет управлять его обновлениями.</string>
+    <string name="adopt_google_title">Принять приложение в Wy Store</string>
+    <string name="adopt_google_text">%1$s установлено из Google, и обновить его поверх нельзя — Google подписывает свои сборки своим ключом. Чтобы принять приложение, оно будет удалено и установлено заново. Данные при этом, как правило, не сохраняются.</string>
+    <string name="adopt_google_searching">Ищем это приложение в каталоге…</string>
+    <string name="adopt_google_not_found">В каталоге RuStore такого приложения не нашлось — принять его не получится.</string>
+    <string name="adopt_google_exact">Тот же package name — это оно и есть:</string>
+    <string name="adopt_google_pick">Точного совпадения нет, выберите приложение из списка:</string>
+    <string name="adopt_google_confirm">Заменить</string>
     <string name="dialog_adopt_title">Принять под управление Wy Store</string>
     <string name="dialog_adopt_text">Wy Store будет искать проверенные обновления для %1$s и обновлять его.</string>
     <string name="dialog_adopt_confirm">Принять</string>

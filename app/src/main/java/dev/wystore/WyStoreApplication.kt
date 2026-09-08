@@ -14,7 +14,11 @@ import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.request.CachePolicy
 import dev.wystore.data.CatalogRepository
+import dev.wystore.data.GoogleAdoptionPolicy
 import dev.wystore.settings.SettingsRepository
+import dev.wystore.settings.toStoreSettings
+import dev.wystore.updates.ManualInstallScheduler
+import dev.wystore.updates.PendingReinstallStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,7 +33,36 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
     private val packageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             invalidateInstalledApps()
+            if (intent?.action == Intent.ACTION_PACKAGE_FULLY_REMOVED) {
+                intent.data?.schemeSpecificPart?.let(::finishPendingReinstall)
+            }
         }
+    }
+
+    /**
+     * The second half of taking over an app that came from Google.
+     *
+     * Google signs its own builds, so nothing else can update such an app in place; the store can
+     * only offer to remove it and install the same app from a source it can update. The removal
+     * happens in Android's dialog, outside this process and possibly outliving it, so the intent
+     * was written to disk beforehand - this is where it is picked up, once, for the package that
+     * actually went away.
+     */
+    private fun finishPendingReinstall(removedPackage: String) {
+        val store = PendingReinstallStore(this)
+        val pending = store.read() ?: return
+        if (pending.removedPackageName != removedPackage) return
+        store.clear()
+        // A handover the user walked away from must not install something days later.
+        if (!GoogleAdoptionPolicy.isPendingFresh(pending.startedAt, System.currentTimeMillis())) {
+            return
+        }
+        ManualInstallScheduler.enqueue(
+            context = this,
+            packageName = pending.installPackageName,
+            label = pending.label,
+            settings = SettingsRepository(this).currentSettings().toStoreSettings()
+        )
     }
 
     override fun onCreate() {

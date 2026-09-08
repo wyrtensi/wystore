@@ -35,6 +35,7 @@ import dev.wystore.ui.catalog.CategoryScreen
 import dev.wystore.ui.catalog.CategoryViewModel
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.launchUninstall
+import dev.wystore.ui.library.GoogleAdoptionDialog
 import dev.wystore.ui.components.WySnackbarHost
 import dev.wystore.ui.details.AppDetailsScreen
 import dev.wystore.ui.home.HomeViewModel
@@ -325,7 +326,13 @@ fun WyStoreRoot(
                         updateCheckTask = state.updateCheckTask,
                         onCheckUpdates = { viewModel.checkForUpdates() },
                         onOpenStorePage = viewModel::openDetails,
-                        onAdopt = { adoptDialog = it },
+                        onAdopt = { app ->
+                            if (app.source == dev.wystore.data.InstallSource.GOOGLE_PLAY) {
+                                viewModel.beginGoogleAdoption(app)
+                            } else {
+                                adoptDialog = app
+                            }
+                        },
                         onUpdateManaged = viewModel::updateManaged,
                         onRequestForce = { forceDialog = it },
                         onRemoveManaged = { viewModel.setManaged(it, false) },
@@ -390,6 +397,19 @@ fun WyStoreRoot(
                 }) { Text(stringResource(R.string.common_continue)) }
             },
             dismissButton = { TextButton(onClick = { installDialog = false }) { Text(stringResource(R.string.common_cancel)) } }
+        )
+    }
+
+    state.googleAdoption?.let { prompt ->
+        GoogleAdoptionDialog(
+            prompt = prompt,
+            onPick = { candidate ->
+                // Recorded first: the uninstall dialog takes the screen and may outlive this
+                // process, and the install has to survive that trip.
+                viewModel.confirmGoogleAdoption(candidate)
+                launchUninstall(context, prompt.app.packageName)
+            },
+            onDismiss = viewModel::dismissGoogleAdoption
         )
     }
 

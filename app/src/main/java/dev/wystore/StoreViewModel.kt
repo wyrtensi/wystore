@@ -25,6 +25,8 @@ import dev.wystore.data.StoreSettings
 import dev.wystore.data.RuStoreCompatibility
 import dev.wystore.data.UpdateCheckSummary
 import dev.wystore.R
+import dev.wystore.data.AdoptionCandidate
+import dev.wystore.data.GoogleAdoptionPolicy
 import dev.wystore.data.InstallSource
 import dev.wystore.data.PendingUpdate
 import dev.wystore.root.RootInstaller
@@ -40,6 +42,8 @@ import dev.wystore.selfupdate.SelfUpdateChecker
 import dev.wystore.selfupdate.SelfUpdateStatus
 import dev.wystore.updates.PendingUpdateNotifier
 import dev.wystore.updates.PendingUpdateCatalog
+import dev.wystore.updates.PendingReinstall
+import dev.wystore.updates.PendingReinstallStore
 import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.model.QueueState
 import dev.wystore.updates.RuStoreCompatibilityScheduler
@@ -159,6 +163,19 @@ data class UpdateCheckTask(
     val running: Boolean = false
 )
 
+/**
+ * What the store found when asked to take over an app that came from Google.
+ *
+ * Such an app cannot be updated in place at all, so "adopt" means removing it and installing the
+ * same app from a source Wy Store can update. Which app that is has to be shown and chosen, never
+ * guessed silently - it ends in an uninstall.
+ */
+data class GoogleAdoptionPrompt(
+    val app: InstalledApp,
+    val loading: Boolean = true,
+    val candidates: List<AdoptionCandidate> = emptyList()
+)
+
 data class StoreUiState(
     val query: String = "",
     val search: SearchPage? = null,
@@ -169,6 +186,7 @@ data class StoreUiState(
     val ruStoreCompatibility: RuStoreCompatibility = RuStoreCompatibility(),
     val ruStoreCompatibilityTask: RuStoreCompatibilityTask? = null,
     val updateCheckTask: UpdateCheckTask? = null,
+    val googleAdoption: GoogleAdoptionPrompt? = null,
     val lastUpdateCheck: UpdateCheckSummary? = null,
     val rootAvailable: Boolean? = null,
     val busy: Boolean = false,
@@ -1092,6 +1110,53 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             repository.removeManaged(app.packageName)
         }
         refreshLibrary()
+    }
+
+    /**
+     * Looks for the app Wy Store could install in place of a Google-installed one.
+     *
+     * The package name is asked for first, because the store carrying that exact package is an
+     * identity rather than a resemblance and needs no choosing. Only when it does not is the name
+     * searched, and then the user picks from what came back.
+     */
+    fun beginGoogleAdoption(app: InstalledApp) {
+        _state.update { it.copy(googleAdoption = GoogleAdoptionPrompt(app = app), message = null) }
+        viewModelScope.launch {
+            val exact = withContext(Dispatchers.IO) {
+                runCatching { source.details(app.packageName, includeReviews = false) }.getOrNull()
+            }
+            val byName = if (exact != null) emptyList() else withContext(Dispatchers.IO) {
+                runCatching { source.search(app.label, 1).apps }.getOrDefault(emptyList())
+            }
+            val candidates = GoogleAdoptionPolicy.candidates(app.packageName, exact, byName)
+            _state.update { state ->
+                val prompt = state.googleAdoption?.takeIf { it.app.packageName == app.packageName }
+                    ?: return@update state
+                state.copy(googleAdoption = prompt.copy(loading = false, candidates = candidates))
+            }
+        }
+    }
+
+    fun dismissGoogleAdoption() {
+        _state.update { it.copy(googleAdoption = null) }
+    }
+
+    /**
+     * Records the handover and closes the prompt. The caller then opens Android's uninstall dialog;
+     * the install follows from the package-removed receiver, because the app may not survive the
+     * trip through that dialog.
+     */
+    fun confirmGoogleAdoption(candidate: AdoptionCandidate) {
+        val prompt = _state.value.googleAdoption ?: return
+        PendingReinstallStore(getApplication()).save(
+            PendingReinstall(
+                removedPackageName = prompt.app.packageName,
+                installPackageName = candidate.packageName,
+                label = candidate.label,
+                startedAt = System.currentTimeMillis()
+            )
+        )
+        _state.update { it.copy(googleAdoption = null) }
     }
 
     fun updateManaged(app: ManagedApp) {

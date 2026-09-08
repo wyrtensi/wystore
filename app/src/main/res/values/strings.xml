@@ -105,6 +105,13 @@
 
     <string name="dialog_install_existing_title">Updating an existing app</string>
     <string name="dialog_install_existing_text">This app is already installed from another source. After installation Wy Store will manage its updates.</string>
+    <string name="adopt_google_title">Take the app over</string>
+    <string name="adopt_google_text">%1$s came from Google and cannot be updated in place — Google signs its own builds with its own key. To take it over, the app is uninstalled and installed again. Its data is usually lost.</string>
+    <string name="adopt_google_searching">Looking for this app in the catalogue…</string>
+    <string name="adopt_google_not_found">The RuStore catalogue has no such app, so it cannot be taken over.</string>
+    <string name="adopt_google_exact">The very same package name — this is it:</string>
+    <string name="adopt_google_pick">No exact match; pick the app from the list:</string>
+    <string name="adopt_google_confirm">Replace</string>
     <string name="dialog_adopt_title">Manage with Wy Store</string>
     <string name="dialog_adopt_text">Wy Store will look for verified updates for %1$s and install them.</string>
     <string name="dialog_adopt_confirm">Adopt</string>
