@@ -5,12 +5,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * When an update may be downloaded with nobody watching.
+ * When an update may be fetched with nobody watching.
  *
- * The rule below was written and tested from the start, but nothing in the app ever called it: the
- * check worker only queued a row, and the download still waited behind a button press. So both
- * root switches in Settings did nothing on their own, and "background updates" meant "background
- * checks". These assertions pin the rule now that the worker actually uses it.
+ * Two independent paths lead here. The root path downloads so that the update can be installed
+ * silently afterwards, and is worth nothing without root. Auto-download is the ordinary one: the
+ * file is fetched as soon as a check finds it, and Android still asks before installing it. The
+ * cases below keep the second from quietly disabling the first.
  */
 class UnattendedUpdatePolicyTest {
 
@@ -18,6 +18,7 @@ class UnattendedUpdatePolicyTest {
     fun rootAndTheSettingTogetherAllowAnUnattendedDownload() {
         assertTrue(
             UpdateCheckPolicy.shouldEnqueueDownload(
+                autoDownloadEnabled = false,
                 rootBackgroundDownloadsEnabled = true,
                 isRootAvailable = true
             )
@@ -25,11 +26,12 @@ class UnattendedUpdatePolicyTest {
     }
 
     @Test
-    fun withoutRootNothingDownloadsUnattended() {
-        // Without root the install still needs the Android confirmation dialog, so downloading
-        // ahead of time would only fill storage with files that cannot be installed unattended.
+    fun theRootPathIsWorthNothingWithoutRoot() {
+        // It exists to make a silent install possible; on a phone that cannot install silently
+        // there is nothing for it to prepare.
         assertFalse(
             UpdateCheckPolicy.shouldEnqueueDownload(
+                autoDownloadEnabled = false,
                 rootBackgroundDownloadsEnabled = true,
                 isRootAvailable = false
             )
@@ -41,6 +43,7 @@ class UnattendedUpdatePolicyTest {
         // A rooted device is not an invitation to spend its data unprompted.
         assertFalse(
             UpdateCheckPolicy.shouldEnqueueDownload(
+                autoDownloadEnabled = false,
                 rootBackgroundDownloadsEnabled = false,
                 isRootAvailable = true
             )
@@ -51,8 +54,35 @@ class UnattendedUpdatePolicyTest {
     fun neitherMeansNothing() {
         assertFalse(
             UpdateCheckPolicy.shouldEnqueueDownload(
+                autoDownloadEnabled = false,
                 rootBackgroundDownloadsEnabled = false,
                 isRootAvailable = false
+            )
+        )
+    }
+
+    @Test
+    fun autoDownloadNeedsNeitherRootNorTheRootSetting() {
+        assertTrue(
+            UpdateCheckPolicy.shouldEnqueueDownload(
+                autoDownloadEnabled = true,
+                rootBackgroundDownloadsEnabled = false,
+                isRootAvailable = false
+            )
+        )
+    }
+
+    /**
+     * Turning auto-download off must not take the root path down with it: someone who set up
+     * silent root updates never asked for that.
+     */
+    @Test
+    fun turningAutoDownloadOffLeavesTheRootPathAlone() {
+        assertTrue(
+            UpdateCheckPolicy.shouldEnqueueDownload(
+                autoDownloadEnabled = false,
+                rootBackgroundDownloadsEnabled = true,
+                isRootAvailable = true
             )
         )
     }

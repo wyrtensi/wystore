@@ -3,6 +3,7 @@ package dev.wystore.settings
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.SharedPreferencesMigration
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -92,6 +93,9 @@ class SettingsRepository(private val context: Context) {
         val KEY_QUIET_HOURS_END = intPreferencesKey("quiet_hours_end")
         val KEY_RESPECT_BATTERY_SAVER = booleanPreferencesKey("respect_battery_saver")
         val KEY_SELF_UPDATE_ENABLED = booleanPreferencesKey("self_update_enabled")
+        val KEY_DEFAULTS_REVISION = intPreferencesKey("defaults_revision")
+        val KEY_SILENT_UPDATES = booleanPreferencesKey("silent_updates")
+        val KEY_AUTO_DOWNLOAD_UPDATES = booleanPreferencesKey("auto_download_updates")
         val KEY_AUTO_INSTALL_UPDATES = booleanPreferencesKey("auto_install_updates")
         val KEY_AUTO_INSTALL_NEW_APPS = booleanPreferencesKey("auto_install_new_apps")
         val KEY_ARTIFACT_RETENTION_DAYS = intPreferencesKey("retention_days")
@@ -111,7 +115,7 @@ class SettingsRepository(private val context: Context) {
 
     private fun Preferences.readSettings(): AppSettings = AppSettings(
         wifiOnly = this[KEY_WIFI_ONLY] ?: this[KEY_LEGACY_ALLOW_MOBILE]?.not() ?: true,
-        requiresCharging = this[KEY_REQUIRES_CHARGING] ?: true,
+        requiresCharging = this[KEY_REQUIRES_CHARGING] ?: false,
         allowMobileData = this[KEY_ALLOW_MOBILE_DATA] ?: this[KEY_LEGACY_ALLOW_MOBILE] ?: false,
         rootBackgroundDownloadsEnabled = this[KEY_ROOT_BG_DOWNLOADS]
             ?: this[KEY_LEGACY_ROOT_BG_DOWNLOADS] ?: false,
@@ -137,8 +141,10 @@ class SettingsRepository(private val context: Context) {
         quietHoursEnd = this[KEY_QUIET_HOURS_END] ?: 8,
         respectBatterySaver = this[KEY_RESPECT_BATTERY_SAVER] ?: true,
         selfUpdateEnabled = this[KEY_SELF_UPDATE_ENABLED] ?: true,
-        autoInstallUpdates = this[KEY_AUTO_INSTALL_UPDATES] ?: false,
-        autoInstallNewApps = this[KEY_AUTO_INSTALL_NEW_APPS] ?: false,
+        silentUpdatesEnabled = this[KEY_SILENT_UPDATES] ?: true,
+        autoDownloadUpdates = this[KEY_AUTO_DOWNLOAD_UPDATES] ?: true,
+        autoInstallUpdates = this[KEY_AUTO_INSTALL_UPDATES] ?: true,
+        autoInstallNewApps = this[KEY_AUTO_INSTALL_NEW_APPS] ?: true,
         artifactRetentionDays = this[KEY_ARTIFACT_RETENTION_DAYS] ?: 7,
         artifactStorageLimitMb = this[KEY_ARTIFACT_STORAGE_LIMIT_MB] ?: 2_048
     )
@@ -156,32 +162,52 @@ class SettingsRepository(private val context: Context) {
     suspend fun update(transform: (AppSettings) -> AppSettings) {
         dataStore.edit { prefs ->
             val current = prefs.readSettings()
-
-            val updated = transform(current)
-            prefs[KEY_WIFI_ONLY] = updated.wifiOnly
-            prefs[KEY_REQUIRES_CHARGING] = updated.requiresCharging
-            prefs[KEY_ALLOW_MOBILE_DATA] = updated.allowMobileData
-            prefs[KEY_ROOT_BG_DOWNLOADS] = updated.rootBackgroundDownloadsEnabled
-            prefs[KEY_ROOT_SILENT_INSTALL] = updated.rootSilentInstallEnabled
-            prefs[KEY_UPDATE_INTERVAL_HOURS] = updated.updateIntervalHours
-            prefs[KEY_QUEUE_MODE] = updated.queueMode.name
-            prefs[KEY_THEME_MODE] = updated.themeMode.name
-            prefs[KEY_LANGUAGE] = updated.language.name
-            prefs[KEY_DYNAMIC_COLOR] = updated.dynamicColorEnabled
-            prefs[KEY_GITHUB_ENABLED] = updated.githubEnabled
-            prefs[KEY_READY_NOTIFICATIONS] = updated.readyNotificationsEnabled
-            prefs[KEY_ERROR_NOTIFICATIONS] = updated.errorNotificationsEnabled
-            prefs[KEY_CHECK_SUMMARY_NOTIFICATIONS] = updated.checkSummaryNotificationsEnabled
-            prefs[KEY_QUIET_HOURS_ENABLED] = updated.quietHoursEnabled
-            prefs[KEY_QUIET_HOURS_START] = updated.quietHoursStart
-            prefs[KEY_QUIET_HOURS_END] = updated.quietHoursEnd
-            prefs[KEY_RESPECT_BATTERY_SAVER] = updated.respectBatterySaver
-            prefs[KEY_SELF_UPDATE_ENABLED] = updated.selfUpdateEnabled
-            prefs[KEY_AUTO_INSTALL_UPDATES] = updated.autoInstallUpdates
-            prefs[KEY_AUTO_INSTALL_NEW_APPS] = updated.autoInstallNewApps
-            prefs[KEY_ARTIFACT_RETENTION_DAYS] = updated.artifactRetentionDays
-            prefs[KEY_ARTIFACT_STORAGE_LIMIT_MB] = updated.artifactStorageLimitMb
+            prefs.writeSettings(transform(current))
         }
+    }
+
+    /**
+     * Raises the defaults on a phone whose settings were written by an earlier version.
+     *
+     * Runs once per revision at startup. Without it a changed default reaches new installs only:
+     * every key is written whenever any setting is saved, so the old value is already on disk.
+     */
+    suspend fun applyDefaultRevision() {
+        dataStore.edit { prefs ->
+            val stored = prefs[KEY_DEFAULTS_REVISION] ?: 0
+            if (!SettingsDefaultsMigration.needsUpgrade(stored)) return@edit
+            prefs.writeSettings(SettingsDefaultsMigration.upgrade(prefs.readSettings()))
+            prefs[KEY_DEFAULTS_REVISION] = SettingsDefaultsMigration.REVISION
+        }
+    }
+
+    /** One writer for both [update] and [applyDefaultRevision]: every key, every time. */
+    private fun MutablePreferences.writeSettings(updated: AppSettings) {
+        this[KEY_WIFI_ONLY] = updated.wifiOnly
+        this[KEY_REQUIRES_CHARGING] = updated.requiresCharging
+        this[KEY_ALLOW_MOBILE_DATA] = updated.allowMobileData
+        this[KEY_ROOT_BG_DOWNLOADS] = updated.rootBackgroundDownloadsEnabled
+        this[KEY_ROOT_SILENT_INSTALL] = updated.rootSilentInstallEnabled
+        this[KEY_UPDATE_INTERVAL_HOURS] = updated.updateIntervalHours
+        this[KEY_QUEUE_MODE] = updated.queueMode.name
+        this[KEY_THEME_MODE] = updated.themeMode.name
+        this[KEY_LANGUAGE] = updated.language.name
+        this[KEY_DYNAMIC_COLOR] = updated.dynamicColorEnabled
+        this[KEY_GITHUB_ENABLED] = updated.githubEnabled
+        this[KEY_READY_NOTIFICATIONS] = updated.readyNotificationsEnabled
+        this[KEY_ERROR_NOTIFICATIONS] = updated.errorNotificationsEnabled
+        this[KEY_CHECK_SUMMARY_NOTIFICATIONS] = updated.checkSummaryNotificationsEnabled
+        this[KEY_QUIET_HOURS_ENABLED] = updated.quietHoursEnabled
+        this[KEY_QUIET_HOURS_START] = updated.quietHoursStart
+        this[KEY_QUIET_HOURS_END] = updated.quietHoursEnd
+        this[KEY_RESPECT_BATTERY_SAVER] = updated.respectBatterySaver
+        this[KEY_SELF_UPDATE_ENABLED] = updated.selfUpdateEnabled
+        this[KEY_SILENT_UPDATES] = updated.silentUpdatesEnabled
+        this[KEY_AUTO_DOWNLOAD_UPDATES] = updated.autoDownloadUpdates
+        this[KEY_AUTO_INSTALL_UPDATES] = updated.autoInstallUpdates
+        this[KEY_AUTO_INSTALL_NEW_APPS] = updated.autoInstallNewApps
+        this[KEY_ARTIFACT_RETENTION_DAYS] = updated.artifactRetentionDays
+        this[KEY_ARTIFACT_STORAGE_LIMIT_MB] = updated.artifactStorageLimitMb
     }
 
     /**

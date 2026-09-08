@@ -31,11 +31,21 @@ object UpdateCheckPolicy {
         return autoCheckEnabledForApp
     }
 
+    /**
+     * Whether a check that just found an update should also fetch it.
+     *
+     * This used to be a root-only path: without root the install needs Android's confirmation
+     * dialog anyway, so downloading ahead of time looked like filling storage with files that
+     * could not be installed unattended. In practice it meant pressing "check" found an update
+     * and then stood still, and the download only began after a second trip to another screen.
+     * A downloaded update still asks before installing - it just asks with the work already done.
+     */
     fun shouldEnqueueDownload(
+        autoDownloadEnabled: Boolean,
         rootBackgroundDownloadsEnabled: Boolean,
         isRootAvailable: Boolean
     ): Boolean {
-        return rootBackgroundDownloadsEnabled && isRootAvailable
+        return autoDownloadEnabled || (rootBackgroundDownloadsEnabled && isRootAvailable)
     }
 
     fun shouldRetryWorker(error: Throwable): Boolean {

@@ -12,14 +12,16 @@ import java.net.SocketTimeoutException
 class UpdateCheckPolicyTest {
 
     @Test
-    fun periodicCheckNeverEnqueuesDownloadWhenRootBackgroundDownloadsDisabled() {
+    fun nothingIsFetchedWhenBothAutoDownloadAndTheRootPathAreOff() {
         val shouldDownload = UpdateCheckPolicy.shouldEnqueueDownload(
+            autoDownloadEnabled = false,
             rootBackgroundDownloadsEnabled = false,
             isRootAvailable = true
         )
         assertFalse(shouldDownload)
 
         val shouldDownloadNoRoot = UpdateCheckPolicy.shouldEnqueueDownload(
+            autoDownloadEnabled = false,
             rootBackgroundDownloadsEnabled = false,
             isRootAvailable = false
         )
@@ -29,16 +31,32 @@ class UpdateCheckPolicyTest {
     @Test
     fun explicitRootBackgroundDownloadEnqueuesOnlyWhenRootAvailable() {
         val withRoot = UpdateCheckPolicy.shouldEnqueueDownload(
+            autoDownloadEnabled = false,
             rootBackgroundDownloadsEnabled = true,
             isRootAvailable = true
         )
         assertTrue(withRoot)
 
         val withoutRoot = UpdateCheckPolicy.shouldEnqueueDownload(
+            autoDownloadEnabled = false,
             rootBackgroundDownloadsEnabled = true,
             isRootAvailable = false
         )
         assertFalse(withoutRoot)
+    }
+
+    /**
+     * The point of the setting: an update found on a phone without root is fetched too, so the
+     * install offer arrives with the file already there instead of after a second wait.
+     */
+    @Test
+    fun autoDownloadFetchesWithoutRoot() {
+        val withoutRoot = UpdateCheckPolicy.shouldEnqueueDownload(
+            autoDownloadEnabled = true,
+            rootBackgroundDownloadsEnabled = false,
+            isRootAvailable = false
+        )
+        assertTrue(withoutRoot)
     }
 
     @Test

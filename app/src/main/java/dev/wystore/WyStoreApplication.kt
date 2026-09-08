@@ -1,6 +1,12 @@
 package dev.wystore
 
 import android.app.Application
+import dev.wystore.data.invalidateInstalledApps
+import android.content.IntentFilter
+import android.content.Intent
+import android.content.Context
+import android.content.BroadcastReceiver
+import androidx.core.content.ContextCompat
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.SvgDecoder
@@ -19,11 +25,40 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
     /** Lives for the process; used only to keep the synchronous settings cache warm. */
     private val applicationScope = CoroutineScope(SupervisorJob())
 
+    /** Registered for the life of the process, so no package change is missed. */
+    private val packageChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            invalidateInstalledApps()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         // Workers and Activity startup read settings synchronously; warming the cache here keeps
         // those reads off disk regardless of which component starts the process.
-        SettingsRepository(this).warmUp(applicationScope)
+        // Invalidating the installed-app cache belongs to the process, not to a screen. The
+        // Activity registers its own receiver in onStart and drops it in onStop - and Android's
+        // uninstall dialog is exactly what sends the Activity to onStop, so the one broadcast that
+        // says "this app is gone" arrived while nobody was listening. The next onResume then read
+        // a cache nothing had invalidated and showed the app as still installed.
+        ContextCompat.registerReceiver(
+            this,
+            packageChangeReceiver,
+            IntentFilter().apply {
+                addAction(Intent.ACTION_PACKAGE_ADDED)
+                addAction(Intent.ACTION_PACKAGE_REPLACED)
+                addAction(Intent.ACTION_PACKAGE_REMOVED)
+                addAction(Intent.ACTION_PACKAGE_FULLY_REMOVED)
+                addDataScheme("package")
+            },
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+
+        val settingsRepository = SettingsRepository(this)
+        // Defaults that changed since this phone last wrote its settings. Runs before the cache is
+        // warmed so the first reader sees the raised values rather than the stale record.
+        applicationScope.launch { runCatching { settingsRepository.applyDefaultRevision() } }
+        settingsRepository.warmUp(applicationScope)
 
         // The first screen the user sees is Home, and its content is already on disk from the last
         // run. Pulling it into the in-memory cache while the Activity is still being created means

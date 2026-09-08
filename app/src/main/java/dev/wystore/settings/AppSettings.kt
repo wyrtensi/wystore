@@ -8,7 +8,8 @@ enum class AppLanguage { SYSTEM, RU, EN }
 
 data class AppSettings(
     val wifiOnly: Boolean = true,
-    val requiresCharging: Boolean = true,
+    /** Off by default: an update that waits for a charger is an update that never arrives. */
+    val requiresCharging: Boolean = false,
     val allowMobileData: Boolean = false,
     val rootBackgroundDownloadsEnabled: Boolean = false,
     val rootSilentInstallEnabled: Boolean = false,
@@ -26,10 +27,14 @@ data class AppSettings(
     val quietHoursEnd: Int = 8,
     val respectBatterySaver: Boolean = true,
     val selfUpdateEnabled: Boolean = true,
+    /** Update an app Wy Store installed without stopping on Android's dialog. */
+    val silentUpdatesEnabled: Boolean = true,
+    /** Fetch an update as soon as a check finds it, instead of waiting to be asked. */
+    val autoDownloadUpdates: Boolean = true,
     /** Hand a downloaded update straight to the installer instead of waiting for a tap. */
-    val autoInstallUpdates: Boolean = false,
+    val autoInstallUpdates: Boolean = true,
     /** The same for an app being installed for the first time. */
-    val autoInstallNewApps: Boolean = false,
+    val autoInstallNewApps: Boolean = true,
     val artifactRetentionDays: Int = 7,
     val artifactStorageLimitMb: Int = 2_048
 )
@@ -55,6 +60,8 @@ fun AppSettings.toStoreSettings(): StoreSettings = StoreSettings(
     quietHoursEnd = quietHoursEnd,
     respectBatterySaver = respectBatterySaver,
     selfUpdateEnabled = selfUpdateEnabled,
+    silentUpdatesEnabled = silentUpdatesEnabled,
+    autoDownloadUpdates = autoDownloadUpdates,
     autoInstallUpdates = autoInstallUpdates,
     autoInstallNewApps = autoInstallNewApps,
     artifactRetentionDays = artifactRetentionDays,
@@ -81,6 +88,8 @@ fun StoreSettings.toAppSettings(): AppSettings = AppSettings(
     quietHoursEnd = quietHoursEnd,
     respectBatterySaver = respectBatterySaver,
     selfUpdateEnabled = selfUpdateEnabled,
+    silentUpdatesEnabled = silentUpdatesEnabled,
+    autoDownloadUpdates = autoDownloadUpdates,
     autoInstallUpdates = autoInstallUpdates,
     autoInstallNewApps = autoInstallNewApps,
     artifactRetentionDays = artifactRetentionDays,
