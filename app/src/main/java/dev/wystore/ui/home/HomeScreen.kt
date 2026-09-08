@@ -36,6 +36,9 @@ import dev.wystore.data.ManagedApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
 import dev.wystore.data.StoreCategory
+import dev.wystore.ui.components.RowActionPolicy
+import dev.wystore.ui.components.RowAction
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.AppRow
 import dev.wystore.ui.components.EmptyState
 import dev.wystore.ui.components.PackageUiStateReducer
@@ -65,7 +68,10 @@ fun HomeScreen(
     githubPicks: List<GitHubCatalogEntry> = emptyList(),
     onGitHubPickClick: (GitHubCatalogEntry) -> Unit = {},
     onUpdateAll: () -> Unit = {},
-    onRetryCatalog: () -> Unit = {}
+    onRetryCatalog: () -> Unit = {},
+    onInstall: (String) -> Unit = {},
+    onInstallDownloaded: (String) -> Unit = {},
+    onLaunch: (String) -> Unit = {}
 ) {
     Scaffold(
         modifier = modifier,
@@ -90,12 +96,12 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding),
+                .padding(top = contentPadding.calculateTopPadding()),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
                 top = 4.dp,
-                bottom = 24.dp
+                bottom = 24.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(SectionSpacing)
         ) {
@@ -169,7 +175,14 @@ fun HomeScreen(
                     AppRow(
                         state = uiState,
                         onRowClick = { onAppClick(app.packageName) },
-                        onPrimaryActionClick = { onAppClick(app.packageName) }
+                        onPrimaryActionClick = {
+                            when (RowActionPolicy.actionFor(uiState.primaryAction, uiState.status.code)) {
+                                RowAction.Enqueue -> onInstall(app.packageName)
+                                RowAction.InstallDownloaded -> onInstallDownloaded(app.packageName)
+                                RowAction.OpenApp -> onLaunch(app.packageName)
+                                RowAction.Nothing -> Unit
+                            }
+                        }
                     )
                 }
             } else {

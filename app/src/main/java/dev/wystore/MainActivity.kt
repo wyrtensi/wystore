@@ -22,7 +22,6 @@ import dev.wystore.settings.toAppSettings
 import dev.wystore.ui.WyStoreApp
 import dev.wystore.ui.theme.WyStoreTheme
 import dev.wystore.data.SigningVerifier
-import dev.wystore.updates.InstallCallbackStore
 import dev.wystore.updates.UserConfirmedInstaller
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -49,7 +48,6 @@ class MainActivity : AppCompatActivity() {
                 WyStoreApp(storeViewModel, ::beginPendingInstall)
             }
         }
-        handleInstallStatus(intent)
         handleNotificationDeepLink(intent)
 
         // Installing needs an Activity for Android's confirmation dialog, so the ViewModel asks for
@@ -69,7 +67,6 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleInstallStatus(intent)
         handleNotificationDeepLink(intent)
     }
 
@@ -183,29 +180,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @Suppress("DEPRECATION")
-    private fun handleInstallStatus(intent: Intent?) {
-        if (intent?.action != ACTION_INSTALL_STATUS) return
-        val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
-        val packageName = intent.getStringExtra(EXTRA_INSTALL_PACKAGE)
-            ?: intent.getStringExtra(PackageInstaller.EXTRA_PACKAGE_NAME)
-            ?: return
-        val callbackStore = InstallCallbackStore(this)
-        if (!callbackStore.matches(packageName, intent.getStringExtra(EXTRA_INSTALL_TOKEN))) return
-        if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
-            val confirmation = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
-            if (confirmation != null) startActivity(confirmation)
-            else storeViewModel.reportInstallLaunchFailure(getString(R.string.msg_install_no_confirm_dialog))
-            return
-        }
-        callbackStore.clear(packageName)
-        storeViewModel.handlePackageInstallResult(
-            packageName,
-            success = status == PackageInstaller.STATUS_SUCCESS,
-            message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
-        )
-    }
-
     private fun handleNotificationDeepLink(intent: Intent?) {
         if (intent == null) return
         val destination = intent.getStringExtra(NotificationIntentFactory.EXTRA_DESTINATION)
@@ -221,9 +195,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
-        const val ACTION_INSTALL_STATUS = "dev.wystore.action.INSTALL_STATUS"
-        const val EXTRA_INSTALL_PACKAGE = "install_package"
-        const val EXTRA_INSTALL_TOKEN = "install_token"
-    }
 }

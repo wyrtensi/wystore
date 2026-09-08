@@ -34,6 +34,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
+import dev.wystore.ui.components.RowActionPolicy
+import dev.wystore.ui.components.RowAction
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.AppRow
 import dev.wystore.ui.components.EmptyState
 import dev.wystore.ui.components.ScreenPadding
@@ -57,7 +60,10 @@ fun CategoryScreen(
     onAppClick: (String) -> Unit = {},
     onPreviousPage: () -> Unit = {},
     onNextPage: () -> Unit = {},
-    onRetry: () -> Unit = {}
+    onRetry: () -> Unit = {},
+    onInstall: (String) -> Unit = {},
+    onInstallDownloaded: (String) -> Unit = {},
+    onLaunch: (String) -> Unit = {}
 ) {
     Scaffold(
         modifier = modifier,
@@ -79,12 +85,12 @@ fun CategoryScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding),
+                .padding(top = contentPadding.calculateTopPadding()),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
                 top = 4.dp,
-                bottom = 24.dp
+                bottom = 24.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -108,7 +114,14 @@ fun CategoryScreen(
                 AppRow(
                     state = uiState,
                     onRowClick = { onAppClick(app.packageName) },
-                    onPrimaryActionClick = { onAppClick(app.packageName) }
+                    onPrimaryActionClick = {
+                        when (RowActionPolicy.actionFor(uiState.primaryAction, uiState.status.code)) {
+                            RowAction.Enqueue -> onInstall(app.packageName)
+                            RowAction.InstallDownloaded -> onInstallDownloaded(app.packageName)
+                            RowAction.OpenApp -> onLaunch(app.packageName)
+                            RowAction.Nothing -> Unit
+                        }
+                    }
                 )
             }
 
