@@ -30,11 +30,11 @@ not carry.
 The catalogue and the curated sections are aimed at users in Russia, so most of the content the app
 displays is in Russian; the interface itself ships in Russian and English.
 
-> **It gets along with root.** Without root Wy Store does everything it does, except that Android
-> confirms every install. With root it handles the whole thing itself: the update downloads in the
-> background and goes in through `pm install` with no dialog at all - and the same signature check
-> as always. Both switches sit in Settings turned off until you turn them on and root is actually
-> granted.
+> **Updates land quietly, without root.** Android lets whoever installed an app update it without
+> a dialog. Wy Store uses that: what it installed, it updates itself - downloading, checking the
+> signature and installing without asking, even while the app is in the background. A first install
+> is always confirmed, and so is an app another store installed, until you hand its updates to Wy
+> Store from its own page. With root the first install goes quiet too.
 
 > **Android 8.0 is Wy Store's own minimum, not the catalogue's.** Plenty of apps in the catalogues
 > need something newer - 9, 10, sometimes 12 or 13. Each app's page states the version it needs, and
@@ -76,24 +76,27 @@ download interrupted by a reboot, a killed process or a lost network resumes fro
 with an HTTP range request rather than starting over, and a failure is recorded with a typed reason
 instead of an exception message.
 
-**Installation on your terms.** By default every install goes through Android's own confirmation
-dialog. On a rooted device silent installation is available, but it is off unless you turn it on and
-root is actually granted.
+**Updates that arrive on their own.** Out of the box the loop closes completely: the check finds an
+update, fetches it and installs it. None of that needs root - since Android 12 the installer of
+record may update what it installed without asking. The app can be in the background while it
+happens: committing an install session does not need Wy Store to be on screen.
 
-**Fully automatic updates on a rooted device.** Two switches in Settings close the loop with no
-interaction at all: the periodic check finds an update, downloads it in the background straight
-away, and installs it silently.
+- *Download updates as they are found* — on by default. A manual check downloads immediately,
+  because someone is standing there waiting for the answer. A background check honours the network
+  settings: with "Wi-Fi only" it waits for Wi-Fi rather than spending mobile data.
+- *Install right after download* — updates and new apps, both on by default.
+- *Update without asking* — skip the system dialog where Android allows it.
 
-- *Download updates in background (root)* — a discovered update starts downloading by itself. The
-  download honours the network you chose: with "Wi-Fi only" it waits for Wi-Fi rather than spending
-  mobile data, and with "only while charging" it waits for the charger.
-- *Silent root install* — the downloaded and verified update is installed through `pm install` as
-  root, without the system dialog.
+The limits are stated plainly. A first install always asks; Android gives nobody a way around that.
+An app another store installed asks too, because only its installer may update it quietly. That can
+be handed to Wy Store from the app's page: it reinstalls the app through Wy Store, and updates go
+quiet from then on.
+
+With root the first install goes quiet as well, through `pm install`. The switch sits in Settings
+turned off until you turn it on and root is actually granted.
 
 The checks are unchanged: package name, version code, APK-set completeness and signature match. A
-silent install weakens none of them — an APK with a different signature is refused here too. If root
-is not actually granted, both switches do nothing: without root a silent install is impossible, and
-downloading ahead of time would be pointless because the install needs confirmation anyway.
+silent install weakens none of them — an APK with a different signature is refused here too.
 
 **Notifications that stay quiet.** At most one notification per category. Twenty updates produce one
 entry listing them, not twenty; a repeated background check that finds the same updates re-posts
@@ -109,7 +112,9 @@ the same queue, with the same signature check, as any other app.
 
 ## Security model
 
-- Installation starts only from an explicit press of an install or update button.
+- A first install always goes through Android's own dialog; there is no way around it.
+- An update skips the dialog only where the system itself allows it: the app is already installed,
+  and Wy Store is what installed it. One switch in Settings turns that off.
 - Package name, version code, APK-set completeness and signing certificate are checked before every
   install. A signature that does not match the installed copy is a refusal, never a warning.
 - Downloads are restricted to an allowlist of hosts, with redirects resolved explicitly rather than
@@ -143,7 +148,7 @@ behaviour are documented in [docs/RUSTORE_API_COMPATIBILITY_RU.md](docs/RUSTORE_
 - Android 8.0 (API 26) or newer - that is Wy Store's own requirement; apps from the catalogues
   often need something newer, and each app's page states which version
 - Permission to install unknown apps, which Android asks for on the first install
-- Root is optional: without it everything works except installing with no dialogs
+- Root is optional: without it everything works except a silent **first** install
 - Small screens: the layout is tested on an Asus Zenfone 10 as well as on regular screens
 
 ## Build
