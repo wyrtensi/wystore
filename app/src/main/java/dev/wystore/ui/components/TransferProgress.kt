@@ -29,7 +29,7 @@ fun TransferProgress(
         if (progress != null) {
             LinearProgressIndicator(progress = { progress.coerceIn(0f, 1f) }, modifier = bar)
         } else {
-            LinearProgressIndicator(modifier = bar)
+            WyIndeterminateBar(modifier = bar)
         }
         if (!transferInfo.isNullOrBlank()) {
             Text(

@@ -15,7 +15,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -37,6 +36,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import dev.wystore.ui.components.WySpinner
 import dev.wystore.InstallQueueItem
 import dev.wystore.R
 import dev.wystore.data.PendingUpdate
@@ -211,7 +211,7 @@ fun AboutSettingsScreen(
                             }
                         } else when (status) {
                             SelfUpdateStatus.Checking -> Row(verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                                WySpinner(size = 18.dp, strokeWidth = 2.dp)
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     stringResource(R.string.about_checking),

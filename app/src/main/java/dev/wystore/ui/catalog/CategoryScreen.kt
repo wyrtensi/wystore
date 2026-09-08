@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.List
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.wystore.ui.components.WySpinner
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.ui.components.RowActionPolicy
@@ -128,7 +128,7 @@ fun CategoryScreen(
             item {
                 when {
                     state.loading -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        WySpinner(size = 18.dp, strokeWidth = 2.dp)
                         Spacer(Modifier.width(10.dp))
                         Text(stringResource(R.string.catalog_loading), style = MaterialTheme.typography.bodySmall)
                     }

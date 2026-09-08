@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -28,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.wystore.ui.components.WySpinner
 import dev.wystore.InstallQueueItem
 import dev.wystore.R
 import dev.wystore.data.GitHubCatalogEntry
@@ -191,7 +191,7 @@ fun HomeScreen(
                 item {
                     if (catalogLoading) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                            WySpinner(size = 18.dp, strokeWidth = 2.dp)
                             Spacer(Modifier.width(10.dp))
                             Text(
                                 stringResource(R.string.home_catalog_loading),

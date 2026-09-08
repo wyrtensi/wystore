@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -188,7 +187,7 @@ fun ruStoreTaskLabel(status: String): String = stringResource(
 @Composable
 fun Loading(operation: String? = null) {
     Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        CircularProgressIndicator()
+        WySpinner(size = 40.dp, strokeWidth = 4.dp)
         operation?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
     }
 }
@@ -232,7 +231,7 @@ fun OperationProgress(item: InstallQueueItem) {
                 )
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    WySpinner(size = 20.dp, strokeWidth = 2.dp)
                     Spacer(Modifier.width(10.dp))
                     Text(stringResource(R.string.progress_dont_close), style = MaterialTheme.typography.bodySmall)
                 }

@@ -15,7 +15,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -30,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import dev.wystore.ui.components.WySpinner
 import dev.wystore.R
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.ruStoreTaskLabel
@@ -117,10 +117,7 @@ fun SourceSettingsScreen(
                                 style = MaterialTheme.typography.titleSmall
                             )
                             if (task.status !in setOf("COMPLETE", "FAILED")) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp
-                                )
+                                WySpinner(size = 18.dp, strokeWidth = 2.dp)
                             }
                         }
                         task.detail?.let {

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -210,7 +209,7 @@ private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
             enabled = false,
             contentPadding = contentPadding
         ) {
-            CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+            WySpinner(size = 14.dp, strokeWidth = 2.dp)
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.common_installing), maxLines = 1)
         }

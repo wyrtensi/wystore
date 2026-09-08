@@ -22,7 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -49,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import dev.wystore.ui.components.WySpinner
 import dev.wystore.R
 import dev.wystore.data.GitHubInstallStatePolicy
 import dev.wystore.data.GitHubInstallState
@@ -255,7 +255,7 @@ fun GitHubAppScreen(
             when {
                 state.loading -> item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        WySpinner(size = 18.dp, strokeWidth = 2.dp)
                         Spacer(Modifier.width(10.dp))
                         Text(stringResource(R.string.github_loading), style = MaterialTheme.typography.bodySmall)
                     }

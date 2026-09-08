@@ -21,7 +21,6 @@ import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -52,6 +51,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.wystore.ui.components.WySpinner
 import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
 import dev.wystore.isInFlight
@@ -147,10 +147,7 @@ fun SearchScreen(
                                         contentDescription = stringResource(R.string.search_clear)
                                     )
                                 }
-                                busy -> CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.dp
-                                )
+                                busy -> WySpinner(size = 20.dp, strokeWidth = 2.dp)
                             }
                         },
                         keyboardOptions = KeyboardOptions(
