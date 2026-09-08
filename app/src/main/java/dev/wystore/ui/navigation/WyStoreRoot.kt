@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import dev.wystore.ui.catalog.CategoryScreen
 import dev.wystore.ui.catalog.CategoryViewModel
 import dev.wystore.ui.components.LocalBottomBarInset
+import dev.wystore.ui.components.launchUninstall
 import dev.wystore.ui.components.WySnackbarHost
 import dev.wystore.ui.details.AppDetailsScreen
 import dev.wystore.ui.home.HomeViewModel
@@ -83,7 +84,6 @@ fun WyStoreRoot(
     var installDialog by remember { mutableStateOf(false) }
     var adoptDialog by remember { mutableStateOf<InstalledApp?>(null) }
     var forceDialog by remember { mutableStateOf<ManagedApp?>(null) }
-    var uninstallDialog by remember { mutableStateOf<InstalledApp?>(null) }
     var githubInstallDialog by remember { mutableStateOf<GitHubAsset?>(null) }
     val snackbars = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -329,7 +329,7 @@ fun WyStoreRoot(
                         onUpdateManaged = viewModel::updateManaged,
                         onRequestForce = { forceDialog = it },
                         onRemoveManaged = { viewModel.setManaged(it, false) },
-                        onUninstall = { uninstallDialog = it },
+                        onUninstall = { launchUninstall(context, it.packageName) },
                         onCheck = viewModel::checkManagedApp,
                         onOpenDetails = { managedApp ->
                             if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
@@ -420,21 +420,6 @@ fun WyStoreRoot(
                 }) { Text(stringResource(R.string.dialog_force_confirm)) }
             },
             dismissButton = { TextButton(onClick = { forceDialog = null }) { Text(stringResource(R.string.common_cancel)) } }
-        )
-    }
-
-    uninstallDialog?.let { target ->
-        AlertDialog(
-            onDismissRequest = { uninstallDialog = null },
-            title = { Text(stringResource(R.string.dialog_uninstall_title)) },
-            text = { Text(stringResource(R.string.dialog_uninstall_text, target.label)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.uninstall(target)
-                    uninstallDialog = null
-                }) { Text(stringResource(R.string.dialog_uninstall_confirm)) }
-            },
-            dismissButton = { TextButton(onClick = { uninstallDialog = null }) { Text(stringResource(R.string.common_cancel)) } }
         )
     }
 

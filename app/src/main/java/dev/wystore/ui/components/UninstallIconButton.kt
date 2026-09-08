@@ -1,5 +1,6 @@
 package dev.wystore.ui.components
 
+import android.content.Context
 import android.content.Intent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
@@ -23,16 +24,16 @@ import dev.wystore.R
  * Needs REQUEST_DELETE_PACKAGES in the manifest. Without it Android drops the intent without a
  * word, and the button looks broken rather than forbidden.
  */
+fun launchUninstall(context: Context, packageName: String) {
+    val removal = Intent(Intent.ACTION_DELETE, "package:$packageName".toUri())
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { context.startActivity(removal) }
+}
+
 @Composable
 fun UninstallIconButton(packageName: String) {
     val context = LocalContext.current
-    IconButton(
-        onClick = {
-            val removal = Intent(Intent.ACTION_DELETE, "package:$packageName".toUri())
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            runCatching { context.startActivity(removal) }
-        }
-    ) {
+    IconButton(onClick = { launchUninstall(context, packageName) }) {
         Icon(
             imageVector = Icons.Outlined.Delete,
             contentDescription = stringResource(R.string.details_uninstall),

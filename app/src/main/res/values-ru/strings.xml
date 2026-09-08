@@ -111,8 +111,6 @@
     <string name="dialog_force_title">Форсировать обновления Google Play</string>
     <string name="dialog_force_text">%1$s установлено через Google Play. Если включить форсирование, фоновая задача будет обновлять его через Wy Store при совпадении цифровой подписи разработчика.</string>
     <string name="dialog_force_confirm">Форсировать</string>
-    <string name="dialog_uninstall_title">Удалить приложение</string>
-    <string name="dialog_uninstall_text">Вы действительно хотите удалить %1$s?</string>
     <string name="dialog_uninstall_confirm">Удалить</string>
     <string name="dialog_github_install_title">Установка APK из GitHub</string>
     <string name="dialog_github_install_text">Вы собираетесь установить %1$s напрямую из релиза GitHub. Убедитесь, что доверяете репозиторию.</string>
@@ -192,6 +190,7 @@
     <string name="library_checking">Проверяем</string>
     <string name="library_install_count">Установить (%1$d)</string>
     <string name="library_check_and_install">Проверить и установить</string>
+    <string name="library_search_clear">Очистить поиск</string>
     <string name="library_expand_all">Раскрыть все</string>
     <string name="library_collapse_all">Скрыть все</string>
     <string name="library_intro">Сначала показаны приложения, которые Wy Store уже установил или обновлял. Google Play-приложения исключены, пока не включишь форсирование.</string>
@@ -358,9 +357,6 @@
     <string name="vm_version_code_positive">VersionCode должен быть положительным числом</string>
     <string name="vm_rustore_api_changed">API-код RuStore изменён</string>
     <string name="vm_signature_read_failed">Не удалось прочитать подпись установленного приложения</string>
-    <string name="vm_root_denied">Root не выдан. Выдай доступ Wy Store в KernelSU и повтори удаление.</string>
-    <string name="vm_uninstalled">%1$s удалено</string>
-    <string name="vm_uninstall_failed">Не удалось удалить %1$s</string>
     <string name="vm_autoupdate_off">Автообновление для %1$s выключено — проверка его не будет скачивать или устанавливать обновление</string>
     <string name="vm_check_already_running">Проверка обновлений уже выполняется</string>
     <string name="vm_no_github_repo">Для этого приложения не привязан GitHub-репозиторий</string>

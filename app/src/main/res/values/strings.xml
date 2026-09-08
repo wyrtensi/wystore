@@ -111,8 +111,6 @@
     <string name="dialog_force_title">Force Google Play updates</string>
     <string name="dialog_force_text">%1$s was installed through Google Play. With forcing enabled, the background task will update it through Wy Store whenever the developer signature matches.</string>
     <string name="dialog_force_confirm">Force</string>
-    <string name="dialog_uninstall_title">Uninstall app</string>
-    <string name="dialog_uninstall_text">Do you really want to uninstall %1$s?</string>
     <string name="dialog_uninstall_confirm">Uninstall</string>
     <string name="dialog_github_install_title">Install an APK from GitHub</string>
     <string name="dialog_github_install_text">You are about to install %1$s straight from a GitHub release. Make sure you trust the repository.</string>
@@ -192,6 +190,7 @@
     <string name="library_checking">Checking</string>
     <string name="library_install_count">Install (%1$d)</string>
     <string name="library_check_and_install">Check and install</string>
+    <string name="library_search_clear">Clear search</string>
     <string name="library_expand_all">Expand all</string>
     <string name="library_collapse_all">Collapse all</string>
     <string name="library_intro">Apps that Wy Store has already installed or updated are shown first. Google Play apps are excluded until you turn on forcing.</string>
@@ -358,9 +357,6 @@
     <string name="vm_version_code_positive">VersionCode must be a positive number</string>
     <string name="vm_rustore_api_changed">RuStore API code changed</string>
     <string name="vm_signature_read_failed">Could not read the signature of the installed app</string>
-    <string name="vm_root_denied">Root was not granted. Grant Wy Store access in KernelSU and try uninstalling again.</string>
-    <string name="vm_uninstalled">%1$s removed</string>
-    <string name="vm_uninstall_failed">Could not remove %1$s</string>
     <string name="vm_autoupdate_off">Auto-update for %1$s is off — checks will not download or install its updates</string>
     <string name="vm_check_already_running">An update check is already running</string>
     <string name="vm_no_github_repo">No GitHub repository is linked to this app</string>
