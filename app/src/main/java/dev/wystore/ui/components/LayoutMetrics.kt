@@ -1,9 +1,11 @@
 package dev.wystore.ui.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 /**
  * Fixed widths that hold text.
@@ -23,3 +25,15 @@ object LayoutMetrics {
 @Composable
 @ReadOnlyComposable
 fun fontScaledWidth(base: Dp): Dp = LayoutMetrics.width(base, LocalDensity.current.fontScale)
+
+/**
+ * How much room the floating navigation bar takes at the bottom of the screen.
+ *
+ * The bar used to be laid out as a band the content stopped above: the last card was cut off and
+ * below it sat an empty strip of background, which read as a block someone forgot to fill. The
+ * content now runs the full height and scrolls behind the bar; this is what each list adds to its
+ * own bottom padding so the last item can still be reached.
+ *
+ * Zero on screens that have no bar of their own - an app page, a GitHub release.
+ */
+val LocalBottomBarInset = compositionLocalOf { 0.dp }

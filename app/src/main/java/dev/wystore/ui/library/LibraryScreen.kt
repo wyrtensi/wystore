@@ -13,9 +13,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import androidx.annotation.StringRes
@@ -47,6 +52,7 @@ import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.PendingUpdate
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.EmptyState
 import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.WyCard
@@ -91,6 +97,16 @@ fun LibraryScreen(
     val pendingByPackage = remember(pendingUpdates) { pendingUpdates.associateBy { it.packageName } }
     var query by remember { mutableStateOf("") }
     var sort by rememberSaveable { mutableStateOf(LibrarySort.ALL) }
+    // Which rows are open lives here rather than in the rows themselves. A row that is scrolled
+    // out of a LazyColumn leaves the composition and restores its own saved value when it comes
+    // back, so "collapse all" reached the handful of rows on screen and nothing else. The screen
+    // holds the whole answer; the row only reports taps.
+    var expandedPackages by rememberSaveable(
+        stateSaver = listSaver<Set<String>, String>(
+            save = { it.toList() },
+            restore = { it.toSet() }
+        )
+    ) { mutableStateOf(emptySet<String>()) }
     val orderedInstalled = remember(installed, managedByPackage, sort) {
         val sourceOf: (InstalledApp) -> ManagedSource? = { managedByPackage[it.packageName]?.source }
         val selected: (InstalledApp) -> Boolean = { app ->
@@ -120,7 +136,13 @@ fun LibraryScreen(
     }
     Scaffold(modifier = modifier, topBar = {
         TopAppBar(
-            title = { Text(stringResource(R.string.library_title)) },
+            title = {
+                Text(
+                    stringResource(R.string.library_title),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
             actions = {
                 TextButton(onClick = onCheckUpdates, enabled = updateCheckTask?.active != true) {
                     Text(
@@ -136,12 +158,12 @@ fun LibraryScreen(
         )
     }) { contentPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
                 top = 4.dp,
-                bottom = 24.dp
+                bottom = 24.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -176,14 +198,43 @@ fun LibraryScreen(
                 )
             }
             item {
-                // The filter rail scrolls sideways instead of wrapping onto three lines and
-                // pushing the list itself below the fold.
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(LibrarySort.entries, key = { it.name }) { option ->
-                        FilterChip(
-                            selected = sort == option,
-                            onClick = { sort = option },
-                            label = { Text(stringResource(option.labelRes)) }
+                // Open-everything sits with the filters rather than in the app bar: up there it
+                // competed with the title, and on a compact screen at a raised font size the word
+                // "Библиотека" broke across two lines to make room for it.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // The filter rail scrolls sideways instead of wrapping onto three lines and
+                    // pushing the list itself below the fold.
+                    LazyRow(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(LibrarySort.entries, key = { it.name }) { option ->
+                            FilterChip(
+                                selected = sort == option,
+                                onClick = { sort = option },
+                                label = { Text(stringResource(option.labelRes)) }
+                            )
+                        }
+                    }
+                    val allExpanded = filteredInstalled.isNotEmpty() &&
+                        filteredInstalled.all { expandedPackages.contains(it.packageName) }
+                    IconButton(
+                        onClick = {
+                            expandedPackages = if (allExpanded) {
+                                emptySet()
+                            } else {
+                                filteredInstalled.map { it.packageName }.toSet()
+                            }
+                        },
+                        enabled = filteredInstalled.isNotEmpty()
+                    ) {
+                        Icon(
+                            imageVector = if (allExpanded) Icons.Outlined.KeyboardArrowUp
+                            else Icons.Outlined.KeyboardArrowDown,
+                            contentDescription = stringResource(
+                                if (allExpanded) R.string.library_collapse_all
+                                else R.string.library_expand_all
+                            )
                         )
                     }
                 }
@@ -199,7 +250,12 @@ fun LibraryScreen(
             }
             items(filteredInstalled, key = { it.packageName }) { app ->
                 val managedApp = managedByPackage[app.packageName]
-                LibraryAppRow(app, managedApp, pendingByPackage[app.packageName], onAdopt, onUpdateManaged, onRequestForce, onRemoveManaged, onUninstall, onCheck, onOpenDetails, onOpenStorePage, onLaunch, onInstallPending)
+                LibraryAppRow(app, managedApp, pendingByPackage[app.packageName], onAdopt, onUpdateManaged, onRequestForce, onRemoveManaged, onUninstall, onCheck, onOpenDetails, onOpenStorePage, onLaunch, onInstallPending,
+                    expanded = expandedPackages.contains(app.packageName),
+                    onExpandedChange = { open ->
+                        expandedPackages = if (open) expandedPackages + app.packageName
+                        else expandedPackages - app.packageName
+                    })
             }
         }
     }

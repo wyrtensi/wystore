@@ -2,16 +2,17 @@ package dev.wystore.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,6 +33,8 @@ import dev.wystore.data.StoreCategory
 import androidx.compose.ui.platform.LocalContext
 import dev.wystore.ui.catalog.CategoryScreen
 import dev.wystore.ui.catalog.CategoryViewModel
+import dev.wystore.ui.components.LocalBottomBarInset
+import dev.wystore.ui.components.WySnackbarHost
 import dev.wystore.ui.details.AppDetailsScreen
 import dev.wystore.ui.home.HomeViewModel
 import dev.wystore.ui.github.GitHubAppScreen
@@ -144,10 +147,12 @@ fun WyStoreRoot(
         GitHubAppScreen(
             state = githubApp,
             installedApp = state.installed.firstOrNull { installed ->
+                // What Wy Store installed itself carries the link in its managed record; a curated
+                // entry that states its package is recognised however the app got onto the phone.
                 state.managed.any { managed ->
                     managed.githubRepository == githubApp.entry.repository &&
                         managed.packageName == installed.packageName
-                }
+                } || githubApp.entry.packageName == installed.packageName
             },
             onBack = viewModel::closeGitHubApp,
             onInstallAsset = { githubInstallDialog = it },
@@ -188,7 +193,11 @@ fun WyStoreRoot(
         )
     } else {
         Scaffold(
-            snackbarHost = { SnackbarHost(snackbars) },
+            // Every screen carries its own Scaffold and top bar, and those already stand clear of
+            // the status bar. Letting this one reserve the system bars too pushed each title down
+            // by a second status bar's worth - an empty strip above every screen.
+            contentWindowInsets = WindowInsets(0),
+            snackbarHost = { WySnackbarHost(snackbars) },
             bottomBar = {
                 FloatingNavigationBar(
                     currentDestination = destination,
@@ -196,162 +205,175 @@ fun WyStoreRoot(
                 )
             }
         ) { padding ->
-            val screenModifier = Modifier.fillMaxSize().padding(padding)
-            when (destination) {
-                WyStoreDestination.Home -> dev.wystore.ui.home.HomeScreen(
-                    modifier = screenModifier,
-                    searchQuery = state.query,
-                    pendingUpdates = state.pendingUpdates,
-                    featuredApps = homeState.featuredApps,
-                    categories = homeState.categories,
-                    catalogLoading = homeState.loading,
-                    catalogStale = homeState.stale,
-                    catalogError = homeState.error,
-                    installed = state.installed,
-                    managed = state.managed,
-                    queue = state.installQueue,
-                    onSearchClick = { destination = WyStoreDestination.Search },
-                    onAppClick = { packageName -> viewModel.openDetails(packageName) },
-                    onCategoryClick = openCategory,
-                    onAllCategoriesClick = {
-                        openCategory(StoreCategory(slug = "all", title = allCategoriesTitle))
-                    },
-                    onUpdatesClick = { destination = WyStoreDestination.Updates },
-                    // Downloading what is already verified is the point of the queue; a metadata
-                    // re-check here would leave ready updates untouched.
-                    githubPicks = if (state.settings.githubEnabled) {
-                        dev.wystore.data.GitHubCatalog.entries(state.githubRepositories)
-                    } else {
-                        emptyList()
-                    },
-                    onGitHubPickClick = viewModel::openGitHubApp,
-                    onUpdateAll = { viewModel.updateAll() },
-                    onRetryCatalog = homeViewModel::retry
-                )
-                is WyStoreDestination.Category -> CategoryScreen(
-                    state = categoryState,
-                    installed = state.installed,
-                    managed = state.managed,
-                    modifier = screenModifier,
-                    onBack = { destination = WyStoreDestination.Home },
-                    onAppClick = { packageName -> viewModel.openDetails(packageName) },
-                    onPreviousPage = categoryViewModel::previousPage,
-                    onNextPage = categoryViewModel::nextPage,
-                    onRetry = categoryViewModel::retry
-                )
-                WyStoreDestination.Search -> SearchScreen(
-                    modifier = screenModifier,
-                    query = state.query,
-                    apps = state.search?.apps ?: emptyList(),
-                    total = state.search?.total,
-                    busy = state.searching,
-                    operation = state.operation,
-                    installed = state.installed,
-                    queue = state.installQueue,
-                    pendingUpdates = state.pendingUpdates,
-                    onInstallPending = onInstallPending,
-                    githubResults = state.githubSearchResults,
-                    onOpenGitHubApp = viewModel::openGitHubApp,
-                    onSearch = viewModel::search,
-                    onLoadMore = viewModel::searchMore,
-                    onOpen = { app -> viewModel.openDetails(app.packageName) },
-                    onQuickInstall = viewModel::quickInstall,
-                    onLaunch = viewModel::launchInstalledApp
-                )
-                WyStoreDestination.GitHub -> GitHubScreen(
-                    modifier = screenModifier,
-                    repositories = state.githubRepositories,
-                    activeRepository = state.githubActiveRepository,
-                    releases = state.githubReleases,
-                    loading = state.githubLoading,
-                    install = state.githubInstall,
-                    catalog = dev.wystore.data.GitHubCatalog.entries(state.githubRepositories),
-                    onLoad = viewModel::loadGitHubRepository,
-                    onOpen = viewModel::openGitHubRelease,
-                    onOpenCatalogEntry = viewModel::openGitHubApp,
-                    onRemove = viewModel::removeGitHubRepository
-                )
-                WyStoreDestination.Updates -> UpdatesScreen(
-                    modifier = screenModifier,
-                    managed = state.managed,
-                    installed = state.installed,
-                    pendingUpdates = state.pendingUpdates,
-                    updateCheckTask = state.updateCheckTask,
-                    lastUpdateCheck = state.lastUpdateCheck,
-                    queue = state.installQueue,
-                    packageIcons = state.packageIcons,
-                    onCheckUpdates = { viewModel.checkForUpdates() },
-                    onOpen = { managedApp ->
-                        if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
-                            viewModel.openManagedGitHubRepository(managedApp)
+            // The bar's height reaches the screens as content padding rather than as layout
+            // padding: reserving it made the bar a band the list stopped above, with an empty
+            // strip of background underneath.
+            val screenModifier = Modifier.fillMaxSize()
+            CompositionLocalProvider(LocalBottomBarInset provides padding.calculateBottomPadding()) {
+                when (destination) {
+                    WyStoreDestination.Home -> dev.wystore.ui.home.HomeScreen(
+                        modifier = screenModifier,
+                        searchQuery = state.query,
+                        pendingUpdates = state.pendingUpdates,
+                        featuredApps = homeState.featuredApps,
+                        categories = homeState.categories,
+                        catalogLoading = homeState.loading,
+                        catalogStale = homeState.stale,
+                        catalogError = homeState.error,
+                        installed = state.installed,
+                        managed = state.managed,
+                        queue = state.installQueue,
+                        onSearchClick = { destination = WyStoreDestination.Search },
+                        onAppClick = { packageName -> viewModel.openDetails(packageName) },
+                        onCategoryClick = openCategory,
+                        onAllCategoriesClick = {
+                            openCategory(StoreCategory(slug = "all", title = allCategoriesTitle))
+                        },
+                        onUpdatesClick = { destination = WyStoreDestination.Updates },
+                        // Downloading what is already verified is the point of the queue; a metadata
+                        // re-check here would leave ready updates untouched.
+                        githubPicks = if (state.settings.githubEnabled) {
+                            dev.wystore.data.GitHubCatalog.entries(state.githubRepositories)
                         } else {
-                            viewModel.openDetails(managedApp.packageName)
-                        }
-                    },
-                    onInstallPending = onInstallPending,
-                    onDiscardPending = viewModel::discardPendingUpdate,
-                    onQueueRetry = viewModel::queueRetry,
-                    onQueueCancel = viewModel::queueCancel,
-                    onQueueSkip = viewModel::queueSkip,
-                    onQueueDownload = viewModel::queueDownload,
-                    onStartQueue = viewModel::startQueue
-                )
-                WyStoreDestination.Library -> LibraryScreen(
-                    modifier = screenModifier,
-                    installed = state.installed,
-                    managed = state.managed,
-                    pendingUpdates = state.pendingUpdates,
-                    updateCheckTask = state.updateCheckTask,
-                    onCheckUpdates = { viewModel.checkForUpdates() },
-                    onOpenStorePage = viewModel::openDetails,
-                    onAdopt = { adoptDialog = it },
-                    onUpdateManaged = viewModel::updateManaged,
-                    onRequestForce = { forceDialog = it },
-                    onRemoveManaged = { viewModel.setManaged(it, false) },
-                    onUninstall = { uninstallDialog = it },
-                    onCheck = viewModel::checkManagedApp,
-                    onOpenDetails = { managedApp ->
-                        if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
-                            viewModel.openManagedGitHubRepository(managedApp)
-                        } else {
-                            viewModel.openDetails(managedApp.packageName)
-                        }
-                    },
-                    onLaunch = viewModel::launchInstalledApp,
-                    onInstallPending = onInstallPending
-                )
-                WyStoreDestination.Settings -> SettingsScreen(
-                    modifier = screenModifier,
-                    settings = state.settings,
-                    ruStoreCompatibility = state.ruStoreCompatibility,
-                    ruStoreCompatibilityTask = state.ruStoreCompatibilityTask,
-                    rootAvailable = state.rootAvailable,
-                    managedCount = state.managed.size,
-                    githubCount = state.githubRepositories.size,
-                    onSave = viewModel::saveSettings,
-                    onCheckRoot = viewModel::checkRoot,
-                    onCheckRuStore = viewModel::checkRuStoreCompatibility,
-                    onSetRuStoreVersionCode = viewModel::setRuStoreVersionCode,
-                    onExportUri = viewModel::exportBackupToUri,
-                    onImportUri = { uri, merge -> viewModel.importBackupFromUri(uri, merge) },
-                    onExportJson = viewModel::exportBackupJson,
-                    onRestoreJson = viewModel::restoreBackupJson,
-                    onOpenGitHub = { destination = WyStoreDestination.GitHub },
-                    selfUpdate = state.selfUpdate,
-                    // Wy Store's own row in the queue, so its page can show the download instead
-                    // of sending the user to Updates to watch it.
-                    selfUpdateQueueItem = state.installQueue.firstOrNull {
-                        it.packageName == BuildConfig.APPLICATION_ID
-                    },
-                    selfUpdatePending = state.pendingUpdates.firstOrNull {
-                        it.packageName == BuildConfig.APPLICATION_ID
-                    },
-                    onCheckSelfUpdate = viewModel::checkSelfUpdate,
-                    onInstallSelfUpdate = viewModel::installSelfUpdate,
-                    onInstallDownloadedSelfUpdate = { onInstallPending(BuildConfig.APPLICATION_ID) },
-                    onCancelSelfUpdateDownload = viewModel::queueCancel
-                )
-                is WyStoreDestination.AppDetails -> Unit
+                            emptyList()
+                        },
+                        onGitHubPickClick = viewModel::openGitHubApp,
+                        onUpdateAll = { viewModel.updateAll() },
+                        onRetryCatalog = homeViewModel::retry,
+                        // The one button that says what it will do used to open the app's page
+                        // instead of doing it.
+                        onInstall = viewModel::quickInstall,
+                        onInstallDownloaded = onInstallPending,
+                        onLaunch = viewModel::launchInstalledApp
+                    )
+                    is WyStoreDestination.Category -> CategoryScreen(
+                        state = categoryState,
+                        installed = state.installed,
+                        managed = state.managed,
+                        modifier = screenModifier,
+                        onBack = { destination = WyStoreDestination.Home },
+                        onAppClick = { packageName -> viewModel.openDetails(packageName) },
+                        onPreviousPage = categoryViewModel::previousPage,
+                        onNextPage = categoryViewModel::nextPage,
+                        onRetry = categoryViewModel::retry,
+                        onInstall = viewModel::quickInstall,
+                        onInstallDownloaded = onInstallPending,
+                        onLaunch = viewModel::launchInstalledApp
+                    )
+                    WyStoreDestination.Search -> SearchScreen(
+                        modifier = screenModifier,
+                        query = state.query,
+                        apps = state.search?.apps ?: emptyList(),
+                        total = state.search?.total,
+                        busy = state.searching,
+                        operation = state.operation,
+                        installed = state.installed,
+                        queue = state.installQueue,
+                        pendingUpdates = state.pendingUpdates,
+                        onInstallPending = onInstallPending,
+                        githubResults = state.githubSearchResults,
+                        onOpenGitHubApp = viewModel::openGitHubApp,
+                        onSearch = viewModel::search,
+                        onLoadMore = viewModel::searchMore,
+                        onOpen = { app -> viewModel.openDetails(app.packageName) },
+                        onQuickInstall = viewModel::quickInstall,
+                        onLaunch = viewModel::launchInstalledApp
+                    )
+                    WyStoreDestination.GitHub -> GitHubScreen(
+                        modifier = screenModifier,
+                        repositories = state.githubRepositories,
+                        activeRepository = state.githubActiveRepository,
+                        releases = state.githubReleases,
+                        loading = state.githubLoading,
+                        install = state.githubInstall,
+                        catalog = dev.wystore.data.GitHubCatalog.entries(state.githubRepositories),
+                        onLoad = viewModel::loadGitHubRepository,
+                        onOpen = viewModel::openGitHubRelease,
+                        onOpenCatalogEntry = viewModel::openGitHubApp,
+                        onRemove = viewModel::removeGitHubRepository
+                    )
+                    WyStoreDestination.Updates -> UpdatesScreen(
+                        modifier = screenModifier,
+                        managed = state.managed,
+                        installed = state.installed,
+                        pendingUpdates = state.pendingUpdates,
+                        updateCheckTask = state.updateCheckTask,
+                        lastUpdateCheck = state.lastUpdateCheck,
+                        queue = state.installQueue,
+                        packageIcons = state.packageIcons,
+                        onCheckUpdates = { viewModel.checkForUpdates() },
+                        onOpen = { managedApp ->
+                            if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
+                                viewModel.openManagedGitHubRepository(managedApp)
+                            } else {
+                                viewModel.openDetails(managedApp.packageName)
+                            }
+                        },
+                        onInstallPending = onInstallPending,
+                        onDiscardPending = viewModel::discardPendingUpdate,
+                        onQueueRetry = viewModel::queueRetry,
+                        onQueueCancel = viewModel::queueCancel,
+                        onQueueSkip = viewModel::queueSkip,
+                        onQueueDownload = viewModel::queueDownload,
+                        onStartQueue = viewModel::startQueue
+                    )
+                    WyStoreDestination.Library -> LibraryScreen(
+                        modifier = screenModifier,
+                        installed = state.installed,
+                        managed = state.managed,
+                        pendingUpdates = state.pendingUpdates,
+                        updateCheckTask = state.updateCheckTask,
+                        onCheckUpdates = { viewModel.checkForUpdates() },
+                        onOpenStorePage = viewModel::openDetails,
+                        onAdopt = { adoptDialog = it },
+                        onUpdateManaged = viewModel::updateManaged,
+                        onRequestForce = { forceDialog = it },
+                        onRemoveManaged = { viewModel.setManaged(it, false) },
+                        onUninstall = { uninstallDialog = it },
+                        onCheck = viewModel::checkManagedApp,
+                        onOpenDetails = { managedApp ->
+                            if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
+                                viewModel.openManagedGitHubRepository(managedApp)
+                            } else {
+                                viewModel.openDetails(managedApp.packageName)
+                            }
+                        },
+                        onLaunch = viewModel::launchInstalledApp,
+                        onInstallPending = onInstallPending
+                    )
+                    WyStoreDestination.Settings -> SettingsScreen(
+                        modifier = screenModifier,
+                        settings = state.settings,
+                        ruStoreCompatibility = state.ruStoreCompatibility,
+                        ruStoreCompatibilityTask = state.ruStoreCompatibilityTask,
+                        rootAvailable = state.rootAvailable,
+                        managedCount = state.managed.size,
+                        githubCount = state.githubRepositories.size,
+                        onSave = viewModel::saveSettings,
+                        onCheckRoot = viewModel::checkRoot,
+                        onCheckRuStore = viewModel::checkRuStoreCompatibility,
+                        onSetRuStoreVersionCode = viewModel::setRuStoreVersionCode,
+                        onExportUri = viewModel::exportBackupToUri,
+                        onImportUri = { uri, merge -> viewModel.importBackupFromUri(uri, merge) },
+                        onExportJson = viewModel::exportBackupJson,
+                        onRestoreJson = viewModel::restoreBackupJson,
+                        onOpenGitHub = { destination = WyStoreDestination.GitHub },
+                        selfUpdate = state.selfUpdate,
+                        // Wy Store's own row in the queue, so its page can show the download instead
+                        // of sending the user to Updates to watch it.
+                        selfUpdateQueueItem = state.installQueue.firstOrNull {
+                            it.packageName == BuildConfig.APPLICATION_ID
+                        },
+                        selfUpdatePending = state.pendingUpdates.firstOrNull {
+                            it.packageName == BuildConfig.APPLICATION_ID
+                        },
+                        onCheckSelfUpdate = viewModel::checkSelfUpdate,
+                        onInstallSelfUpdate = viewModel::installSelfUpdate,
+                        onInstallDownloadedSelfUpdate = { onInstallPending(BuildConfig.APPLICATION_ID) },
+                        onCancelSelfUpdateDownload = viewModel::queueCancel
+                    )
+                    is WyStoreDestination.AppDetails -> Unit
+                }
             }
         }
     }

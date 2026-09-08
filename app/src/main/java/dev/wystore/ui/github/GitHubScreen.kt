@@ -51,6 +51,7 @@ import dev.wystore.R
 import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.data.GitHubRelease
 import dev.wystore.data.GitHubRepository
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.CategoryPill
 import dev.wystore.ui.components.EmptyState
@@ -87,12 +88,12 @@ fun GitHubScreen(
         }
     ) { contentPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
                 top = 4.dp,
-                bottom = 24.dp
+                bottom = 24.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {

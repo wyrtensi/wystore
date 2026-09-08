@@ -17,10 +17,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
@@ -69,10 +65,11 @@ fun LibraryAppRow(
     onOpenStorePage: (String) -> Unit,
     onLaunch: (String) -> Unit,
     onInstallPending: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    expanded: Boolean = false,
+    onExpandedChange: (Boolean) -> Unit = {}
 ) {
-    var expanded by rememberSaveable(app.packageName) { mutableStateOf(false) }
-    WyCard(modifier = modifier.fillMaxWidth(), onClick = { expanded = !expanded }) {
+    WyCard(modifier = modifier.fillMaxWidth(), onClick = { onExpandedChange(!expanded) }) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 InstalledAppIcon(

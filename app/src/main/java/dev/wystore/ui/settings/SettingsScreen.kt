@@ -47,6 +47,7 @@ import dev.wystore.data.PendingUpdate
 import dev.wystore.data.RuStoreCompatibility
 import dev.wystore.data.StoreSettings
 import dev.wystore.updates.model.QueueMode
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.CompactSettingSwitch
 import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.SectionHeader
@@ -191,9 +192,14 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding)
+                .padding(top = contentPadding.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
-                .padding(start = ScreenPadding, end = ScreenPadding, top = 4.dp, bottom = 28.dp),
+                .padding(
+                    start = ScreenPadding,
+                    end = ScreenPadding,
+                    top = 4.dp,
+                    bottom = 28.dp + LocalBottomBarInset.current
+                ),
             verticalArrangement = Arrangement.spacedBy(SectionSpacing)
         ) {
             // One grouped list rather than six separate cards: the destinations read as a menu,
@@ -320,6 +326,36 @@ fun SettingsScreen(
                     enabled = rootAvailable == true
                 ) {
                     editedSettings = editedSettings.copy(rootBackgroundDownloadsEnabled = it)
+                    onSave(editedSettings)
+                }
+            }
+
+            // The permission for this is granted at install time and asks the user nothing; the
+            // switch exists because "updates itself quietly" should still be a choice.
+            SettingsGroup(
+                title = stringResource(R.string.settings_silent_updates_title),
+                subtitle = stringResource(R.string.settings_silent_updates_hint)
+            ) {
+                CompactSettingSwitch(
+                    stringResource(R.string.settings_silent_updates_switch),
+                    editedSettings.silentUpdatesEnabled
+                ) {
+                    editedSettings = editedSettings.copy(silentUpdatesEnabled = it)
+                    onSave(editedSettings)
+                }
+            }
+
+            // Fetching was root-only, so on an ordinary phone a check announced an update and
+            // then stood still until the user went looking for it on another screen.
+            SettingsGroup(
+                title = stringResource(R.string.settings_auto_download_title),
+                subtitle = stringResource(R.string.settings_auto_download_hint)
+            ) {
+                CompactSettingSwitch(
+                    stringResource(R.string.settings_auto_download_updates),
+                    editedSettings.autoDownloadUpdates
+                ) {
+                    editedSettings = editedSettings.copy(autoDownloadUpdates = it)
                     onSave(editedSettings)
                 }
             }

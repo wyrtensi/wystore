@@ -60,6 +60,7 @@ import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.CategoryPill
 import dev.wystore.ui.components.EmptyState
@@ -111,12 +112,12 @@ fun SearchScreen(
         }
     ) { contentPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
                 top = 4.dp,
-                bottom = 24.dp
+                bottom = 24.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {

@@ -44,6 +44,7 @@ import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.UpdateCheckSummary
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.EmptyState
 import dev.wystore.ui.components.AppIcon
 import androidx.compose.ui.text.style.TextOverflow
@@ -121,12 +122,12 @@ fun UpdatesScreen(
         }
     ) { contentPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
                 top = 4.dp,
-                bottom = 24.dp
+                bottom = 24.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
