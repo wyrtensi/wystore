@@ -198,7 +198,8 @@ class StoreRepository(private val context: Context) {
                     versionCode = info.versionCodeCompat(),
                     lastUpdateTime = info.lastUpdateTime,
                     source = sourceFor(info.packageName),
-                    signingDigests = SigningVerifier.installedDigests(info)
+                    signingDigests = SigningVerifier.installedDigests(info),
+                    installerPackageName = installerOf(info.packageName)
                 )
             }.sortedBy { it.label.lowercase() }.toList()
     }
@@ -255,14 +256,16 @@ class StoreRepository(private val context: Context) {
         return restoreBackup(backup, merge)
     }
 
-    private fun sourceFor(packageName: String): InstallSource {
-        val installer = if (Build.VERSION.SDK_INT >= 30) {
-            runCatching { context.packageManager.getInstallSourceInfo(packageName).installingPackageName }.getOrNull()
-        } else {
-            @Suppress("DEPRECATION")
-            context.packageManager.getInstallerPackageName(packageName)
-        }
-        return if (installer == "com.android.vending") InstallSource.GOOGLE_PLAY else InstallSource.OTHER
+    private fun sourceFor(packageName: String): InstallSource =
+        if (installerOf(packageName) == "com.android.vending") InstallSource.GOOGLE_PLAY
+        else InstallSource.OTHER
+
+    /** Android's installer of record: who is expected to update this app. */
+    private fun installerOf(packageName: String): String? = if (Build.VERSION.SDK_INT >= 30) {
+        runCatching { context.packageManager.getInstallSourceInfo(packageName).installingPackageName }.getOrNull()
+    } else {
+        @Suppress("DEPRECATION")
+        runCatching { context.packageManager.getInstallerPackageName(packageName) }.getOrNull()
     }
 }
 

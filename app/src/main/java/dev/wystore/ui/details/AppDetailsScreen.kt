@@ -1,5 +1,6 @@
 package dev.wystore.ui.details
 
+import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +18,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Share
+import androidx.core.net.toUri
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -57,6 +60,8 @@ import dev.wystore.data.AndroidSdkCompatibility
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
+import dev.wystore.ui.components.UninstallIconButton
+import dev.wystore.ui.components.installerLabel
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.DetailFacts
 import dev.wystore.ui.components.OperationProgress
@@ -221,6 +226,7 @@ fun AppDetailsScreen(
                                     modifier = Modifier.weight(1f)
                                 ) { Text(installLabel) }
                             }
+                            UninstallIconButton(installed.packageName)
                         }
                     }
 
@@ -269,6 +275,30 @@ fun AppDetailsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                            }
+                            // Who updates this app is decided by Android, not by us, and until now
+                            // the page never said so. It matters: only the installer of record may
+                            // update an app without asking, so "why does this one still stop on a
+                            // dialog?" has an answer, and something can be done about it.
+                            if (installed != null) {
+                                val owner = installed.installerPackageName
+                                Text(
+                                    stringResource(R.string.details_owner, installerLabel(owner)),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (owner != context.packageName) {
+                                    Text(
+                                        stringResource(R.string.details_take_over_hint),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    TextButton(
+                                        onClick = runInstall,
+                                        enabled = !busy,
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                    ) { Text(stringResource(R.string.details_take_over)) }
+                                }
                             }
                         }
                     }

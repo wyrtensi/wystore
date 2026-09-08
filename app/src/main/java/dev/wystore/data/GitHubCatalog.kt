@@ -14,6 +14,16 @@ data class GitHubCatalogEntry(
     val categories: List<String> = emptyList(),
     val curated: Boolean = false,
     /**
+     * What this project installs as, when it is known.
+     *
+     * Without it a GitHub app is only recognised as installed once Wy Store has installed it
+     * itself: the link between a repository and a package lives in the managed record, and an app
+     * the user got anywhere else has none. The page then offered "Install" for something already
+     * on the device. Left null rather than guessed - a wrong package name would claim the wrong
+     * app is installed, which is worse than saying nothing.
+     */
+    val packageName: String? = null,
+    /**
      * The project's own icon, when it ships one. Must be a GitHub-hosted URL; anything else is
      * ignored by [GitHubUrlPolicy] and the owner avatar is used instead.
      */
@@ -66,7 +76,8 @@ object GitHubCatalog {
             publisher = "amnezia-vpn",
             summary = "Клиент AmneziaVPN: свой VPN-сервер с протоколами AmneziaWG, WireGuard, OpenVPN и XRay.",
             categories = listOf("VPN", "Сеть"),
-            curated = true
+            curated = true,
+            packageName = "org.amnezia.vpn"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("romanvht", "ByeDPIAndroid"),

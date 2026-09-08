@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,12 +50,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import dev.wystore.R
+import dev.wystore.data.GitHubInstallStatePolicy
+import dev.wystore.data.GitHubInstallState
 import dev.wystore.data.GitHubAsset
 import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.data.GitHubRelease
 import dev.wystore.data.GitHubReleasePolicy
 import dev.wystore.data.GitHubRepositoryInfo
 import dev.wystore.data.InstalledApp
+import dev.wystore.ui.components.UninstallIconButton
+import dev.wystore.ui.components.installerLabel
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.CategoryPill
 import dev.wystore.ui.components.EmptyState
@@ -230,6 +235,10 @@ fun GitHubAppScreen(
                         state.info?.stars?.let { GitHubFact(stringResource(R.string.github_fact_stars), it.toString()) }
                         installedApp?.let {
                             GitHubFact(stringResource(R.string.github_fact_installed), it.versionName)
+                            GitHubFact(
+                                stringResource(R.string.github_fact_owner),
+                                installerLabel(it.installerPackageName)
+                            )
                         }
 
                         if (state.info?.archived == true) {
@@ -265,16 +274,69 @@ fun GitHubAppScreen(
             // One primary action, like a RuStore card. Choosing a specific build is a small
             // secondary control rather than a list of every asset in the release.
             val recommended = state.recommendedAsset(deviceAbis)
+            val ownedByUs = installedApp?.installerPackageName == context.packageName
+            val installState = GitHubInstallStatePolicy.stateFor(
+                installedVersionName = installedApp?.versionName,
+                releaseTag = state.latestRelease?.tagName
+            )
             if (recommended != null) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = { onInstallAsset(recommended) },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
+                        // Laid out like a RuStore card: what is installed opens, and only a
+                        // genuinely newer release is offered as an update. Choosing by "is it
+                        // installed at all" offered "Update" for the build already running and
+                        // reinstalled the same APK when pressed.
+                        when (installState) {
+                            GitHubInstallState.NotInstalled -> Button(
+                                onClick = { onInstallAsset(recommended) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text(stringResource(R.string.github_install_primary)) }
+
+                            GitHubInstallState.UpdateAvailable -> Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                FilledTonalButton(
+                                    onClick = { installedApp?.let { onOpenInstalled(it.packageName) } },
+                                    modifier = Modifier.weight(1f)
+                                ) { Text(stringResource(R.string.common_open)) }
+                                Button(
+                                    onClick = { onInstallAsset(recommended) },
+                                    modifier = Modifier.weight(1f)
+                                ) { Text(stringResource(R.string.github_update_primary)) }
+                                installedApp?.let { UninstallIconButton(it.packageName) }
+                            }
+
+                            GitHubInstallState.Current,
+                            GitHubInstallState.Unknown -> Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                FilledTonalButton(
+                                    onClick = { installedApp?.let { onOpenInstalled(it.packageName) } },
+                                    modifier = Modifier.weight(1f)
+                                ) { Text(stringResource(R.string.common_open)) }
+                                // Still reachable, because a build can be broken or a different
+                                // one wanted - it is just no longer the thing the page pushes.
+                                // When another installer owns the app, the same action is the only
+                                // way to hand its updates to Wy Store, so it says so.
+                                OutlinedButton(
+                                    onClick = { onInstallAsset(recommended) },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        if (ownedByUs) stringResource(R.string.github_reinstall)
+                                        else stringResource(R.string.details_take_over)
+                                    )
+                                }
+                                installedApp?.let { UninstallIconButton(it.packageName) }
+                            }
+                        }
+                        if (installedApp != null && !ownedByUs) {
                             Text(
-                                if (installedApp != null) stringResource(R.string.github_update_primary)
-                                else stringResource(R.string.github_install_primary)
+                                stringResource(R.string.details_take_over_hint),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Text(
@@ -332,15 +394,6 @@ fun GitHubAppScreen(
                         icon = Icons.Outlined.Warning,
                         title = stringResource(R.string.github_no_apk)
                     )
-                }
-            }
-
-            if (installedApp != null) {
-                item {
-                    OutlinedButton(
-                        onClick = { onOpenInstalled(installedApp.packageName) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.common_open)) }
                 }
             }
 

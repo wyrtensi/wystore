@@ -127,7 +127,13 @@ data class InstalledApp(
     val versionCode: Long,
     val lastUpdateTime: Long,
     val source: InstallSource,
-    val signingDigests: Set<String>
+    val signingDigests: Set<String>,
+    /**
+     * Who Android holds responsible for this app's updates, or null when nobody was given the job
+     * (sideloaded by hand, pushed over adb). The coarse [source] tells Play from everything else;
+     * this is the name the user can actually be shown.
+     */
+    val installerPackageName: String? = null
 )
 
 data class ManagedApp(
@@ -147,7 +153,8 @@ typealias QueueMode = dev.wystore.updates.model.QueueMode
 
 data class StoreSettings(
     val wifiOnly: Boolean = true,
-    val requiresCharging: Boolean = true,
+    /** Off by default: an update that waits for a charger is an update that never arrives. */
+    val requiresCharging: Boolean = false,
     val allowMobileData: Boolean = false,
     val backgroundRootUpdates: Boolean = false,
     val updateIntervalHours: Long = 24,
@@ -166,10 +173,14 @@ data class StoreSettings(
     val quietHoursEnd: Int = 8,
     val respectBatterySaver: Boolean = true,
     val selfUpdateEnabled: Boolean = true,
+    /** Update an app Wy Store installed without stopping on Android's dialog. */
+    val silentUpdatesEnabled: Boolean = true,
+    /** Fetch an update as soon as a check finds it, instead of waiting to be asked. */
+    val autoDownloadUpdates: Boolean = true,
     /** Hand a downloaded update straight to the installer instead of waiting for a tap. */
-    val autoInstallUpdates: Boolean = false,
+    val autoInstallUpdates: Boolean = true,
     /** The same for an app being installed for the first time. */
-    val autoInstallNewApps: Boolean = false,
+    val autoInstallNewApps: Boolean = true,
     val artifactRetentionDays: Int = 7,
     val artifactStorageLimitMb: Int = 2_048
 )
