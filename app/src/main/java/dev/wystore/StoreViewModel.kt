@@ -1267,11 +1267,26 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 githubRepositories = repository.githubRepositories(),
                 settings = repository.settings(),
                 ruStoreCompatibility = repository.ruStoreCompatibility(),
-                message = summary.message
+                message = summary.message + restoreCaveat()
             ) }
         }.onFailure { error ->
             _state.update { it.copy(message = error.message ?: string(R.string.vm_backup_import_failed)) }
         }
+    }
+
+    /**
+     * What a backup cannot carry, said where the person is when they find out.
+     *
+     * A backup restores what the app knows. It cannot restore what Android granted the app that
+     * wrote it: an exemption from battery optimisation belongs to an application id, and the whole
+     * reason to be restoring is usually that the id changed. Without it the background check still
+     * runs, but when the system feels like it rather than on the schedule the settings promise -
+     * and nothing on screen would have said so.
+     */
+    private fun restoreCaveat(): String {
+        val granted = runCatching { queueCoordinator.permissionSnapshot().batteryOptimizationsIgnored }
+            .getOrDefault(true)
+        return if (granted) "" else " " + string(R.string.msg_backup_restore_battery)
     }
 
     fun restoreBackupJson(json: String, merge: Boolean = false) {

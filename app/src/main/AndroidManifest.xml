@@ -22,6 +22,11 @@
          install, nothing is asked. -->
     <uses-permission android:name="android.permission.ENFORCE_UPDATE_OWNERSHIP" />
     <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
+    <!-- Lets the app raise Android's own one-tap dialog for the battery-optimisation exemption
+         instead of dropping the user into a system list to find it themselves. It asks; only the
+         user grants it, and the app works without it - checks simply arrive when the system feels
+         like it rather than on the schedule the settings say. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:name=".WyStoreApplication"

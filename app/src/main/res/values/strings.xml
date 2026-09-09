@@ -40,6 +40,7 @@
     <string name="msg_github_open_repo_first">Open a GitHub repository first</string>
     <string name="msg_backup_exported">Backup successfully exported</string>
     <string name="msg_backup_restored">Backup successfully restored</string>
+    <string name="msg_backup_restore_battery">Battery optimisation is still on for this app: Settings → Permission centre → Background activity.</string>
     <string name="msg_backup_restore_failed">Failed to restore backup</string>
     <string name="msg_app_not_installed">App is not installed</string>
     <string name="msg_no_app_to_delete">No app found to delete</string>

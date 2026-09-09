@@ -40,6 +40,7 @@
     <string name="msg_github_open_repo_first">Сначала открой репозиторий GitHub</string>
     <string name="msg_backup_exported">Резервная копия успешно экспортирована</string>
     <string name="msg_backup_restored">Резервная копия успешно восстановлена</string>
+    <string name="msg_backup_restore_battery">Оптимизация батареи для приложения ещё включена: Настройки → Центр разрешений → «Фоновая активность».</string>
     <string name="msg_backup_restore_failed">Ошибка восстановления резервной копии</string>
     <string name="msg_app_not_installed">Приложение не установлено</string>
     <string name="msg_no_app_to_delete">Не найдено приложение для удаления</string>

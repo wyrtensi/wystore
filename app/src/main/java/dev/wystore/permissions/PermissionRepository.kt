@@ -63,7 +63,20 @@ class PermissionRepository(private val context: Context) {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
+    /**
+     * Android's own dialog for the exemption, with the list of every app as the fallback.
+     *
+     * The list is where this used to send people: an alphabetical roll of everything installed, to
+     * find this app in and change a setting whose name is not the one on the button they pressed.
+     * The direct request is one dialog with a yes and a no, and the system still decides - the app
+     * only asks. A device that does not offer it falls back to the list rather than to nothing.
+     */
     fun batteryOptimizationSettingsIntent(packageName: String = appContext.packageName): Intent {
+        val request = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+            data = Uri.parse("package:$packageName")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        if (request.resolveActivity(appContext.packageManager) != null) return request
         return Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
