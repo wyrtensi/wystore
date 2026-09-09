@@ -113,7 +113,11 @@ class UpdateCheckWorker(
                 }
                 if (queuedId != null) {
                     updatesFound++
-                    queuedThisRun += queuedId
+                    // Found, and shown in the queue either way. Only an app the user still lets
+                    // update by itself is handed to the downloader; see mayDownloadAfterCheck.
+                    if (UpdateCheckPolicy.mayDownloadAfterCheck(managed.autoUpdate)) {
+                        queuedThisRun += queuedId
+                    }
                 }
             } catch (c: CancellationException) {
                 throw c

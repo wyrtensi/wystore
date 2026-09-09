@@ -143,6 +143,17 @@ class UpdateCheckPolicyTest {
         assertEquals("wystore:updates:periodic", UpdateWorkScheduler.PERIODIC_CHECK_WORK)
     }
 
+    /**
+     * The library switch promises, in the app's own words, that a check "will not download or
+     * install" the app's updates. A check over the whole library kept looking at excluded apps -
+     * which is right, the update is worth showing - and then fetched every one of them anyway.
+     */
+    @Test
+    fun anAppExcludedFromAutoUpdatesIsNeverFetchedByACheck() {
+        assertFalse(UpdateCheckPolicy.mayDownloadAfterCheck(autoUpdateEnabledForApp = false))
+        assertTrue(UpdateCheckPolicy.mayDownloadAfterCheck(autoUpdateEnabledForApp = true))
+    }
+
     @Test
     fun retryableFailuresYieldRetryAndPermanentFailuresDoNot() {
         val timeoutError = SocketTimeoutException("Connect timed out")

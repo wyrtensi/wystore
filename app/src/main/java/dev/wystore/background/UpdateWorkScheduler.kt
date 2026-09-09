@@ -76,6 +76,18 @@ object UpdateCheckPolicy {
     fun shouldRetryCheck(attempted: Int, retryableFailures: Int): Boolean =
         attempted > 0 && retryableFailures == attempted
 
+    /**
+     * Whether a check may fetch what it just found for this app.
+     *
+     * "Auto-update" off is answered to the user in as many words: the check will not download or
+     * install that app's updates. A check aimed at one package honoured it, but a check over the
+     * whole library did not - it looked at every managed app, which is right, and then handed
+     * everything it found to the downloader, which is not. An excluded app now gets its row in the
+     * queue, so the update is still visible and can be started by hand, and nothing is fetched
+     * behind the user's back.
+     */
+    fun mayDownloadAfterCheck(autoUpdateEnabledForApp: Boolean): Boolean = autoUpdateEnabledForApp
+
     fun shouldRetryWorker(error: Throwable): Boolean {
         return try {
             val failure = classifyThrowable(error)
