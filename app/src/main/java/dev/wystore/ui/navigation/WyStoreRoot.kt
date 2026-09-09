@@ -1,11 +1,16 @@
 package dev.wystore.ui.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -24,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import dev.wystore.BuildConfig
 import dev.wystore.R
 import dev.wystore.StoreViewModel
@@ -107,6 +113,41 @@ fun WyStoreRoot(
             }
             else -> destination = WyStoreDestination.Home
         }
+    }
+
+    // A transfer the user asked for runs on whatever connection there is, so "Wi-Fi only" was
+    // spent rather than honoured whenever someone pressed Install on mobile data. Asking is what
+    // lets the button stay responsive and the setting stay true.
+    if (state.meteredDownloadPrompt) {
+        var always by rememberSaveable { mutableStateOf(false) }
+        AlertDialog(
+            onDismissRequest = viewModel::cancelMeteredDownload,
+            title = { Text(stringResource(R.string.metered_download_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.metered_download_body))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { always = !always },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(checked = always, onCheckedChange = { always = it })
+                        Text(stringResource(R.string.metered_download_always))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmMeteredDownload(always) }) {
+                    Text(stringResource(R.string.metered_download_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::cancelMeteredDownload) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        )
     }
 
     // The queue coordinator has always computed the next item after an install finishes; nothing

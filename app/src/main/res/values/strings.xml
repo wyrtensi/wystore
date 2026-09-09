@@ -334,6 +334,10 @@
     <string name="updates_queue_title">Queue (%1$d)</string>
     <string name="updates_queue_start">Start</string>
     <string name="updates_check_now">Check</string>
+    <string name="metered_download_title">Mobile data right now</string>
+    <string name="metered_download_body">Settings say Wi-Fi only, and this connection charges for traffic. Download anyway?</string>
+    <string name="metered_download_always">Always download over mobile data</string>
+    <string name="metered_download_confirm">Download</string>
     <string name="install_queue_current">Waiting for Android to confirm the install</string>
     <string name="install_queue_waiting">Install queue: %1$d more waiting</string>
     <string name="updates_install_all">Install all</string>

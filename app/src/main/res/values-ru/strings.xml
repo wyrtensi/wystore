@@ -334,6 +334,10 @@
     <string name="updates_queue_title">Очередь (%1$d)</string>
     <string name="updates_queue_start">Запустить</string>
     <string name="updates_check_now">Проверить</string>
+    <string name="metered_download_title">Сейчас мобильный интернет</string>
+    <string name="metered_download_body">В настройках выбрано «Только Wi-Fi», а эта сеть платная. Всё равно скачать?</string>
+    <string name="metered_download_always">Всегда качать по мобильному</string>
+    <string name="metered_download_confirm">Скачать</string>
     <string name="install_queue_current">Ждём подтверждения установки от Android</string>
     <string name="install_queue_waiting">Очередь на установку: ещё %1$d</string>
     <string name="updates_install_all">Установить все</string>

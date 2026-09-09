@@ -29,6 +29,9 @@ import dev.wystore.data.AdoptionCandidate
 import dev.wystore.data.GoogleAdoptionPolicy
 import dev.wystore.data.BackupLocation
 import dev.wystore.data.InstallSource
+import dev.wystore.data.MeteredDownloadConsent
+import dev.wystore.data.MeteredDownloadPolicy
+import dev.wystore.data.isActiveNetworkMetered
 import dev.wystore.data.PendingUpdate
 import dev.wystore.root.RootInstaller
 import dev.wystore.updates.UpdateScheduler
@@ -213,6 +216,8 @@ data class StoreUiState(
     /** Packages whose full review list has already been fetched in this session. */
     val fullReviewsLoaded: Set<String> = emptySet(),
     /** Packages left in an "update everything" run, in the order they will be installed. */
+    /** Set while the "this is mobile data" question is on screen; see [StoreViewModel.askOnMeteredNetwork]. */
+    val meteredDownloadPrompt: Boolean = false,
     val installAllRemaining: List<String> = emptyList(),
     /** The app whose confirmation dialog is up, if the queue is working through a batch. */
     val installAllCurrent: String? = null,
@@ -695,16 +700,18 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = _state.value.copy(message = getApplication<Application>().getString(R.string.msg_github_open_repo_first))
             return
         }
-        GitHubInstallScheduler.enqueue(getApplication(), asset, repositorySource, _state.value.githubSelectedRelease?.id)
-        _state.value = _state.value.copy(
-            githubInstall = InstallQueueItem(
-                id = asset.id.toString(),
-                packageName = "",
-                label = asset.name,
-                status = InstallQueueStatus.QUEUED
-            ),
-            message = string(R.string.vm_github_queued, asset.name)
-        )
+        askOnMeteredNetwork {
+            GitHubInstallScheduler.enqueue(getApplication(), asset, repositorySource, _state.value.githubSelectedRelease?.id)
+            _state.value = _state.value.copy(
+                githubInstall = InstallQueueItem(
+                    id = asset.id.toString(),
+                    packageName = "",
+                    label = asset.name,
+                    status = InstallQueueStatus.QUEUED
+                ),
+                message = string(R.string.vm_github_queued, asset.name)
+            )
+        }
     }
 
     fun saveSettings(settings: StoreSettings) {
@@ -713,6 +720,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             rootSilentInstallEnabled = settings.rootSilentInstallEnabled && _state.value.rootAvailable == true
         )
         repository.saveSettings(effective)
+        // The yes was given about one setting; changing it makes the yes meaningless either way.
+        MeteredDownloadConsent.forget()
         viewModelScope.launch {
             settingsRepository.update { effective.toAppSettings() }
         }
@@ -834,7 +843,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     fun permissionSnapshot() = queueCoordinator.permissionSnapshot()
 
     fun startQueue() {
-        viewModelScope.launch { queueCoordinator.startQueue() }
+        askOnMeteredNetwork { viewModelScope.launch { queueCoordinator.startQueue() } }
     }
 
     /**
@@ -850,7 +859,11 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             state.copy(installAllRemaining = state.pendingUpdates.map { it.packageName })
         }
         startNextBatchInstall()
-        viewModelScope.launch { runCatching { queueCoordinator.startQueue() } }
+        // Installing what is already downloaded costs nothing; only the fetching part is asked
+        // about, and only when there is in fact something left to fetch.
+        askOnMeteredNetwork {
+            viewModelScope.launch { runCatching { queueCoordinator.startQueue() } }
+        }
     }
 
     /**
@@ -996,15 +1009,72 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     /** Queues the release found by [checkSelfUpdate] and starts the queue working on it. */
     fun installSelfUpdate() {
         val available = _state.value.selfUpdate as? SelfUpdateStatus.Available ?: return
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) { selfUpdateChecker.enqueue(available.release) }
-            queueCoordinator.startQueue()
-            _state.update { it.copy(message = string(R.string.about_update_queued)) }
+        askOnMeteredNetwork {
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) { selfUpdateChecker.enqueue(available.release) }
+                queueCoordinator.startQueue()
+                _state.update { it.copy(message = string(R.string.about_update_queued)) }
+            }
         }
     }
 
+    /**
+     * The download the "this is mobile data" question is holding, or null when nothing is asked.
+     *
+     * Held rather than described: every caller phrases its own download differently, and the answer
+     * has to start exactly what the button would have started.
+     */
+    private var meteredDownloadAction: (() -> Unit)? = null
+
+    /**
+     * Runs [start], or asks first when the connection charges for it and the settings say Wi-Fi.
+     *
+     * A transfer the user asked for has always run on whatever connection there was - waiting for
+     * Wi-Fi turns "Install" into a row that sits in the queue - so the Wi-Fi-only setting was
+     * quietly spent instead of honoured. Both can be true if the question is put.
+     */
+    private fun askOnMeteredNetwork(start: () -> Unit) {
+        // Read rather than taken from the UI state: the state is refreshed by screens, and a
+        // question about the network settings must be asked of the settings as they are now.
+        val settings = repository.settings()
+        if (!MeteredDownloadPolicy.requiresConsent(
+                wifiOnly = settings.wifiOnly,
+                allowMobileData = settings.allowMobileData,
+                isMetered = isActiveNetworkMetered(getApplication()),
+                allowedThisSession = MeteredDownloadConsent.isAllowedThisSession()
+            )
+        ) {
+            start()
+            return
+        }
+        meteredDownloadAction = start
+        _state.update { it.copy(meteredDownloadPrompt = true) }
+    }
+
+    /**
+     * "Download anyway". [always] is the checkbox: it moves the setting itself to "mobile data is
+     * allowed", which is what makes background updates use it too. Without it the yes lasts as long
+     * as the app is running.
+     */
+    fun confirmMeteredDownload(always: Boolean) {
+        val start = meteredDownloadAction
+        meteredDownloadAction = null
+        _state.update { it.copy(meteredDownloadPrompt = false) }
+        if (always) {
+            saveSettings(repository.settings().copy(wifiOnly = false, allowMobileData = true))
+        }
+        MeteredDownloadConsent.allowForThisSession()
+        start?.invoke()
+    }
+
+    /** "Not now": the download is not started, and the next one asks again. */
+    fun cancelMeteredDownload() {
+        meteredDownloadAction = null
+        _state.update { it.copy(meteredDownloadPrompt = false) }
+    }
+
     fun queueDownload(id: String) {
-        viewModelScope.launch { queueCoordinator.download(id) }
+        askOnMeteredNetwork { viewModelScope.launch { queueCoordinator.download(id) } }
     }
 
     fun queueSkip(id: String) {
@@ -1017,9 +1087,11 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * entry in the shade.
      */
     fun queueRetry(id: String) {
-        viewModelScope.launch {
-            queueCoordinator.retry(id)
-            refreshErrorNotification()
+        askOnMeteredNetwork {
+            viewModelScope.launch {
+                queueCoordinator.retry(id)
+                refreshErrorNotification()
+            }
         }
     }
 
@@ -1282,21 +1354,25 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     fun installSelected() {
         _state.value.selected?.let { app ->
-            clearTransientFailure(app.packageName)
-            ManualInstallScheduler.enqueue(getApplication(), app.packageName, app.name, repository.settings())
-            _state.value = _state.value.copy(message = string(R.string.vm_queued_app, app.name))
+            askOnMeteredNetwork {
+                clearTransientFailure(app.packageName)
+                ManualInstallScheduler.enqueue(getApplication(), app.packageName, app.name, repository.settings())
+                _state.value = _state.value.copy(message = string(R.string.vm_queued_app, app.name))
+            }
         }
     }
 
     fun quickInstall(packageName: String) {
         if (hasActiveQueueItem(packageName)) return
-        clearTransientFailure(packageName)
-        val label = labelFor(packageName)
-        ManualInstallScheduler.enqueue(getApplication(), packageName, label, repository.settings())
-        _state.value = _state.value.copy(
-            message = if (label == packageName) string(R.string.vm_queued_generic)
-            else string(R.string.vm_queued_app, label)
-        )
+        askOnMeteredNetwork {
+            clearTransientFailure(packageName)
+            val label = labelFor(packageName)
+            ManualInstallScheduler.enqueue(getApplication(), packageName, label, repository.settings())
+            _state.value = _state.value.copy(
+                message = if (label == packageName) string(R.string.vm_queued_generic)
+                else string(R.string.vm_queued_app, label)
+            )
+        }
     }
 
     /**
