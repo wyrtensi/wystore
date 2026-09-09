@@ -211,6 +211,8 @@
     <string name="library_sort_auto_off">Авто: выкл</string>
     <string name="library_nothing_found">Ничего не найдено.</string>
     <string name="library_updated_at">Обновлено %1$s</string>
+    <string name="library_update_available">Найдено обновление — ещё не скачано</string>
+    <string name="library_update_available_version">Найдено обновление: %1$s — ещё не скачано</string>
     <string name="library_auto_update">Автообновление</string>
     <string name="library_force_wystore">Форсировать Wy Store</string>
     <string name="library_remove">Убрать</string>

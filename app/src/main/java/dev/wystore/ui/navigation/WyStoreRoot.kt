@@ -394,6 +394,8 @@ fun WyStoreRoot(
                         onRemoveManaged = { viewModel.setManaged(it, false) },
                         onUninstall = { launchUninstall(context, it.packageName) },
                         onCheck = viewModel::checkManagedApp,
+                        queue = state.installQueue,
+                        onDownloadUpdate = viewModel::queueDownload,
                         onOpenDetails = { managedApp ->
                             if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
                                 viewModel.openManagedGitHubRepository(managedApp)

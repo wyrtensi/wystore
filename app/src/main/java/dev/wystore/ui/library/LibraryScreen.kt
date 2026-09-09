@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import androidx.annotation.StringRes
 import dev.wystore.ui.components.WySpinner
+import dev.wystore.InstallQueueItem
 import dev.wystore.R
 import dev.wystore.UpdateCheckTask
 import dev.wystore.data.InstalledApp
@@ -93,10 +94,14 @@ fun LibraryScreen(
     onOpenDetails: (ManagedApp) -> Unit,
     onOpenStorePage: (String) -> Unit,
     onLaunch: (String) -> Unit,
-    onInstallPending: (String) -> Unit
+    onInstallPending: (String) -> Unit,
+    /** The queue, so a row can say a check found something that is not downloaded yet. */
+    queue: List<InstallQueueItem> = emptyList(),
+    onDownloadUpdate: (String) -> Unit = {}
 ) {
     val managedByPackage = remember(managed) { managed.associateBy { it.packageName } }
     val pendingByPackage = remember(pendingUpdates) { pendingUpdates.associateBy { it.packageName } }
+    val queueByPackage = remember(queue) { queue.associateBy { it.packageName } }
     var query by remember { mutableStateOf("") }
     var sort by rememberSaveable { mutableStateOf(LibrarySort.ALL) }
     // Which rows are open lives here rather than in the rows themselves. A row that is scrolled
@@ -270,7 +275,7 @@ fun LibraryScreen(
             }
             items(filteredInstalled, key = { it.packageName }) { app ->
                 val managedApp = managedByPackage[app.packageName]
-                LibraryAppRow(app, managedApp, pendingByPackage[app.packageName], onAdopt, onUpdateManaged, onRequestForce, onRemoveManaged, onUninstall, onCheck, onOpenDetails, onOpenStorePage, onLaunch, onInstallPending,
+                LibraryAppRow(app, managedApp, pendingByPackage[app.packageName], queueByPackage[app.packageName], onAdopt, onUpdateManaged, onRequestForce, onRemoveManaged, onUninstall, onCheck, onOpenDetails, onOpenStorePage, onLaunch, onInstallPending, onDownloadUpdate,
                     expanded = expandedPackages.contains(app.packageName),
                     onExpandedChange = { open ->
                         expandedPackages = if (open) expandedPackages + app.packageName

@@ -211,6 +211,8 @@
     <string name="library_sort_auto_off">Auto: off</string>
     <string name="library_nothing_found">Nothing found.</string>
     <string name="library_updated_at">Updated %1$s</string>
+    <string name="library_update_available">An update was found — not downloaded yet</string>
+    <string name="library_update_available_version">Update found: %1$s — not downloaded yet</string>
     <string name="library_auto_update">Auto-update</string>
     <string name="library_force_wystore">Force Wy Store</string>
     <string name="library_remove">Remove</string>

@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.wystore.InstallQueueItem
+import dev.wystore.InstallQueueStatus
 import dev.wystore.R
 import dev.wystore.data.InstallSource
 import dev.wystore.data.InstalledApp
@@ -55,6 +57,8 @@ fun LibraryAppRow(
     app: InstalledApp,
     managed: ManagedApp?,
     pendingUpdate: PendingUpdate?,
+    /** The queue's own row for this app, when a check has found something not yet downloaded. */
+    queueItem: InstallQueueItem?,
     onAdopt: (InstalledApp) -> Unit,
     onUpdateManaged: (ManagedApp) -> Unit,
     onRequestForce: (ManagedApp) -> Unit,
@@ -65,6 +69,7 @@ fun LibraryAppRow(
     onOpenStorePage: (String) -> Unit,
     onLaunch: (String) -> Unit,
     onInstallPending: (String) -> Unit,
+    onDownloadUpdate: (String) -> Unit,
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     onExpandedChange: (Boolean) -> Unit = {}
@@ -175,6 +180,25 @@ fun LibraryAppRow(
                 }
             }
 
+            // A check that found something had nowhere to say so on this screen: the update was
+            // in the queue on another tab, and the row here went on offering "Check" as though
+            // nothing had come of it. Only for an app whose update is not downloaded yet - one
+            // that is shows "Update" on the identity line already.
+            val available = queueItem?.takeIf {
+                pendingUpdate == null && it.status == InstallQueueStatus.QUEUED
+            }
+            if (available != null) {
+                Text(
+                    if (available.versionName.isBlank()) {
+                        stringResource(R.string.library_update_available)
+                    } else {
+                        stringResource(R.string.library_update_available_version, available.versionName)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
             WyDivider()
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -188,7 +212,11 @@ fun LibraryAppRow(
                     TextButton(onClick = { onOpenDetails(managed) }) {
                         Text(stringResource(R.string.library_open_page))
                     }
-                    if (pendingUpdate == null) {
+                    if (available != null) {
+                        TextButton(onClick = { onDownloadUpdate(available.id) }) {
+                            Text(stringResource(R.string.common_update))
+                        }
+                    } else if (pendingUpdate == null) {
                         TextButton(onClick = { onCheck(managed) }) {
                             Text(stringResource(R.string.common_check))
                         }

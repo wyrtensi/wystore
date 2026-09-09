@@ -137,6 +137,8 @@ data class InstallQueueItem(
     val packageName: String,
     val label: String,
     val status: InstallQueueStatus,
+    /** What the source offers, so a row can say what is waiting rather than only that something is. */
+    val versionName: String = "",
     val progress: DownloadProgress? = null,
     /** Typed reason, so the UI can render a localized message instead of the raw detail text. */
     val errorCode: dev.wystore.updates.model.QueueErrorCode? = null,
@@ -378,6 +380,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                         packageName = item.packageName,
                         label = item.label,
                         status = item.state.toInstallQueueStatus(),
+                        versionName = item.versionName,
                         // Byte counters survive the transfer; showing them past DOWNLOADING leaves a
                         // full progress bar stuck under a finished item.
                         progress = if (
