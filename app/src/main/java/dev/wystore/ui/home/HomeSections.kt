@@ -1,7 +1,15 @@
 package dev.wystore.ui.home
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
@@ -28,9 +36,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -231,6 +249,16 @@ fun CategoriesSection(
  * The tiles used to be identical grey squares with a small monochrome glyph, which read as one
  * undifferentiated block of chrome. Each one now carries its own tone from the theme's container
  * colours, so the rail is scannable by colour as well as by reading every label.
+ *
+ * The tone alone left them flat. The tile is built up instead: a gradient that settles into the
+ * page at the bottom, light falling from the top-left corner, two rings bleeding off the opposite
+ * one, and the icon on a lit disc. The rings are drawn rather than borrowed from the section's own
+ * picture - those are small bitmaps, and one blown up to fill a tile is a smudge, however low the
+ * opacity.
+ *
+ * Only the light is a fixed colour, white above and black below, because that is what light does
+ * in a light theme and a dark one alike. Everything else comes from the container colour, so
+ * Material You gets tiles that belong to it.
  */
 @Composable
 private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Unit) {
@@ -241,54 +269,108 @@ private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Un
         scheme.secondaryContainer to scheme.onSecondaryContainer
     )
     val (container, onContainer) = tones[accent.mod(tones.size)]
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    // Decorative, so it follows the system animation setting like everything else that is.
+    val scale by animateFloatAsState(if (pressed) 0.96f else 1f, label = "categoryTile")
     Surface(
         // Wide enough for the longest curated category name to break between words rather than
         // mid-word ("Здоровье и / аптеки"), and it grows with the system font size so that stays
         // true when the text does not fit the width it was measured for.
-        modifier = Modifier.width(fontScaledWidth(124.dp)).clickable(onClick = onClick),
+        modifier = Modifier
+            .width(fontScaledWidth(124.dp))
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick),
         shape = MaterialTheme.shapes.large,
-        color = container
+        color = Color.Transparent
     ) {
-        Column(
-            modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        Box(
+            modifier = Modifier.background(
+                // Deepening towards the ink would invert in dark mode, where the ink is the
+                // lighter colour. The scrim is black in both, so the tile settles either way.
+                Brush.verticalGradient(
+                    listOf(container, lerp(container, scheme.scrim, 0.12f))
+                )
+            )
         ) {
+            // The section's own glyph, in the tile's ink, half out of the corner. Big enough to
+            // be the tile's face and small enough not to blur: these are little bitmaps, and one
+            // stretched across the whole tile is a stain whatever the opacity.
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(onContainer.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 16.dp, y = 14.dp)
+                    .size(68.dp)
+                    .rotate(-8f)
+                    .alpha(0.18f)
             ) {
-                if (category.iconUrl != null) {
-                    AsyncImage(
-                        model = category.iconUrl,
-                        contentDescription = null,
-                        modifier = Modifier.size(26.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.List,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = onContainer
-                    )
-                }
+                CategoryGlyph(
+                    category = category,
+                    tint = onContainer,
+                    modifier = Modifier.fillMaxSize(),
+                    tintSourceIcon = true
+                )
             }
-            Text(
-                // Wy Store's own sections are translated; sections read from the source keep the
-                // name the catalogue publishes.
-                category.titleRes?.let { stringResource(it) } ?: category.title,
-                style = MaterialTheme.typography.labelLarge,
-                color = onContainer,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                minLines = 2,
-                lineHeight = 16.sp
-            )
+            // Ranged along the leading edge rather than centred on it. The disc that used to sit
+            // behind the icon was a second shape competing with the tile's own, and centring left
+            // every label floating between two ragged margins.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // The horizontal padding is what the tile width was measured against: at 12dp
+                    // "Маркетплейсы" no longer fits the line and breaks mid-word.
+                    .padding(vertical = 14.dp, horizontal = 10.dp),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                CategoryGlyph(
+                    category = category,
+                    tint = onContainer,
+                    modifier = Modifier.size(30.dp)
+                )
+                Text(
+                    // Wy Store's own sections are translated; sections read from the source keep
+                    // the name the catalogue publishes.
+                    category.titleRes?.let { stringResource(it) } ?: category.title,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = onContainer,
+                    textAlign = TextAlign.Start,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    minLines = 2,
+                    lineHeight = 16.sp
+                )
+            }
         }
+    }
+}
+
+/** The section's picture: what the source publishes, or a stand-in when it publishes none. */
+@Composable
+private fun CategoryGlyph(
+    category: StoreCategory,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    tintSourceIcon: Boolean = false
+) {
+    val iconUrl = category.iconUrl
+    if (iconUrl != null) {
+        AsyncImage(
+            model = iconUrl,
+            contentDescription = null,
+            modifier = modifier,
+            colorFilter = if (tintSourceIcon) ColorFilter.tint(tint) else null
+        )
+    } else {
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.List,
+            contentDescription = null,
+            modifier = modifier,
+            tint = tint
+        )
     }
 }
 
