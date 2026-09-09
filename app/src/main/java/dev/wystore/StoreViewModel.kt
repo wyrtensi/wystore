@@ -356,7 +356,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } ?: return@launch
             _state.update { it.copy(pendingUpdates = pending) }
-            if (packageName == null) updateAll() else _installRequest.value = packageName
+            // Through the queue, not straight at the Activity: a batch may already be working, and
+            // Android confirms one install at a time - two dialogs at once loses one of them.
+            if (packageName == null) updateAll() else requestInstall(packageName)
         }
     }
 
