@@ -92,6 +92,7 @@ class CatalogRepository(
         return runCatching { source.details(packageName, includeReviews = true) }
             .fold(
                 onSuccess = { fresh ->
+                    rememberIcons(listOf(fresh))
                     mutex.withLock {
                         detailPages[packageName] = Entry(fresh, now())
                         while (detailPages.size > maxCachedDetails) {
@@ -141,6 +142,7 @@ class CatalogRepository(
                 onSuccess = { fresh ->
                     remember(key, fresh)
                     runCatching { cacheStore.writePage(slug, fresh) }
+                    rememberIcons(fresh.apps)
                     Result(fresh)
                 },
                 onFailure = { error ->
@@ -170,6 +172,22 @@ class CatalogRepository(
      */
     suspend fun cachedIcon(packageName: String): String? =
         runCatching { cacheStore.iconFor(packageName) }.getOrNull()
+
+    /**
+     * Writes down the icons of apps the user has just been shown.
+     *
+     * Everything that lists apps passes through here, so a package the app has displayed once can
+     * still be drawn later from a queue row or a downloaded-update card - screens that know a
+     * package name and nothing else, for an app that is not on the device to borrow an icon from.
+     */
+    suspend fun rememberIcons(apps: List<StoreApp>) {
+        val icons = apps.mapNotNull { app ->
+            val url = app.iconUrl ?: return@mapNotNull null
+            app.packageName to url
+        }.toMap()
+        if (icons.isEmpty()) return
+        runCatching { cacheStore.rememberIcons(icons) }
+    }
 
     suspend fun cachedCategories(): List<StoreCategory> {
         mutex.withLock { categories }?.let { return it.value }

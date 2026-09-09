@@ -13,9 +13,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         UpdateArtifactEntity::class,
         InstallSessionEntity::class,
         CatalogCategoryEntity::class,
-        CatalogAppEntity::class
+        CatalogAppEntity::class,
+        PackageIconEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class WyStoreDatabase : RoomDatabase() {
@@ -67,6 +68,26 @@ abstract class WyStoreDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Adds the per-package icon memo. Icons were read out of the cached catalogue *pages*,
+         * which are trimmed as browsing moves on and are never written by search or by opening an
+         * app directly, so a queue row for an app not yet installed was often drawn blank.
+         */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `package_icons` (
+                        `packageName` TEXT NOT NULL,
+                        `iconUrl` TEXT NOT NULL,
+                        `cachedAt` INTEGER NOT NULL,
+                        PRIMARY KEY(`packageName`)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
         @Volatile
         private var instance: WyStoreDatabase? = null
 
@@ -76,7 +97,7 @@ abstract class WyStoreDatabase : RoomDatabase() {
                     context.applicationContext,
                     WyStoreDatabase::class.java,
                     DATABASE_NAME
-                ).addMigrations(MIGRATION_1_2)
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { instance = it }
             }

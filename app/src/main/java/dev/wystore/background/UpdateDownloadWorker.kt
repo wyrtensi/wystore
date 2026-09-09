@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import android.os.Build
+import dev.wystore.data.CatalogRepository
 import dev.wystore.data.GitHubCatalog
 import dev.wystore.data.GitHubReleasePolicy
 import dev.wystore.data.GitHubReleaseSource
@@ -128,6 +129,12 @@ class UpdateDownloadWorker(
                         // The name the source publishes, so the queue and the ready-to-install
                         // cards stop showing a package name for anything installed from a card.
                         queueRepository.updateLabel(queueId, storeApp.name)
+                        // ...and its picture, for the same cards. An app being installed for the
+                        // first time is on no launcher yet, so there is nothing else to draw.
+                        runCatching {
+                            CatalogRepository.getInstance(context)
+                                .rememberIcons(listOf(storeApp))
+                        }
                         val artifacts = ruStoreSource.resolveArtifacts(storeApp)
                         sourceSignatureHint = storeApp.signatureHint
                         sourceArtifactHash = artifacts.firstOrNull()?.sourceHash

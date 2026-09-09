@@ -44,6 +44,23 @@ data class CatalogAppEntity(
     val cachedAt: Long
 )
 
+/**
+ * The icon last seen for a package, kept apart from the pages it was seen on.
+ *
+ * Icons used to be read out of [CatalogAppEntity], which is a cache of catalogue *pages*: it holds
+ * only the sections browsed recently, is trimmed to a fixed number of them, and is never written by
+ * search or by an app opened directly. A queue row for an app that is not installed yet therefore
+ * had nothing to draw - the download was under way and the card next to it was an empty square.
+ * This remembers the package instead of the page, so once the app has seen an icon it keeps it.
+ */
+@Entity(tableName = "package_icons")
+data class PackageIconEntity(
+    @androidx.room.PrimaryKey
+    val packageName: String,
+    val iconUrl: String,
+    val cachedAt: Long
+)
+
 @Dao
 abstract class CatalogCacheDao {
 
@@ -60,7 +77,35 @@ abstract class CatalogCacheDao {
      * device either, so cards for it were drawn blank.
      */
     @Query("SELECT iconUrl FROM catalog_apps WHERE packageName = :packageName AND iconUrl IS NOT NULL LIMIT 1")
-    abstract suspend fun iconFor(packageName: String): String?
+    abstract suspend fun pageIconFor(packageName: String): String?
+
+    @Query("SELECT iconUrl FROM package_icons WHERE packageName = :packageName")
+    abstract suspend fun rememberedIconFor(packageName: String): String?
+
+    /** The remembered icon first: it outlives the page the icon was first seen on. */
+    @Transaction
+    open suspend fun iconFor(packageName: String): String? =
+        rememberedIconFor(packageName) ?: pageIconFor(packageName)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertIcons(entities: List<PackageIconEntity>)
+
+    @Query(
+        "DELETE FROM package_icons WHERE packageName NOT IN " +
+            "(SELECT packageName FROM package_icons ORDER BY cachedAt DESC LIMIT :keep)"
+    )
+    abstract suspend fun trimIcons(keep: Int)
+
+    /** Bounded: a few hundred short strings, so browsing for a year cannot grow it without limit. */
+    @Transaction
+    open suspend fun rememberIcons(entities: List<PackageIconEntity>, keep: Int = MAX_REMEMBERED_ICONS) {
+        if (entities.isEmpty()) return
+        insertIcons(entities)
+        trimIcons(keep)
+    }
+
+    @Query("DELETE FROM package_icons")
+    abstract suspend fun clearIcons()
 
     @Query("DELETE FROM catalog_categories")
     abstract suspend fun clearCategories()
@@ -106,5 +151,9 @@ abstract class CatalogCacheDao {
             val stalePage = key.substring(separator + 1).toIntOrNull() ?: continue
             clearPage(staleSlug, stalePage)
         }
+    }
+
+    companion object {
+        const val MAX_REMEMBERED_ICONS = 400
     }
 }

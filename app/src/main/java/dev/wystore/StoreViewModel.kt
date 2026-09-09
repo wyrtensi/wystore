@@ -446,6 +446,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             }
             runCatching { source.search(trimmed) }
                 .onSuccess { page ->
+                    // Most apps queued by hand were found here, and a queue row has no icon of its
+                    // own; search never wrote to the page cache the icons used to come from.
+                    catalogRepository.rememberIcons(page.apps)
                     _state.update {
                         it.copy(search = SearchResultPolicy.promoteExactPackage(page, trimmed), searching = false, operation = null)
                     }
@@ -474,6 +477,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             _state.update { it.copy(searching = true, operation = string(R.string.vm_searching), message = null) }
             runCatching { source.search(current.query, page.page + 1) }
                 .onSuccess { next ->
+                    catalogRepository.rememberIcons(next.apps)
                     _state.update {
                         it.copy(
                             search = SearchResultPolicy.appendPage(page, next),

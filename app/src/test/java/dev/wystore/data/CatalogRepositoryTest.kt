@@ -59,10 +59,17 @@ class CatalogRepositoryTest {
         override suspend fun clear() {
             categories = emptyList()
             pages.clear()
+            remembered.clear()
         }
 
-        override suspend fun iconFor(packageName: String): String? =
-            pages.values.flatMap { it.apps }.firstOrNull { it.packageName == packageName }?.iconUrl
+        val remembered = mutableMapOf<String, String>()
+
+        override suspend fun iconFor(packageName: String): String? = remembered[packageName]
+            ?: pages.values.flatMap { it.apps }.firstOrNull { it.packageName == packageName }?.iconUrl
+
+        override suspend fun rememberIcons(icons: Map<String, String>) {
+            remembered += icons
+        }
     }
 
     private var clock = 0L
@@ -226,7 +233,83 @@ class CatalogRepositoryTest {
     }
 }
 
-private fun storeApp(packageName: String) = StoreApp(
+/**
+ * The icon used to be looked up in the cached catalogue *pages*, which are trimmed as browsing
+ * moves on. A queue row for an app whose page had since been evicted - and which is not installed,
+ * so there is no launcher icon to borrow - was drawn as an empty square next to its name.
+ */
+class CatalogIconMemoryTest {
+
+    private class IconSource(private val app: StoreApp) : StoreSource {
+        override suspend fun search(query: String, page: Int) = SearchPage(emptyList(), page, null)
+        override suspend fun details(packageName: String, includeReviews: Boolean) = app
+        override suspend fun resolveArtifacts(app: StoreApp) = emptyList<DownloadArtifact>()
+        override suspend fun categories() = emptyList<StoreCategory>()
+        override suspend fun catalog(slug: String, page: Int) = CatalogPage(listOf(app), page, 1)
+        override suspend fun reviews(packageName: String) = emptyList<StoreReview>()
+    }
+
+    private class MemoStore : CatalogCacheStore {
+        val pages = mutableMapOf<String, CatalogPage>()
+        val remembered = mutableMapOf<String, String>()
+
+        override suspend fun readCategories() = emptyList<StoreCategory>()
+        override suspend fun writeCategories(categories: List<StoreCategory>) = Unit
+        override suspend fun readPage(slug: String, page: Int) = pages["$slug#$page"]
+        override suspend fun writePage(slug: String, page: CatalogPage) {
+            pages["$slug#${page.page}"] = page
+        }
+
+        override suspend fun clear() {
+            pages.clear()
+            remembered.clear()
+        }
+
+        override suspend fun iconFor(packageName: String): String? = remembered[packageName]
+            ?: pages.values.flatMap { it.apps }.firstOrNull { it.packageName == packageName }?.iconUrl
+
+        override suspend fun rememberIcons(icons: Map<String, String>) {
+            remembered += icons
+        }
+    }
+
+    @Test
+    fun anIconOutlivesThePageItWasSeenOn() = runTest {
+        val app = storeApp("ru.yandex.androidkeyboard", iconUrl = "https://icons/keyboard.png")
+        val store = MemoStore()
+        val repository = CatalogRepository(IconSource(app), store)
+
+        repository.catalog("tools", 1)
+        // The page cache is trimmed as browsing moves on; the icon must not go with it.
+        store.pages.clear()
+
+        assertEquals("https://icons/keyboard.png", repository.cachedIcon("ru.yandex.androidkeyboard"))
+    }
+
+    /** Search and a directly opened app never wrote a page, so they left nothing behind at all. */
+    @Test
+    fun openingAnAppRemembersItsIcon() = runTest {
+        val app = storeApp("ru.yandex.taximeter", iconUrl = "https://icons/pro.png")
+        val store = MemoStore()
+        val repository = CatalogRepository(IconSource(app), store)
+
+        repository.details("ru.yandex.taximeter")
+
+        assertEquals("https://icons/pro.png", repository.cachedIcon("ru.yandex.taximeter"))
+    }
+
+    @Test
+    fun anAppWithNoIconAtTheSourceRemembersNothing() = runTest {
+        val store = MemoStore()
+        val repository = CatalogRepository(IconSource(storeApp("dev.wystore.blank")), store)
+
+        repository.details("dev.wystore.blank")
+
+        assertTrue(store.remembered.isEmpty())
+    }
+}
+
+private fun storeApp(packageName: String, iconUrl: String? = null) = StoreApp(
     appId = 0,
     packageName = packageName,
     name = packageName,
@@ -234,7 +317,7 @@ private fun storeApp(packageName: String) = StoreApp(
     categories = emptyList(),
     shortDescription = "",
     fullDescription = "",
-    iconUrl = null,
+    iconUrl = iconUrl,
     screenshots = emptyList(),
     rating = null,
     ratingCount = null,

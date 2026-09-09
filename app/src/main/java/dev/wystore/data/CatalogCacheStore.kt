@@ -4,6 +4,7 @@ import android.content.Context
 import dev.wystore.data.local.CatalogAppEntity
 import dev.wystore.data.local.CatalogCacheDao
 import dev.wystore.data.local.CatalogCategoryEntity
+import dev.wystore.data.local.PackageIconEntity
 import dev.wystore.data.local.WyStoreDatabase
 
 /**
@@ -23,6 +24,14 @@ interface CatalogCacheStore {
     /** The icon the catalogue last showed for a package, for rows that carry none of their own. */
     suspend fun iconFor(packageName: String): String?
 
+    /**
+     * Remembers package-to-icon pairs for rows that carry no icon of their own.
+     *
+     * Separate from [writePage] on purpose: a page cache is trimmed as browsing moves on, and
+     * search and a directly opened app never write one at all.
+     */
+    suspend fun rememberIcons(icons: Map<String, String>)
+
     /** Does nothing; used where persistence is not wanted, such as in tests. */
     object None : CatalogCacheStore {
         override suspend fun readCategories(): List<StoreCategory> = emptyList()
@@ -31,6 +40,7 @@ interface CatalogCacheStore {
         override suspend fun writePage(slug: String, page: CatalogPage) = Unit
         override suspend fun clear() = Unit
         override suspend fun iconFor(packageName: String): String? = null
+        override suspend fun rememberIcons(icons: Map<String, String>) = Unit
     }
 }
 
@@ -96,9 +106,21 @@ class RoomCatalogCacheStore(
     override suspend fun clear() {
         dao.clearCategories()
         dao.clearApps()
+        dao.clearIcons()
     }
 
     override suspend fun iconFor(packageName: String): String? = dao.iconFor(packageName)
+
+    override suspend fun rememberIcons(icons: Map<String, String>) {
+        val stamp = now()
+        dao.rememberIcons(
+            icons.filterKeys { it.isNotBlank() }
+                .filterValues { it.isNotBlank() }
+                .map { (packageName, iconUrl) ->
+                    PackageIconEntity(packageName = packageName, iconUrl = iconUrl, cachedAt = stamp)
+                }
+        )
+    }
 
     companion object {
         const val DEFAULT_MAX_CACHED_PAGES = 24
