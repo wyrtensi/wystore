@@ -494,7 +494,7 @@
     <string name="details_min_android_value">Android от %1$s</string>
     <string name="details_rating_value">%1$s (%2$d)</string>
     <string name="details_fingerprint_note">Заявлен источником RuStore — сверяется перед установкой</string>
-    <string name="home_tagline">Приложения RuStore и GitHub — удобно и без регистрации</string>
+    <string name="home_tagline">Российские приложения и даже больше</string>
     <string name="home_empty_featured_title">Пока нечего показать</string>
     <string name="search_empty_title">Ничего не найдено</string>
     <string name="search_empty_message">Попробуйте более короткий запрос или имя пакета.</string>
