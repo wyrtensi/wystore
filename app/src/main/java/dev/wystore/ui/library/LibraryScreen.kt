@@ -83,6 +83,7 @@ fun LibraryScreen(
     pendingUpdates: List<PendingUpdate>,
     updateCheckTask: UpdateCheckTask?,
     onCheckUpdates: () -> Unit,
+    onUpdateAll: () -> Unit,
     onAdopt: (InstalledApp) -> Unit,
     onUpdateManaged: (ManagedApp) -> Unit,
     onRequestForce: (ManagedApp) -> Unit,
@@ -145,11 +146,18 @@ fun LibraryScreen(
                 )
             },
             actions = {
-                TextButton(onClick = onCheckUpdates, enabled = updateCheckTask?.running != true) {
+                // "Install (5)" used to run a check: the label counted downloads waiting and the
+                // press went looking for more. Once something is downloaded, the button does what
+                // it says instead.
+                val installsWaiting = pendingUpdates.isNotEmpty()
+                TextButton(
+                    onClick = if (installsWaiting) onUpdateAll else onCheckUpdates,
+                    enabled = installsWaiting || updateCheckTask?.running != true
+                ) {
                     Text(
                         when {
+                            installsWaiting -> stringResource(R.string.library_install_count, pendingUpdates.size)
                             updateCheckTask?.running == true -> stringResource(R.string.library_checking)
-                            pendingUpdates.isNotEmpty() -> stringResource(R.string.library_install_count, pendingUpdates.size)
                             else -> stringResource(R.string.library_check_and_install)
                         }
                     )

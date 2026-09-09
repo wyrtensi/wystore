@@ -1,13 +1,23 @@
 package dev.wystore.ui.components
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import dev.wystore.R
 
 /**
  * The line the app talks back on.
@@ -36,6 +46,48 @@ fun WySnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modifier) 
             actionColor = MaterialTheme.colorScheme.primary,
             dismissActionContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+/**
+ * What the install queue is doing, in the strip the snackbars use.
+ *
+ * Android confirms one install at a time, so pressing "Install" on several apps means waiting -
+ * and the wait used to look like nothing happening at all, since only the first dialog appeared
+ * and the rest of the taps left no trace on screen.
+ */
+@Composable
+fun InstallQueueBanner(
+    current: String?,
+    waiting: Int,
+    modifier: Modifier = Modifier
+) {
+    if (current == null && waiting == 0) return
+    Surface(
+        modifier = modifier
+            .padding(bottom = SnackbarBottomInset, start = 8.dp, end = 8.dp)
+            .fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = MaterialTheme.colorScheme.onSurface
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            WySpinner(size = 18.dp, strokeWidth = 2.dp)
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = if (waiting > 0) {
+                    stringResource(R.string.install_queue_waiting, waiting)
+                } else {
+                    stringResource(R.string.install_queue_current)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 

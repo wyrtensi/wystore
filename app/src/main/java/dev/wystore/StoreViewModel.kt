@@ -214,6 +214,8 @@ data class StoreUiState(
     val fullReviewsLoaded: Set<String> = emptySet(),
     /** Packages left in an "update everything" run, in the order they will be installed. */
     val installAllRemaining: List<String> = emptyList(),
+    /** The app whose confirmation dialog is up, if the queue is working through a batch. */
+    val installAllCurrent: String? = null,
     /**
      * Catalogue icons for packages the queue is carrying.
      *
@@ -862,6 +864,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         if (next == null) return
         installAllCurrent = next
         installAllHandedOver = false
+        _state.update { it.copy(installAllCurrent = next) }
         // Spent the moment the installer is asked. Cleared here rather than for the whole batch at
         // once, because the batch list itself lives in memory: whatever has not been offered yet
         // must still be there if the app is closed before its turn comes.
@@ -869,6 +872,21 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         // The user already answered "all of them", so the per-item prompt is not asked again.
         viewModelScope.launch { runCatching { queueCoordinator.dismissOfferedNext() } }
         _installRequest.value = next
+    }
+
+    /**
+     * A tap on "Install" for something already downloaded.
+     *
+     * It used to go straight to the Activity, so pressing Install on several cards in a row threw
+     * several confirmation dialogs at Android at once and all but one were lost. Taps join the same
+     * queue "update all" walks: one dialog at a time, and the next is handed over as soon as the
+     * system is free again.
+     */
+    fun requestInstall(packageName: String) {
+        if (packageName.isBlank()) return
+        if (packageName == installAllCurrent || packageName in _state.value.installAllRemaining) return
+        _state.update { it.copy(installAllRemaining = it.installAllRemaining + packageName) }
+        startNextBatchInstall()
     }
 
     /**
@@ -885,13 +903,14 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         if (!InstallBatchPolicy.isSettled(statuses, installAllHandedOver)) return
         installAllCurrent = null
         installAllHandedOver = false
+        _state.update { it.copy(installAllCurrent = null) }
         startNextBatchInstall()
     }
 
     fun cancelInstallAll() {
         installAllCurrent = null
         installAllHandedOver = false
-        _state.update { it.copy(installAllRemaining = emptyList()) }
+        _state.update { it.copy(installAllRemaining = emptyList(), installAllCurrent = null) }
     }
 
     /**

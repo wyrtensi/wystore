@@ -334,6 +334,9 @@
     <string name="updates_queue_title">Очередь (%1$d)</string>
     <string name="updates_queue_start">Запустить</string>
     <string name="updates_check_now">Проверить</string>
+    <string name="install_queue_current">Ждём подтверждения установки от Android</string>
+    <string name="install_queue_waiting">Очередь на установку: ещё %1$d</string>
+    <string name="updates_install_all">Установить все</string>
     <string name="updates_ready_title">Готовы к установке (%1$d)</string>
     <string name="updates_managed_title">Принятые приложения (%1$d)</string>
     <string name="updates_managed_empty">Пока нет принятых приложений. Выберите приложения в Библиотеке или установите из каталога.</string>

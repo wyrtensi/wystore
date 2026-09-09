@@ -334,6 +334,9 @@
     <string name="updates_queue_title">Queue (%1$d)</string>
     <string name="updates_queue_start">Start</string>
     <string name="updates_check_now">Check</string>
+    <string name="install_queue_current">Waiting for Android to confirm the install</string>
+    <string name="install_queue_waiting">Install queue: %1$d more waiting</string>
+    <string name="updates_install_all">Install all</string>
     <string name="updates_ready_title">Ready to install (%1$d)</string>
     <string name="updates_managed_title">Accepted apps (%1$d)</string>
     <string name="updates_managed_empty">No accepted apps yet. Pick apps in Library or install them from the catalogue.</string>

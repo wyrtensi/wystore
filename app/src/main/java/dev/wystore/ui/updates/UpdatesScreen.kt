@@ -69,6 +69,7 @@ fun UpdatesScreen(
     packageIcons: Map<String, String> = emptyMap(),
     onOpen: (ManagedApp) -> Unit,
     onCheckUpdates: () -> Unit = {},
+    onUpdateAll: () -> Unit = {},
     onInstallPending: (String) -> Unit,
     onDiscardPending: (String) -> Unit,
     onQueueRetry: (String) -> Unit = {},
@@ -170,7 +171,14 @@ fun UpdatesScreen(
 
             if (pendingUpdates.isNotEmpty()) {
                 item {
-                    SectionHeader(title = stringResource(R.string.updates_ready_title, pendingUpdates.size))
+                    // Installing everything already downloaded lived on Home, and in the Library it
+                    // lived in a label only. This is the screen those downloads are listed on, so it
+                    // was the one place the action was missing.
+                    SectionHeader(
+                        title = stringResource(R.string.updates_ready_title, pendingUpdates.size),
+                        actionLabel = stringResource(R.string.updates_install_all),
+                        onActionClick = onUpdateAll
+                    )
                 }
                 items(pendingUpdates, key = { "pending:${it.packageName}" }) { pending ->
                     PendingUpdateCard(

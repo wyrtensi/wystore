@@ -198,7 +198,18 @@ fun WyStoreRoot(
             // the status bar. Letting this one reserve the system bars too pushed each title down
             // by a second status bar's worth - an empty strip above every screen.
             contentWindowInsets = WindowInsets(0),
-            snackbarHost = { WySnackbarHost(snackbars) },
+            snackbarHost = {
+                // One strip, two things to say: a message that just arrived, or the install queue
+                // still working. The queue outlasts any snackbar, so it needs somewhere to live.
+                if (state.installAllCurrent != null || state.installAllRemaining.isNotEmpty()) {
+                    dev.wystore.ui.components.InstallQueueBanner(
+                        current = state.installAllCurrent,
+                        waiting = state.installAllRemaining.size
+                    )
+                } else {
+                    WySnackbarHost(snackbars)
+                }
+            },
             bottomBar = {
                 FloatingNavigationBar(
                     currentDestination = destination,
@@ -303,6 +314,7 @@ fun WyStoreRoot(
                         queue = state.installQueue,
                         packageIcons = state.packageIcons,
                         onCheckUpdates = { viewModel.checkForUpdates() },
+                        onUpdateAll = { viewModel.updateAll() },
                         onOpen = { managedApp ->
                             if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
                                 viewModel.openManagedGitHubRepository(managedApp)
@@ -325,6 +337,7 @@ fun WyStoreRoot(
                         pendingUpdates = state.pendingUpdates,
                         updateCheckTask = state.updateCheckTask,
                         onCheckUpdates = { viewModel.checkForUpdates() },
+                        onUpdateAll = { viewModel.updateAll() },
                         onOpenStorePage = viewModel::openDetails,
                         onAdopt = { app ->
                             if (app.source == dev.wystore.data.InstallSource.GOOGLE_PLAY) {

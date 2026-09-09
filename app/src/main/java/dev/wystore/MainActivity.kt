@@ -45,7 +45,10 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val state by storeViewModel.state.collectAsState()
             WyStoreTheme(settings = state.settings.toAppSettings()) {
-                WyStoreApp(storeViewModel, ::beginPendingInstall)
+                // Not ::beginPendingInstall. A tap goes into the queue, and the queue hands one
+                // package at a time to the collector below - Android shows one confirmation dialog
+                // at a time, so firing several at once lost all but one of them.
+                WyStoreApp(storeViewModel, storeViewModel::requestInstall)
             }
         }
         handleNotificationDeepLink(intent)
