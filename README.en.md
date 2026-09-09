@@ -35,6 +35,8 @@ is a data source here. See [DISCLAIMER.md](DISCLAIMER.md).
 |---|---|---|
 | ![Home](docs/screenshots/en/home.png) | ![App page](docs/screenshots/en/app-page.png) | ![Library](docs/screenshots/en/library.png) |
 
+**[A walkthrough with screenshots](https://telegra.ph/Wy-Store-magazin-prilozhenij-kotoryj-ne-prosit-vojti-v-akkaunt-09-09)** — the app screen by screen (in Russian).
+
 ## Features
 
 - **Two sources in one list.** RuStore entries and releases from curated GitHub projects sit side by

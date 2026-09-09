@@ -32,6 +32,8 @@ Wy Store не связан с RuStore, не одобрен им и не дейс
 |---|---|---|
 | ![Главная](docs/screenshots/home.png) | ![Страница приложения](docs/screenshots/app-page.png) | ![Библиотека](docs/screenshots/library.png) |
 
+**[Обзор со скриншотами](https://telegra.ph/Wy-Store-magazin-prilozhenij-kotoryj-ne-prosit-vojti-v-akkaunt-09-09)** — как приложение выглядит в работе, экран за экраном.
+
 ## Возможности
 
 - **Два источника в одном списке.** Карточки RuStore и релизы отобранных проектов с GitHub идут
