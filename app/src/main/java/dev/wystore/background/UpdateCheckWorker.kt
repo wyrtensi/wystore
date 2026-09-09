@@ -26,7 +26,9 @@ import dev.wystore.data.UpdateCheckSummary
 import dev.wystore.selfupdate.SelfUpdateChecker
 import dev.wystore.selfupdate.SelfUpdateStatus
 import dev.wystore.root.RootInstaller
+import dev.wystore.updates.QueueOrigin
 import dev.wystore.updates.QueueRepository
+import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -69,8 +71,25 @@ class UpdateCheckWorker(
                 isManualCheck = isManualCheck,
                 targetPackageName = requestedPackage,
                 appPackageName = managed.packageName,
-                autoCheckEnabledForApp = managed.autoUpdate
+                autoCheckEnabledForApp = managed.autoUpdate,
+                showExcludedUpdates = settings.showExcludedUpdates
             )
+        }
+
+        // An app taken out of auto-updates leaves nothing behind either. A row queued before the
+        // switch was turned off - or by an older build, which queued them all - would otherwise sit
+        // in the queue for good, since nothing automatic will ever start it. A row the user asked
+        // for by hand is theirs and is left alone.
+        if (!settings.showExcludedUpdates) {
+            for (managed in managedApps.filterNot { it.autoUpdate }) {
+                runCatching {
+                    queueRepository.snapshotAll()
+                        .filter { it.packageName == managed.packageName }
+                        .filter { it.state == QueueState.AVAILABLE }
+                        .filterNot { QueueOrigin.isUserRequested(it.priority) }
+                        .forEach { queueRepository.discard(it.id) }
+                }
+            }
         }
 
         var attempted = 0

@@ -16,19 +16,30 @@ import dev.wystore.data.classifyThrowable
 import java.util.concurrent.TimeUnit
 
 object UpdateCheckPolicy {
+    /**
+     * Whether a check should look at this app at all.
+     *
+     * A check aimed at one package always looks at that package - it is a request for exactly it.
+     * Otherwise the library's auto-update switch decides: off used to mean "not on a schedule, but
+     * yes when someone presses check", which put a row in the queue for an app the user had taken
+     * out of automatic updating. Nothing downloaded it, but it sat there being offered, which is
+     * not what the switch says. [showExcludedUpdates] is for the person who does want to see those
+     * - found and shown, never fetched on its own.
+     */
     fun evaluateAppEligibility(
         isManualCheck: Boolean,
         targetPackageName: String?,
         appPackageName: String,
-        autoCheckEnabledForApp: Boolean
+        autoCheckEnabledForApp: Boolean,
+        showExcludedUpdates: Boolean = false
     ): Boolean {
         if (targetPackageName != null) {
             return targetPackageName == appPackageName
         }
-        if (isManualCheck) {
+        if (autoCheckEnabledForApp) {
             return true
         }
-        return autoCheckEnabledForApp
+        return showExcludedUpdates
     }
 
     /**

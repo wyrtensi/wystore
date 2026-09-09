@@ -100,33 +100,63 @@ class UpdateCheckPolicyTest {
         )
     }
 
+    /** A check aimed at one package is a request for exactly that package. */
     @Test
-    fun manualPackageChecksRunEvenWhenAppAutoCheckFlagIsFalse() {
-        // App has autoCheck = false
-        val eligibleManualTargeted = UpdateCheckPolicy.evaluateAppEligibility(
-            isManualCheck = true,
-            targetPackageName = "dev.wystore.manualapp",
-            appPackageName = "dev.wystore.manualapp",
-            autoCheckEnabledForApp = false
+    fun aCheckAimedAtOneAppRunsWhateverItsSwitchSays() {
+        assertTrue(
+            UpdateCheckPolicy.evaluateAppEligibility(
+                isManualCheck = true,
+                targetPackageName = "dev.wystore.manualapp",
+                appPackageName = "dev.wystore.manualapp",
+                autoCheckEnabledForApp = false
+            )
         )
-        assertTrue(eligibleManualTargeted)
+    }
 
-        val eligibleManualAll = UpdateCheckPolicy.evaluateAppEligibility(
-            isManualCheck = true,
-            targetPackageName = null,
-            appPackageName = "dev.wystore.manualapp",
-            autoCheckEnabledForApp = false
-        )
-        assertTrue(eligibleManualAll)
+    /**
+     * "Auto-update off" used to mean "not on a schedule, but yes when someone presses check", so a
+     * check over the whole library left a row in the queue for an app the user had deliberately
+     * taken out of automatic updating. Nothing downloaded it; it simply sat there being offered.
+     */
+    @Test
+    fun anExcludedAppIsLeftOutOfAWholeLibraryCheck() {
+        for (manual in listOf(true, false)) {
+            assertFalse(
+                UpdateCheckPolicy.evaluateAppEligibility(
+                    isManualCheck = manual,
+                    targetPackageName = null,
+                    appPackageName = "dev.wystore.manualapp",
+                    autoCheckEnabledForApp = false
+                )
+            )
+        }
+    }
 
-        // But periodic check (not manual) must respect autoCheck = false
-        val eligiblePeriodic = UpdateCheckPolicy.evaluateAppEligibility(
-            isManualCheck = false,
-            targetPackageName = null,
-            appPackageName = "dev.wystore.manualapp",
-            autoCheckEnabledForApp = false
+    /** ...unless the person has asked to see those updates anyway. Shown, never fetched. */
+    @Test
+    fun anExcludedAppIsCheckedWhenItsUpdatesAreAskedFor() {
+        assertTrue(
+            UpdateCheckPolicy.evaluateAppEligibility(
+                isManualCheck = false,
+                targetPackageName = null,
+                appPackageName = "dev.wystore.manualapp",
+                autoCheckEnabledForApp = false,
+                showExcludedUpdates = true
+            )
         )
-        assertFalse(eligiblePeriodic)
+        assertFalse(UpdateCheckPolicy.mayDownloadAfterCheck(autoUpdateEnabledForApp = false))
+    }
+
+    @Test
+    fun anAppThatUpdatesItselfIsAlwaysChecked() {
+        assertTrue(
+            UpdateCheckPolicy.evaluateAppEligibility(
+                isManualCheck = false,
+                targetPackageName = null,
+                appPackageName = "dev.wystore.manualapp",
+                autoCheckEnabledForApp = true
+            )
+        )
     }
 
     /**

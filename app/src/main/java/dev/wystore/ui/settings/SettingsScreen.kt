@@ -380,6 +380,15 @@ fun SettingsScreen(
                     editedSettings = editedSettings.copy(autoInstallNewApps = it)
                     onSave(editedSettings)
                 }
+                // Off by default: the library switch is meant to make an app disappear from all of
+                // this, not to keep offering it in a different place.
+                CompactSettingSwitch(
+                    stringResource(R.string.settings_show_excluded_updates),
+                    editedSettings.showExcludedUpdates
+                ) {
+                    editedSettings = editedSettings.copy(showExcludedUpdates = it)
+                    onSave(editedSettings)
+                }
             }
 
             // The queue coordinator has always read this; there was simply no way to set it.

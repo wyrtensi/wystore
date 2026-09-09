@@ -433,6 +433,7 @@
     <string name="settings_auto_install_title">Install right after download</string>
     <string name="settings_auto_install_hint">Without root Android still asks for confirmation; Wy Store brings the dialog up as soon as the file is ready.</string>
     <string name="settings_auto_install_updates">Updates</string>
+    <string name="settings_show_excluded_updates">Show updates for apps with auto-update off</string>
     <string name="settings_auto_install_new_apps">New apps</string>
     <string name="settings_retention_days">Keep downloads</string>
     <string name="settings_retention_days_value">%1$d d</string>

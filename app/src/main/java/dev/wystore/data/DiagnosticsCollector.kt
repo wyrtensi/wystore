@@ -75,6 +75,7 @@ class DiagnosticsCollector(context: Context) {
             },
             settings = listOf(
                 "wifiOnly" to settings.wifiOnly.toString(),
+                "showExcludedUpdates" to settings.showExcludedUpdates.toString(),
                 "allowMobileData" to settings.allowMobileData.toString(),
                 "requiresCharging" to settings.requiresCharging.toString(),
                 "updateIntervalHours" to settings.updateIntervalHours.toString(),

@@ -35,6 +35,14 @@ data class AppSettings(
     val autoInstallUpdates: Boolean = true,
     /** The same for an app being installed for the first time. */
     val autoInstallNewApps: Boolean = true,
+    /**
+     * Whether a check looks at apps taken out of auto-updates at all.
+     *
+     * Off, and the switch means what it says: the app is not checked, nothing about it appears in
+     * the queue, and it costs no request. On, the update is found and shown so it can be started by
+     * hand - it is still never downloaded on its own, that is decided separately.
+     */
+    val showExcludedUpdates: Boolean = false,
     val artifactRetentionDays: Int = 7,
     val artifactStorageLimitMb: Int = 2_048
 )
@@ -64,6 +72,7 @@ fun AppSettings.toStoreSettings(): StoreSettings = StoreSettings(
     autoDownloadUpdates = autoDownloadUpdates,
     autoInstallUpdates = autoInstallUpdates,
     autoInstallNewApps = autoInstallNewApps,
+    showExcludedUpdates = showExcludedUpdates,
     artifactRetentionDays = artifactRetentionDays,
     artifactStorageLimitMb = artifactStorageLimitMb
 )
@@ -92,6 +101,7 @@ fun StoreSettings.toAppSettings(): AppSettings = AppSettings(
     autoDownloadUpdates = autoDownloadUpdates,
     autoInstallUpdates = autoInstallUpdates,
     autoInstallNewApps = autoInstallNewApps,
+    showExcludedUpdates = showExcludedUpdates,
     artifactRetentionDays = artifactRetentionDays,
     artifactStorageLimitMb = artifactStorageLimitMb
 )

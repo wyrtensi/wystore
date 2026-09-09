@@ -177,6 +177,14 @@ data class StoreSettings(
     val silentUpdatesEnabled: Boolean = true,
     /** Fetch an update as soon as a check finds it, instead of waiting to be asked. */
     val autoDownloadUpdates: Boolean = true,
+    /**
+     * Whether a check looks at apps taken out of auto-updates at all.
+     *
+     * Off, and the switch means what it says: the app is not checked, nothing about it appears in
+     * the queue, and it costs no request. On, the update is found and shown so it can be started by
+     * hand - it is still never downloaded on its own, that is decided separately.
+     */
+    val showExcludedUpdates: Boolean = false,
     /** Hand a downloaded update straight to the installer instead of waiting for a tap. */
     val autoInstallUpdates: Boolean = true,
     /** The same for an app being installed for the first time. */

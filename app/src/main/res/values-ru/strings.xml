@@ -433,6 +433,7 @@
     <string name="settings_auto_install_title">Устанавливать сразу после скачивания</string>
     <string name="settings_auto_install_hint">Без root Android всё равно спросит подтверждение; Wy Store покажет диалог, как только файл готов.</string>
     <string name="settings_auto_install_updates">Обновления</string>
+    <string name="settings_show_excluded_updates">Показывать обновления приложений с выключенным автообновлением</string>
     <string name="settings_auto_install_new_apps">Новые приложения</string>
     <string name="settings_retention_days">Хранить загрузки</string>
     <string name="settings_retention_days_value">%1$d дн.</string>
