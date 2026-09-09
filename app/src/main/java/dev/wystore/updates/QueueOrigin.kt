@@ -15,4 +15,18 @@ object QueueOrigin {
     const val USER_REQUESTED_PRIORITY = 10
 
     fun isUserRequested(priority: Int): Boolean = priority >= USER_REQUESTED_PRIORITY
+
+    /**
+     * Whether the queue may start this row on its own, with nobody asked.
+     *
+     * Withholding an excluded app from the downloader at the moment a check finds it is not enough:
+     * the row still waits at AVAILABLE, and the queue passes the turn to whatever is next as soon
+     * as a slot frees. One other update in the same round was all it took for the excluded app to
+     * be fetched anyway.
+     *
+     * A row someone pressed a button for is always started, whatever the app's auto-update setting
+     * says - the setting is about what happens unasked, and "Install" is asking.
+     */
+    fun mayStartUnattended(priority: Int, autoUpdateEnabledForApp: Boolean): Boolean =
+        isUserRequested(priority) || autoUpdateEnabledForApp
 }

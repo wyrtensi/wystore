@@ -2,6 +2,8 @@ package dev.wystore.background
 
 import android.content.Context
 import dev.wystore.data.EventLog
+import dev.wystore.data.StoreRepository
+import dev.wystore.updates.QueueOrigin
 import dev.wystore.updates.QueueRepository
 
 /**
@@ -19,9 +21,23 @@ object QueuePump {
 
     suspend fun startNext(context: Context) {
         val repository = QueueRepository.getInstance(context.applicationContext)
+        // Nobody is being asked here, so the library's auto-update switch applies: an excluded app
+        // waits for a button instead. Withholding it from the check's own downloader was not
+        // enough - its row still sat at AVAILABLE, and one other update in the same round handed
+        // it the turn as soon as that download finished.
+        val managed = runCatching {
+            StoreRepository(context.applicationContext).managedApps().associateBy { it.packageName }
+        }.getOrDefault(emptyMap())
         val next = runCatching {
             if (repository.activeIds().isNotEmpty()) return
-            repository.nextEligible()
+            repository.nextEligible { item ->
+                QueueOrigin.mayStartUnattended(
+                    priority = item.priority,
+                    // An app that is not managed yet is being installed for the first time, which
+                    // is a request in itself.
+                    autoUpdateEnabledForApp = managed[item.packageName]?.autoUpdate ?: true
+                )
+            }
         }.getOrNull() ?: return
         runCatching { TransferDispatcher.dispatch(context.applicationContext, next.id) }
             .onFailure { error ->

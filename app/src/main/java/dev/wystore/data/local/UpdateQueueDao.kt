@@ -56,6 +56,15 @@ abstract class UpdateQueueDao {
     abstract suspend fun nextEligible(): UpdateQueueEntity?
 
     /**
+     * The waiting rows in the order the queue would take them.
+     *
+     * For the caller that has to skip some of them: the queue starts the next row on its own when a
+     * slot frees, and an app excluded from auto-updates must not be picked up that way.
+     */
+    @Query("SELECT * FROM update_queue WHERE state = 'AVAILABLE' ORDER BY priority DESC, position ASC, packageName ASC, id ASC LIMIT :limit")
+    abstract suspend fun eligible(limit: Int): List<UpdateQueueEntity>
+
+    /**
      * The next item whose APK is already downloaded and verified.
      *
      * The queue only ever looked for something to download, so once everything was on disk it

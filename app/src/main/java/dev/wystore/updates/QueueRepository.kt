@@ -373,6 +373,18 @@ class QueueRepository(
     }
 
     /**
+     * The next waiting row [allow] accepts, in the queue's own order.
+     *
+     * For starting the queue without being asked: [nextEligible] answers "what is next", which is
+     * the right question for a button someone pressed and the wrong one for the queue passing the
+     * turn to itself - an app the user excluded from auto-updates has to be stepped over there.
+     */
+    suspend fun nextEligible(allow: (QueueItemSnapshot) -> Boolean): QueueItemSnapshot? =
+        withContext(Dispatchers.IO) {
+            dao.eligible(ELIGIBLE_LOOKAHEAD).asSequence().map { it.toSnapshot() }.firstOrNull(allow)
+        }
+
+    /**
      * What the queue should offer next: something already downloaded before something that still
      * has to be fetched.
      */
@@ -734,6 +746,12 @@ class QueueRepository(
     }
 
     companion object {
+        /**
+         * How far ahead the queue looks when it has to step over rows. Deep enough for a whole
+         * round of updates, shallow enough that a stalled queue does not read the entire table.
+         */
+        private const val ELIGIBLE_LOOKAHEAD = 100
+
         private val ACTIVE_OR_READY = setOf(
             QueueState.CHECKING,
             QueueState.DOWNLOADING,

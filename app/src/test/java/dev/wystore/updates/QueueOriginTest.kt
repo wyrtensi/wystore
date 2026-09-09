@@ -22,4 +22,29 @@ class QueueOriginTest {
         assertTrue(QueueOrigin.isUserRequested(QueueOrigin.USER_REQUESTED_PRIORITY))
         assertTrue(QueueOrigin.isUserRequested(QueueOrigin.USER_REQUESTED_PRIORITY + 5))
     }
+
+    /**
+     * Not fetching an excluded app when the check finds it only holds until the queue passes the
+     * turn to itself: the row waits at AVAILABLE, and any other update finishing hands it the slot.
+     */
+    @Test
+    fun anAppExcludedFromAutoUpdatesIsSteppedOverWhenTheQueueStartsItself() {
+        assertFalse(
+            QueueOrigin.mayStartUnattended(priority = 0, autoUpdateEnabledForApp = false)
+        )
+        assertTrue(
+            QueueOrigin.mayStartUnattended(priority = 0, autoUpdateEnabledForApp = true)
+        )
+    }
+
+    /** The switch is about what happens unasked, and pressing "install" is asking. */
+    @Test
+    fun aRowSomebodyAskedForStartsWhateverTheSwitchSays() {
+        assertTrue(
+            QueueOrigin.mayStartUnattended(
+                priority = QueueOrigin.USER_REQUESTED_PRIORITY,
+                autoUpdateEnabledForApp = false
+            )
+        )
+    }
 }
