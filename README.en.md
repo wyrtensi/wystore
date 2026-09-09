@@ -13,7 +13,7 @@
 [![Telegram chat](https://img.shields.io/badge/Telegram-chat-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
 [![Licence MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=licence)](LICENSE)
 
-[Русский](README.md) · [Releases](https://github.com/wyrtensi/wystore/releases) · [Changelog](CHANGELOG.md) · [Privacy](PRIVACY.md) · [Project statement](DISCLAIMER.md) · [Licence](LICENSE)
+[Русский](README.md) · [Releases](https://github.com/wyrtensi/wystore/releases) · [Changelog](CHANGELOG.md) · [Privacy](PRIVACY.md) · [Security](SECURITY.md) · [Project statement](DISCLAIMER.md) · [Licence](LICENSE)
 
 </div>
 
@@ -128,6 +128,9 @@ The limits are these:
 
 Wy Store verifies delivery, not the apps themselves. What an installed program does is its
 developer's business, and every page names the source.
+
+Found a hole? [SECURITY.md](SECURITY.md) covers what counts as a vulnerability, where to send it,
+and why not to a public issue.
 
 ## Privacy
 

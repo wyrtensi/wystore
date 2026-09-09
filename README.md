@@ -13,7 +13,7 @@
 [![Telegram-чат](https://img.shields.io/badge/Telegram-%D1%87%D0%B0%D1%82-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
 [![Лицензия MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=%D0%BB%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F)](LICENSE)
 
-[English](README.en.md) · [Релизы](https://github.com/wyrtensi/wystore/releases) · [История изменений](CHANGELOG.md) · [Конфиденциальность](PRIVACY.md) · [Заявление о проекте](DISCLAIMER.md) · [Лицензия](LICENSE)
+[English](README.en.md) · [Релизы](https://github.com/wyrtensi/wystore/releases) · [История изменений](CHANGELOG.md) · [Конфиденциальность](PRIVACY.md) · [Безопасность](SECURITY.md) · [Заявление о проекте](DISCLAIMER.md) · [Лицензия](LICENSE)
 
 </div>
 
@@ -126,6 +126,9 @@ Android разрешает обновлять приложение без диа
 
 Wy Store проверяет доставку, а не содержимое приложений. Что делает установленная программа —
 вопрос к её разработчику, и источник назван на каждой карточке.
+
+Нашли дыру — [SECURITY.md](SECURITY.md): что считается уязвимостью, куда писать и почему не в
+публичную задачу.
 
 ## Приватность
 
