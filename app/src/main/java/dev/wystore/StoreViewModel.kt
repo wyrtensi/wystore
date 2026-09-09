@@ -893,20 +893,44 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         _state.update { it.copy(packageIcons = fromGitHub.toMap() + it.packageIcons) }
     }
 
+    /**
+     * Packages already looked up, however that ended.
+     *
+     * This runs on every queue change, and a download reports progress twice a second: without it,
+     * a package nothing has an icon for was looked up again on every one of those - and looked up
+     * again forever, since the answer never changed.
+     */
+    private val iconLookupsAttempted = mutableSetOf<String>()
+
     private fun resolveIcons(packages: List<String>) {
         val known = _state.value.packageIcons
-        val missing = packages.distinct().filter { it.isNotBlank() && it !in known }
+        val missing = packages.distinct()
+            .filter { it.isNotBlank() && it !in known && it !in iconLookupsAttempted }
         if (missing.isEmpty()) return
+        iconLookupsAttempted += missing
         viewModelScope.launch(Dispatchers.IO) {
             val found = missing.mapNotNull { packageName ->
                 val icon = catalogRepository.cachedIcon(packageName)
                     ?: dev.wystore.data.GitHubCatalog.findByPlaceholder(packageName)?.iconUrl
+                    ?: fetchIcon(packageName)
                 icon?.let { packageName to it }
             }
             if (found.isEmpty()) return@launch
             _state.update { it.copy(packageIcons = it.packageIcons + found) }
         }
     }
+
+    /**
+     * The source's own picture for a package no cache knows.
+     *
+     * Every app in the catalogue has one, so a blank tile means nobody has asked yet rather than
+     * that there is nothing to show. Asked once per package per run of the app, and remembered, so
+     * this is a single request for a row that would otherwise stay blank for good.
+     */
+    private suspend fun fetchIcon(packageName: String): String? = runCatching {
+        val app = source.details(packageName, includeReviews = false)
+        app.iconUrl?.takeIf { it.isNotBlank() }?.also { catalogRepository.rememberIcons(listOf(app)) }
+    }.getOrNull()
 
     /** Hands the Activity the next install of a batch, or ends the batch. */
     private fun startNextBatchInstall() {
