@@ -1,6 +1,7 @@
 package dev.wystore.ui.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import dev.wystore.BuildConfig
@@ -199,14 +201,14 @@ fun WyStoreRoot(
             // by a second status bar's worth - an empty strip above every screen.
             contentWindowInsets = WindowInsets(0),
             snackbarHost = {
-                // One strip, two things to say: a message that just arrived, or the install queue
-                // still working. The queue outlasts any snackbar, so it needs somewhere to live.
-                if (state.installAllCurrent != null || state.installAllRemaining.isNotEmpty()) {
+                // Both, stacked: the install queue outlasts any snackbar and needs somewhere to
+                // live, but replacing the host with it would swallow every message raised during
+                // exactly the stretch when something is most likely to go wrong.
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     dev.wystore.ui.components.InstallQueueBanner(
                         current = state.installAllCurrent,
                         waiting = state.installAllRemaining.size
                     )
-                } else {
                     WySnackbarHost(snackbars)
                 }
             },

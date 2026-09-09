@@ -14,7 +14,8 @@ class UserConfirmedInstaller(private val activity: Activity) {
     private val database = WyStoreDatabase.getInstance(activity)
     private val queueRepository = QueueRepository.getInstance(activity)
 
-    suspend fun install(update: PendingUpdate) = withContext(Dispatchers.IO) {
+    /** Returns whether the install actually reached Android; see the [install] below. */
+    suspend fun install(update: PendingUpdate): Boolean = withContext(Dispatchers.IO) {
         val readyEntity = database.updateQueueDao.getByPackage(update.packageName)
             .firstOrNull { it.state in INSTALLABLE_STATES }
             ?: throw IllegalStateException("The downloaded APK is no longer on disk")
@@ -30,8 +31,12 @@ class UserConfirmedInstaller(private val activity: Activity) {
      * rejected it as an illegal transition and the result was lost. Both steps are now persisted
      * before control leaves the process, and a failure to hand over rolls the row back so the item
      * stays installable instead of being stranded.
+     *
+     * Returns false when the install was put off rather than started - the single queue slot was
+     * busy - so the caller can tell "Android is asking the user" from "nothing is going to happen
+     * for this one yet". Waiting on the second forever is how a queue of installs stops dead.
      */
-    suspend fun install(queueId: String) = withContext(Dispatchers.IO) {
+    suspend fun install(queueId: String): Boolean = withContext(Dispatchers.IO) {
         queueRepository.transitionIfIn(
             id = queueId,
             allowedFrom = setOf(QueueState.READY_TO_INSTALL),
@@ -56,7 +61,7 @@ class UserConfirmedInstaller(private val activity: Activity) {
         ) {
             runCatching { sessionWriter.abandon(queueId) }
             rollbackToReady(queueId)
-            return@withContext
+            return@withContext false
         }
 
         try {
@@ -77,6 +82,7 @@ class UserConfirmedInstaller(private val activity: Activity) {
             )
             throw error
         }
+        true
     }
 
     private suspend fun rollbackToReady(queueId: String) {

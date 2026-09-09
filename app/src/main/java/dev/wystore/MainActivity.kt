@@ -173,8 +173,13 @@ class MainActivity : AppCompatActivity() {
                 return@launch
             }
             try {
-                UserConfirmedInstaller(this@MainActivity).install(update)
-                storeViewModel.reportInstallStarted(packageName)
+                if (UserConfirmedInstaller(this@MainActivity).install(update)) {
+                    storeViewModel.reportInstallStarted(packageName)
+                } else {
+                    // The single queue slot was busy, so the row went back to waiting. Nothing is
+                    // coming for it now, and a queue of installs waiting on it would stop dead.
+                    storeViewModel.reportInstallDeferred(packageName)
+                }
             } catch (error: Exception) {
                 storeViewModel.reportInstallLaunchFailure(
                     error.message ?: getString(R.string.msg_install_launch_failed)

@@ -391,6 +391,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 _state.update { it.copy(installQueue = uiQueue) }
                 resolveIcons(uiQueue.map { row -> row.packageName })
                 advanceBatchIfSettled(uiQueue)
+                // A batch that stood down because the slot was busy picks up again once it frees.
+                if (installAllCurrent == null &&
+                    _state.value.installAllRemaining.isNotEmpty() &&
+                    uiQueue.none { row -> row.status.isInFlight }
+                ) {
+                    startNextBatchInstall()
+                }
             }
         }
         viewModelScope.launch {
@@ -742,6 +749,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun reportInstallPermissionRequired(packageName: String? = null) {
+        // Every other install in the batch would stop at the same permission, so the batch ends
+        // rather than marching through the list raising the same message for each app.
+        cancelInstallAll()
         // Recorded durably as well, so the install can resume after the user returns from Android
         // Settings even if the process was killed while they were away.
         if (packageName != null) {
@@ -758,12 +768,42 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         queueRepository.clearAwaitingUnknownSources(packageName)
     }
 
+    /**
+     * The install never reached Android because the queue's single slot was busy.
+     *
+     * The row is back to waiting, so the app it was queued behind must not keep waiting on it: the
+     * package goes to the head of the batch and the batch stands down until the slot frees.
+     */
+    fun reportInstallDeferred(packageName: String) {
+        installAllCurrent = null
+        installAllHandedOver = false
+        _state.update {
+            it.copy(
+                installAllCurrent = null,
+                installAllRemaining = listOf(packageName) + it.installAllRemaining.filterNot { p -> p == packageName }
+            )
+        }
+    }
+
+    /**
+     * The install was never handed over and never will be for this app - the archive did not
+     * verify, or Android refused to take it. The rest of the batch is not its fault.
+     */
+    private fun abandonCurrentBatchInstall() {
+        if (installAllCurrent == null) return
+        installAllCurrent = null
+        installAllHandedOver = false
+        _state.update { it.copy(installAllCurrent = null) }
+        startNextBatchInstall()
+    }
+
     fun reportInstallStarted(packageName: String) {
         val label = pendingUpdate(packageName)?.label ?: packageName
         _state.update { it.copy(message = getApplication<Application>().getString(R.string.msg_install_started, label)) }
     }
 
     fun reportInstallLaunchFailure(message: String) {
+        abandonCurrentBatchInstall()
         _state.update { it.copy(message = message) }
     }
 
@@ -773,6 +813,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * user is told to download it again instead of being offered an unverifiable install.
      */
     fun discardUnverifiablePendingUpdate(packageName: String) {
+        abandonCurrentBatchInstall()
         val label = pendingUpdate(packageName)?.label ?: packageName
         viewModelScope.launch {
             withContext(Dispatchers.IO) { queueRepository.remove(packageName) }
