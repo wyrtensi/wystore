@@ -122,6 +122,8 @@
     <string name="dialog_github_install_title">Install an APK from GitHub</string>
     <string name="dialog_github_install_text">You are about to install %1$s straight from a GitHub release. Make sure you trust the repository.</string>
 
+    <string name="categories_all_title">All sections</string>
+    <string name="categories_github_tile">GitHub</string>
     <string name="home_all_apps">All apps</string>
     <string name="home_featured_title">Popular on RuStore</string>
     <string name="home_catalog_stale">Showing the saved catalog: refresh failed</string>

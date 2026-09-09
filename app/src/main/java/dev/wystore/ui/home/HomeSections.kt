@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -36,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -49,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -207,7 +210,9 @@ fun CategoriesSection(
     loading: Boolean = false,
     onCategoryClick: (StoreCategory) -> Unit,
     onAllCategoriesClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    previews: Map<String, List<String>> = emptyMap(),
+    onNeedPreview: (String) -> Unit = {}
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -230,12 +235,21 @@ fun CategoriesSection(
         } else {
             // Categories carry their own icons from the source; a horizontal rail shows more of
             // them than a wrapped chip grid and keeps the section a fixed height.
+            // Which tiles may draw a watermark: the first to use a given picture, and no other.
+            val watermarked = remember(categories) {
+                val seen = mutableSetOf<String>()
+                categories.map { it.iconUrl == null || seen.add(it.iconUrl) }
+            }
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 itemsIndexed(categories, key = { _, category -> category.slug }) { index, category ->
                     CategoryTile(
                         category = category,
                         accent = index,
-                        onClick = { onCategoryClick(category) }
+                        showWatermark = watermarked.getOrElse(index) { true },
+                        onClick = { onCategoryClick(category) },
+                        previewIcons = previews[category.slug].orEmpty(),
+                        previewLimit = 3,
+                        onNeedPreview = onNeedPreview
                     )
                 }
             }
@@ -261,8 +275,29 @@ fun CategoriesSection(
  * Material You gets tiles that belong to it.
  */
 @Composable
-private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Unit) {
+internal fun CategoryTile(
+    category: StoreCategory,
+    accent: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier.width(fontScaledWidth(124.dp)),
+    /** For a tile that stands for something other than a section of the source, such as GitHub. */
+    fallbackIcon: Int? = null,
+    /** Icons of the first few apps in the section; the tile shows these instead of its own glyph. */
+    previewIcons: List<String> = emptyList(),
+    previewLimit: Int = 3,
+    onNeedPreview: (String) -> Unit = {},
+    /**
+     * Off for a tile whose glyph an earlier tile has already used. Sections that Wy Store builds
+     * out of a source section share that section's picture, and the two sit next to each other on
+     * purpose - drawing the same watermark on both makes them look like one tile duplicated.
+     */
+    showWatermark: Boolean = true
+) {
     val scheme = MaterialTheme.colorScheme
+    // Only the palette's own container-and-ink pairs. Blending two containers to widen the set
+    // looked varied and read badly: the ink belongs to one of the two, and halfway between them it
+    // no longer has the contrast it was picked for. Variety comes from what the tile shows, not
+    // from colours the theme never promised to be legible.
     val tones = listOf(
         scheme.primaryContainer to scheme.onPrimaryContainer,
         scheme.tertiaryContainer to scheme.onTertiaryContainer,
@@ -277,8 +312,7 @@ private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Un
         // Wide enough for the longest curated category name to break between words rather than
         // mid-word ("Здоровье и / аптеки"), and it grows with the system font size so that stays
         // true when the text does not fit the width it was measured for.
-        modifier = Modifier
-            .width(fontScaledWidth(124.dp))
+        modifier = modifier
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
@@ -299,7 +333,7 @@ private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Un
             // The section's own glyph, in the tile's ink, half out of the corner. Big enough to
             // be the tile's face and small enough not to blur: these are little bitmaps, and one
             // stretched across the whole tile is a stain whatever the opacity.
-            Box(
+            if (showWatermark) Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .offset(x = 16.dp, y = 14.dp)
@@ -311,7 +345,8 @@ private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Un
                     category = category,
                     tint = onContainer,
                     modifier = Modifier.fillMaxSize(),
-                    tintSourceIcon = true
+                    tintSourceIcon = true,
+                    fallbackIcon = fallbackIcon
                 )
             }
             // Ranged along the leading edge rather than centred on it. The disc that used to sit
@@ -326,11 +361,25 @@ private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Un
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                CategoryGlyph(
-                    category = category,
-                    tint = onContainer,
-                    modifier = Modifier.size(30.dp)
-                )
+                // What is inside the section, not the section's own pictogram: that already fills
+                // the corner as the watermark, and drawing it twice made a grid of tiles look like
+                // twenty of the same thing.
+                LaunchedEffect(category.slug) {
+                    if (fallbackIcon == null) onNeedPreview(category.slug)
+                }
+                if (previewIcons.isEmpty()) {
+                    CategoryGlyph(
+                        category = category,
+                        tint = onContainer,
+                        modifier = Modifier.size(30.dp),
+                        fallbackIcon = fallbackIcon
+                    )
+                } else {
+                    CategoryPreviewRow(
+                        icons = previewIcons.take(previewLimit),
+                        ring = container
+                    )
+                }
                 Text(
                     // Wy Store's own sections are translated; sections read from the source keep
                     // the name the catalogue publishes.
@@ -348,16 +397,51 @@ private fun CategoryTile(category: StoreCategory, accent: Int, onClick: () -> Un
     }
 }
 
+/**
+ * The first apps of a section, overlapped like a hand of cards.
+ *
+ * Overlapped rather than spaced out because the tile is 124dp wide and has a name to fit under
+ * them: five icons in a row would each be too small to recognise, and the point of showing them is
+ * that they are recognised.
+ */
+@Composable
+private fun CategoryPreviewRow(icons: List<String>, ring: Color) {
+    Row(
+        modifier = Modifier.height(30.dp),
+        horizontalArrangement = Arrangement.spacedBy((-8).dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        icons.forEach { url ->
+            AsyncImage(
+                model = url,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .border(1.5.dp, ring, CircleShape)
+            )
+        }
+    }
+}
+
 /** The section's picture: what the source publishes, or a stand-in when it publishes none. */
 @Composable
-private fun CategoryGlyph(
+internal fun CategoryGlyph(
     category: StoreCategory,
     tint: Color,
     modifier: Modifier = Modifier,
-    tintSourceIcon: Boolean = false
+    tintSourceIcon: Boolean = false,
+    fallbackIcon: Int? = null
 ) {
     val iconUrl = category.iconUrl
-    if (iconUrl != null) {
+    if (iconUrl == null && fallbackIcon != null) {
+        Icon(
+            painter = painterResource(fallbackIcon),
+            contentDescription = null,
+            modifier = modifier,
+            tint = tint
+        )
+    } else if (iconUrl != null) {
         AsyncImage(
             model = iconUrl,
             contentDescription = null,

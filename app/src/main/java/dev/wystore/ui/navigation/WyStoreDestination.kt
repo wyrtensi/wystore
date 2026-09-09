@@ -9,6 +9,7 @@ sealed class WyStoreDestination(val route: String) {
     object Library : WyStoreDestination("library")
     object Settings : WyStoreDestination("settings")
     object GitHub : WyStoreDestination("github")
+    object Categories : WyStoreDestination("categories")
 
     data class Category(val slug: String) : WyStoreDestination("catalog/$slug") {
         companion object {

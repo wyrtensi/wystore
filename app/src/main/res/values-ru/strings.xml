@@ -122,6 +122,8 @@
     <string name="dialog_github_install_title">Установка APK из GitHub</string>
     <string name="dialog_github_install_text">Вы собираетесь установить %1$s напрямую из релиза GitHub. Убедитесь, что доверяете репозиторию.</string>
 
+    <string name="categories_all_title">Все разделы</string>
+    <string name="categories_github_tile">GitHub</string>
     <string name="home_all_apps">Все приложения</string>
     <string name="home_featured_title">Популярное в RuStore</string>
     <string name="home_catalog_stale">Показан сохранённый каталог: не удалось обновить</string>

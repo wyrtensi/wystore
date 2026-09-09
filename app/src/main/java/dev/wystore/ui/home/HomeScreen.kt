@@ -61,6 +61,8 @@ fun HomeScreen(
     onAppClick: (String) -> Unit = {},
     onCategoryClick: (StoreCategory) -> Unit = {},
     onAllCategoriesClick: () -> Unit = {},
+    categoryPreviews: Map<String, List<String>> = emptyMap(),
+    onNeedCategoryPreview: (String) -> Unit = {},
     onUpdatesClick: () -> Unit = {},
     installed: List<InstalledApp> = emptyList(),
     managed: List<ManagedApp> = emptyList(),
@@ -125,7 +127,9 @@ fun HomeScreen(
                     categories = categories,
                     loading = catalogLoading,
                     onCategoryClick = onCategoryClick,
-                    onAllCategoriesClick = onAllCategoriesClick
+                    onAllCategoriesClick = onAllCategoriesClick,
+                    previews = categoryPreviews,
+                    onNeedPreview = onNeedCategoryPreview
                 )
             }
 

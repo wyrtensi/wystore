@@ -7,6 +7,7 @@ import dev.wystore.data.CatalogRepository
 import dev.wystore.data.StoreApp
 import dev.wystore.data.StoreCategory
 import dev.wystore.localization.SourceTextResolver
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class HomeUiState(
     val featuredApps: List<StoreApp> = emptyList(),
@@ -22,7 +24,12 @@ data class HomeUiState(
     val loading: Boolean = false,
     /** Content is being shown from cache because the last refresh could not reach the source. */
     val stale: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    /**
+     * The first few app icons of each section, so a tile can show what is inside it rather than
+     * the section's own pictogram. Filled on demand, one section at a time, as tiles appear.
+     */
+    val categoryPreviews: Map<String, List<String>> = emptyMap()
 ) {
     /** Nothing to show and nothing in flight: the screen needs a retry affordance, not a spinner. */
     val isEmpty: Boolean get() = featuredApps.isEmpty() && categories.isEmpty()
@@ -48,8 +55,37 @@ class HomeViewModel(
 
     private var loadJob: Job? = null
 
+    private val previewStore = dev.wystore.data.CategoryPreviewStore(application)
+
+    /** Sections already asked about, whatever the answer, so a blank one is not asked again. */
+    private val previewsRequested = mutableSetOf<String>()
+
     init {
+        // What was worked out last time, before anything is asked of the network.
+        val remembered = previewStore.read()
+        if (remembered.isNotEmpty()) {
+            previewsRequested += remembered.keys
+            _uiState.update { it.copy(categoryPreviews = remembered) }
+        }
         load()
+    }
+
+    /**
+     * Fills in the icons for one section, once.
+     *
+     * Driven by the tiles rather than by the load: Home's rail and the all-sections grid compose a
+     * handful of tiles at a time, and asking for every section up front would be twenty requests
+     * for pictures nobody has scrolled to yet.
+     */
+    fun requestCategoryPreview(slug: String) {
+        if (slug.isBlank() || !previewsRequested.add(slug)) return
+        viewModelScope.launch {
+            val icons = runCatching { catalogRepository.previewIcons(slug) }.getOrDefault(emptyList())
+            if (icons.isEmpty()) return@launch
+            val updated = _uiState.value.categoryPreviews + (slug to icons)
+            _uiState.update { it.copy(categoryPreviews = updated) }
+            withContext(Dispatchers.IO) { previewStore.write(updated) }
+        }
     }
 
     fun load(forceRefresh: Boolean = false) {

@@ -318,8 +318,30 @@ object CuratedCategories {
     fun find(slug: String): CuratedCategory? = ALL.firstOrNull { it.slug == slug }
 
     /** Curated categories are shown first; the source's own sections stay available below them. */
+    /**
+     * Wy Store's own sections first, each followed by the source sections it is built from.
+     *
+     * The two used to be concatenated: ten curated sections, then everything the source publishes.
+     * That put "Продукты и еда" at the front of the rail and "Еда и напитки" - the section it is
+     * assembled out of - eight tiles further along, so the two nearest neighbours in meaning were
+     * the furthest apart on screen. A section already declares which of the source's it reads;
+     * that is the affinity, and it decides the order.
+     */
     fun merge(sourceCategories: List<StoreCategory>): List<StoreCategory> {
         val curatedSlugs = ALL.mapTo(mutableSetOf()) { it.slug }
-        return ALL.map { it.toStoreCategory() } + sourceCategories.filterNot { it.slug in curatedSlugs }
+        val bySlug = sourceCategories.associateBy { it.slug }
+        val placed = mutableSetOf<String>()
+        val ordered = mutableListOf<StoreCategory>()
+        for (curated in ALL) {
+            ordered += curated.toStoreCategory()
+            for (slug in curated.sourceSlugs) {
+                // A source section belongs to whichever curated section names it first: several
+                // read "finance" or "tools", and a tile must not appear twice in one rail.
+                if (slug in curatedSlugs || !placed.add(slug)) continue
+                bySlug[slug]?.let { ordered += it }
+            }
+        }
+        ordered += sourceCategories.filterNot { it.slug in curatedSlugs || it.slug in placed }
+        return ordered
     }
 }

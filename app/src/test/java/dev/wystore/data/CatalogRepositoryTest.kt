@@ -106,7 +106,9 @@ class CatalogRepositoryTest {
         clock += 1001
         source.categoryTitle = "Обновлено"
 
-        assertEquals("Обновлено", repository.categories().value.last().title)
+        // By slug, not by position: a source section now sits next to the curated section that
+        // reads it rather than after every one of them.
+        assertEquals("Обновлено", repository.categories().value.first { it.slug == "tools" }.title)
         assertEquals(2, source.categoryCalls)
     }
 
@@ -121,7 +123,7 @@ class CatalogRepositoryTest {
         val result = repository.categories()
 
         assertTrue("caller must know the value is not fresh", result.stale)
-        assertEquals("Инструменты", result.value.last().title)
+        assertEquals("Инструменты", result.value.first { it.slug == "tools" }.title)
         assertNotNull(result.error)
     }
 
@@ -170,7 +172,7 @@ class CatalogRepositoryTest {
         repository.categories()
         repository.catalog("tools", 1)
 
-        assertEquals("tools", store.categories.last().slug)
+        assertTrue("the source section is persisted", store.categories.any { it.slug == "tools" })
         assertTrue(
             "curated sections are persisted with the source's",
             store.categories.map { it.slug }.containsAll(CuratedCategories.ALL.map { it.slug })

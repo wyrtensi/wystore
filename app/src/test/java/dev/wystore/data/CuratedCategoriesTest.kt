@@ -105,14 +105,28 @@ class CuratedCategoriesTest {
     }
 
     @Test
-    fun curatedSectionsLeadAndSourceSectionsFollow() {
+    fun aCuratedSectionIsFollowedByTheSourceSectionItIsBuiltFrom() {
         val merged = CuratedCategories.merge(
             listOf(StoreCategory("finance", "Финансы"), StoreCategory("all", "Все приложения"))
         )
 
         assertEquals(CuratedCategories.ALL.size + 2, merged.size)
-        assertEquals("wy-banks", merged.first().slug)
-        assertEquals(listOf("finance", "all"), merged.takeLast(2).map { it.slug })
+        // The two nearest neighbours in meaning used to be the furthest apart on screen: every
+        // curated section first, then everything the source publishes.
+        val slugs = merged.map { it.slug }
+        assertEquals("wy-banks", slugs.first())
+        assertEquals("finance", slugs[1])
+        // Nothing claimed by a curated section is left over for the tail.
+        assertEquals("all", slugs.last())
+    }
+
+    /** A source section named by two curated ones belongs to the first: a rail has no duplicates. */
+    @Test
+    fun aSourceSectionIsPlacedOnceEvenWhenTwoSectionsReadIt() {
+        val merged = CuratedCategories.merge(listOf(StoreCategory("finance", "Финансы")))
+
+        assertEquals(1, merged.count { it.slug == "finance" })
+        assertEquals("wy-banks", merged[merged.indexOfFirst { it.slug == "finance" } - 1].slug)
     }
 
     @Test

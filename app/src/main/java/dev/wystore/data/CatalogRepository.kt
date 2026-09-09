@@ -174,6 +174,22 @@ class CatalogRepository(
         runCatching { cacheStore.iconFor(packageName) }.getOrNull()
 
     /**
+     * The first few app icons of a section, for a tile that wants to show what is inside it.
+     *
+     * One page, and the page cache is the same one browsing fills, so a section already visited
+     * costs nothing. A curated section is read through the first source section it is built from
+     * rather than assembled in full - assembling one means several pages from several sections,
+     * which is far too much to spend on a picture.
+     */
+    suspend fun previewIcons(slug: String, limit: Int = 5): List<String> {
+        val curated = CuratedCategories.ALL.firstOrNull { it.slug == slug }
+        val sourceSlug = curated?.sourceSlugs?.firstOrNull() ?: slug
+        val page = runCatching { catalog(sourceSlug, 1).value }.getOrNull() ?: return emptyList()
+        val apps = curated?.select(page.apps) ?: page.apps
+        return apps.mapNotNull { it.iconUrl?.takeIf { url -> url.isNotBlank() } }.take(limit)
+    }
+
+    /**
      * Writes down the icons of apps the user has just been shown.
      *
      * Everything that lists apps passes through here, so a package the app has displayed once can

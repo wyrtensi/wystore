@@ -281,9 +281,11 @@ fun WyStoreRoot(
                         onSearchClick = { destination = WyStoreDestination.Search },
                         onAppClick = { packageName -> viewModel.openDetails(packageName) },
                         onCategoryClick = openCategory,
-                        onAllCategoriesClick = {
-                            openCategory(StoreCategory(slug = "all", title = allCategoriesTitle))
-                        },
+                        // Running out of rail widens the choice; it used to replace it with one
+                        // long list of every app the source has, which is a different question.
+                        onAllCategoriesClick = { destination = WyStoreDestination.Categories },
+                        categoryPreviews = homeState.categoryPreviews,
+                        onNeedCategoryPreview = homeViewModel::requestCategoryPreview,
                         onUpdatesClick = { destination = WyStoreDestination.Updates },
                         // Downloading what is already verified is the point of the queue; a metadata
                         // re-check here would leave ready updates untouched.
@@ -373,6 +375,19 @@ fun WyStoreRoot(
                         onQueueDownload = viewModel::queueDownload,
                         onQueueDiscard = viewModel::queueDiscard,
                         onStartQueue = viewModel::startQueue
+                    )
+                    WyStoreDestination.Categories -> dev.wystore.ui.home.AllCategoriesScreen(
+                        modifier = screenModifier,
+                        categories = homeState.categories,
+                        githubEnabled = state.settings.githubEnabled,
+                        onBack = { destination = WyStoreDestination.Home },
+                        onCategoryClick = openCategory,
+                        previews = homeState.categoryPreviews,
+                        onNeedPreview = homeViewModel::requestCategoryPreview,
+                        onGitHubClick = { destination = WyStoreDestination.GitHub },
+                        onAllAppsClick = {
+                            openCategory(StoreCategory(slug = "all", title = allCategoriesTitle))
+                        }
                     )
                     WyStoreDestination.Library -> LibraryScreen(
                         modifier = screenModifier,
