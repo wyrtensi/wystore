@@ -47,8 +47,9 @@ is a data source here. See [DISCLAIMER.md](DISCLAIMER.md).
 - **APK checks before install.** Package name, versionCode, completeness of the split-APK set and the
   signing certificate are verified before the file reaches the installer. A mismatch is a refusal
   with a stated reason.
-- **Background updates.** Scheduled checks, automatic download of what they find, and installation
-  without a dialog where Android allows it. No root required.
+- **Background updates.** Scheduled checks, automatic download of what they find, and — on Android
+  12 and newer — installation of what Wy Store installed itself without a dialog. No root
+  required.
 - **Download queue.** Kept in a database, survives reboots and dropped connections, and resumes from
   where it stopped using HTTP Range.
 - **Reviews and ratings.** For RuStore apps: the rating, a breakdown by star count and a filter by
@@ -95,9 +96,12 @@ Self-updating works as before from then on.
 
 ## How updates work
 
-Android lets whoever installed an app update it without a dialog. Wy Store uses that: what it
-installed, it updates itself — downloading, checking the signature and installing, including while
-the app is in the background.
+Since Android 12 the system lets whoever installed an app update it without a dialog. Wy Store
+uses that: what it installed, it updates itself — downloading, checking the signature and
+installing, including while the app is in the background.
+
+On Android 9, 10 and 11 no store has that option: every update there stops on the system dialog.
+The download still happens on its own; it is the install that needs a tap.
 
 Three settings make up the chain, all on by default:
 
@@ -110,6 +114,9 @@ Three settings make up the chain, all on by default:
 The limits are these:
 
 - A first install is always confirmed — the system dialog cannot be bypassed.
+- Even on Android 12 and newer the system has conditions of its own: the app being updated has to
+  target a recent enough API. When it does not, Wy Store is refused and falls back to the ordinary
+  confirmation.
 - An app another store installed also asks for confirmation. Its updates can be handed to Wy Store
   from the app's own page: it gets reinstalled, and updates go quietly afterwards.
 - Apps installed from Google Play are left alone entirely until that is enabled for a specific app.
@@ -176,7 +183,9 @@ The endpoints, the reason behind HTTP 419 and the fallback behaviour are describ
   need something newer, and each app's page states the version it needs before the download rather
   than after.
 - Permission to install unknown apps: Android asks for it on the first install.
-- Root is optional. Without it, only the silent **first** install is unavailable.
+- Root is optional, but without it only updates go quietly, and only on Android 12 and newer. A
+  first install always asks, and on Android 9, 10 and 11 so does every update. With root everything
+  installs silently, first installs included.
 - ABI and screen density are detected automatically, and the matching APK set is chosen.
 
 ## Questions

@@ -58,7 +58,8 @@
   делает. Вопросы по стороннему приложению — его разработчику или источнику.
 - **RuStore и GitHub.** Уязвимости в самих сервисах — к ним.
 - **Возможность ставить APK из интернета.** Это назначение приложения, а не дефект. То же про
-  установку без диалога для приложений, которые установил сам Wy Store: так работает Android.
+  установку без диалога на Android 12 и новее для приложений, которые установил сам Wy Store: так
+  работает Android.
 - **Режим с root.** Он выключен по умолчанию и включается сознательно. Последствия выдачи root
   любому приложению — известный размен, а не находка.
 - **Отсутствие защиты, требующей сервера.** У проекта его нет и не будет: нет ни репутации
@@ -143,7 +144,8 @@ Everything about delivery and installation:
   Take those to the app's developer or its source.
 - **RuStore and GitHub themselves.** Vulnerabilities in those services belong to them.
 - **The ability to install APKs from the internet.** That is what the app is for, not a defect. The
-  same goes for dialog-free updates of apps Wy Store installed: that is how Android works.
+  same goes for dialog-free updates, on Android 12 and newer, of apps Wy Store installed: that is
+  how Android works.
 - **Root mode.** It is off by default and turned on deliberately. The consequences of granting root
   to any app are a known trade-off, not a finding.
 - **The absence of protections that need a server.** There is no backend and there will not be one:

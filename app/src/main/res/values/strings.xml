@@ -437,7 +437,7 @@
     <string name="settings_queue_mode_hint">Smart mode offers the next update right after one finishes</string>
     <string name="settings_root_background_downloads">Download updates in background (root)</string>
     <string name="settings_silent_updates_title">Update without asking</string>
-    <string name="settings_silent_updates_hint">Android lets an app store update what it installed itself without a confirmation dialog. First installs always ask, and so does anything another store installed.</string>
+    <string name="settings_silent_updates_hint">Since Android 12 the system lets an app store update what it installed itself without a confirmation dialog. Android 9, 10 and 11 have no such option — the update downloads itself, but the install needs confirming. First installs always ask, and so does anything another store installed.</string>
     <string name="settings_silent_updates_switch">Skip the confirmation for updates</string>
     <string name="settings_auto_download_title">Download updates as they are found</string>
     <string name="settings_auto_download_hint">A check that finds an update fetches it straight away, so the install offer arrives with the file already there. Installing still asks.</string>
