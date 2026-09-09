@@ -175,6 +175,7 @@
     <string name="details_screenshots">Screenshots</string>
     <string name="details_screenshots_hint">Tap to view full size</string>
     <string name="details_reviews">Reviews</string>
+    <string name="details_reviews_all_shown">All %1$d reviews with this rating are shown</string>
     <string name="details_reviews_all">All</string>
     <string name="details_reviews_sample">Of %1$d loaded reviews</string>
     <string name="details_reviews_none_with_stars">No reviews with this rating among the loaded ones</string>
@@ -493,7 +494,7 @@
     <string name="details_min_android_value">Android %1$s and up</string>
     <string name="details_rating_value">%1$s (%2$d)</string>
     <string name="details_fingerprint_note">Declared by RuStore — checked before installing</string>
-    <string name="home_tagline">Apps without registration</string>
+    <string name="home_tagline">RuStore and GitHub apps — no account, no fuss</string>
     <string name="home_empty_featured_title">Nothing to show yet</string>
     <string name="search_empty_title">Nothing found</string>
     <string name="search_empty_message">Try a shorter query or the package name.</string>

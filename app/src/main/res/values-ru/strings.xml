@@ -175,6 +175,7 @@
     <string name="details_screenshots">Скриншоты</string>
     <string name="details_screenshots_hint">Нажми, чтобы посмотреть полностью</string>
     <string name="details_reviews">Отзывы</string>
+    <string name="details_reviews_all_shown">Показаны все %1$d отзыва с этой оценкой</string>
     <string name="details_reviews_all">Все</string>
     <string name="details_reviews_sample">Из %1$d загруженных отзывов</string>
     <string name="details_reviews_none_with_stars">Среди загруженных отзывов с такой оценкой нет</string>
@@ -493,7 +494,7 @@
     <string name="details_min_android_value">Android от %1$s</string>
     <string name="details_rating_value">%1$s (%2$d)</string>
     <string name="details_fingerprint_note">Заявлен источником RuStore — сверяется перед установкой</string>
-    <string name="home_tagline">Приложения без регистрации</string>
+    <string name="home_tagline">Приложения RuStore и GitHub — удобно и без регистрации</string>
     <string name="home_empty_featured_title">Пока нечего показать</string>
     <string name="search_empty_title">Ничего не найдено</string>
     <string name="search_empty_message">Попробуйте более короткий запрос или имя пакета.</string>

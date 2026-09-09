@@ -20,11 +20,11 @@ import androidx.core.graphics.ColorUtils
  */
 internal fun ColorScheme.withSeparatedSurfaces(): ColorScheme = copy(
     surfaceContainerLowest = surfaceContainerLowest.separatedFrom(surface, 0.6f),
-    surfaceContainerLow = surfaceContainerLow.separatedFrom(surface, 1.7f),
-    surfaceContainer = surfaceContainer.separatedFrom(surface, 1.7f),
-    surfaceContainerHigh = surfaceContainerHigh.separatedFrom(surface, 1.7f),
-    surfaceContainerHighest = surfaceContainerHighest.separatedFrom(surface, 1.7f),
-    surfaceVariant = surfaceVariant.separatedFrom(surface, 1.4f)
+    surfaceContainerLow = surfaceContainerLow.separatedFrom(surface, 2.6f),
+    surfaceContainer = surfaceContainer.separatedFrom(surface, 2.6f),
+    surfaceContainerHigh = surfaceContainerHigh.separatedFrom(surface, 2.6f),
+    surfaceContainerHighest = surfaceContainerHighest.separatedFrom(surface, 2.6f),
+    surfaceVariant = surfaceVariant.separatedFrom(surface, 2.1f)
 )
 
 /**

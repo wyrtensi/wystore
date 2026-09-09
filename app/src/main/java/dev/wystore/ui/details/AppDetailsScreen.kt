@@ -426,6 +426,19 @@ fun AppDetailsScreen(
                 // hidden behind `size > REVIEW_PAGE` and never appeared. The rest are fetched from
                 // the source's own review page the first time the user asks for them.
                 val remaining = filtered.size - shownReviews
+                // Said rather than left to be inferred from a missing button. With a star chosen,
+                // a rating with five reviews and one with fifty otherwise look the same at the
+                // bottom of the list - one simply has no control under it.
+                if (remaining <= 0 && !canLoadMoreReviews && reviewStars != null && filtered.isNotEmpty()) {
+                    item {
+                        Text(
+                            stringResource(R.string.details_reviews_all_shown, filtered.size),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
                 if (remaining > 0 || canLoadMoreReviews || shownReviews > REVIEW_PAGE) {
                     item {
                         TextButton(
