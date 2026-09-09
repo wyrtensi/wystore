@@ -104,7 +104,8 @@ fun WyIndeterminateBar(
     }
 }
 
-private const val ROTATION_PERIOD_MS = 900f
+/** One turn. Slower than Material's own: this one never pauses, so a brisk spin reads as agitated. */
+private const val ROTATION_PERIOD_MS = 1600f
 private const val ARC_DEGREES = 260f
-private const val SWEEP_PERIOD_MS = 1400f
+private const val SWEEP_PERIOD_MS = 2200f
 private const val SWEEP_FRACTION = 0.35f
