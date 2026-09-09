@@ -52,7 +52,13 @@ data class StoreReview(
     val author: String,
     val publishedAt: String?,
     val rating: Int?,
-    val text: String
+    val text: String,
+    val likes: Int = 0,
+    val dislikes: Int = 0,
+    /** What the developer wrote back, which is often the answer to the complaint above it. */
+    val developerResponse: String? = null,
+    val developerRespondedAt: String? = null,
+    val edited: Boolean = false
 )
 
 data class SearchPage(

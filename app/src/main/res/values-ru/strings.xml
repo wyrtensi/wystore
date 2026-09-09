@@ -616,6 +616,9 @@
     <string name="check_progress_detail">%1$d из %2$d</string>
     <string name="backup_restored_summary">Восстановлено приложений: %1$d, репозиториев: %2$d</string>
     <string name="backup_invalid_json">Файл резервной копии в формате, который Wy Store не понимает.</string>
+    <string name="review_developer_reply">Ответ разработчика</string>
+    <string name="review_edited">%1$s · изменён</string>
+    <string name="review_votes">👍 %1$d · 👎 %2$d</string>
     <string name="review_anonymous_author">Пользователь RuStore</string>
     <string name="details_reviews_count">Отзывы (%1$d)</string>
     <string name="details_reviews_show_more">Показать ещё %1$d</string>

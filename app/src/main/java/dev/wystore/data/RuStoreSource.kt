@@ -57,7 +57,7 @@ class RuStoreSource(context: Context) : StoreSource {
                 // One fetch feeds both reviews and the changelog.
                 val page = runCatching { getText("https://www.rustore.ru/catalog/app/$validPackageName") }
                 app.copy(
-                    reviews = page.mapCatching { RustoreHtmlParser.parseReviewPreviews(it) }
+                    reviews = page.mapCatching { RustoreHtmlParser.parseReviews(it) }
                         .getOrDefault(emptyList()),
                     changelog = page.mapCatching { RustoreHtmlParser.parseChangelog(it) }.getOrNull()
                 )
@@ -118,7 +118,7 @@ class RuStoreSource(context: Context) : StoreSource {
      */
     override suspend fun reviews(packageName: String): List<StoreReview> = withContext(Dispatchers.IO) {
         val validPackageName = PackageNameValidator.requireValid(packageName)
-        RustoreHtmlParser.parseReviewPreviews(
+        RustoreHtmlParser.parseReviews(
             getText("https://www.rustore.ru/catalog/app/$validPackageName/reviews")
         )
     }
@@ -169,6 +169,8 @@ class RuStoreSource(context: Context) : StoreSource {
 object RustoreHtmlParser {
     /** Upper bound on parsed reviews: a guard against a pathological document, not a preview cap. */
     private const val MAX_REVIEWS = 100
+    private const val BACKSLASH = '\u005C'
+    private const val REVIEWS_KEY = "\"reviews\":["
 
     private const val CHANGELOG_HEADING = "Что нового"
     private const val CHANGELOG_VERSION_LABEL = "Версия"
@@ -283,6 +285,71 @@ object RustoreHtmlParser {
      * telling anyone; the app page pages through the full list instead. The remaining bound is a
      * guard against an unexpectedly huge document, not an editorial choice.
      */
+    /**
+     * Every review the page carries, with everything it says about them.
+     *
+     * The page renders reviews from a payload embedded for its own use, and that payload has what
+     * the schema.org block beside it does not: the developer's reply, the votes, whether the review
+     * was edited after posting. A reply is often the answer to the complaint above it, so dropping
+     * it left the worst reviews looking unanswered when they had been answered.
+     *
+     * Falls back to the schema.org block, which is a stable published format and needs no knowledge
+     * of how the page is built. That is the point of the fallback: this reads a private payload,
+     * and the day its shape changes the reviews go back to what they were rather than disappearing.
+     */
+    fun parseReviews(html: String): List<StoreReview> =
+        runCatching { parseEmbeddedReviews(html) }.getOrDefault(emptyList())
+            .ifEmpty { parseReviewPreviews(html) }
+
+    private fun parseEmbeddedReviews(html: String): List<StoreReview> {
+        // The payload is a JSON string inside a script, so every quote in it is escaped once.
+        val text = html.replace("\\\"", "\"")
+        val start = text.indexOf(REVIEWS_KEY)
+        if (start < 0) return emptyList()
+        val array = balancedArray(text, start + REVIEWS_KEY.length - 1) ?: return emptyList()
+        val parsed = JsonParser.parseString(array).takeIf { it.isJsonArray }?.asJsonArray ?: return emptyList()
+        return parsed.mapNotNull { element ->
+            val review = element.takeIf { it.isJsonObject }?.asJsonObject ?: return@mapNotNull null
+            val body = review.string("comment")?.trim().orEmpty()
+            if (body.isBlank()) return@mapNotNull null
+            StoreReview(
+                author = review.string("firstName")?.trim().orEmpty(),
+                publishedAt = review.string("commentDate"),
+                rating = review.get("rating")?.takeUnless { it.isJsonNull }?.asInt?.takeIf { it in 1..5 },
+                text = body,
+                likes = review.get("likesCount")?.takeUnless { it.isJsonNull }?.asInt ?: 0,
+                dislikes = review.get("dislikesCount")?.takeUnless { it.isJsonNull }?.asInt ?: 0,
+                developerResponse = review.string("devResponse")?.trim()?.takeIf { it.isNotBlank() },
+                developerRespondedAt = review.string("devResponseDate"),
+                edited = review.string("editedAt") != null
+            )
+        }.distinctBy { listOf(it.author, it.publishedAt, it.text) }.take(MAX_REVIEWS)
+    }
+
+    /** The array starting at [open], with quotes and nesting inside it respected. */
+    private fun balancedArray(text: String, open: Int): String? {
+        if (text.getOrNull(open) != '[') return null
+        var depth = 0
+        var inString = false
+        var escaped = false
+        for (index in open until text.length) {
+            val character = text[index]
+            when {
+                inString && escaped -> escaped = false
+                inString && character == BACKSLASH -> escaped = true
+                inString && character == '"' -> inString = false
+                inString -> Unit
+                character == '"' -> inString = true
+                character == '[' -> depth++
+                character == ']' -> {
+                    depth--
+                    if (depth == 0) return text.substring(open, index + 1)
+                }
+            }
+        }
+        return null
+    }
+
     fun parseReviewPreviews(html: String): List<StoreReview> {
         val documents = Jsoup.parse(html).select("script[type=application/ld+json]")
         return documents.flatMap { script ->
