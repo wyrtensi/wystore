@@ -175,6 +175,9 @@
     <string name="details_screenshots">Screenshots</string>
     <string name="details_screenshots_hint">Tap to view full size</string>
     <string name="details_reviews">Reviews</string>
+    <string name="details_reviews_all">All</string>
+    <string name="details_reviews_sample">Of %1$d loaded reviews</string>
+    <string name="details_reviews_none_with_stars">No reviews with this rating among the loaded ones</string>
     <string name="details_reviews_hint">Latest reviews from the public RuStore page</string>
     <string name="details_description">Description</string>
 

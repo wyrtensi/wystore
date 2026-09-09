@@ -175,6 +175,9 @@
     <string name="details_screenshots">Скриншоты</string>
     <string name="details_screenshots_hint">Нажми, чтобы посмотреть полностью</string>
     <string name="details_reviews">Отзывы</string>
+    <string name="details_reviews_all">Все</string>
+    <string name="details_reviews_sample">Из %1$d загруженных отзывов</string>
+    <string name="details_reviews_none_with_stars">Среди загруженных отзывов с такой оценкой нет</string>
     <string name="details_reviews_hint">Последние отзывы из публичной карточки RuStore</string>
     <string name="details_description">Описание</string>
 

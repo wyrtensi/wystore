@@ -5,11 +5,14 @@ import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -20,6 +23,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.core.net.toUri
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,6 +66,8 @@ import dev.wystore.R
 import dev.wystore.data.AndroidSdkCompatibility
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.PendingUpdate
+import dev.wystore.data.ReviewSummary
+import dev.wystore.data.StoreReview
 import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.UninstallIconButton
 import dev.wystore.data.SignatureCompatibility
@@ -96,6 +105,8 @@ fun AppDetailsScreen(
 ) {
     var screenshotPreview by remember { mutableStateOf<String?>(null) }
     var shownReviews by remember(app.packageName) { mutableIntStateOf(REVIEW_PAGE) }
+    // Which star the list is cut to, or null for all of them.
+    var reviewStars by remember(app.packageName) { mutableStateOf<Int?>(null) }
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val queueActive = queueItem?.status?.isInFlight == true
@@ -365,6 +376,7 @@ fun AppDetailsScreen(
             // Shown even with nothing embedded in the card: the source publishes reviews on a page
             // of their own, and an app whose card carries none used to offer no way to reach them.
             if (app.reviews.isNotEmpty() || canLoadMoreReviews) {
+                val filtered = ReviewSummary.filter(app.reviews, reviewStars)
                 item {
                     SectionHeader(
                         title = if (app.reviews.isEmpty()) {
@@ -375,26 +387,52 @@ fun AppDetailsScreen(
                         subtitle = stringResource(R.string.details_reviews_hint)
                     )
                 }
+                if (app.reviews.isNotEmpty()) {
+                    item {
+                        ReviewBreakdown(
+                            reviews = app.reviews,
+                            selected = reviewStars,
+                            onSelect = { stars ->
+                                reviewStars = stars
+                                shownReviews = REVIEW_PAGE
+                                // A star chosen over five embedded reviews would answer from a
+                                // sample far too small; the rest are fetched before it can.
+                                if (ReviewSummary.needsEveryReview(stars, canLoadMoreReviews)) {
+                                    onLoadMoreReviews()
+                                }
+                            }
+                        )
+                    }
+                }
                 // Paged rather than rendered in one item: the parser no longer caps the list at
                 // five, and a hundred cards inside a single LazyColumn item would all be composed
                 // at once.
                 items(
-                    app.reviews.take(shownReviews),
+                    filtered.take(shownReviews),
                     key = { "review:${it.author}:${it.publishedAt}:${it.text.hashCode()}" }
                 ) { review ->
                     ReviewCard(review)
                 }
+                if (filtered.isEmpty() && app.reviews.isNotEmpty() && !reviewsLoading) {
+                    item {
+                        Text(
+                            stringResource(R.string.details_reviews_none_with_stars),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 // The page the app card comes from embeds exactly five reviews, so this used to be
                 // hidden behind `size > REVIEW_PAGE` and never appeared. The rest are fetched from
                 // the source's own review page the first time the user asks for them.
-                val remaining = app.reviews.size - shownReviews
+                val remaining = filtered.size - shownReviews
                 if (remaining > 0 || canLoadMoreReviews || shownReviews > REVIEW_PAGE) {
                     item {
                         TextButton(
                             onClick = {
                                 when {
                                     remaining > 0 ->
-                                        shownReviews = (shownReviews + REVIEW_PAGE).coerceAtMost(app.reviews.size)
+                                        shownReviews = (shownReviews + REVIEW_PAGE).coerceAtMost(filtered.size)
                                     canLoadMoreReviews -> {
                                         onLoadMoreReviews()
                                         shownReviews += REVIEW_PAGE
@@ -488,4 +526,89 @@ fun AppDetailsScreen(
 }
 
 /** How many reviews a page of the list shows. */
+/**
+ * How the reviews on screen are distributed, and the way to cut them by star.
+ *
+ * Deliberately labelled as the sample rather than the app's score: the source publishes its own
+ * average over every review ever left, and that is what the rating at the top of the card shows.
+ * These bars describe what has been loaded here, which is a different and smaller thing.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ReviewBreakdown(
+    reviews: List<StoreReview>,
+    selected: Int?,
+    onSelect: (Int?) -> Unit
+) {
+    val distribution = remember(reviews) { ReviewSummary.distribution(reviews) }
+    val rated = remember(distribution) { distribution.sumOf { it.second } }
+    if (rated == 0) return
+    WyCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            distribution.forEach { (stars, count) ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "$stars",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.width(12.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.Star,
+                        contentDescription = null,
+                        modifier = Modifier.size(13.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    LinearProgressIndicator(
+                        progress = { count.toFloat() / rated },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(6.dp),
+                        strokeCap = StrokeCap.Round,
+                        drawStopIndicator = {}
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        "$count",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Text(
+                stringResource(R.string.details_reviews_sample, rated),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = selected == null,
+                    onClick = { onSelect(null) },
+                    label = { Text(stringResource(R.string.details_reviews_all)) }
+                )
+                // Only the stars somebody actually gave: a chip that can only ever be empty is a
+                // dead end dressed as a choice.
+                distribution.filter { it.second > 0 }.forEach { (stars, _) ->
+                    FilterChip(
+                        selected = selected == stars,
+                        onClick = { onSelect(if (selected == stars) null else stars) },
+                        label = { Text("$stars") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Star,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 private const val REVIEW_PAGE = 5
