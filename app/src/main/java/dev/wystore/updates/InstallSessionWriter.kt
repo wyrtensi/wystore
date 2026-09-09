@@ -193,7 +193,8 @@ class InstallSessionWriter(private val context: Context) {
 
     companion object {
         private const val APK_MIME_TYPE = "application/vnd.android.package-archive"
-        const val ACTION_INSTALL_RESULT = "dev.wystore.action.INSTALL_RESULT"
+        /** Derived, so two builds with different ids never answer for each other's installs. */
+        const val ACTION_INSTALL_RESULT = BuildConfig.APPLICATION_ID + ".action.INSTALL_RESULT"
         const val EXTRA_QUEUE_ID = "extra_queue_id"
         const val EXTRA_PACKAGE_NAME = "extra_package_name"
         const val EXTRA_SESSION_ID = "extra_session_id"

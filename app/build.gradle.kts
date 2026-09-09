@@ -28,7 +28,10 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "dev.wystore"
+        // Not the namespace: the Kotlin package stays dev.wystore, which is only a compile-time
+        // name. This is the identity Android and the user see, and it changed once - see the
+        // 0.1.28 entry in CHANGELOG.md, which is why that release is a manual reinstall.
+        applicationId = "app.wystore"
         minSdk = 26
         targetSdk = 36
         versionCode = 28
