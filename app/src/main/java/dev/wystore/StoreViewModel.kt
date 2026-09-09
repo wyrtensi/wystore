@@ -857,8 +857,16 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * after another; anything still waiting to be fetched starts fetching.
      */
     fun updateAll() {
+        // Added to what the batch is already carrying rather than replacing it: a batch running
+        // when this is pressed would otherwise lose its remaining list and rebuild it from every
+        // downloaded update - including the one whose dialog the user had just dismissed.
         _state.update { state ->
-            state.copy(installAllRemaining = state.pendingUpdates.map { it.packageName })
+            val queued = state.installAllRemaining
+            state.copy(
+                installAllRemaining = queued + state.pendingUpdates
+                    .map { it.packageName }
+                    .filter { it !in queued && it != installAllCurrent }
+            )
         }
         startNextBatchInstall()
         // Installing what is already downloaded costs nothing; only the fetching part is asked
