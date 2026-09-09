@@ -76,8 +76,9 @@ class UpdateCheckWorker(
         var updatesFound = 0
         var problems = 0
         // Queue rows created by this run, so an unattended download starts only what was just
-        // found rather than everything ever left in the queue.
-        val queuedThisRun = mutableListOf<String>()
+        // found rather than everything ever left in the queue. Carried with their package names:
+        // a row id in the failure log is a UUID nobody can match to an app.
+        val queuedThisRun = mutableListOf<QueuedRow>()
 
         for ((index, managed) in candidates.withIndex()) {
             currentCoroutineContext().ensureActive()
@@ -116,7 +117,7 @@ class UpdateCheckWorker(
                     // Found, and shown in the queue either way. Only an app the user still lets
                     // update by itself is handed to the downloader; see mayDownloadAfterCheck.
                     if (UpdateCheckPolicy.mayDownloadAfterCheck(managed.autoUpdate)) {
-                        queuedThisRun += queuedId
+                        queuedThisRun += QueuedRow(id = queuedId, packageName = managed.packageName)
                     }
                 }
             } catch (c: CancellationException) {
@@ -143,7 +144,10 @@ class UpdateCheckWorker(
             runCatching {
                 val status = SelfUpdateChecker(applicationContext).check()
                 if (status is SelfUpdateStatus.Available) {
-                    queuedThisRun += SelfUpdateChecker(applicationContext).enqueue(status.release)
+                    queuedThisRun += QueuedRow(
+                        id = SelfUpdateChecker(applicationContext).enqueue(status.release),
+                        packageName = applicationContext.packageName
+                    )
                     updatesFound++
                 }
             }.onFailure { error ->
@@ -304,7 +308,7 @@ class UpdateCheckWorker(
      */
     private suspend fun startDownloads(
         settings: StoreSettings,
-        queueIds: List<String>
+        queued: List<QueuedRow>
     ) {
         val rootAvailable = if (settings.autoDownloadUpdates) {
             false
@@ -319,14 +323,14 @@ class UpdateCheckWorker(
         ) {
             return
         }
-        queueIds.forEach { id ->
-            runCatching { TransferDispatcher.dispatchUnattended(applicationContext, id, settings) }
+        queued.forEach { row ->
+            runCatching { TransferDispatcher.dispatchUnattended(applicationContext, row.id, settings) }
                 .onFailure { error ->
                     // The row is queued and nothing is coming for it. Silent, this looks exactly
                     // like an update that is simply taking its time.
                     runCatching {
                         EventLog(applicationContext).record(
-                            packageName = id,
+                            packageName = row.packageName,
                             code = "DISPATCH_FAILED",
                             detail = error.message ?: error::class.java.simpleName
                         )
@@ -334,6 +338,9 @@ class UpdateCheckWorker(
                 }
         }
     }
+
+    /** A row this run created, and the app it belongs to - which is what a report has to name. */
+    private data class QueuedRow(val id: String, val packageName: String)
 
     companion object {
         const val KEY_MANUAL_CHECK = "manual_check"
