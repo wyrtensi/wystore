@@ -412,17 +412,22 @@ internal fun CategoryTile(
 }
 
 /**
- * One of eight tile colours, and an ink that is legible on it.
+ * A tile colour, and an ink that is legible on it.
  *
- * The palette gives three container colours, and three tones over thirty tiles is a wall of the
+ * The palette gives three container colours, and three tones over twenty tiles is a wall of the
  * same three. Blending pairs of them to widen the set looked varied and read badly: the ink belongs
  * to one of the two and halfway between them it no longer has the contrast it was chosen for.
  *
  * The hue is rotated instead, keeping the saturation and lightness of the theme's own container -
- * so a light theme gets eight pastels, a dark one eight deep tones, and a Material You phone eight
- * of its own colour rather than eight of ours. The ink is then decided by measuring the result:
- * near-black on a light tile, near-white on a dark one, in the tile's own hue so it reads as part
- * of it. Nothing here can come out illegible, whatever the theme turns out to be.
+ * so a light theme gets pastels, a dark one deep tones, and a Material You phone its own colour
+ * rather than ours. The step is the golden angle rather than an even division of the circle: any
+ * fixed number of tones repeats as soon as the list is longer than it, while this one keeps
+ * landing between the hues already used, so a screenful of twenty sections has twenty colours and
+ * neighbours are never close.
+ *
+ * The ink is then decided by measuring the result: near-black on a light tile, near-white on a
+ * dark one, in the tile's own hue so it reads as part of it. Nothing here can come out illegible,
+ * whatever the theme turns out to be.
  */
 @Composable
 private fun categoryTone(index: Int): Pair<Color, Color> {
@@ -430,7 +435,7 @@ private fun categoryTone(index: Int): Pair<Color, Color> {
     return remember(base, index) {
         val hsl = FloatArray(3)
         ColorUtils.colorToHSL(base.toArgb(), hsl)
-        val hue = (hsl[0] + index.mod(TONE_COUNT) * (360f / TONE_COUNT)) % 360f
+        val hue = (hsl[0] + index * GOLDEN_ANGLE_DEGREES) % 360f
         val saturation = hsl[1].coerceIn(0.18f, 0.62f)
         val container = Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation, hsl[2])))
         val ink = if (ColorUtils.calculateLuminance(container.toArgb()) > 0.42) {
@@ -442,7 +447,8 @@ private fun categoryTone(index: Int): Pair<Color, Color> {
     }
 }
 
-private const val TONE_COUNT = 8
+/** 360 / phi: the step that spreads any number of hues as evenly as they can be spread. */
+private const val GOLDEN_ANGLE_DEGREES = 137.50776f
 
 /**
  * The first apps of a section, overlapped like a hand of cards.
