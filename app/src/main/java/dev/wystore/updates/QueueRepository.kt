@@ -373,6 +373,18 @@ class QueueRepository(
     }
 
     /**
+     * Records that everything waiting was asked for.
+     *
+     * "Start" is a request for the queue, not for its first row. Only that row was dispatched as a
+     * user request; the ones behind it were left carrying the background priority, so the pump
+     * applied the unattended constraints to them and a queue started by hand could stop dead
+     * waiting for Wi-Fi or a charger the user had not been told about.
+     */
+    suspend fun markWaitingAsUserRequested() = withContext(Dispatchers.IO) {
+        dao.raiseWaitingPriority(QueueOrigin.USER_REQUESTED_PRIORITY, System.currentTimeMillis())
+    }
+
+    /**
      * The next waiting row [allow] accepts, in the queue's own order.
      *
      * For starting the queue without being asked: [nextEligible] answers "what is next", which is

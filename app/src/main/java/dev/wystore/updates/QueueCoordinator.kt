@@ -29,6 +29,8 @@ class QueueCoordinator(
     fun permissionSnapshot(): PermissionSnapshot = permissionRepository.snapshot()
 
     suspend fun startQueue() {
+        // Everything waiting, not only the row that goes first: see markWaitingAsUserRequested.
+        runCatching { repository.markWaitingAsUserRequested() }
         val next = repository.nextEligible() ?: return
         download(next.id)
     }

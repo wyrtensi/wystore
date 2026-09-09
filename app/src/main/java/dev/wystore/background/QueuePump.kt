@@ -2,6 +2,8 @@ package dev.wystore.background
 
 import android.content.Context
 import dev.wystore.data.EventLog
+import dev.wystore.data.MeteredDownloadConsent
+import dev.wystore.data.MeteredDownloadPolicy
 import dev.wystore.data.StoreRepository
 import dev.wystore.updates.QueueOrigin
 import dev.wystore.updates.QueueRepository
@@ -39,7 +41,29 @@ object QueuePump {
                 )
             }
         }.getOrNull() ?: return
-        runCatching { TransferDispatcher.dispatch(context.applicationContext, next.id) }
+        // Which mechanism, and under whose rules. A row someone pressed a button for starts now;
+        // one a check found keeps the constraints that check would have applied. Passing the turn
+        // used to start everything the way a button does, so "only on Wi-Fi" and "only while
+        // charging" held for the first download of a round and were dropped for every one behind
+        // it - and, since the queue moves one item at a time, that is most of them.
+        val settings = runCatching { StoreRepository(context.applicationContext).settings() }.getOrNull()
+        runCatching {
+            if (settings == null || QueueOrigin.isUserRequested(next.priority)) {
+                TransferDispatcher.dispatch(context.applicationContext, next.id)
+            } else {
+                TransferDispatcher.dispatchUnattended(
+                    context = context.applicationContext,
+                    queueId = next.id,
+                    settings = settings.copy(
+                        // A "yes, on mobile" given in the dialog covers the rest of the round.
+                        allowMobileData = MeteredDownloadPolicy.allowsMobileData(
+                            allowMobileData = settings.allowMobileData,
+                            allowedThisSession = MeteredDownloadConsent.isAllowedThisSession()
+                        )
+                    )
+                )
+            }
+        }
             .onFailure { error ->
                 // If the turn cannot be passed on, the whole queue stops here. Written down, since
                 // from the outside it is indistinguishable from a queue with nothing left to do.

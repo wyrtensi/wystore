@@ -91,6 +91,12 @@ abstract class UpdateQueueDao {
     @Delete
     abstract suspend fun delete(entity: UpdateQueueEntity)
 
+    @Query(
+        "UPDATE update_queue SET priority = :priority, updatedAt = :now " +
+            "WHERE state = 'AVAILABLE' AND priority < :priority"
+    )
+    abstract suspend fun raiseWaitingPriority(priority: Int, now: Long)
+
     @Query("DELETE FROM update_queue WHERE id = :id")
     abstract suspend fun deleteById(id: String)
 

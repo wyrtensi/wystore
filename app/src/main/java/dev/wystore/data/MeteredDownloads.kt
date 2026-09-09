@@ -25,6 +25,16 @@ object MeteredDownloadPolicy {
         isMetered: Boolean,
         allowedThisSession: Boolean
     ): Boolean = wifiOnly && !allowMobileData && isMetered && !allowedThisSession
+
+    /**
+     * Whether a transfer nobody is being asked about may use a metered connection.
+     *
+     * The yes given in the dialog covers the rest of the round, not only the app it was asked
+     * about: a queue moves one item at a time, and answering "yes, on mobile" for the first of five
+     * downloads only to have the other four stop would be a strange reading of it.
+     */
+    fun allowsMobileData(allowMobileData: Boolean, allowedThisSession: Boolean): Boolean =
+        allowMobileData || allowedThisSession
 }
 
 /**
