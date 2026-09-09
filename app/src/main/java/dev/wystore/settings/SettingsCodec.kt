@@ -57,25 +57,18 @@ internal object SettingsCodec {
     // source of truth. The SharedPreferences migration copies keys verbatim, so these are what an
     // upgrading install actually has on disk; without the fallbacks below every switch silently
     // reverts to its default.
-    val KEY_LEGACY_BG_ROOT = booleanPreferencesKey("background_root")
-    val KEY_LEGACY_ALLOW_MOBILE = booleanPreferencesKey("allow_mobile")
-    val KEY_LEGACY_ROOT_BG_DOWNLOADS = booleanPreferencesKey("root_bg_downloads")
-    val KEY_LEGACY_NOTIF_READY = booleanPreferencesKey("notif_ready")
-    val KEY_LEGACY_NOTIF_ERROR = booleanPreferencesKey("notif_error")
-    val KEY_LEGACY_NOTIF_SUMMARY = booleanPreferencesKey("notif_summary")
 
     /** An absent key takes the default from [AppSettings], which is where defaults are declared. */
     fun read(prefs: Preferences): AppSettings {
         val defaults = AppSettings()
         return AppSettings(
-            wifiOnly = prefs[KEY_WIFI_ONLY] ?: prefs[KEY_LEGACY_ALLOW_MOBILE]?.not() ?: defaults.wifiOnly,
+            wifiOnly = prefs[KEY_WIFI_ONLY] ?: defaults.wifiOnly,
             requiresCharging = prefs[KEY_REQUIRES_CHARGING] ?: defaults.requiresCharging,
-            allowMobileData = prefs[KEY_ALLOW_MOBILE_DATA]
-                ?: prefs[KEY_LEGACY_ALLOW_MOBILE] ?: defaults.allowMobileData,
+            allowMobileData = prefs[KEY_ALLOW_MOBILE_DATA] ?: defaults.allowMobileData,
             rootBackgroundDownloadsEnabled = prefs[KEY_ROOT_BG_DOWNLOADS]
-                ?: prefs[KEY_LEGACY_ROOT_BG_DOWNLOADS] ?: defaults.rootBackgroundDownloadsEnabled,
+                ?: defaults.rootBackgroundDownloadsEnabled,
             rootSilentInstallEnabled = prefs[KEY_ROOT_SILENT_INSTALL]
-                ?: prefs[KEY_LEGACY_BG_ROOT] ?: defaults.rootSilentInstallEnabled,
+                ?: defaults.rootSilentInstallEnabled,
             updateIntervalHours = prefs[KEY_UPDATE_INTERVAL_HOURS] ?: defaults.updateIntervalHours,
             queueMode = prefs[KEY_QUEUE_MODE]?.let { raw ->
                 runCatching { QueueMode.valueOf(raw) }.getOrNull()
@@ -89,11 +82,11 @@ internal object SettingsCodec {
             dynamicColorEnabled = prefs[KEY_DYNAMIC_COLOR] ?: defaults.dynamicColorEnabled,
             githubEnabled = prefs[KEY_GITHUB_ENABLED] ?: defaults.githubEnabled,
             readyNotificationsEnabled = prefs[KEY_READY_NOTIFICATIONS]
-                ?: prefs[KEY_LEGACY_NOTIF_READY] ?: defaults.readyNotificationsEnabled,
+                ?: defaults.readyNotificationsEnabled,
             errorNotificationsEnabled = prefs[KEY_ERROR_NOTIFICATIONS]
-                ?: prefs[KEY_LEGACY_NOTIF_ERROR] ?: defaults.errorNotificationsEnabled,
+                ?: defaults.errorNotificationsEnabled,
             checkSummaryNotificationsEnabled = prefs[KEY_CHECK_SUMMARY_NOTIFICATIONS]
-                ?: prefs[KEY_LEGACY_NOTIF_SUMMARY] ?: defaults.checkSummaryNotificationsEnabled,
+                ?: defaults.checkSummaryNotificationsEnabled,
             quietHoursEnabled = prefs[KEY_QUIET_HOURS_ENABLED] ?: defaults.quietHoursEnabled,
             quietHoursStart = prefs[KEY_QUIET_HOURS_START] ?: defaults.quietHoursStart,
             quietHoursEnd = prefs[KEY_QUIET_HOURS_END] ?: defaults.quietHoursEnd,

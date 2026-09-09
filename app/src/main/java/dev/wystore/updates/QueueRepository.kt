@@ -31,53 +31,9 @@ class QueueRepository(
 ) {
     private val dao: UpdateQueueDao get() = database.updateQueueDao
     private val rootDirectory = File(context.filesDir, "pending_updates")
-    private val legacyStore = PendingUpdateStore(context)
 
     init {
         rootDirectory.mkdirs()
-    }
-
-    suspend fun importLegacyIfNeeded() = withContext(Dispatchers.IO) {
-        if (legacyStore.isMigrated()) return@withContext
-        val legacyItems = legacyStore.readLegacy()
-        for (legacy in legacyItems) {
-            val existing = dao.find(legacy.packageName, legacy.versionCode, legacy.source.name)
-            val queueId = existing?.id ?: UUID.randomUUID().toString()
-            val entity = UpdateQueueEntity(
-                id = queueId,
-                packageName = legacy.packageName,
-                label = legacy.label,
-                versionName = legacy.versionName,
-                versionCode = legacy.versionCode,
-                source = legacy.source.name,
-                state = QueueState.READY_TO_INSTALL.name,
-                priority = 0,
-                position = 0,
-                signingDigests = legacy.signingDigests.joinToString(","),
-                githubRepositoryOwner = legacy.githubRepository?.owner,
-                githubRepositoryName = legacy.githubRepository?.name,
-                githubReleaseId = legacy.githubReleaseId,
-                createdAt = legacy.downloadedAt,
-                updatedAt = System.currentTimeMillis()
-            )
-            dao.upsertAtomic(entity)
-            val artifactEntities = legacy.filePaths.mapNotNull { path ->
-                val file = File(path)
-                if (file.exists() && file.length() > 0L) {
-                    UpdateArtifactEntity(
-                        queueId = queueId,
-                        path = file.absolutePath,
-                        size = file.length(),
-                        createdAt = legacy.downloadedAt,
-                        lastAccessedAt = System.currentTimeMillis()
-                    )
-                } else null
-            }
-            if (artifactEntities.isNotEmpty()) {
-                dao.insertArtifacts(artifactEntities)
-            }
-        }
-        legacyStore.markMigrated()
     }
 
     fun observeAll(): Flow<List<QueueItemSnapshot>> =
@@ -94,7 +50,6 @@ class QueueRepository(
         }.distinctUntilChanged()
 
     suspend fun getPendingUpdates(): List<PendingUpdate> = withContext(Dispatchers.IO) {
-        importLegacyIfNeeded()
         dao.getAll()
             .filter { it.state in INSTALLABLE_STATES }
             .mapNotNull { entityToPendingUpdate(it) }
@@ -539,7 +494,6 @@ class QueueRepository(
         githubRepository: GitHubRepository? = null,
         githubReleaseId: Long? = null
     ): PendingUpdate = withContext(Dispatchers.IO) {
-        importLegacyIfNeeded()
         require(plan.files.isNotEmpty() && plan.files.all { it.isFile && it.length() > 0L }) {
             "A verified APK is no longer on disk"
         }

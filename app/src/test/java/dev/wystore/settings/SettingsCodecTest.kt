@@ -68,32 +68,14 @@ class SettingsCodecTest {
         assertEquals(true, prefs[SettingsCodec.KEY_AUTO_INSTALL_UPDATES])
     }
 
-    @Test
-    fun valuesCarriedOverFromSharedPreferencesAreStillRead() {
-        val prefs = mutablePreferencesOf(
-            SettingsCodec.KEY_LEGACY_ALLOW_MOBILE to true,
-            SettingsCodec.KEY_LEGACY_BG_ROOT to true,
-            SettingsCodec.KEY_LEGACY_NOTIF_SUMMARY to true
-        )
-
-        val read = SettingsCodec.read(prefs)
-
-        assertTrue(read.allowMobileData)
-        assertFalse(read.wifiOnly)
-        assertTrue(read.rootSilentInstallEnabled)
-        assertTrue(read.checkSummaryNotificationsEnabled)
-    }
-
     /**
-     * `wifi_only` and `allow_mobile_data` are read from the same pre-DataStore key with opposite
-     * senses, so a write that touched only one of them would leave the legacy value still deciding
-     * the other. The network choice sets both, which is what keeps the two in step.
+     * `wifi_only` and `allow_mobile_data` are two names for one choice, held apart. A write that
+     * touched only one of them would leave the pair disagreeing; the network choice sets both.
      */
     @Test
-    fun choosingTheNetworkOverridesTheLegacyKeyOnBothSides() {
-        val prefs = mutablePreferencesOf(SettingsCodec.KEY_LEGACY_ALLOW_MOBILE to true)
+    fun choosingTheNetworkSetsBothSidesOfIt() {
+        val prefs = mutablePreferencesOf(SettingsCodec.KEY_ALLOW_MOBILE_DATA to true)
         val current = SettingsCodec.read(prefs)
-        assertFalse(current.wifiOnly)
         assertTrue(current.allowMobileData)
 
         SettingsCodec.write(prefs, current, current.copy(wifiOnly = true, allowMobileData = false))
