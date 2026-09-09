@@ -274,6 +274,18 @@ class QueueRepository(
         )
         dao.update(updated)
         dao.deleteSession(id)
+        // The APK has been consumed. It used to sit in private storage until some later download
+        // happened to run the cleanup pass, so a phone that installed everything and then stopped
+        // fetching kept every archive it had ever installed. The row stays - screens read it to
+        // show the install finished - only the file goes. A declined install is the case above:
+        // that one keeps its archive, so saying "not now" does not cost the download again.
+        if (success) {
+            for (artifact in dao.getArtifactsForQueue(id)) {
+                runCatching { File(artifact.path).delete() }
+            }
+            dao.deleteArtifactsForQueue(id)
+            runCatching { File(rootDirectory, id).deleteRecursively() }
+        }
         updated.toSnapshot()
     }
 
