@@ -101,7 +101,7 @@ class UpdateCheckWorker(
                 continue
             }
 
-            if (managed.source == ManagedSource.GITHUB && !repository.settings().githubEnabled) {
+            if (managed.source == ManagedSource.GITHUB && !settings.githubEnabled) {
                 continue
             }
 
@@ -169,7 +169,11 @@ class UpdateCheckWorker(
             startDownloads(settings, queuedThisRun)
         }
 
-        val detail = describe(candidates.size, updatesFound, problems)
+        // What was actually looked at. The candidate list is what the loop started with, and it
+        // steps over apps as it goes - one no longer installed, a Google app the user has not
+        // handed over, a GitHub app with GitHub switched off - so reporting its size counted apps
+        // that were never checked.
+        val detail = describe(attempted, updatesFound, problems)
 
         // The Updates screen has always had a "last check" card, and StoreRepository has always had
         // somewhere to put the result — but nothing ever wrote it, so the card never appeared.
@@ -178,7 +182,7 @@ class UpdateCheckWorker(
                 UpdateCheckSummary(
                     finishedAt = System.currentTimeMillis(),
                     detail = detail,
-                    checked = candidates.size,
+                    checked = attempted,
                     total = managedApps.size,
                     updates = updatesFound,
                     problems = problems,
@@ -204,7 +208,7 @@ class UpdateCheckWorker(
             // in the output data or the screen that started the check is told nothing.
             Result.success(
                 UpdateCheckReport.result(
-                    checked = candidates.size,
+                    checked = attempted,
                     total = managedApps.size,
                     updates = updatesFound,
                     detail = detail
