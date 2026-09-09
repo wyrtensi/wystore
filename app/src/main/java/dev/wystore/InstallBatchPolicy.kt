@@ -37,6 +37,24 @@ object InstallBatchPolicy {
     fun next(remaining: List<String>, stillPending: Set<String>): String? =
         remaining.firstOrNull { it in stillPending }
 
+    /**
+     * The packages an "install as soon as it is downloaded" run should add to the batch.
+     *
+     * Auto-install used to hand the first package straight to the Activity and drop the rest into
+     * the batch list without ever starting a batch, so nothing advanced them: adopting a dozen apps
+     * at once produced exactly one confirmation dialog and eleven downloads nobody was ever asked
+     * about. It goes through the same list "update all" uses instead.
+     *
+     * Only what was asked for, only what has finished downloading, and nothing the batch is already
+     * carrying - this is consulted on every queue change, and a package must not be enrolled twice.
+     */
+    fun autoInstallAdditions(
+        requested: Set<String>,
+        pending: List<String>,
+        alreadyQueued: List<String>,
+        current: String?
+    ): List<String> = pending.filter { it in requested && it !in alreadyQueued && it != current }
+
     /** What is left after [current] is taken; the apps skipped over it are dropped with it. */
     fun remainingAfter(remaining: List<String>, current: String?): List<String> {
         if (current == null) return emptyList()

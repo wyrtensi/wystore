@@ -77,6 +77,60 @@ class InstallBatchPolicyTest {
         assertEquals(emptyList<String>(), InstallBatchPolicy.remainingAfter(listOf("a.pkg"), null))
     }
 
+    /**
+     * Adopting a dozen apps at once with "install once downloaded" on produced one confirmation
+     * dialog and eleven silent downloads: every finished download after the first was dropped.
+     */
+    @Test
+    fun everyDownloadThatAskedToBeInstalledJoinsTheBatch() {
+        val additions = InstallBatchPolicy.autoInstallAdditions(
+            requested = setOf("a.pkg", "b.pkg", "c.pkg"),
+            pending = listOf("a.pkg", "b.pkg", "c.pkg"),
+            alreadyQueued = emptyList(),
+            current = null
+        )
+
+        assertEquals(listOf("a.pkg", "b.pkg", "c.pkg"), additions)
+    }
+
+    /** Consulted on every queue change, so a package already in the batch must not join twice. */
+    @Test
+    fun anAppTheBatchIsAlreadyCarryingIsNotEnrolledAgain() {
+        val additions = InstallBatchPolicy.autoInstallAdditions(
+            requested = setOf("a.pkg", "b.pkg", "c.pkg"),
+            pending = listOf("a.pkg", "b.pkg", "c.pkg"),
+            alreadyQueued = listOf("c.pkg"),
+            current = "a.pkg"
+        )
+
+        assertEquals(listOf("b.pkg"), additions)
+    }
+
+    @Test
+    fun aDownloadNobodyAskedToInstallIsLeftAlone() {
+        val additions = InstallBatchPolicy.autoInstallAdditions(
+            requested = setOf("a.pkg"),
+            pending = listOf("a.pkg", "b.pkg"),
+            alreadyQueued = emptyList(),
+            current = null
+        )
+
+        assertEquals(listOf("a.pkg"), additions)
+    }
+
+    /** The request outlives the download, so a package still downloading is not offered yet. */
+    @Test
+    fun anAppThatHasNotFinishedDownloadingIsNotOfferedYet() {
+        val additions = InstallBatchPolicy.autoInstallAdditions(
+            requested = setOf("a.pkg", "b.pkg"),
+            pending = listOf("a.pkg"),
+            alreadyQueued = emptyList(),
+            current = null
+        )
+
+        assertEquals(listOf("a.pkg"), additions)
+    }
+
     @Test
     fun theRestOfTheListSurvivesTheOneBeingInstalled() {
         assertEquals(

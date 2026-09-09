@@ -858,6 +858,10 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         if (next == null) return
         installAllCurrent = next
         installAllHandedOver = false
+        // Spent the moment the installer is asked. Cleared here rather than for the whole batch at
+        // once, because the batch list itself lives in memory: whatever has not been offered yet
+        // must still be there if the app is closed before its turn comes.
+        runCatching { autoInstallStore.clear(next) }
         // The user already answered "all of them", so the per-item prompt is not asked again.
         viewModelScope.launch { runCatching { queueCoordinator.dismissOfferedNext() } }
         _installRequest.value = next
@@ -898,11 +902,17 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         if (_installRequest.value != null) return
         val requested = runCatching { autoInstallStore.requested() }.getOrDefault(emptySet())
         if (requested.isEmpty()) return
-        val ready = pending.map { it.packageName }.filter { it in requested }
-        if (ready.isEmpty()) return
-        ready.forEach { runCatching { autoInstallStore.clear(it) } }
-        _state.update { it.copy(installAllRemaining = it.installAllRemaining + ready.drop(1)) }
-        _installRequest.value = ready.first()
+        val additions = InstallBatchPolicy.autoInstallAdditions(
+            requested = requested,
+            pending = pending.map { it.packageName },
+            alreadyQueued = _state.value.installAllRemaining,
+            current = installAllCurrent
+        )
+        if (additions.isEmpty()) return
+        _state.update { it.copy(installAllRemaining = it.installAllRemaining + additions) }
+        // Not handed to the Activity directly: that left the batch with no current item, so
+        // nothing ever advanced it and only the first download was offered for installing.
+        startNextBatchInstall()
     }
 
     /**
