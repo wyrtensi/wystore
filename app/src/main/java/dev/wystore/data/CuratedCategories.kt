@@ -338,7 +338,16 @@ object CuratedCategories {
                 // A source section belongs to whichever curated section names it first: several
                 // read "finance" or "tools", and a tile must not appear twice in one rail.
                 if (slug in curatedSlugs || !placed.add(slug)) continue
-                bySlug[slug]?.let { ordered += it }
+                bySlug[slug]?.let { source ->
+                    // A source section that publishes no icon borrows the one from the curated
+                    // section built on it: they stand for the same shelf, and a tile without a
+                    // picture is the only one in a grid with nothing in its corner.
+                    ordered += if (source.iconUrl.isNullOrBlank()) {
+                        source.copy(iconUrl = curated.iconUrl)
+                    } else {
+                        source
+                    }
+                }
             }
         }
         ordered += sourceCategories.filterNot { it.slug in curatedSlugs || it.slug in placed }

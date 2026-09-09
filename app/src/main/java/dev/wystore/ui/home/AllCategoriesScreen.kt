@@ -53,14 +53,14 @@ fun AllCategoriesScreen(
     val githubTitle = stringResource(R.string.categories_github_tile)
     val allAppsTitle = stringResource(R.string.home_all_apps)
     // Two synthetic tiles that are not sections of the source but are the same kind of choice.
-    val github = StoreCategory(slug = GITHUB_SLUG, title = githubTitle, iconUrl = null)
+    val github = StoreCategory(slug = GITHUB_CATEGORY_SLUG, title = githubTitle, iconUrl = null)
     val allApps = StoreCategory(slug = ALL_APPS_SLUG, title = allAppsTitle, iconUrl = null)
     // Deduplicated by slug: a LazyGrid throws on a repeated key, and the source has published a
     // section whose slug collides with one of these before.
     val tiles = buildList {
+        if (githubEnabled) add(github)
         addAll(categories)
         add(allApps)
-        if (githubEnabled) add(github)
     }.distinctBy { it.slug }
     // The first tile to use a picture keeps it; a section built out of another one would otherwise
     // sit beside its source wearing the same watermark.
@@ -105,7 +105,7 @@ fun AllCategoriesScreen(
                 CategoryTile(
                     category = category,
                     accent = index,
-                    fallbackIcon = if (category.slug == GITHUB_SLUG) R.drawable.ic_github else null,
+                    fallbackIcon = if (category.slug == GITHUB_CATEGORY_SLUG) R.drawable.ic_github else null,
                     showWatermark = watermarked.getOrElse(index) { true },
                     previewIcons = previews[category.slug].orEmpty(),
                     // Wider cells than the rail's, so more of the section fits across them.
@@ -113,7 +113,7 @@ fun AllCategoriesScreen(
                     onNeedPreview = onNeedPreview,
                     onClick = {
                         when (category.slug) {
-                            GITHUB_SLUG -> onGitHubClick()
+                            GITHUB_CATEGORY_SLUG -> onGitHubClick()
                             ALL_APPS_SLUG -> onAllAppsClick()
                             else -> onCategoryClick(category)
                         }
@@ -125,5 +125,4 @@ fun AllCategoriesScreen(
     }
 }
 
-private const val GITHUB_SLUG = "wy-github"
 private const val ALL_APPS_SLUG = "wy-all-apps"

@@ -97,6 +97,13 @@ fun WyStoreRoot(
     val snackbars = remember { SnackbarHostState() }
     val context = LocalContext.current
     val allCategoriesTitle = stringResource(R.string.home_all_apps)
+    // Whose sections to browse by. Both sets come back merged from the catalogue; which of them is
+    // shown is a setting rather than a fetch, so switching is instant and costs no request.
+    val visibleCategories = remember(homeState.categories, state.settings.sourceCategories) {
+        val curated = { slug: String -> slug.startsWith("wy-") }
+        homeState.categories.filter { curated(it.slug) != state.settings.sourceCategories }
+            .ifEmpty { homeState.categories }
+    }
 
     BackHandler(
         enabled = state.selected != null ||
@@ -271,7 +278,7 @@ fun WyStoreRoot(
                         searchQuery = state.query,
                         pendingUpdates = state.pendingUpdates,
                         featuredApps = homeState.featuredApps,
-                        categories = homeState.categories,
+                        categories = visibleCategories,
                         catalogLoading = homeState.loading,
                         catalogStale = homeState.stale,
                         catalogError = homeState.error,
@@ -286,6 +293,7 @@ fun WyStoreRoot(
                         onAllCategoriesClick = { destination = WyStoreDestination.Categories },
                         categoryPreviews = homeState.categoryPreviews,
                         onNeedCategoryPreview = homeViewModel::requestCategoryPreview,
+                        onOpenGitHub = { destination = WyStoreDestination.GitHub },
                         onUpdatesClick = { destination = WyStoreDestination.Updates },
                         // Downloading what is already verified is the point of the queue; a metadata
                         // re-check here would leave ready updates untouched.
@@ -378,7 +386,7 @@ fun WyStoreRoot(
                     )
                     WyStoreDestination.Categories -> dev.wystore.ui.home.AllCategoriesScreen(
                         modifier = screenModifier,
-                        categories = homeState.categories,
+                        categories = visibleCategories,
                         githubEnabled = state.settings.githubEnabled,
                         onBack = { destination = WyStoreDestination.Home },
                         onCategoryClick = openCategory,

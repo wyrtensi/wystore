@@ -51,12 +51,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.ColorUtils
 import coil.compose.AsyncImage
 import dev.wystore.R
 import dev.wystore.ui.components.fontScaledWidth
@@ -212,7 +215,9 @@ fun CategoriesSection(
     onAllCategoriesClick: () -> Unit,
     modifier: Modifier = Modifier,
     previews: Map<String, List<String>> = emptyMap(),
-    onNeedPreview: (String) -> Unit = {}
+    onNeedPreview: (String) -> Unit = {},
+    githubEnabled: Boolean = true,
+    onGitHubClick: () -> Unit = {}
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -235,18 +240,34 @@ fun CategoriesSection(
         } else {
             // Categories carry their own icons from the source; a horizontal rail shows more of
             // them than a wrapped chip grid and keeps the section a fixed height.
+            // GitHub is a section here rather than a place of its own: from the rail it is the
+            // same kind of choice as any other - somewhere else to look.
+            val githubTitle = stringResource(R.string.categories_github_tile)
+            val tiles = remember(categories, githubEnabled, githubTitle) {
+                buildList {
+                    // First, not last: at the end of thirty sections nobody would ever reach it.
+                    if (githubEnabled) {
+                        add(StoreCategory(slug = GITHUB_CATEGORY_SLUG, title = githubTitle, iconUrl = null))
+                    }
+                    addAll(categories)
+                }.distinctBy { it.slug }
+            }
             // Which tiles may draw a watermark: the first to use a given picture, and no other.
-            val watermarked = remember(categories) {
+            val watermarked = remember(tiles) {
                 val seen = mutableSetOf<String>()
-                categories.map { it.iconUrl == null || seen.add(it.iconUrl) }
+                tiles.map { it.iconUrl == null || seen.add(it.iconUrl) }
             }
             LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                itemsIndexed(categories, key = { _, category -> category.slug }) { index, category ->
+                itemsIndexed(tiles, key = { _, category -> category.slug }) { index, category ->
                     CategoryTile(
                         category = category,
                         accent = index,
                         showWatermark = watermarked.getOrElse(index) { true },
-                        onClick = { onCategoryClick(category) },
+                        fallbackIcon = if (category.slug == GITHUB_CATEGORY_SLUG) R.drawable.ic_github else null,
+                        onClick = {
+                            if (category.slug == GITHUB_CATEGORY_SLUG) onGitHubClick()
+                            else onCategoryClick(category)
+                        },
                         previewIcons = previews[category.slug].orEmpty(),
                         previewLimit = 3,
                         onNeedPreview = onNeedPreview
@@ -294,16 +315,7 @@ internal fun CategoryTile(
     showWatermark: Boolean = true
 ) {
     val scheme = MaterialTheme.colorScheme
-    // Only the palette's own container-and-ink pairs. Blending two containers to widen the set
-    // looked varied and read badly: the ink belongs to one of the two, and halfway between them it
-    // no longer has the contrast it was picked for. Variety comes from what the tile shows, not
-    // from colours the theme never promised to be legible.
-    val tones = listOf(
-        scheme.primaryContainer to scheme.onPrimaryContainer,
-        scheme.tertiaryContainer to scheme.onTertiaryContainer,
-        scheme.secondaryContainer to scheme.onSecondaryContainer
-    )
-    val (container, onContainer) = tones[accent.mod(tones.size)]
+    val (container, onContainer) = categoryTone(accent)
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     // Decorative, so it follows the system animation setting like everything else that is.
@@ -384,7 +396,9 @@ internal fun CategoryTile(
                     // Wy Store's own sections are translated; sections read from the source keep
                     // the name the catalogue publishes.
                     category.titleRes?.let { stringResource(it) } ?: category.title,
-                    style = MaterialTheme.typography.labelLarge,
+                    // Hyphenated rather than split: a name longer than the tile is wide -
+                    // "Государственные" - was broken wherever the line ran out, mid-syllable.
+                    style = MaterialTheme.typography.labelLarge.copy(hyphens = Hyphens.Auto),
                     color = onContainer,
                     textAlign = TextAlign.Start,
                     maxLines = 2,
@@ -396,6 +410,39 @@ internal fun CategoryTile(
         }
     }
 }
+
+/**
+ * One of eight tile colours, and an ink that is legible on it.
+ *
+ * The palette gives three container colours, and three tones over thirty tiles is a wall of the
+ * same three. Blending pairs of them to widen the set looked varied and read badly: the ink belongs
+ * to one of the two and halfway between them it no longer has the contrast it was chosen for.
+ *
+ * The hue is rotated instead, keeping the saturation and lightness of the theme's own container -
+ * so a light theme gets eight pastels, a dark one eight deep tones, and a Material You phone eight
+ * of its own colour rather than eight of ours. The ink is then decided by measuring the result:
+ * near-black on a light tile, near-white on a dark one, in the tile's own hue so it reads as part
+ * of it. Nothing here can come out illegible, whatever the theme turns out to be.
+ */
+@Composable
+private fun categoryTone(index: Int): Pair<Color, Color> {
+    val base = MaterialTheme.colorScheme.primaryContainer
+    return remember(base, index) {
+        val hsl = FloatArray(3)
+        ColorUtils.colorToHSL(base.toArgb(), hsl)
+        val hue = (hsl[0] + index.mod(TONE_COUNT) * (360f / TONE_COUNT)) % 360f
+        val saturation = hsl[1].coerceIn(0.18f, 0.62f)
+        val container = Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation, hsl[2])))
+        val ink = if (ColorUtils.calculateLuminance(container.toArgb()) > 0.42) {
+            Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation.coerceAtMost(0.55f), 0.17f)))
+        } else {
+            Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation.coerceAtMost(0.40f), 0.93f)))
+        }
+        container to ink
+    }
+}
+
+private const val TONE_COUNT = 8
 
 /**
  * The first apps of a section, overlapped like a hand of cards.
@@ -494,3 +541,6 @@ internal fun GitHubPickTile(
         }
     }
 }
+
+/** The tile that stands for the GitHub catalogue rather than a section of the source. */
+internal const val GITHUB_CATEGORY_SLUG = "wy-github"

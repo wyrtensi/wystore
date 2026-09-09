@@ -178,6 +178,14 @@ data class StoreSettings(
     /** Fetch an update as soon as a check finds it, instead of waiting to be asked. */
     val autoDownloadUpdates: Boolean = true,
     /**
+     * Whose sections the catalogue is browsed by.
+     *
+     * The source's own by default - they are the catalogue as its publisher files it, and they
+     * cover everything in it. Wy Store's own are one switch away: assembled out of the source's and
+     * filtered, so "Банки и платежи" is banks rather than banks and payday loans.
+     */
+    val sourceCategories: Boolean = true,
+    /**
      * Whether a check looks at apps taken out of auto-updates at all.
      *
      * Off, and the switch means what it says: the app is not checked, nothing about it appears in

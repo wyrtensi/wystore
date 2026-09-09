@@ -63,6 +63,7 @@ fun HomeScreen(
     onAllCategoriesClick: () -> Unit = {},
     categoryPreviews: Map<String, List<String>> = emptyMap(),
     onNeedCategoryPreview: (String) -> Unit = {},
+    onOpenGitHub: () -> Unit = {},
     onUpdatesClick: () -> Unit = {},
     installed: List<InstalledApp> = emptyList(),
     managed: List<ManagedApp> = emptyList(),
@@ -129,7 +130,9 @@ fun HomeScreen(
                     onCategoryClick = onCategoryClick,
                     onAllCategoriesClick = onAllCategoriesClick,
                     previews = categoryPreviews,
-                    onNeedPreview = onNeedCategoryPreview
+                    onNeedPreview = onNeedCategoryPreview,
+                    githubEnabled = githubPicks.isNotEmpty(),
+                    onGitHubClick = onOpenGitHub
                 )
             }
 

@@ -280,6 +280,27 @@ fun SettingsScreen(
                     )
                 }
 
+                // Both sets are already merged into what the catalogue returns, so this decides
+                // which of them a screen draws rather than what is fetched.
+                SettingsChoiceRow(label = stringResource(R.string.settings_sections)) {
+                    FilterChip(
+                        selected = editedSettings.sourceCategories,
+                        onClick = {
+                            editedSettings = editedSettings.copy(sourceCategories = true)
+                            onSave(editedSettings)
+                        },
+                        label = { Text("RuStore") }
+                    )
+                    FilterChip(
+                        selected = !editedSettings.sourceCategories,
+                        onClick = {
+                            editedSettings = editedSettings.copy(sourceCategories = false)
+                            onSave(editedSettings)
+                        },
+                        label = { Text("Wy Store") }
+                    )
+                }
+
                 SettingsChoiceRow(label = stringResource(R.string.settings_interval)) {
                     listOf(6L, 12L, 24L).forEach { hours ->
                         FilterChip(

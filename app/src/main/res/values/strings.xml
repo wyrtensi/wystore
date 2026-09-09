@@ -248,6 +248,7 @@
     <string name="settings_hub_github_subtitle_empty">Add a repository to install APKs</string>
 
     <string name="settings_background_title">Background updates</string>
+    <string name="settings_sections">Catalogue sections</string>
     <string name="settings_network">Network</string>
     <string name="settings_network_any">Any</string>
     <string name="settings_charging_only">Only while charging</string>

@@ -49,6 +49,7 @@ internal object SettingsCodec {
     val KEY_AUTO_INSTALL_UPDATES = booleanPreferencesKey("auto_install_updates")
     val KEY_AUTO_INSTALL_NEW_APPS = booleanPreferencesKey("auto_install_new_apps")
     val KEY_SHOW_EXCLUDED_UPDATES = booleanPreferencesKey("show_excluded_updates")
+    val KEY_SOURCE_CATEGORIES = booleanPreferencesKey("source_categories")
     val KEY_ARTIFACT_RETENTION_DAYS = intPreferencesKey("retention_days")
     val KEY_ARTIFACT_STORAGE_LIMIT_MB = intPreferencesKey("storage_limit_mb")
 
@@ -103,6 +104,7 @@ internal object SettingsCodec {
             autoInstallUpdates = prefs[KEY_AUTO_INSTALL_UPDATES] ?: defaults.autoInstallUpdates,
             autoInstallNewApps = prefs[KEY_AUTO_INSTALL_NEW_APPS] ?: defaults.autoInstallNewApps,
             showExcludedUpdates = prefs[KEY_SHOW_EXCLUDED_UPDATES] ?: defaults.showExcludedUpdates,
+            sourceCategories = prefs[KEY_SOURCE_CATEGORIES] ?: defaults.sourceCategories,
             artifactRetentionDays = prefs[KEY_ARTIFACT_RETENTION_DAYS] ?: defaults.artifactRetentionDays,
             artifactStorageLimitMb = prefs[KEY_ARTIFACT_STORAGE_LIMIT_MB] ?: defaults.artifactStorageLimitMb
         )
@@ -159,6 +161,7 @@ internal object SettingsCodec {
         prefs.put(KEY_AUTO_INSTALL_UPDATES, updated.autoInstallUpdates, current.autoInstallUpdates)
         prefs.put(KEY_AUTO_INSTALL_NEW_APPS, updated.autoInstallNewApps, current.autoInstallNewApps)
         prefs.put(KEY_SHOW_EXCLUDED_UPDATES, updated.showExcludedUpdates, current.showExcludedUpdates)
+        prefs.put(KEY_SOURCE_CATEGORIES, updated.sourceCategories, current.sourceCategories)
         prefs.put(
             KEY_ARTIFACT_RETENTION_DAYS,
             updated.artifactRetentionDays,

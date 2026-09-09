@@ -42,6 +42,14 @@ data class AppSettings(
      * the queue, and it costs no request. On, the update is found and shown so it can be started by
      * hand - it is still never downloaded on its own, that is decided separately.
      */
+    /**
+     * Whose sections the catalogue is browsed by.
+     *
+     * The source's own by default - they are the catalogue as its publisher files it, and they
+     * cover everything in it. Wy Store's own are one switch away: assembled out of the source's and
+     * filtered, so "Банки и платежи" is banks rather than banks and payday loans.
+     */
+    val sourceCategories: Boolean = true,
     val showExcludedUpdates: Boolean = false,
     val artifactRetentionDays: Int = 7,
     val artifactStorageLimitMb: Int = 2_048
@@ -72,6 +80,7 @@ fun AppSettings.toStoreSettings(): StoreSettings = StoreSettings(
     autoDownloadUpdates = autoDownloadUpdates,
     autoInstallUpdates = autoInstallUpdates,
     autoInstallNewApps = autoInstallNewApps,
+    sourceCategories = sourceCategories,
     showExcludedUpdates = showExcludedUpdates,
     artifactRetentionDays = artifactRetentionDays,
     artifactStorageLimitMb = artifactStorageLimitMb
@@ -101,6 +110,7 @@ fun StoreSettings.toAppSettings(): AppSettings = AppSettings(
     autoDownloadUpdates = autoDownloadUpdates,
     autoInstallUpdates = autoInstallUpdates,
     autoInstallNewApps = autoInstallNewApps,
+    sourceCategories = sourceCategories,
     showExcludedUpdates = showExcludedUpdates,
     artifactRetentionDays = artifactRetentionDays,
     artifactStorageLimitMb = artifactStorageLimitMb

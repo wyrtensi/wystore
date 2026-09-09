@@ -248,6 +248,7 @@
     <string name="settings_hub_github_subtitle_empty">Добавь репозиторий для установки APK</string>
 
     <string name="settings_background_title">Фоновые обновления</string>
+    <string name="settings_sections">Разделы каталога</string>
     <string name="settings_network">Сеть</string>
     <string name="settings_network_any">Любая</string>
     <string name="settings_charging_only">Только на зарядке</string>
