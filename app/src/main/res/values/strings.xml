@@ -535,7 +535,7 @@
     <string name="settings_background_hint">Checks run on a flexible schedule so the system can batch them with other wake-ups. With no adopted apps the periodic job is not scheduled at all.</string>
     <string name="settings_hub_about_title">About Wy Store</string>
     <string name="settings_hub_about_subtitle">Version, source code, self-update</string>
-    <string name="about_diagnostics">Report for a bug report</string>
+    <string name="about_diagnostics">Diagnostics report</string>
     <string name="about_diagnostics_hint">Android version, device model, root status, permissions, the queue and the last failures — what you are asked for first. No accounts, no links and no file paths.</string>
     <string name="about_diagnostics_failed">The report could not be saved</string>
     <string name="about_version">Installed version</string>
