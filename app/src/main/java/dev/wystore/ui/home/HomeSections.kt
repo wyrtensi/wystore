@@ -436,12 +436,22 @@ private fun categoryTone(index: Int): Pair<Color, Color> {
         val hsl = FloatArray(3)
         ColorUtils.colorToHSL(base.toArgb(), hsl)
         val hue = (hsl[0] + index * GOLDEN_ANGLE_DEGREES) % 360f
-        val saturation = hsl[1].coerceIn(0.18f, 0.62f)
-        val container = Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation, hsl[2])))
+        // Hue alone still read as one colour repeated: every tile had the theme's saturation and
+        // the theme's lightness, so a screenful was twenty shades of the same pastel. These two
+        // cycle as well, over three and four steps against the hue's own step, so the combination
+        // comes back around only after twelve tiles - and by then the hue is somewhere else.
+        val saturation = (hsl[1] * SATURATION_STEPS[index.mod(SATURATION_STEPS.size)])
+            // Capped well below full: the point is that a rail is not one colour repeated, not
+            // that it shouts. Above about half, these stop being a background for five app icons
+            // and start competing with them.
+            .coerceIn(0.14f, 0.46f)
+        val lightness = (hsl[2] * LIGHTNESS_STEPS[index.mod(LIGHTNESS_STEPS.size)])
+            .coerceIn(0.20f, 0.92f)
+        val container = Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation, lightness)))
         val ink = if (ColorUtils.calculateLuminance(container.toArgb()) > 0.42) {
-            Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation.coerceAtMost(0.55f), 0.17f)))
+            Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation.coerceAtMost(0.55f), 0.15f)))
         } else {
-            Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation.coerceAtMost(0.40f), 0.93f)))
+            Color(ColorUtils.HSLToColor(floatArrayOf(hue, saturation.coerceAtMost(0.40f), 0.95f)))
         }
         container to ink
     }
@@ -449,6 +459,10 @@ private fun categoryTone(index: Int): Pair<Color, Color> {
 
 /** 360 / phi: the step that spreads any number of hues as evenly as they can be spread. */
 private const val GOLDEN_ANGLE_DEGREES = 137.50776f
+
+/** Three weights and four depths against that step: the three cycles line up again after twelve. */
+private val SATURATION_STEPS = floatArrayOf(0.92f, 1.12f, 0.74f)
+private val LIGHTNESS_STEPS = floatArrayOf(1.0f, 0.88f, 1.06f, 0.94f)
 
 /**
  * The first apps of a section, overlapped like a hand of cards.
