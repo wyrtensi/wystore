@@ -340,6 +340,9 @@
     <string name="metered_download_confirm">Download</string>
     <string name="install_queue_current">Waiting for Android to confirm the install</string>
     <string name="install_queue_waiting">Install queue: %1$d more waiting</string>
+    <string name="check_problem_unreachable">%1$s — the source did not answer, could not check</string>
+    <string name="check_problem_signature">%1$s — the developer changed the signing key: an update from here cannot install over it, a reinstall is needed</string>
+    <string name="check_problem_more">…and %1$d more</string>
     <string name="updates_install_all">Install all</string>
     <string name="updates_ready_title">Ready to install (%1$d)</string>
     <string name="updates_managed_title">Accepted apps (%1$d)</string>

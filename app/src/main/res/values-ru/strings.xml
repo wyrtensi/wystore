@@ -340,6 +340,9 @@
     <string name="metered_download_confirm">Скачать</string>
     <string name="install_queue_current">Ждём подтверждения установки от Android</string>
     <string name="install_queue_waiting">Очередь на установку: ещё %1$d</string>
+    <string name="check_problem_unreachable">%1$s — источник не ответил, проверить не удалось</string>
+    <string name="check_problem_signature">%1$s — разработчик сменил ключ подписи: обновление отсюда не встанет поверх, нужна переустановка</string>
+    <string name="check_problem_more">…и ещё %1$d</string>
     <string name="updates_install_all">Установить все</string>
     <string name="updates_ready_title">Готовы к установке (%1$d)</string>
     <string name="updates_managed_title">Принятые приложения (%1$d)</string>
@@ -597,7 +600,7 @@
     <string name="check_completed">Проверка завершена</string>
     <string name="check_result_up_to_date">Проверено: %1$d — всё актуально</string>
     <string name="check_result_updates">Проверено: %1$d — обновлений: %2$d</string>
-    <string name="check_result_problems">Проверено: %1$d — обновлений: %2$d, недоступно: %3$d</string>
+    <string name="check_result_problems">Проверено: %1$d — обновлений: %2$d, с проблемами: %3$d</string>
     <string name="check_progress_detail">%1$d из %2$d</string>
     <string name="backup_restored_summary">Восстановлено приложений: %1$d, репозиториев: %2$d</string>
     <string name="backup_invalid_json">Файл резервной копии в формате, который Wy Store не понимает.</string>

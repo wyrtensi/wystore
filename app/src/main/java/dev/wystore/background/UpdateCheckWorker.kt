@@ -14,7 +14,9 @@ import dev.wystore.data.InstallSource
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.ManagedSource
+import dev.wystore.data.CheckProblemReason
 import dev.wystore.data.RuStoreSource
+import dev.wystore.data.UpdateCheckProblem
 import dev.wystore.data.SignatureCompatibility
 import dev.wystore.data.SignatureCompatibilityPolicy
 import dev.wystore.R
@@ -75,6 +77,9 @@ class UpdateCheckWorker(
         var retryableFailures = 0
         var updatesFound = 0
         var problems = 0
+        // Named, not just counted: "2 problems" says neither which apps nor whether they are
+        // unreachable for a moment or cannot be updated from here at all.
+        val problemApps = mutableListOf<UpdateCheckProblem>()
         // Queue rows created by this run, so an unattended download starts only what was just
         // found rather than everything ever left in the queue. Carried with their package names:
         // a row id in the failure log is a UUID nobody can match to an app.
@@ -108,7 +113,28 @@ class UpdateCheckWorker(
             try {
                 attempted++
                 val queuedId = when (managed.source) {
-                    ManagedSource.RUSTORE -> checkRuStoreUpdate(managed, local)
+                    ManagedSource.RUSTORE -> when (val outcome = checkRuStoreUpdate(managed, local)) {
+                        is RuStoreCheck.Queued -> outcome.id
+                        RuStoreCheck.UpToDate -> null
+                        // Not a failure, and emphatically not "up to date": no update from this
+                        // source can install over the app at all until it is reinstalled.
+                        RuStoreCheck.SignatureChanged -> {
+                            problems++
+                            problemApps += UpdateCheckProblem(
+                                packageName = managed.packageName,
+                                label = managed.label.ifBlank { managed.packageName },
+                                reason = CheckProblemReason.SIGNATURE_CHANGED
+                            )
+                            runCatching {
+                                EventLog(applicationContext).record(
+                                    packageName = managed.packageName,
+                                    code = "SIGNATURE_CHANGED",
+                                    detail = "Source signs with a different certificate"
+                                )
+                            }
+                            null
+                        }
+                    }
                     ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionName)
                     null -> null
                 }
@@ -124,6 +150,11 @@ class UpdateCheckWorker(
                 throw c
             } catch (error: Throwable) {
                 problems++
+                problemApps += UpdateCheckProblem(
+                    packageName = managed.packageName,
+                    label = managed.label.ifBlank { managed.packageName },
+                    reason = CheckProblemReason.UNREACHABLE
+                )
                 // The count alone tells nobody which app or why; the report needs both.
                 runCatching {
                     EventLog(applicationContext).record(
@@ -153,6 +184,11 @@ class UpdateCheckWorker(
             }.onFailure { error ->
                 // The store failing to check itself is worth the same words as any other app.
                 problems++
+                problemApps += UpdateCheckProblem(
+                    packageName = applicationContext.packageName,
+                    label = applicationContext.getString(R.string.app_name),
+                    reason = CheckProblemReason.UNREACHABLE
+                )
                 runCatching {
                     EventLog(applicationContext).record(
                         packageName = applicationContext.packageName,
@@ -186,7 +222,8 @@ class UpdateCheckWorker(
                     total = managedApps.size,
                     updates = updatesFound,
                     problems = problems,
-                    manual = isManualCheck
+                    manual = isManualCheck,
+                    problemApps = problemApps.toList()
                 )
             )
         }
@@ -228,14 +265,20 @@ class UpdateCheckWorker(
                 applicationContext.getString(R.string.check_result_problems, checked, updates, problems)
         }
 
-    /** Returns the queue id when an update was queued for this app, or null when it is current. */
-    private suspend fun checkRuStoreUpdate(managed: ManagedApp, local: InstalledApp): String? {
+    /** What a RuStore check found. "Nothing to do" and "cannot be done" are different answers. */
+    private sealed interface RuStoreCheck {
+        data class Queued(val id: String) : RuStoreCheck
+        data object UpToDate : RuStoreCheck
+        data object SignatureChanged : RuStoreCheck
+    }
+
+    private suspend fun checkRuStoreUpdate(managed: ManagedApp, local: InstalledApp): RuStoreCheck {
         // Not caught here on purpose. Swallowing the failure made an unreachable source look like
         // an app that is already current: the run counted no problem, and the summary said
         // "everything up to date" while every request had failed. The loop above counts it and
         // decides whether the whole check is worth retrying.
         val app = ruStoreSource.details(managed.packageName, includeReviews = false)
-        if (app.versionCode <= local.versionCode) return null
+        if (app.versionCode <= local.versionCode) return RuStoreCheck.UpToDate
 
         // The store states the certificate it signs with, and the phone knows the one it installed
         // under. When they are different, Android will not update in place whatever we download,
@@ -246,15 +289,19 @@ class UpdateCheckWorker(
         if (SignatureCompatibilityPolicy.evaluate(local.signingDigests, app.signatureHint) ==
             SignatureCompatibility.MISMATCH
         ) {
-            return null
+            // Reported rather than passed over in silence. There is a newer version and it cannot
+            // be installed over this one; saying nothing made that look like an app with no update.
+            return RuStoreCheck.SignatureChanged
         }
-        return queueRepository.enqueueAvailableUpdate(
-            packageName = managed.packageName,
-            label = app.name.ifBlank { managed.label },
-            versionName = app.versionName,
-            versionCode = app.versionCode,
-            source = ManagedSource.RUSTORE
-        ).id
+        return RuStoreCheck.Queued(
+            queueRepository.enqueueAvailableUpdate(
+                packageName = managed.packageName,
+                label = app.name.ifBlank { managed.label },
+                versionName = app.versionName,
+                versionCode = app.versionCode,
+                source = ManagedSource.RUSTORE
+            ).id
+        )
     }
 
     /** Returns the queue id when an update was queued for this app, or null when it is current. */

@@ -40,6 +40,7 @@ import dev.wystore.R
 import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
 import dev.wystore.UpdateCheckTask
+import dev.wystore.data.CheckProblemReason
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.PendingUpdate
@@ -321,6 +322,32 @@ fun LastUpdateCheckCard(summary: UpdateCheckSummary) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            // A count is not something anyone can act on. Which apps, and whether they could not
+            // be reached just now or cannot be updated from here at all - those are different
+            // problems with different answers, and the card used to give the same number to both.
+            summary.problemApps.take(PROBLEMS_SHOWN).forEach { problem ->
+                Text(
+                    stringResource(
+                        when (problem.reason) {
+                            CheckProblemReason.SIGNATURE_CHANGED -> R.string.check_problem_signature
+                            CheckProblemReason.UNREACHABLE -> R.string.check_problem_unreachable
+                        },
+                        problem.label
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            if (summary.problemApps.size > PROBLEMS_SHOWN) {
+                Text(
+                    stringResource(
+                        R.string.check_problem_more,
+                        summary.problemApps.size - PROBLEMS_SHOWN
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -418,3 +445,6 @@ fun QueueItemCard(
         }
     }
 }
+
+/** Enough to name the trouble without turning the card into a list. */
+private const val PROBLEMS_SHOWN = 4

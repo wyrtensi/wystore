@@ -133,7 +133,15 @@ class StoreRepository(private val context: Context) {
             total = preferences.getInt("last_update_check_total", 0),
             updates = preferences.getInt("last_update_check_updates", 0),
             problems = preferences.getInt("last_update_check_problems", 0),
-            manual = preferences.getBoolean("last_update_check_manual", false)
+            manual = preferences.getBoolean("last_update_check_manual", false),
+            problemApps = runCatching {
+                val json = preferences.getString("last_update_check_problem_apps", null)
+                    ?: return@runCatching emptyList()
+                gson.fromJson<List<UpdateCheckProblem>>(
+                    json,
+                    object : TypeToken<List<UpdateCheckProblem>>() {}.type
+                ) ?: emptyList()
+            }.getOrDefault(emptyList())
         )
     }
 
@@ -146,6 +154,7 @@ class StoreRepository(private val context: Context) {
             .putInt("last_update_check_updates", summary.updates)
             .putInt("last_update_check_problems", summary.problems)
             .putBoolean("last_update_check_manual", summary.manual)
+            .putString("last_update_check_problem_apps", gson.toJson(summary.problemApps))
             .apply()
     }
 

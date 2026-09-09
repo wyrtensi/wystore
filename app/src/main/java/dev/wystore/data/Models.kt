@@ -206,6 +206,25 @@ data class RuStoreCompatibility(
     val verifiedAt: Long? = null
 )
 
+/** Why a check could not report an update for an app. */
+enum class CheckProblemReason {
+    /** The source did not answer for it, or answered with something unreadable. */
+    UNREACHABLE,
+
+    /**
+     * The source signs the app with a different certificate than the phone installed it under.
+     * Android refuses to update over that whatever is downloaded, so there is nothing to offer -
+     * which used to be indistinguishable from "this app is up to date".
+     */
+    SIGNATURE_CHANGED
+}
+
+data class UpdateCheckProblem(
+    val packageName: String,
+    val label: String,
+    val reason: CheckProblemReason
+)
+
 data class UpdateCheckSummary(
     val finishedAt: Long,
     val detail: String,
@@ -213,7 +232,15 @@ data class UpdateCheckSummary(
     val total: Int,
     val updates: Int,
     val problems: Int,
-    val manual: Boolean
+    val manual: Boolean,
+    /**
+     * Which apps, and why.
+     *
+     * The card used to show a bare count. "2 problems" is not something anyone can act on: it does
+     * not say which apps, and it does not say whether they are unreachable right now or cannot be
+     * updated from here at all.
+     */
+    val problemApps: List<UpdateCheckProblem> = emptyList()
 )
 
 data class WyStoreBackup(
