@@ -1202,7 +1202,10 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 packageName = confirmed.packageName,
                 label = confirmed.label,
                 pinnedDigests = confirmed.signingDigests,
-                autoUpdate = current?.autoUpdate ?: (confirmed.source == dev.wystore.data.ManagedSource.RUSTORE),
+                // On, whatever the app was installed from. Adopting is asking Wy Store to look
+                // after the app; starting it switched off meant a Google app was adopted and then
+                // never checked, so its page never learned there was a version to move to.
+                autoUpdate = current?.autoUpdate ?: true,
                 forceWyStore = current?.forceWyStore ?: false,
                 addedAt = current?.addedAt ?: now,
                 lastUpdatedAt = now,
@@ -1296,7 +1299,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 _state.value = _state.value.copy(message = string(R.string.vm_signature_read_failed))
                 return
             }
-            repository.saveManaged(ManagedApp(app.packageName, app.label, app.signingDigests, autoUpdate = app.source != dev.wystore.data.InstallSource.GOOGLE_PLAY))
+            repository.saveManaged(
+                ManagedApp(app.packageName, app.label, app.signingDigests, autoUpdate = true)
+            )
         } else {
             repository.removeManaged(app.packageName)
         }
