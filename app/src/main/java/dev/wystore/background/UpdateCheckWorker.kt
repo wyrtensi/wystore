@@ -15,6 +15,8 @@ import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.CheckProblemReason
+import dev.wystore.data.MissingFromSourcePolicy
+import dev.wystore.data.MissingFromSourceStore
 import dev.wystore.data.RuStoreSource
 import dev.wystore.data.SourceError
 import dev.wystore.data.SourceFormatException
@@ -101,6 +103,10 @@ class UpdateCheckWorker(
         // Named, not just counted: "2 problems" says neither which apps nor whether they are
         // unreachable for a moment or cannot be updated from here at all.
         val problemApps = mutableListOf<UpdateCheckProblem>()
+        // A 404 reads the same on every round. Which of them the user has already been told about
+        // is decided after the loop; these two are what that decision is made from.
+        val missingNow = mutableSetOf<String>()
+        val answeredNow = mutableSetOf<String>()
         // Queue rows created by this run, so an unattended download starts only what was just
         // found rather than everything ever left in the queue. Carried with their package names:
         // a row id in the failure log is a UUID nobody can match to an app.
@@ -159,6 +165,7 @@ class UpdateCheckWorker(
                     ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionName)
                     null -> null
                 }
+                answeredNow += managed.packageName
                 if (queuedId != null) {
                     updatesFound++
                     // Found, and shown in the queue either way. Only an app the user still lets
@@ -177,6 +184,7 @@ class UpdateCheckWorker(
                     // "Could not be reached" and "is not there" read the same in a count and mean
                     // opposite things: one is worth waiting out, the other never resolves.
                     reason = if (isMissingFromSource(error)) {
+                        missingNow += managed.packageName
                         CheckProblemReason.NOT_IN_SOURCE
                     } else {
                         CheckProblemReason.UNREACHABLE
@@ -236,6 +244,23 @@ class UpdateCheckWorker(
         // steps over apps as it goes - one no longer installed, a Google app the user has not
         // handed over, a GitHub app with GitHub switched off - so reporting its size counted apps
         // that were never checked.
+        // Said once, not on every check. The app is still looked up each round and the moment the
+        // source answers for it this is forgotten, so an app that comes back and then disappears
+        // again is news again. Every occurrence still reaches the failure log either way.
+        val missingStore = MissingFromSourceStore(applicationContext)
+        val knownMissing = runCatching { missingStore.read() }.getOrDefault(emptySet())
+        val newlyMissing = MissingFromSourcePolicy.newlyMissing(knownMissing, missingNow)
+        val reportedProblems = problemApps.filterNot { problem ->
+            problem.reason == CheckProblemReason.NOT_IN_SOURCE &&
+                problem.packageName !in newlyMissing
+        }
+        problems -= problemApps.size - reportedProblems.size
+        runCatching {
+            missingStore.write(
+                MissingFromSourcePolicy.remember(knownMissing, missingNow, answeredNow)
+            )
+        }
+
         val detail = describe(attempted, updatesFound, problems)
 
         // The Updates screen has always had a "last check" card, and StoreRepository has always had
@@ -250,7 +275,7 @@ class UpdateCheckWorker(
                     updates = updatesFound,
                     problems = problems,
                     manual = isManualCheck,
-                    problemApps = problemApps.toList()
+                    problemApps = reportedProblems
                 )
             )
         }
