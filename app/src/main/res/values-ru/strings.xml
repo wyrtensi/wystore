@@ -340,6 +340,7 @@
     <string name="metered_download_confirm">Скачать</string>
     <string name="install_queue_current">Ждём подтверждения установки от Android</string>
     <string name="install_queue_waiting">Очередь на установку: ещё %1$d</string>
+    <string name="check_problem_not_in_source">%1$s — этого приложения нет в RuStore, обновлять его неоткуда</string>
     <string name="check_problem_unreachable">%1$s — источник не ответил, проверить не удалось</string>
     <string name="check_problem_signature">%1$s — разработчик сменил ключ подписи: обновление отсюда не встанет поверх, нужна переустановка</string>
     <string name="check_problem_more">…и ещё %1$d</string>

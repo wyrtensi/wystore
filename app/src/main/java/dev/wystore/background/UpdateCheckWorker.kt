@@ -16,6 +16,8 @@ import dev.wystore.data.ManagedApp
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.CheckProblemReason
 import dev.wystore.data.RuStoreSource
+import dev.wystore.data.SourceError
+import dev.wystore.data.SourceFormatException
 import dev.wystore.data.UpdateCheckProblem
 import dev.wystore.data.SignatureCompatibility
 import dev.wystore.data.SignatureCompatibilityPolicy
@@ -172,7 +174,13 @@ class UpdateCheckWorker(
                 problemApps += UpdateCheckProblem(
                     packageName = managed.packageName,
                     label = managed.label.ifBlank { managed.packageName },
-                    reason = CheckProblemReason.UNREACHABLE
+                    // "Could not be reached" and "is not there" read the same in a count and mean
+                    // opposite things: one is worth waiting out, the other never resolves.
+                    reason = if (isMissingFromSource(error)) {
+                        CheckProblemReason.NOT_IN_SOURCE
+                    } else {
+                        CheckProblemReason.UNREACHABLE
+                    }
                 )
                 // The count alone tells nobody which app or why; the report needs both.
                 runCatching {
@@ -411,6 +419,10 @@ class UpdateCheckWorker(
 
     /** A row this run created, and the app it belongs to - which is what a report has to name. */
     private data class QueuedRow(val id: String, val packageName: String)
+
+    /** Whether the source answered "no such app" rather than failing to answer at all. */
+    private fun isMissingFromSource(error: Throwable): Boolean =
+        error is SourceFormatException && error.error == SourceError.RUSTORE_NOT_FOUND
 
     companion object {
         const val KEY_MANUAL_CHECK = "manual_check"

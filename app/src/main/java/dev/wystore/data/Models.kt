@@ -220,6 +220,12 @@ enum class CheckProblemReason {
     UNREACHABLE,
 
     /**
+     * The source has no such app. A settled answer, not a failure to reach anything - and the one
+     * that decides whether waiting for it to work later is worth anything.
+     */
+    NOT_IN_SOURCE,
+
+    /**
      * The source signs the app with a different certificate than the phone installed it under.
      * Android refuses to update over that whatever is downloaded, so there is nothing to offer -
      * which used to be indistinguishable from "this app is up to date".

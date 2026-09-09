@@ -330,6 +330,7 @@ fun LastUpdateCheckCard(summary: UpdateCheckSummary) {
                     stringResource(
                         when (problem.reason) {
                             CheckProblemReason.SIGNATURE_CHANGED -> R.string.check_problem_signature
+                            CheckProblemReason.NOT_IN_SOURCE -> R.string.check_problem_not_in_source
                             CheckProblemReason.UNREACHABLE -> R.string.check_problem_unreachable
                         },
                         problem.label
