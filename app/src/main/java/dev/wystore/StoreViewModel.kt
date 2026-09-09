@@ -939,6 +939,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     fun requestInstall(packageName: String) {
         if (packageName.isBlank()) return
         if (packageName == installAllCurrent || packageName in _state.value.installAllRemaining) return
+        // Only something actually downloaded joins the batch. Taking a package the queue does not
+        // have would clear the whole list on the next turn, since a batch with nothing installable
+        // in it is a finished batch - one stray tap would throw away every install queued behind.
+        if (_state.value.pendingUpdates.none { it.packageName == packageName }) {
+            _state.update { it.copy(message = string(R.string.msg_install_artifact_missing)) }
+            return
+        }
         _state.update { it.copy(installAllRemaining = it.installAllRemaining + packageName) }
         startNextBatchInstall()
     }
