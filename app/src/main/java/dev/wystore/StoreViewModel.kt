@@ -1139,6 +1139,20 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Drops a stopped row and whatever it downloaded.
+     *
+     * Skip and cancel both leave the row on the Updates screen as "canceled" with Retry as the only
+     * offer, so an item the user had finished with stayed in the queue for good and its archive
+     * stayed on disk with it.
+     */
+    fun queueDiscard(id: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { queueRepository.discard(id) }
+            refreshErrorNotification()
+        }
+    }
+
     fun queueCancel(id: String) {
         viewModelScope.launch {
             queueCoordinator.cancel(id)

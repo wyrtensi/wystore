@@ -77,6 +77,7 @@ fun UpdatesScreen(
     onQueueCancel: (String) -> Unit = {},
     onQueueSkip: (String) -> Unit = {},
     onQueueDownload: (String) -> Unit = {},
+    onQueueDiscard: (String) -> Unit = {},
     onStartQueue: () -> Unit = {}
 ) {
     val installedByPackage = remember(installed) { installed.associateBy { it.packageName } }
@@ -165,7 +166,8 @@ fun UpdatesScreen(
                         onRetry = { onQueueRetry(item.id) },
                         onCancel = { onQueueCancel(item.id) },
                         onSkip = { onQueueSkip(item.id) },
-                        onDownload = { onQueueDownload(item.id) }
+                        onDownload = { onQueueDownload(item.id) },
+                        onDiscard = { onQueueDiscard(item.id) }
                     )
                 }
             }
@@ -367,7 +369,8 @@ fun QueueItemCard(
     onRetry: () -> Unit,
     onCancel: () -> Unit,
     onSkip: () -> Unit,
-    onDownload: () -> Unit = {}
+    onDownload: () -> Unit = {},
+    onDiscard: () -> Unit = {}
 ) {
     val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED
     val failed = item.status == InstallQueueStatus.FAILED
@@ -402,6 +405,17 @@ fun QueueItemCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                // A row that has stopped had no way off this screen. Skip and cancel both leave it
+                // sitting there as "canceled" with "Retry" as the only thing on offer, so an item
+                // the user had finished with stayed in the queue for good.
+                if (stopped) {
+                    IconButton(onClick = onDiscard) {
+                        Icon(
+                            imageVector = Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.queue_discard)
                         )
                     }
                 }

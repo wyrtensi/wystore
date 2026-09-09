@@ -334,6 +334,7 @@
     <string name="updates_title">Обновления</string>
     <string name="updates_intro">Фоновая служба проверяет и скачивает проверенные обновления. Без root установка требует системного подтверждения Android.</string>
     <string name="updates_queue_title">Очередь (%1$d)</string>
+    <string name="queue_discard">Убрать из очереди</string>
     <string name="updates_queue_start">Запустить</string>
     <string name="updates_check_now">Проверить</string>
     <string name="metered_download_title">Сейчас мобильный интернет</string>
