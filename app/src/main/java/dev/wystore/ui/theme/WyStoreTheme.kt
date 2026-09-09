@@ -19,12 +19,15 @@ fun WyStoreTheme(
     val isDark = ThemePolicy.isDark(settings.themeMode, systemDark)
     val useDynamic = ThemePolicy.canUseDynamicColor(settings.dynamicColorEnabled, Build.VERSION.SDK_INT)
 
+    // Widened everywhere, dynamic palettes included: every card in the app is a container tone on
+    // the surface, and Material's own step between them is a couple of units of lightness - enough
+    // on a good screen at full brightness, and not enough anywhere else.
     val colorScheme = when {
         useDynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isDark -> dynamicDarkColorScheme(context)
         useDynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isDark -> dynamicLightColorScheme(context)
         isDark -> DarkColorScheme
         else -> LightColorScheme
-    }
+    }.withSeparatedSurfaces()
 
     MaterialTheme(
         colorScheme = colorScheme,
