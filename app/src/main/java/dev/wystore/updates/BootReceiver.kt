@@ -36,10 +36,7 @@ class BootReceiver : BroadcastReceiver() {
                             }
                         }.getOrNull()
 
-                        val installedVersion = pkgInfo?.let {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) it.longVersionCode
-                            else @Suppress("DEPRECATION") it.versionCode.toLong()
-                        }
+                        val installedVersion = pkgInfo?.longVersionCode
 
                         val action = InstallReconciliationPolicy.reconcileStaleInstalling(
                             item = entity.toSnapshot(),

@@ -30,12 +30,7 @@ class PackageChangedReceiver : BroadcastReceiver() {
                     }
                 }.getOrNull() ?: return@launch
 
-                val installedVersionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    packageInfo.longVersionCode
-                } else {
-                    @Suppress("DEPRECATION")
-                    packageInfo.versionCode.toLong()
-                }
+                val installedVersionCode = packageInfo.longVersionCode
 
                 val dao = dev.wystore.data.local.WyStoreDatabase.getInstance(context).updateQueueDao
                 val queueEntities = dao.getByPackage(packageName)

@@ -32,7 +32,11 @@ android {
         // name. This is the identity Android and the user see, and it changed once - see the
         // 0.1.28 entry in CHANGELOG.md, which is why that release is a manual reinstall.
         applicationId = "app.wystore"
-        minSdk = 26
+        // Android 9. Below it the app is mostly untestable and the platform is missing pieces it
+        // leans on - v2/v3 signature reading through signingInfo, longVersionCode - which had to be
+        // carried in two versions each. Raised with the change of application id, where an existing
+        // install is not being cut off from updates by it.
+        minSdk = 28
         targetSdk = 36
         versionCode = 28
         versionName = "0.1.27"

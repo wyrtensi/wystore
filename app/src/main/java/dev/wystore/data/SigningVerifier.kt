@@ -67,7 +67,6 @@ object SigningVerifier {
      * of and the platform reports none.
      */
     fun lineageDigests(info: PackageInfo): Set<String> {
-        if (Build.VERSION.SDK_INT < 28) return emptySet()
         val signingInfo = info.signingInfo ?: return emptySet()
         if (signingInfo.hasMultipleSigners()) return emptySet()
         return runCatching {
@@ -150,11 +149,8 @@ object SigningVerifier {
         }
     }.getOrDefault(false)
 
-    @Suppress("DEPRECATION")
-    private fun signatures(info: PackageInfo): Array<out android.content.pm.Signature> = when {
-        Build.VERSION.SDK_INT >= 28 -> info.signingInfo?.apkContentsSigners ?: emptyArray()
-        else -> info.signatures ?: emptyArray()
-    }
+    private fun signatures(info: PackageInfo): Array<out android.content.pm.Signature> =
+        info.signingInfo?.apkContentsSigners ?: emptyArray()
 
     private fun invalid(reason: VerificationError): VerificationResult = VerificationResult(
         ArchiveIdentity("", "", 0, null, emptySet()),
@@ -166,5 +162,4 @@ object SigningVerifier {
         .joinToString("") { "%02x".format(it) }
 }
 
-@Suppress("DEPRECATION")
-private fun PackageInfo.versionCodeCompat(): Long = if (Build.VERSION.SDK_INT >= 28) longVersionCode else versionCode.toLong()
+private fun PackageInfo.versionCodeCompat(): Long = longVersionCode

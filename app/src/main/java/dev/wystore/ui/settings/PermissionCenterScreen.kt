@@ -159,13 +159,12 @@ fun PermissionCenterScreen(
                     )
                     OutlinedButton(
                         onClick = {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                val intent = Intent(
+                            context.startActivity(
+                                Intent(
                                     Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                                     Uri.parse("package:${context.packageName}")
                                 )
-                                context.startActivity(intent)
-                            }
+                            )
                         },
                         modifier = Modifier.align(Alignment.End)
                     ) {

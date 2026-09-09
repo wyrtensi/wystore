@@ -339,7 +339,7 @@ class NotificationCoordinator(
     }
 
     private fun createChannels() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        run {
             notificationManager.createNotificationChannelGroup(
                 NotificationChannelGroup(GROUP_UPDATES, appContext.getString(R.string.channel_group_updates))
             )
@@ -378,7 +378,6 @@ class NotificationCoordinator(
         }
     }
 
-    @androidx.annotation.RequiresApi(Build.VERSION_CODES.O)
     private fun channel(id: String, nameRes: Int, descriptionRes: Int, importance: Int) =
         NotificationChannel(id, appContext.getString(nameRes), importance).apply {
             description = appContext.getString(descriptionRes)

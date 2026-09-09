@@ -24,18 +24,11 @@ class PermissionRepository(private val context: Context) {
             true
         }
 
-        val canInstallUnknownApps = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            appContext.packageManager.canRequestPackageInstalls()
-        } else {
-            true
-        }
+        val canInstallUnknownApps = appContext.packageManager.canRequestPackageInstalls()
 
         val powerManager = appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager
-        val batteryOptimizationsIgnored = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val batteryOptimizationsIgnored =
             powerManager?.isIgnoringBatteryOptimizations(appContext.packageName) == true
-        } else {
-            true
-        }
 
         return PermissionSnapshot(
             notificationsGranted = notificationsGranted,
@@ -51,47 +44,28 @@ class PermissionRepository(private val context: Context) {
         }
     }
 
-    fun unknownSourcesIntent(packageName: String = appContext.packageName): Intent {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                data = Uri.parse("package:$packageName")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-        } else {
-            applicationDetailsIntent(packageName)
+    fun unknownSourcesIntent(packageName: String = appContext.packageName): Intent =
+        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+            data = Uri.parse("package:$packageName")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-    }
 
-    fun notificationSettingsIntent(packageName: String = appContext.packageName): Intent {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-        } else {
-            applicationDetailsIntent(packageName)
+    fun notificationSettingsIntent(packageName: String = appContext.packageName): Intent =
+        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-    }
 
-    fun channelSettingsIntent(channelId: String, packageName: String = appContext.packageName): Intent {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).apply {
-                putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-        } else {
-            notificationSettingsIntent(packageName)
+    fun channelSettingsIntent(channelId: String, packageName: String = appContext.packageName): Intent =
+        Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-    }
 
     fun batteryOptimizationSettingsIntent(packageName: String = appContext.packageName): Intent {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-        } else {
-            applicationDetailsIntent(packageName)
+        return Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
     }
 }

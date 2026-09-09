@@ -278,8 +278,7 @@ class StoreRepository(private val context: Context) {
     }
 }
 
-@Suppress("DEPRECATION")
-private fun PackageInfo.versionCodeCompat(): Long = if (Build.VERSION.SDK_INT >= 28) longVersionCode else versionCode.toLong()
+private fun PackageInfo.versionCodeCompat(): Long = longVersionCode
 
 /**
  * Cached result of [StoreRepository.installedApps], shared by every repository instance in the
