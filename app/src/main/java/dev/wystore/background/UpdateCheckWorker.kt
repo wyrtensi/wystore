@@ -90,7 +90,7 @@ class UpdateCheckWorker(
                     queueRepository.snapshotAll()
                         .filter { it.packageName == managed.packageName }
                         .filter { it.state == QueueState.AVAILABLE }
-                        .filterNot { QueueOrigin.isUserRequested(it.priority) }
+                        .filterNot { QueueOrigin.isUserVisible(it.priority) }
                         .forEach { queueRepository.discard(it.id) }
                 }
             }
@@ -139,8 +139,16 @@ class UpdateCheckWorker(
 
             try {
                 attempted++
+                // A check aimed at this one package is someone asking about it, so the answer is
+                // kept and offered rather than swept away with the rows nobody asked for. Asking
+                // about it is not asking for it, so the queue still never starts it on its own.
+                val priority = if (requestedPackage == managed.packageName) {
+                    QueueOrigin.USER_VISIBLE_PRIORITY
+                } else {
+                    0
+                }
                 val queuedId = when (managed.source) {
-                    ManagedSource.RUSTORE -> when (val outcome = checkRuStoreUpdate(managed, local)) {
+                    ManagedSource.RUSTORE -> when (val outcome = checkRuStoreUpdate(managed, local, priority)) {
                         is RuStoreCheck.Queued -> outcome.id
                         RuStoreCheck.UpToDate -> null
                         // Not a failure, and emphatically not "up to date": no update from this
@@ -162,7 +170,7 @@ class UpdateCheckWorker(
                             null
                         }
                     }
-                    ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionName)
+                    ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionName, priority)
                     null -> null
                 }
                 answeredNow += managed.packageName
@@ -324,7 +332,11 @@ class UpdateCheckWorker(
         data object SignatureChanged : RuStoreCheck
     }
 
-    private suspend fun checkRuStoreUpdate(managed: ManagedApp, local: InstalledApp): RuStoreCheck {
+    private suspend fun checkRuStoreUpdate(
+        managed: ManagedApp,
+        local: InstalledApp,
+        priority: Int
+    ): RuStoreCheck {
         // Not caught here on purpose. Swallowing the failure made an unreachable source look like
         // an app that is already current: the run counted no problem, and the summary said
         // "everything up to date" while every request had failed. The loop above counts it and
@@ -351,13 +363,18 @@ class UpdateCheckWorker(
                 label = app.name.ifBlank { managed.label },
                 versionName = app.versionName,
                 versionCode = app.versionCode,
-                source = ManagedSource.RUSTORE
+                source = ManagedSource.RUSTORE,
+                priority = priority
             ).id
         )
     }
 
     /** Returns the queue id when an update was queued for this app, or null when it is current. */
-    private suspend fun checkGitHubUpdate(managed: ManagedApp, localVersionName: String): String? {
+    private suspend fun checkGitHubUpdate(
+        managed: ManagedApp,
+        localVersionName: String,
+        priority: Int
+    ): String? {
         val repo = managed.githubRepository ?: return null
         val assetPattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
         // Skips rolling nightly tags and releases with no installable APK; see GitHubReleasePolicy.
@@ -393,6 +410,7 @@ class UpdateCheckWorker(
             // Placeholder only: verification replaces it with the version read out of the APK.
             versionCode = latest.id,
             source = ManagedSource.GITHUB,
+            priority = priority,
             githubRepository = repo,
             githubReleaseId = latest.id
         ).id

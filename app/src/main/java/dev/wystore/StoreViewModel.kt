@@ -1360,11 +1360,15 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         refreshLibrary()
     }
 
+    /**
+     * "Check" pressed on one app's row.
+     *
+     * An app with auto-update off used to be refused outright here, which read as the button being
+     * broken: the switch is about what happens unasked, and this is someone asking. The check runs,
+     * and whatever it finds is offered to be downloaded and installed by hand - it is still never
+     * fetched on its own.
+     */
     fun checkManagedApp(app: ManagedApp) {
-        if (!app.autoUpdate) {
-            _state.update { it.copy(message = string(R.string.vm_autoupdate_off, app.label)) }
-            return
-        }
         if (hasActiveUpdateCheck()) {
             _state.update { it.copy(message = string(R.string.vm_check_already_running)) }
             return

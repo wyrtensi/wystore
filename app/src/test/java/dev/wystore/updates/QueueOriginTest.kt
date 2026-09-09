@@ -37,6 +37,26 @@ class QueueOriginTest {
         )
     }
 
+    /**
+     * Pressing "check" on one app's row asks for the answer, not for the download. The row it
+     * produces is kept - the sweep for excluded apps steps around it - and still never started on
+     * its own, which is the whole difference between the two levels.
+     */
+    @Test
+    fun aRowTheUserAskedToSeeIsKeptButNotStarted() {
+        assertTrue(QueueOrigin.isUserVisible(QueueOrigin.USER_VISIBLE_PRIORITY))
+        assertFalse(QueueOrigin.isUserRequested(QueueOrigin.USER_VISIBLE_PRIORITY))
+        assertFalse(
+            QueueOrigin.mayStartUnattended(
+                priority = QueueOrigin.USER_VISIBLE_PRIORITY,
+                autoUpdateEnabledForApp = false
+            )
+        )
+        // ...and a row nobody asked about at all is not kept either.
+        assertFalse(QueueOrigin.isUserVisible(0))
+        assertTrue(QueueOrigin.isUserVisible(QueueOrigin.USER_REQUESTED_PRIORITY))
+    }
+
     /** The switch is about what happens unasked, and pressing "install" is asking. */
     @Test
     fun aRowSomebodyAskedForStartsWhateverTheSwitchSays() {

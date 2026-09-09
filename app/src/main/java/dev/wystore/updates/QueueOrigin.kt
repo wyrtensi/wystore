@@ -14,7 +14,18 @@ object QueueOrigin {
 
     const val USER_REQUESTED_PRIORITY = 10
 
+    /**
+     * A row the user asked to *see*, which is not the same as asking for it.
+     *
+     * Pressing "check" on one app's row is a request for the answer, not for the download. Such a
+     * row is kept and offered - the sweep that clears rows for apps left out of auto-updates steps
+     * around it - but it is still never started by the queue on its own.
+     */
+    const val USER_VISIBLE_PRIORITY = 5
+
     fun isUserRequested(priority: Int): Boolean = priority >= USER_REQUESTED_PRIORITY
+
+    fun isUserVisible(priority: Int): Boolean = priority >= USER_VISIBLE_PRIORITY
 
     /**
      * Whether the queue may start this row on its own, with nobody asked.
