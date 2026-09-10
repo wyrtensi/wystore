@@ -29,3 +29,6 @@ outputs/
 # Working notes that reference local machines and addresses
 .superpowers/
 docs/superpowers/
+
+# Local agent/editor tooling config
+.claude/
