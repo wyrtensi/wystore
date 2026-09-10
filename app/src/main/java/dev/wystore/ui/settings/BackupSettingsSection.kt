@@ -158,7 +158,7 @@ fun BackupSettingsSection(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(
                             onClick = {
-                                val clip = ClipData.newPlainText("WyStore Backup", textBackupContent)
+                                val clip = ClipData.newPlainText("Wy Store Backup", textBackupContent)
                                 clipboard?.setPrimaryClip(clip)
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                             },

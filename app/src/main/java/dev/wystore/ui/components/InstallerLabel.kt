@@ -20,8 +20,9 @@ fun installerLabel(installerPackageName: String?): String {
     val ownPackage = context.packageName
     return when {
         installerPackageName.isNullOrBlank() -> stringResource(R.string.details_owner_none)
-        // The launcher icon says "WyStore"; everywhere the app talks about itself it is
-        // "Wy Store", and this line is the app talking about itself.
+        // The app's own name, spelled the way it is everywhere else - the label the package
+        // manager returns is the same string, but reading it back would depend on this package
+        // being visible to itself under every install state.
         installerPackageName == ownPackage -> SelfUpdateChecker.APP_LABEL
         else -> runCatching {
             val info = context.packageManager.getApplicationInfo(installerPackageName, 0)

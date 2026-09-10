@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WyStore</string>
+    <string name="app_name">Wy Store</string>
     <string name="nav_home">Главная</string>
     <string name="nav_search">Поиск</string>
     <string name="nav_updates">Обновления</string>
@@ -15,7 +15,7 @@
     <string name="notif_ready_summary_count">%1$d приложений готовы к установке</string>
     <string name="notif_ready_summary_more">+ еще %1$d</string>
     <string name="notif_action_required_title">Требуется действие: %1$s</string>
-    <string name="notif_action_required_text">Подтвердите установку в WyStore</string>
+    <string name="notif_action_required_text">Подтвердите установку в Wy Store</string>
     <string name="notif_check_summary_title">Проверка обновлений завершена</string>
     <string name="notif_check_summary_found">Найдено обновлений: %1$d</string>
     <string name="notif_check_summary_uptodate">Все приложения обновлены</string>
@@ -26,7 +26,7 @@
     <string name="channel_errors">Ошибки и важные действия</string>
 
     <string name="msg_settings_saved">Настройки сохранены</string>
-    <string name="msg_install_permission_required">Разреши WyStore устанавливать приложения, затем установка продолжится</string>
+    <string name="msg_install_permission_required">Разреши Wy Store устанавливать приложения, затем установка продолжится</string>
     <string name="msg_install_started">Подтверди установку %1$s в системном окне</string>
     <string name="msg_install_not_started">Установка не запущена</string>
     <string name="msg_install_artifact_missing">Скачанное обновление больше недоступно</string>
@@ -130,7 +130,7 @@
     <string name="home_updates_available">Доступны обновления</string>
     <string name="home_all_up_to_date">Все приложения обновлены</string>
     <string name="home_ready_to_install_count">Готово к установке: %1$d</string>
-    <string name="home_background_checks">WyStore проверяет обновления в фоне</string>
+    <string name="home_background_checks">Wy Store проверяет обновления в фоне</string>
     <string name="home_updates_list">Список</string>
     <string name="home_update_all">Обновить все</string>
     <string name="home_categories_title">Категории</string>
@@ -295,7 +295,7 @@
     <string name="sources_github_enable_subtitle">Позволяет устанавливать APK и проверять обновления из GitHub Releases (сохранено: %1$d)</string>
 
     <string name="permissions_title">Центр разрешений</string>
-    <string name="permissions_intro">Управление системными разрешениями для корректной работы WyStore в фоне и установки приложений.</string>
+    <string name="permissions_intro">Управление системными разрешениями для корректной работы Wy Store в фоне и установки приложений.</string>
     <string name="permissions_notifications_title">Уведомления</string>
     <string name="permissions_state_allowed">Разрешено</string>
     <string name="permissions_state_off">Отключено</string>
