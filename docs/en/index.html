@@ -27,6 +27,7 @@
 <link rel="preload" href="../assets/fonts/plex-sans-600-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/plex-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/img/shots/en-home.webp" as="image">
+<link rel="preload" href="../assets/app.js" as="script">
 <script>document.documentElement.className += " js";</script>
 <link rel="stylesheet" href="../assets/style.css">
 <script type="application/ld+json">
@@ -80,7 +81,7 @@
   <div class="pane">
 
     <section class="scene is-on" id="hero" tabindex="-1" data-screen="home" aria-hidden="true">
-      <p class="brandline" style="--i:0"><img src="../assets/img/icon-192.png" width="192" height="192" alt="">Wy&nbsp;Store</p>
+      <p class="brandline" style="--i:0"><img src="../assets/img/icon-192.webp" width="192" height="192" alt="">Wy&nbsp;Store</p>
       <h1 style="--i:1">Familiar Russian apps — and <em>nobody watching</em> what you install</h1>
       <p style="--i:2">
         The same apps as in RuStore, plus releases from GitHub. Wy&nbsp;Store downloads and
@@ -92,8 +93,8 @@
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
           Download APK
         </a>
-        <button class="link" type="button" data-go="next">How it works →</button>
-        <img class="badge" alt="GitHub download count" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
+        <button class="link" type="button" data-go="next">How it works</button>
+        <img class="badge" fetchpriority="low" decoding="async" alt="GitHub download count" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
       </p>
       <p class="small" style="--i:4">Android 9.0 and newer · about 9 MB · open source, MIT licence</p>
     </section>
@@ -198,7 +199,7 @@
           <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
           Download APK
         </a>
-        <img class="badge" alt="GitHub download count" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
+        <img class="badge" fetchpriority="low" decoding="async" alt="GitHub download count" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
       </p>
       <ol class="steps" style="--i:2">
         <li>Open the downloaded <code>wystore.apk</code>.</li>
@@ -206,7 +207,7 @@
         <li>From then on Wy&nbsp;Store updates itself — it watches the releases in its repository.</li>
       </ol>
       <figure class="warn" style="--i:3">
-        <img src="../assets/img/play-protect-en.webp" width="520" height="677" alt="Google Play Protect dialog: “App blocked to protect your device”, with an “Install anyway” link at the bottom">
+        <img decoding="async" data-src="../assets/img/play-protect-en.webp" width="520" height="677" alt="Google Play Protect dialog: “App blocked to protect your device”, with an “Install anyway” link at the bottom">
         <figcaption>
           <strong>You may see this.</strong> Google Play Protect warns about any app that is not on
           Google&nbsp;Play: Wy&nbsp;Store is an open-source project Google knows nothing about, and
@@ -237,8 +238,8 @@
     <div class="phone" style="--shot: 560 / 1201">
       <div class="screen">
         <img class="scr is-on" data-name="home" src="../assets/img/shots/en-home.webp" width="560" height="1201" alt="">
-        <img class="scr" data-name="app" src="../assets/img/shots/en-app.webp" width="560" height="1201" alt="">
-        <img class="scr" data-name="library" src="../assets/img/shots/en-library.webp" width="560" height="1201" alt="">
+        <img class="scr" decoding="async" data-name="app" data-src="../assets/img/shots/en-app.webp" width="560" height="1201" alt="">
+        <img class="scr" decoding="async" data-name="library" data-src="../assets/img/shots/en-library.webp" width="560" height="1201" alt="">
       </div>
     </div>
   </div>

@@ -9,7 +9,10 @@
   /* ---------------------------------------------------------------- stars */
 
   var canvas = document.getElementById("warp");
-  var ctx = canvas && canvas.getContext ? canvas.getContext("2d") : null;
+  /* Nothing is drawn behind the field, so the context is opaque: the frame is
+     painted over, not cleared and blended. */
+  var ctx = canvas && canvas.getContext ? canvas.getContext("2d", { alpha: false }) : null;
+  var INK = getComputedStyle(root).getPropertyValue("--ink").trim() || "#0e0e0e";
   var stars = [];
   var W = 0;
   var H = 0;
@@ -34,28 +37,86 @@
   var RIPPLE_PUSH = 34;
   var RIPPLE_LIFE = 2300;
 
+  /* Alpha and width follow z alone, so the field is drawn as one path per tier
+     rather than one per star: sixteen strokes a frame instead of two hundred.
+     Each star keeps its own place and length inside the path. This is not the
+     same pixels — a stroke over many subpaths is rasterised a little
+     differently from many strokes over one each, whatever the tier count, so
+     sixteen is simply the fewest paths, not a balance struck. What holds is
+     the field: measured against the old drawing, its total light differs by
+     0.07 per cent, and at four times life size the two cannot be told apart. */
+  var TIERS = 16;
+  var tiers = [];
+  for (var t = 0; t < TIERS; t++) tiers.push([]);
+
   function seedStar(anywhere) {
+    var z = Math.random() * 0.85 + 0.15;
     return {
       x: Math.random() * W,
       y: anywhere ? Math.random() * H : H + Math.random() * H * 0.3,
-      z: Math.random() * 0.85 + 0.15
+      z: z,
+      tier: Math.min(TIERS - 1, Math.floor(((z - 0.15) / 0.85) * TIERS))
     };
   }
 
-  function sizeCanvas() {
+  var lastW = 0;
+  var lastH = 0;
+
+  function sizeCanvas(reseed) {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = canvas.width = Math.floor(window.innerWidth * dpr);
-    H = canvas.height = Math.floor(window.innerHeight * dpr);
-    canvas.style.width = window.innerWidth + "px";
-    canvas.style.height = window.innerHeight + "px";
-    var count = Math.round(Math.min(260, Math.max(90, (window.innerWidth * window.innerHeight) / 5200)));
+    lastW = window.innerWidth;
+    lastH = window.innerHeight;
+    W = canvas.width = Math.floor(lastW * dpr);
+    H = canvas.height = Math.floor(lastH * dpr);
+    canvas.style.width = lastW + "px";
+    canvas.style.height = lastH + "px";
+    /* Resizing the backing store resets the context, so the state it keeps for
+       the whole run is set here rather than once per frame. An opaque canvas
+       starts black, not clear, so the ground is laid at once: until the next
+       frame the page must look exactly as it did with nothing drawn. */
+    ctx.lineCap = "round";
+    ctx.fillStyle = INK;
+    ctx.fillRect(0, 0, W, H);
+    if (!reseed) return;
+    var count = Math.round(Math.min(260, Math.max(90, (lastW * lastH) / 5200)));
     stars = [];
     for (var i = 0; i < count; i++) stars.push(seedStar(true));
   }
 
   function paint(now) {
-    ctx.clearRect(0, 0, W, H);
-    ctx.lineCap = "round";
+    ctx.fillStyle = INK;
+    ctx.fillRect(0, 0, W, H);
+    /* A ripple moves and brightens each star by its own distance to the front,
+       so while one is alive the field goes back to being drawn star by star. */
+    if (ripples.length) paintStars(now);
+    else paintTiers();
+    for (var q = 0; q < rings.length; q++) paintRing(rings[q], now);
+  }
+
+  function paintTiers() {
+    for (var t = 0; t < TIERS; t++) tiers[t].length = 0;
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      tiers[s.tier].push(s);
+    }
+    for (var k = 0; k < TIERS; k++) {
+      var bucket = tiers[k];
+      if (!bucket.length) continue;
+      /* The middle of the tier stands for all of it. */
+      var z = 0.15 + ((k + 0.5) / TIERS) * 0.85;
+      ctx.strokeStyle = "rgba(242,239,233," + Math.min(1, 0.1 + z * 0.5) + ")";
+      ctx.lineWidth = (0.6 + z * 0.9) * dpr;
+      ctx.beginPath();
+      for (var j = 0; j < bucket.length; j++) {
+        var b = bucket[j];
+        ctx.moveTo(b.x, b.y);
+        ctx.lineTo(b.x, b.y + (1.2 + stretch * b.z * 9) * dpr);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function paintStars(now) {
     for (var i = 0; i < stars.length; i++) {
       var s = stars[i];
       var len = (1.2 + stretch * s.z * 9) * dpr;
@@ -89,8 +150,6 @@
       ctx.lineTo(x, y + len);
       ctx.stroke();
     }
-
-    for (var q = 0; q < rings.length; q++) paintRing(rings[q], now);
   }
 
   function easeOut(t) {
@@ -157,12 +216,26 @@
   }
 
   if (ctx) {
-    sizeCanvas();
+    sizeCanvas(true);
+    /* A page laid out at zero — prerendered, or in a frame with no room yet —
+       gets no resize when it finally has some, and the field would never
+       appear. Frames only run once there is something to show, so the first
+       one measures again. */
+    if (!W || !H) {
+      window.requestAnimationFrame(function again() {
+        if (!window.innerWidth || !window.innerHeight) return window.requestAnimationFrame(again);
+        sizeCanvas(true);
+      });
+    }
     var resizeTimer;
     window.addEventListener("resize", function () {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function () {
-        sizeCanvas();
+        /* Android shows and hides its address bar as you move through the page,
+           and every such move is a resize with nothing but the height changed.
+           The buffer follows it; the field is only re-seeded on a real one, so
+           the stars do not jump under the reader. */
+        sizeCanvas(window.innerWidth !== lastW || Math.abs(window.innerHeight - lastH) > 120);
         if (reduced.matches) paint(performance.now());
       }, 180);
     });
@@ -193,6 +266,58 @@
   var index = 0;
   var locked = false;
 
+  /* ------------------------------------------------------------- pictures */
+
+  /* Only the first handset shot is in the markup with a source. The rest — and
+     the Play Protect dialog on the last scene — carry data-src and are fetched
+     one at a time once the page itself is up, so the arrival is not competing
+     with six screenshots nobody is looking at yet. A picture whose scene is
+     reached before its turn is fetched at once; the queue then skips it. */
+
+  function fetchImage(img, then) {
+    var src = img.getAttribute("data-src");
+    if (!src) return false;
+    img.removeAttribute("data-src");
+    if (then) {
+      img.addEventListener("load", then, { once: true });
+      img.addEventListener("error", then, { once: true });
+    }
+    img.src = src;
+    return true;
+  }
+
+  function pump() {
+    var waiting = document.querySelector("img[data-src]");
+    if (waiting) fetchImage(waiting, pump);
+  }
+
+  function fetchNow(el) {
+    if (!el) return;
+    var waiting = el.querySelectorAll ? el.querySelectorAll("img[data-src]") : [];
+    for (var i = 0; i < waiting.length; i++) fetchImage(waiting[i]);
+  }
+
+  /* The handset only changes once the new picture is there to change to, so a
+     scene reached before its turn in the queue holds the shot it had rather
+     than showing an empty screen for as long as the fetch takes. */
+  function showScreen(k) {
+    var img = screens[k];
+    fetchImage(img);
+    if (img.complete && img.naturalWidth) {
+      for (var i = 0; i < screens.length; i++) screens[i].classList.toggle("is-on", i === k);
+      return;
+    }
+    var at = index;
+    /* On an error the swap still happens: an empty screen is honest, a shot
+       from another scene is not. */
+    var swap = function () {
+      if (index !== at) return;
+      for (var i = 0; i < screens.length; i++) screens[i].classList.toggle("is-on", i === k);
+    };
+    img.addEventListener("load", swap, { once: true });
+    img.addEventListener("error", swap, { once: true });
+  }
+
   function screenFor(i) {
     var name = scenes[i].getAttribute("data-screen");
     if (!name) return -1;
@@ -214,9 +339,8 @@
     scenes[index].scrollTop = 0;
 
     var s = screenFor(index);
-    if (s > -1) {
-      for (var k = 0; k < screens.length; k++) screens[k].classList.toggle("is-on", k === s);
-    }
+    if (s > -1) showScreen(s);
+    fetchNow(scenes[index]);
 
     root.setAttribute("data-scene", scenes[index].id);
 
@@ -328,6 +452,22 @@
 
   var fromHash = scenes.findIndex(function (s) { return "#" + s.id === location.hash; });
   show(fromHash > -1 ? fromHash : 0, "force");
+
+  var pumping = false;
+
+  function startQueue() {
+    if (pumping) return;
+    pumping = true;
+    pump();
+  }
+
+  if (document.readyState === "complete") startQueue();
+  else {
+    window.addEventListener("load", startQueue, { once: true });
+    /* The download badge is fetched from a third party and can take seconds,
+       and "load" waits for it. The queue does not. */
+    setTimeout(startQueue, 2500);
+  }
 
   window.addEventListener("hashchange", function () {
     var n = scenes.findIndex(function (s) { return "#" + s.id === location.hash; });

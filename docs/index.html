@@ -27,6 +27,7 @@
 <link rel="preload" href="./assets/fonts/plex-sans-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/fonts/plex-sans-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="./assets/img/shots/ru-home.webp" as="image">
+<link rel="preload" href="./assets/app.js" as="script">
 <script>document.documentElement.className += " js";</script>
 <link rel="stylesheet" href="./assets/style.css">
 <script type="application/ld+json">
@@ -80,7 +81,7 @@
   <div class="pane">
 
     <section class="scene is-on" id="hero" tabindex="-1" data-screen="home" aria-hidden="true">
-      <p class="brandline" style="--i:0"><img src="./assets/img/icon-192.png" width="192" height="192" alt="">Wy&nbsp;Store</p>
+      <p class="brandline" style="--i:0"><img src="./assets/img/icon-192.webp" width="192" height="192" alt="">Wy&nbsp;Store</p>
       <h1 style="--i:1">Привычные российские приложения — и <em>никто не следит</em>, что вы ставите</h1>
       <p style="--i:2">
         Те же приложения, что и в RuStore, плюс релизы с GitHub. Wy&nbsp;Store скачивает и ставит
@@ -91,8 +92,8 @@
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
           Скачать APK
         </a>
-        <button class="link" type="button" data-go="next">Как это работает →</button>
-        <img class="badge" alt="Число загрузок с GitHub" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BE%D0%BA&amp;labelColor=1b1b1b&amp;color=8aacff">
+        <button class="link" type="button" data-go="next">Как это работает</button>
+        <img class="badge" fetchpriority="low" decoding="async" alt="Число загрузок с GitHub" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BE%D0%BA&amp;labelColor=1b1b1b&amp;color=8aacff">
       </p>
       <p class="small" style="--i:4">Android 9.0 и новее · около 9 МБ · открытый код, лицензия MIT</p>
     </section>
@@ -214,7 +215,7 @@
           <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
           Скачать APK
         </a>
-        <img class="badge" alt="Число загрузок с GitHub" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BE%D0%BA&amp;labelColor=1b1b1b&amp;color=8aacff">
+        <img class="badge" fetchpriority="low" decoding="async" alt="Число загрузок с GitHub" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BE%D0%BA&amp;labelColor=1b1b1b&amp;color=8aacff">
       </p>
       <ol class="steps" style="--i:2">
         <li>Откройте скачанный <code>wystore.apk</code>.</li>
@@ -222,7 +223,7 @@
         <li>Дальше Wy&nbsp;Store обновляет себя сам — он следит за релизами в репозитории.</li>
       </ol>
       <figure class="warn" style="--i:3">
-        <img src="./assets/img/play-protect-ru.webp" width="520" height="891" alt="Окно Google Play Защиты: «Подозрительное приложение заблокировано», внизу ссылка «Всё равно установить»">
+        <img decoding="async" data-src="./assets/img/play-protect-ru.webp" width="520" height="891" alt="Окно Google Play Защиты: «Подозрительное приложение заблокировано», внизу ссылка «Всё равно установить»">
         <figcaption>
           <strong>Может появиться такое окно.</strong> Google Play Защита предупреждает о любом
           приложении, которого нет в Google&nbsp;Play: Wy&nbsp;Store — открытый проект, у Google
@@ -254,11 +255,11 @@
     <div class="phone">
       <div class="screen">
         <img class="scr is-on" data-name="home" src="./assets/img/shots/ru-home.webp" width="560" height="1110" alt="">
-        <img class="scr" data-name="search" src="./assets/img/shots/ru-search.webp" width="560" height="1110" alt="">
-        <img class="scr" data-name="github" src="./assets/img/shots/ru-github.webp" width="560" height="1110" alt="">
-        <img class="scr" data-name="app" src="./assets/img/shots/ru-app.webp" width="560" height="1110" alt="">
-        <img class="scr" data-name="updates" src="./assets/img/shots/ru-updates.webp" width="560" height="1110" alt="">
-        <img class="scr" data-name="library" src="./assets/img/shots/ru-library.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="search" data-src="./assets/img/shots/ru-search.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="github" data-src="./assets/img/shots/ru-github.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="app" data-src="./assets/img/shots/ru-app.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="updates" data-src="./assets/img/shots/ru-updates.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="library" data-src="./assets/img/shots/ru-library.webp" width="560" height="1110" alt="">
       </div>
     </div>
   </div>

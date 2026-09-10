@@ -421,7 +421,8 @@ code {
   text-underline-offset: 3px;
 }
 
-/* Back and Next: quiet pills, the same shape as the button */
+/* Back and Next: quiet pills, the same shape as the button. The one standing
+   beside the download button wears the same pill, so the two read as a pair. */
 
 .nav-links {
   display: flex;
@@ -430,7 +431,8 @@ code {
   font-size: 14.5px;
 }
 
-.nav-links .link {
+.nav-links .link,
+.cta .link {
   padding: 8px 16px;
   border: 1px solid var(--rule);
   border-radius: 999px;
@@ -439,10 +441,15 @@ code {
   transition: color 0.14s ease, border-color 0.14s ease;
 }
 
-.nav-links .link:hover {
+.nav-links .link:hover,
+.cta .link:hover {
   color: var(--paper);
   border-color: var(--accent);
   text-decoration: none;
+}
+
+.cta .link {
+  font-size: 14.5px;
 }
 
 
