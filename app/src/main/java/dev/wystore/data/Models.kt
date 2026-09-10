@@ -217,7 +217,16 @@ data class PendingUpdate(
     val source: ManagedSource,
     val githubRepository: GitHubRepository? = null,
     val githubReleaseId: Long? = null,
-    val downloadedAt: Long = System.currentTimeMillis()
+    val downloadedAt: Long = System.currentTimeMillis(),
+    /**
+     * Whether a person asked for this file, rather than a background check finding it.
+     *
+     * It decides one thing at install time: whether the same version may be installed over itself.
+     * Download time already knows - the queue row carries the priority - and the answer was
+     * dropped on the way to the install, so a handover downloaded fine and then refused itself
+     * with "nothing to update".
+     */
+    val userRequested: Boolean = false
 )
 
 data class RuStoreCompatibility(

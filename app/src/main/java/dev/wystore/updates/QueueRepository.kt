@@ -562,7 +562,8 @@ class QueueRepository(
             source = source,
             githubRepository = githubRepository,
             githubReleaseId = githubReleaseId,
-            downloadedAt = entity.createdAt
+            downloadedAt = entity.createdAt,
+            userRequested = QueueOrigin.isUserRequested(entity.priority)
         )
     }
 
@@ -719,7 +720,8 @@ class QueueRepository(
             source = source,
             githubRepository = repo,
             githubReleaseId = entity.githubReleaseId,
-            downloadedAt = entity.createdAt
+            downloadedAt = entity.createdAt,
+            userRequested = QueueOrigin.isUserRequested(entity.priority)
         )
     }
 

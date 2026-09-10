@@ -148,10 +148,12 @@ class MainActivity : AppCompatActivity() {
             val verification = withContext(Dispatchers.IO) {
                 val installed = storeViewModel.installedApp(packageName)
                 SigningVerifier.verifyArtifacts(
-                    packageManager,
-                    update.filePaths.map(::File),
-                    installed,
-                    update.packageName
+                    packageManager = packageManager,
+                    files = update.filePaths.map(::File),
+                    installed = installed,
+                    expectedPackageName = update.packageName,
+                    // See InstallSessionWriter: a reinstall the user asked for is not a downgrade.
+                    allowReinstall = update.userRequested
                 )
             }
             if (!verification.isValid) {

@@ -57,7 +57,12 @@ class InstallSessionWriter(private val context: Context) {
             packageManager = appContext.packageManager,
             files = files,
             installed = installed,
-            expectedPackageName = entity.packageName
+            expectedPackageName = entity.packageName,
+            // Download time allowed the same version through because a person asked for it, and
+            // this check refused it again at the last step: "hand updates to Wy Store" fetched the
+            // APK and then answered "nothing to update". The install is the point - it is what
+            // makes Wy Store the installer of record.
+            allowReinstall = QueueOrigin.isUserRequested(entity.priority)
         )
         if (!verification.isValid) {
             throw IllegalStateException(
