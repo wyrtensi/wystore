@@ -3,6 +3,8 @@ package dev.wystore.ui.navigation
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -200,6 +202,12 @@ fun WyStoreRoot(
     val githubSelectedRelease = state.githubSelectedRelease
 
     val githubApp = state.githubApp
+    // A detail screen replaces the Scaffold below rather than sitting inside it, and that Scaffold
+    // is what hosts the snackbar. So everything the app had to say while an app page, a release
+    // page or a GitHub page was open - queued, failed, permission needed - was shown into a host
+    // that was not on screen, and the button that raised it looked like it had done nothing.
+    val detailScreenShown = githubApp.entry != null || githubSelectedRelease != null || selected != null
+    Box(Modifier.fillMaxSize()) {
     if (githubApp.entry != null && githubSelectedRelease == null) {
         GitHubAppScreen(
             state = githubApp,
@@ -473,6 +481,16 @@ fun WyStoreRoot(
                 }
             }
         }
+    }
+    if (detailScreenShown) {
+        WySnackbarHost(
+            snackbars,
+            Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 12.dp, vertical = 16.dp)
+        )
+    }
     }
 
     if (installDialog) {

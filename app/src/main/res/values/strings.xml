@@ -189,6 +189,7 @@
     <string name="github_disclaimer">Only install APKs from releases of projects you trust. GitHub is not a store and does not vet APK safety.</string>
     <string name="github_repo_url_label">Repository link</string>
     <string name="github_open_releases">Open releases</string>
+    <string name="github_releases_section">Releases</string>
     <string name="github_saved">Saved</string>
     <string name="github_loading_releases">Fetching GitHub releases</string>
     <string name="github_no_releases">This repository has no published releases with .apk files.</string>

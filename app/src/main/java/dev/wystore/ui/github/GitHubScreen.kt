@@ -154,6 +154,29 @@ fun GitHubScreen(
                     }
                 }
             }
+            // What the button just did, directly under the button. This block used to sit below
+            // the whole built-in catalogue, so pressing "Open releases" scrolled nothing into
+            // view and looked exactly like nothing happening.
+            if (loading) item { Loading(stringResource(R.string.github_loading_releases)) }
+            install?.let { item { OperationProgress(it) } }
+            if (!loading && activeRepository != null && releases.isEmpty()) item {
+                EmptyState(
+                    icon = Icons.Outlined.Info,
+                    title = stringResource(R.string.github_no_releases)
+                )
+            }
+            if (releases.isNotEmpty()) {
+                item {
+                    SectionHeader(
+                        title = activeRepository?.displayName
+                            ?: stringResource(R.string.github_releases_section)
+                    )
+                }
+                items(releases, key = { it.id }) { release ->
+                    GitHubReleaseCard(release, onOpen)
+                }
+            }
+
             // The catalogue is browsable without typing a link, and the same entries are what
             // search matches against.
             if (catalog.isNotEmpty()) {
@@ -200,17 +223,6 @@ fun GitHubScreen(
                 }
             }
 
-            if (loading) item { Loading(stringResource(R.string.github_loading_releases)) }
-            install?.let { item { OperationProgress(it) } }
-            if (!loading && activeRepository != null && releases.isEmpty()) item {
-                EmptyState(
-                    icon = Icons.Outlined.Info,
-                    title = stringResource(R.string.github_no_releases)
-                )
-            }
-            items(releases, key = { it.id }) { release ->
-                GitHubReleaseCard(release, onOpen)
-            }
         }
     }
 }

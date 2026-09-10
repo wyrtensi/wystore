@@ -189,6 +189,7 @@
     <string name="github_disclaimer">Устанавливай APK только из релизов тех проектов, которым доверяешь. GitHub не является магазином и не проверяет безопасность APK.</string>
     <string name="github_repo_url_label">Ссылка на репозиторий</string>
     <string name="github_open_releases">Открыть релизы</string>
+    <string name="github_releases_section">Релизы</string>
     <string name="github_saved">Сохранённые</string>
     <string name="github_loading_releases">Получаем релизы GitHub</string>
     <string name="github_no_releases">В этом репозитории нет опубликованных релизов с .apk-файлами.</string>
