@@ -9,7 +9,7 @@
 |---|---|
 | Название | Wy Store |
 | Имя пакета | `app.wystore` |
-| Версия | 0.2.0 (versionCode 29) |
+| Версия | 0.2.1 (versionCode 30) |
 | Минимальная версия Android | 9.0 (API 28) |
 | Целевой API | 36 |
 | Категория | Инструменты / Утилиты |
@@ -68,18 +68,19 @@ Wy Store проверяет обновления в фоне по расписа
 • Платных приложений и покупок внутри — только бесплатное.
 • Каталога Google Play — Wy Store его не читает и не заменяет.
 
-Wy Store — независимый проект с открытым исходным кодом (лицензия MIT). Он не связан с RuStore, не одобрен им и не действует от его имени: RuStore является источником данных. Приложение проверяет доставку файлов, но не отвечает за содержимое и работу установленных программ.
+Wy Store — независимый проект с открытым исходным кодом (лицензия MIT). Он не связан с RuStore и не действует от его имени: RuStore является источником данных. Приложение проверяет доставку файлов, но не отвечает за содержимое и работу установленных программ.
 
 Исходный код и релизы: github.com/wyrtensi/wystore
 ```
 
-## Что нового (0.2.0)
+## Что нового (0.2.1)
 
 ```
-• Сменился идентификатор приложения — обновление с версий 0.1.x нужно поставить вручную, а настройки перенести через экспорт и импорт в разделе «Резервная копия и перенос».
-• Полноценные отзывы для приложений RuStore: разбор по количеству звёзд и фильтр по оценке.
-• Карточки заметнее отделены от фона — интерфейс лучше читается на дешёвых экранах и на солнце.
-• Минимальная версия Android — 9.0. На Android 8 проверка подписи обновлений технически не работала.
+• Кнопка «Передать обновления Wy Store» наконец работает: раньше файл скачивался и молча отбрасывался на последнем шаге.
+• Если поставить поверх нельзя — версия в каталоге ниже установленной или другая подпись — приложение предлагает удалить и поставить заново, а не оставляет в тупике.
+• На странице проекта с GitHub открывается весь список релизов, а не только последний.
+• Приложения из встроенного каталога GitHub опознаются как установленные, и видно, кто отвечает за их обновления.
+• Кнопки на экранах GitHub перестали молчать после нажатия.
 ```
 
 ## Теги
@@ -116,7 +117,7 @@ Wy Store — независимый проект с открытым исход�
 
 ## Файлы релиза
 
-APK: `wystore-0.2.0.apk` (30,8 МБ), подписан тем же ключом, что и релизы на GitHub —
+APK: `wystore-0.2.1.apk` (29,4 МБ), подписан тем же ключом, что и релизы на GitHub —
 отпечаток сертификата SHA-256 `33dcb50061a08190f68bbee2d743be38ad4f7307d98dc18dd7e76719c815a258`.
 
 ---
@@ -161,16 +162,17 @@ WHAT IT DOES NOT DO
 • No paid apps or in-app purchases — free apps only.
 • No Google Play catalogue — Wy Store neither reads nor replaces it.
 
-Wy Store is an independent open-source project (MIT licence). It is not affiliated with RuStore, not endorsed by it and does not act on its behalf: RuStore is a data source. The app verifies file delivery but is not responsible for the content or behaviour of the programs it installs.
+Wy Store is an independent open-source project (MIT licence). It is not affiliated with RuStore and does not act on its behalf: RuStore is a data source. The app verifies file delivery but is not responsible for the content or behaviour of the programs it installs.
 
 Source code and releases: github.com/wyrtensi/wystore
 ```
 
-## What's new (0.2.0)
+## What's new (0.2.1)
 
 ```
-• The application id changed — updating from 0.1.x has to be installed by hand, and settings move over through Export and Import in "Backup and transfer".
-• Full reviews for RuStore apps: a breakdown by star count and a filter by score.
-• Cards stand out more against the background — the interface reads better on cheap screens and in daylight.
-• The minimum Android version is now 9.0. On Android 8 the update signature check technically did nothing.
+• "Hand updates to Wy Store" finally works: the file used to download and then be dropped without a word at the last step.
+• When nothing can install over the app — an older catalogue version or a different signing key — the app offers to uninstall and install again instead of leaving a dead end.
+• A GitHub project page opens its whole release list, not only the latest one.
+• Apps from the built-in GitHub catalogue are recognised as installed, and the page says who handles their updates.
+• Buttons on the GitHub screens stopped going silent when pressed.
 ```
