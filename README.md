@@ -5,6 +5,7 @@
 **Альтернатива RuStore без слежки и рекламы**
 
 [![Скачать APK](https://img.shields.io/badge/%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C%20APK-0B57D0?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
+[![Загрузок](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%BE%D0%BA&labelColor=0B57D0&color=1F6FEB)](https://github.com/wyrtensi/wystore/releases)
 
 [![Последний релиз](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%D1%80%D0%B5%D0%BB%D0%B8%D0%B7&color=0B57D0)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Сборка](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%D1%81%D0%B1%D0%BE%D1%80%D0%BA%D0%B0)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
