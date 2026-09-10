@@ -349,7 +349,11 @@ class UpdateDownloadWorker(
                 packageManager = context.packageManager,
                 files = files,
                 installed = installedApp,
-                expectedPackageName = entity.packageName
+                expectedPackageName = entity.packageName,
+                // Same reason as the two dialog paths: a reinstall the user asked for is not a
+                // downgrade. Without this the root route quietly produced no plan and handed the
+                // handover back to a confirmation flow that refused it too.
+                allowReinstall = QueueOrigin.isUserRequested(entity.priority)
             )
             val plan = recheck.plan ?: return false
 
