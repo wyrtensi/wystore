@@ -8,7 +8,6 @@
 
 [![Latest release](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=release&color=0B57D0)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Build](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=build)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
-[![Downloads](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&label=downloads)](https://github.com/wyrtensi/wystore/releases)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#requirements)
 [![Telegram chat](https://img.shields.io/badge/Telegram-chat-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
 [![Licence MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=licence)](LICENSE)
@@ -35,7 +34,7 @@ is a data source here. See [DISCLAIMER.md](DISCLAIMER.md).
 |---|---|---|
 | ![Home](docs/screenshots/en/home.png) | ![App page](docs/screenshots/en/app-page.png) | ![Library](docs/screenshots/en/library.png) |
 
-**[A walkthrough with screenshots](https://telegra.ph/Wy-Store-magazin-prilozhenij-kotoryj-ne-prosit-vojti-v-akkaunt-09-09)** — the app screen by screen (in Russian).
+[A walkthrough](https://telegra.ph/Wy-Store-magazin-prilozhenij-kotoryj-ne-prosit-vojti-v-akkaunt-09-09) — the app screen by screen, and what does not always work (in Russian).
 
 ## Features
 
@@ -47,9 +46,9 @@ is a data source here. See [DISCLAIMER.md](DISCLAIMER.md).
 - **APK checks before install.** Package name, versionCode, completeness of the split-APK set and the
   signing certificate are verified before the file reaches the installer. A mismatch is a refusal
   with a stated reason.
-- **Background updates.** Scheduled checks, automatic download of what they find, and — on Android
-  12 and newer — installation of what Wy Store installed itself without a dialog. No root
-  required.
+- **Background updates.** Scheduled checks and automatic download of what they find. Installing
+  without a dialog is possible on Android 12 and newer for what Wy Store installed itself — but it
+  is not guaranteed; see below.
 - **Download queue.** Kept in a database, survives reboots and dropped connections, and resumes from
   where it stopped using HTTP Range.
 - **Reviews and ratings.** For RuStore apps: the rating, a breakdown by star count and a filter by
@@ -96,32 +95,69 @@ Self-updating works as before from then on.
 
 ## How updates work
 
-Since Android 12 the system lets whoever installed an app update it without a dialog. Wy Store
-uses that: what it installed, it updates itself — downloading, checking the signature and
-installing, including while the app is in the background.
+Finding an update and downloading it always works on its own. Installing it without a single tap
+does not work everywhere, and that deserves an exact answer, because there are two confirmations on
+the way and they are independent of each other.
 
-On Android 9, 10 and 11 no store has that option: every update there stops on the system dialog.
-The download still happens on its own; it is the install that needs a tap.
+### First: Android's own installer
 
-Three settings make up the chain, all on by default:
+Since Android 12 the system lets whoever installed an app update it without showing its dialog.
+There are four conditions, and they hold together or not at all:
+
+- it is an update, not a first install;
+- Wy Store is recorded as this app's installer;
+- the app being updated targets API 33 (Android 13) or newer;
+- no one else owns the app's updates — Google Play, for instance.
+
+When they hold, the system dialog does not appear at all. On Android 9, 10 and 11 no store has this
+option, Google Play and RuStore included.
+
+### Second: Google Play Protect
+
+On a phone with Google services, Play Protect inspects every APK it has not seen before and raises
+**its own** dialog — "send this app to Google for a security scan" — on top of any silent install.
+It waits for a tap as long as it takes; until it is answered, nothing installs.
+
+Play Protect remembers the file, not the app: the very same APK goes through silently the second
+time. Which means in practice: a fresh build of a little-known app will almost certainly ask
+whoever receives it early, while a popular app Google has already seen will not. On phones without
+Google services this step does not exist.
+
+This is not reasoning but what the device does. Verified on Android 16: the system dialog never
+appeared for an update, and the Play Protect dialog appeared for every new file and for no file it
+had already checked.
+
+### The honest summary
+
+- **With root** — everything installs silently, always, first installs included: the install goes
+  around the system installer, and neither Android nor Play Protect shows anything. Root is off by
+  default.
+- **Without root** — it depends. It usually works, but there is no guarantee: the last word belongs
+  to Play Protect, and it turns on whether Google has seen that particular file.
+
+The download happens either way and asks nothing. A tap, where one is needed, confirms the install —
+it does not start the download again.
+
+### The settings behind the chain
+
+All three are on by default:
 
 | Setting | What it does |
 |---|---|
 | Download updates immediately | A found update starts downloading on its own. Background checks respect the Wi-Fi-only mode. |
 | Install right after downloading | A downloaded update goes to the installer without another tap. |
-| Update without asking | Skip the system dialog where Android permits it. |
+| Update without asking | Ask the system to skip its dialog where the system allows it. |
 
-The limits are these:
+### Further limits
 
-- A first install is always confirmed — the system dialog cannot be bypassed.
-- Even on Android 12 and newer the system has conditions of its own: the app being updated has to
-  target a recent enough API. When it does not, Wy Store is refused and falls back to the ordinary
-  confirmation.
-- An app another store installed also asks for confirmation. Its updates can be handed to Wy Store
-  from the app's own page: it gets reinstalled, and updates go quietly afterwards.
-- Apps installed from Google Play are left alone entirely until that is enabled for a specific app.
-- With root the first install goes quiet too — a switch in settings, off by default. The APK checks
-  are unchanged.
+- A first install is always confirmed — except in root mode.
+- An app another store installed updates with a confirmation. Its updates can be handed to Wy Store
+  from the app's own page: it is installed over the top once, with a confirmation, after which
+  Wy Store is the installer of record.
+- If the catalogue's version is lower than the installed one, or the app is signed with a different
+  key, nothing can install over it at all — Android refuses. The app then offers to uninstall and
+  install again; the app's data is usually lost in the process.
+- Apps installed from Google Play are left alone until that is enabled for a specific app.
 
 ## Security
 
@@ -183,9 +219,9 @@ The endpoints, the reason behind HTTP 419 and the fallback behaviour are describ
   need something newer, and each app's page states the version it needs before the download rather
   than after.
 - Permission to install unknown apps: Android asks for it on the first install.
-- Root is optional, but without it only updates go quietly, and only on Android 12 and newer. A
-  first install always asks, and on Android 9, 10 and 11 so does every update. With root everything
-  installs silently, first installs included.
+- Root is optional. Without it, installing without a confirmation is possible for updates only, on
+  Android 12 and newer only, and only for as long as Play Protect does not stop it. With root
+  everything installs silently, first installs included. See "How updates work" for the detail.
 - ABI and screen density are detected automatically, and the matching APK set is chosen.
 
 ## Questions

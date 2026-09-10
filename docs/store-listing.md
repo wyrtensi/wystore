@@ -51,7 +51,7 @@ Wy Store — магазин приложений для Android, который 
 
 ОБНОВЛЕНИЯ, КОТОРЫЕ ПРИХОДЯТ САМИ
 
-Wy Store проверяет обновления в фоне по расписанию и скачивает найденное сам. На Android 12 и новее он же их и устанавливает, без окна подтверждения и без root: система разрешает это тому, кто приложение установил. На Android 9, 10 и 11 такой возможности нет ни у одного магазина — обновление скачается само, а установку нужно подтвердить. Первая установка подтверждается всегда и на любой версии.
+Wy Store проверяет обновления в фоне по расписанию и скачивает найденное сам. Установка без окна подтверждения возможна на Android 12 и новее для приложений, которые Wy Store установил сам, — но не гарантирована: на телефонах с сервисами Google окно может показать Play Protect, если он видит этот файл впервые. На Android 9, 10 и 11 такой возможности нет ни у одного магазина. Первая установка подтверждается всегда. С root установка проходит без подтверждений во всех случаях.
 
 Приложения, установленные другим магазином, можно передать под управление Wy Store одной кнопкой на карточке. Приложения из Google Play не трогаются, пока это не разрешено для конкретного приложения.
 
@@ -144,7 +144,7 @@ WHAT IS INSIDE
 
 UPDATES THAT ARRIVE ON THEIR OWN
 
-Wy Store checks for updates in the background on a schedule and downloads what it finds on its own. On Android 12 and newer it installs them too, with no confirmation dialog and no root: the system allows that to whoever installed the app. On Android 9, 10 and 11 no store has that option — the update downloads itself, but the install needs a tap. A first install is always confirmed, on every version.
+Wy Store checks for updates in the background on a schedule and downloads what it finds on its own. Installing without a confirmation dialog is possible on Android 12 and newer for apps Wy Store installed itself — but it is not guaranteed: on phones with Google services, Play Protect may raise a dialog of its own for a file it has not seen before. On Android 9, 10 and 11 no store has that option. A first install is always confirmed. With root, installs go through without any confirmation.
 
 Apps installed by another store can be handed over to Wy Store with one button on the app page. Apps from Google Play are left alone until that is enabled for a specific app.
 
