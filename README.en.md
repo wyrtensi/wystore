@@ -109,8 +109,10 @@ There are four conditions, and they hold together or not at all:
 - the app being updated targets API 33 (Android 13) or newer;
 - no one else owns the app's updates — Google Play, for instance.
 
-When they hold, the system dialog does not appear at all. On Android 9, 10 and 11 no store has this
-option, Google Play and RuStore included.
+When they hold, the system dialog does not appear at all. On Android 9, 10 and 11 no third-party
+store can do this, RuStore included. Google Play can, on any version — not through a trick but
+because it is a privileged system app holding `INSTALL_PACKAGES`, a permission an ordinary app is
+never granted.
 
 ### Second: Google Play Protect
 
