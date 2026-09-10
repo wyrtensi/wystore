@@ -9,7 +9,7 @@
 |---|---|
 | Название | Wy Store |
 | Имя пакета | `app.wystore` |
-| Версия | 0.2.1 (versionCode 30) |
+| Версия | 0.2.2 (versionCode 31) |
 | Минимальная версия Android | 9.0 (API 28) |
 | Целевой API | 36 |
 | Категория | Инструменты / Утилиты |
@@ -73,9 +73,10 @@ Wy Store — независимый проект с открытым исход�
 Исходный код и релизы: github.com/wyrtensi/wystore
 ```
 
-## Что нового (0.2.1)
+## Что нового (0.2.2)
 
 ```
+• Убрана лишняя цепочка связи с RuStore: приложение больше не выясняет служебный параметр отдельным обращением к нему.
 • Кнопка «Передать обновления Wy Store» наконец работает: раньше файл скачивался и молча отбрасывался на последнем шаге.
 • Если поставить поверх нельзя — версия в каталоге ниже установленной или другая подпись — приложение предлагает удалить и поставить заново, а не оставляет в тупике.
 • На странице проекта с GitHub открывается весь список релизов, а не только последний.
@@ -117,7 +118,7 @@ Wy Store — независимый проект с открытым исход�
 
 ## Файлы релиза
 
-APK: `wystore-0.2.1.apk` (30,8 МБ), подписан тем же ключом, что и релизы на GitHub —
+APK: `wystore-0.2.2.apk` (30,8 МБ), подписан тем же ключом, что и релизы на GitHub —
 отпечаток сертификата SHA-256 `33dcb50061a08190f68bbee2d743be38ad4f7307d98dc18dd7e76719c815a258`.
 
 ---
@@ -167,9 +168,10 @@ Wy Store is an independent open-source project (MIT licence). It is not affiliat
 Source code and releases: github.com/wyrtensi/wystore
 ```
 
-## What's new (0.2.1)
+## What's new (0.2.2)
 
 ```
+• One redundant round trip to RuStore is gone: the app no longer works out a service parameter by asking RuStore for it.
 • "Hand updates to Wy Store" finally works: the file used to download and then be dropped without a word at the last step.
 • When nothing can install over the app — an older catalogue version or a different signing key — the app offers to uninstall and install again instead of leaving a dead end.
 • A GitHub project page opens its whole release list, not only the latest one.
