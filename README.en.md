@@ -17,9 +17,9 @@
 
 </div>
 
-Wy Store is an Android client for the RuStore catalogue. It shows the same apps the rustore.ru site
-serves, but downloads and installs them itself through Android's own package installer, and needs
-neither an account nor the RuStore client. GitHub releases are the second source, which is how the
+Wy Store is an Android client for the RuStore catalogue. It shows the same apps the RuStore app
+store serves, but downloads and installs them itself through Android's own package installer, and
+needs neither an account nor the RuStore client. GitHub releases are the second source, which is how the
 list also covers what RuStore does not carry.
 
 The project has no backend, no accounts, no analytics and no ads. The app talks only to
@@ -28,8 +28,8 @@ The project has no backend, no accounts, no analytics and no ads. The app talks 
 The catalogue is aimed at users in Russia, so most of the content is in Russian; the interface
 itself ships in Russian and English.
 
-Wy Store is not affiliated with RuStore, not endorsed by it and does not act on its behalf: RuStore
-is a data source here. See [DISCLAIMER.md](DISCLAIMER.md).
+Wy Store is not affiliated with RuStore and does not act on its behalf: RuStore is a data source
+here. See [DISCLAIMER.md](DISCLAIMER.md).
 
 | Home | App page | Library |
 |---|---|---|
