@@ -213,7 +213,7 @@ fun WyStoreRoot(
             onInstallAsset = { githubInstallDialog = it },
             onOpenInstalled = viewModel::launchInstalledApp,
             onRetry = viewModel::retryGitHubApp,
-            onOpenAllReleases = { destination = WyStoreDestination.GitHub }
+            onOpenRelease = viewModel::openGitHubRelease
         )
     } else if (githubSelectedRelease != null) {
         GitHubReleaseDetailsScreen(

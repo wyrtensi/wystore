@@ -200,15 +200,19 @@ class StoreRepository(private val context: Context) {
             .filter { it.applicationInfo?.flags?.and(android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0 }
             .filterNot { it.packageName == context.packageName }
             .map { info ->
+                // Asked once and used twice: the coarse source and the installer's name are the
+                // same fact, and reading it twice per package doubled the work on a phone with
+                // three hundred of them.
+                val installer = installerOf(info.packageName)
                 InstalledApp(
                     packageName = info.packageName,
                     label = info.applicationInfo?.loadLabel(context.packageManager)?.toString().orEmpty(),
                     versionName = info.versionName.orEmpty(),
                     versionCode = info.versionCodeCompat(),
                     lastUpdateTime = info.lastUpdateTime,
-                    source = sourceFor(info.packageName),
+                    source = sourceFor(installer),
                     signingDigests = SigningVerifier.installedDigests(info),
-                    installerPackageName = installerOf(info.packageName)
+                    installerPackageName = installer
                 )
             }.sortedBy { it.label.lowercase() }.toList()
     }
@@ -265,9 +269,18 @@ class StoreRepository(private val context: Context) {
         return restoreBackup(backup, merge)
     }
 
-    private fun sourceFor(packageName: String): InstallSource =
-        if (installerOf(packageName) == "com.android.vending") InstallSource.GOOGLE_PLAY
-        else InstallSource.OTHER
+    /**
+     * The coarse source shown on a badge.
+     *
+     * [InstallSource.WY_STORE] existed and was never produced: everything the store had installed
+     * itself was labelled "other source", including on its own library rows. The installer of
+     * record is exactly the answer, and it is already being read.
+     */
+    private fun sourceFor(installerPackageName: String?): InstallSource = when (installerPackageName) {
+        "com.android.vending" -> InstallSource.GOOGLE_PLAY
+        context.packageName -> InstallSource.WY_STORE
+        else -> InstallSource.OTHER
+    }
 
     /** Android's installer of record: who is expected to update this app. */
     private fun installerOf(packageName: String): String? = if (Build.VERSION.SDK_INT >= 30) {

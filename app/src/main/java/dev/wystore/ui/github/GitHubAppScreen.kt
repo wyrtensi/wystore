@@ -67,6 +67,7 @@ import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.SectionHeader
 import dev.wystore.ui.components.shareLink
 import dev.wystore.ui.components.SourceDisclaimer
+import dev.wystore.ui.components.StateBadge
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.WyDivider
 import dev.wystore.ui.components.formatSize
@@ -109,10 +110,15 @@ fun GitHubAppScreen(
     onInstallAsset: (GitHubAsset) -> Unit = {},
     onOpenInstalled: (String) -> Unit = {},
     onRetry: () -> Unit = {},
-    onOpenAllReleases: () -> Unit = {}
+    /** Opens one release of this repository on its own page. */
+    onOpenRelease: (GitHubRelease) -> Unit = {}
 ) {
     val entry = state.entry
     var showAllAssets by rememberSaveable(entry?.slug) { mutableStateOf(false) }
+    // The button that said "All releases (10)" navigated to the GitHub tab - the list of
+    // repositories, not of releases - so the other nine were not reachable from here at all. They
+    // were already loaded; only somewhere to show them was missing.
+    var showAllReleases by rememberSaveable(entry?.slug) { mutableStateOf(false) }
     val deviceAbis = remember { android.os.Build.SUPPORTED_ABIS.toList() }
     val context = LocalContext.current
     Scaffold(
@@ -472,8 +478,48 @@ fun GitHubAppScreen(
 
             if (state.releases.size > 1) {
                 item {
-                    OutlinedButton(onClick = onOpenAllReleases, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.github_all_releases, state.releases.size))
+                    OutlinedButton(
+                        onClick = { showAllReleases = !showAllReleases },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            if (showAllReleases) stringResource(R.string.github_hide_releases)
+                            else stringResource(R.string.github_all_releases, state.releases.size)
+                        )
+                    }
+                }
+                if (showAllReleases) {
+                    items(state.releases, key = { it.id }) { release ->
+                        WyCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { onOpenRelease(release) }
+                        ) {
+                            Column(
+                                Modifier.padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        release.tagName,
+                                        modifier = Modifier.weight(1f),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (release.prerelease) {
+                                        StateBadge(text = stringResource(R.string.github_prerelease))
+                                    }
+                                }
+                                Text(
+                                    listOfNotNull(
+                                        release.publishedAt?.take(10),
+                                        stringResource(R.string.github_release_assets, release.assets.size)
+                                    ).joinToString(" · "),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                 }
             }

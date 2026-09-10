@@ -414,6 +414,9 @@
     <string name="github_no_apk">This release has no APK file</string>
     <string name="github_about_section">About the app</string>
     <string name="github_changelog_section">Release notes</string>
+    <string name="github_hide_releases">Hide the release list</string>
+    <string name="github_prerelease">Pre-release</string>
+    <string name="github_release_assets">%1$d files</string>
     <string name="github_all_releases">All releases (%1$d)</string>
     <string name="github_catalog_section">GitHub Releases</string>
     <string name="github_catalog_hint">Repositories from the built-in catalogue and the ones you added</string>

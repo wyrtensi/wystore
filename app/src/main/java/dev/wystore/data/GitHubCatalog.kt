@@ -86,7 +86,8 @@ object GitHubCatalog {
             summary = "Локальный обход блокировок по DPI без VPN-сервера и подписки: трафик идёт " +
                 "через прокси на самом телефоне.",
             categories = listOf("Обход блокировок", "Сеть"),
-            curated = true
+            curated = true,
+            packageName = "io.github.romanvht.byedpi"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("2dust", "v2rayNG"),
@@ -95,7 +96,8 @@ object GitHubCatalog {
             summary = "Клиент VLESS, VMess, Reality и XRay — формат конфигов, который выдают " +
                 "большинство прокси-сервисов.",
             categories = listOf("VPN", "Прокси"),
-            curated = true
+            curated = true,
+            packageName = "com.v2ray.ang"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("amnezia-vpn", "amneziawg-android"),
@@ -115,7 +117,8 @@ object GitHubCatalog {
             categories = listOf("VPN", "Прокси"),
             curated = true,
             // Releases also carry ~40 OpenWrt/Alpine .apk packages; only the Android build is ours.
-            assetNamePattern = "^SFA-"
+            assetNamePattern = "^SFA-",
+            packageName = "io.nekohasekai.sfa"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("signalapp", "Signal-Android"),
@@ -142,7 +145,8 @@ object GitHubCatalog {
             summary = "Устанавливает и обновляет приложения напрямую из релизов GitHub, GitLab и " +
                 "F-Droid.",
             categories = listOf("Магазины"),
-            curated = true
+            curated = true,
+            packageName = "dev.imranr.obtainium"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("localsend", "localsend"),
@@ -152,7 +156,8 @@ object GitHubCatalog {
                 "регистрации.",
             categories = listOf("Файлы"),
             curated = true,
-            assetNamePattern = "android"
+            assetNamePattern = "android",
+            packageName = "org.localsend.localsend_app"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("hiddify", "hiddify-app"),
@@ -162,7 +167,8 @@ object GitHubCatalog {
                 "в одном клиенте с простым интерфейсом.",
             categories = listOf("VPN", "Прокси"),
             curated = true,
-            assetNamePattern = "android"
+            assetNamePattern = "android",
+            packageName = "app.hiddify.com"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("MatsuriDayo", "NekoBoxForAndroid"),
@@ -197,7 +203,8 @@ object GitHubCatalog {
                 "блокировок.",
             categories = listOf("VPN"),
             curated = true,
-            assetNamePattern = "vanilla|direct"
+            assetNamePattern = "vanilla|direct",
+            packageName = "ch.protonvpn.android"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("simplex-chat", "simplex-chat"),
@@ -206,7 +213,8 @@ object GitHubCatalog {
             summary = "Мессенджер вообще без идентификаторов: ни номера телефона, ни аккаунта.",
             categories = listOf("Мессенджеры", "Приватность"),
             curated = true,
-            assetNamePattern = "^simplex"
+            assetNamePattern = "^simplex",
+            packageName = "chat.simplex.app"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("mollyim", "mollyim-android"),
@@ -239,7 +247,8 @@ object GitHubCatalog {
             publisher = "libre-tube",
             summary = "YouTube без рекламы и без аккаунта Google через инстансы Piped.",
             categories = listOf("Медиа"),
-            curated = true
+            curated = true,
+            packageName = "com.github.libretube"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("mostafaalagamy", "Metrolist"),
@@ -255,7 +264,8 @@ object GitHubCatalog {
             publisher = "deniscerri",
             summary = "Графическая оболочка yt-dlp: скачивание видео и аудио для офлайна.",
             categories = listOf("Медиа"),
-            curated = true
+            curated = true,
+            packageName = "com.deniscerri.ytdl"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("Droid-ify", "client"),
@@ -263,7 +273,8 @@ object GitHubCatalog {
             publisher = "Droid-ify",
             summary = "Быстрый клиент F-Droid — доступ ко всему каталогу свободных приложений.",
             categories = listOf("Магазины"),
-            curated = true
+            curated = true,
+            packageName = "com.looker.droidify"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("NeoApplications", "Neo-Store"),
@@ -271,7 +282,8 @@ object GitHubCatalog {
             publisher = "NeoApplications",
             summary = "Альтернативный клиент F-Droid с современным интерфейсом.",
             categories = listOf("Магазины"),
-            curated = true
+            curated = true,
+            packageName = "com.machiav3lli.fdroid"
         ),
         GitHubCatalogEntry(
             repository = GitHubRepository("Catfriend1", "syncthing-android"),
@@ -306,6 +318,7 @@ object GitHubCatalog {
             summary = "CapturePort — захват и передача экрана.",
             categories = listOf("Инструменты"),
             curated = true,
+            packageName = "dev.captureport.app",
             iconOverrideUrl = "https://raw.githubusercontent.com/wyrtensi/CapturePort/HEAD/" +
                 "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png"
         )

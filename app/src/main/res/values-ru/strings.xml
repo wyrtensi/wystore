@@ -414,6 +414,9 @@
     <string name="github_no_apk">В этом релизе нет APK-файла</string>
     <string name="github_about_section">Об приложении</string>
     <string name="github_changelog_section">Что нового</string>
+    <string name="github_hide_releases">Скрыть список релизов</string>
+    <string name="github_prerelease">Предрелиз</string>
+    <string name="github_release_assets">файлов: %1$d</string>
     <string name="github_all_releases">Все релизы (%1$d)</string>
     <string name="github_catalog_section">GitHub Releases</string>
     <string name="github_catalog_hint">Репозитории из встроенного каталога и добавленные тобой</string>
