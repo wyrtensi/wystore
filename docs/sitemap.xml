@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://wystore.ru/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://wystore.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wystore.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wystore.ru/"/>
+  </url>
+  <url>
+    <loc>https://wystore.ru/en/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://wystore.ru/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://wystore.ru/en/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://wystore.ru/"/>
+  </url>
+</urlset>

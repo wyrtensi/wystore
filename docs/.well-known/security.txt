@@ -1,0 +1,6 @@
+Contact: https://github.com/wyrtensi/wystore/security/advisories/new
+Contact: https://t.me/+_YytpJdDHgQ4OTYy
+Expires: 2027-09-10T00:00:00.000Z
+Preferred-Languages: ru, en
+Canonical: https://wystore.ru/.well-known/security.txt
+Policy: https://github.com/wyrtensi/wystore/blob/main/SECURITY.md
