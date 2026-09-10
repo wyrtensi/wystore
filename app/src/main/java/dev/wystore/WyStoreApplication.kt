@@ -20,6 +20,7 @@ import dev.wystore.data.GoogleAdoptionPolicy
 import dev.wystore.settings.SettingsRepository
 import dev.wystore.settings.toStoreSettings
 import dev.wystore.updates.ManualInstallScheduler
+import dev.wystore.updates.QueueCoordinator
 import dev.wystore.updates.PendingReinstallStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,6 +62,15 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
             // A handover the user walked away from must not install something days later.
             if (!GoogleAdoptionPolicy.isPendingFresh(pending.startedAt, System.currentTimeMillis())) {
                 return@launch
+            }
+            // A handover started from a stopped queue row goes back through that row: it already
+            // holds the source, and for a GitHub release that is a repository, a release id and an
+            // asset pattern - none of which a package name can stand in for.
+            val queueId = pending.queueId
+            if (queueId != null) {
+                runCatching {
+                    QueueCoordinator(this@WyStoreApplication).retry(queueId)
+                }.onSuccess { return@launch }
             }
             ManualInstallScheduler.enqueue(
                 context = this@WyStoreApplication,

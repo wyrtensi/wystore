@@ -78,6 +78,8 @@ fun UpdatesScreen(
     onQueueSkip: (String) -> Unit = {},
     onQueueDownload: (String) -> Unit = {},
     onQueueDiscard: (String) -> Unit = {},
+    /** Asks to remove the installed copy so this row can be installed in its place. */
+    onQueueReplace: (InstallQueueItem) -> Unit = {},
     onStartQueue: () -> Unit = {}
 ) {
     val installedByPackage = remember(installed) { installed.associateBy { it.packageName } }
@@ -167,7 +169,8 @@ fun UpdatesScreen(
                         onCancel = { onQueueCancel(item.id) },
                         onSkip = { onQueueSkip(item.id) },
                         onDownload = { onQueueDownload(item.id) },
-                        onDiscard = { onQueueDiscard(item.id) }
+                        onDiscard = { onQueueDiscard(item.id) },
+                        onReplace = { onQueueReplace(item) }
                     )
                 }
             }
@@ -370,10 +373,15 @@ fun QueueItemCard(
     onCancel: () -> Unit,
     onSkip: () -> Unit,
     onDownload: () -> Unit = {},
-    onDiscard: () -> Unit = {}
+    onDiscard: () -> Unit = {},
+    onReplace: () -> Unit = {}
 ) {
     val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED
     val failed = item.status == InstallQueueStatus.FAILED
+    // The row said "uninstall it and install it again" and offered Retry, which does the same
+    // thing again and fails the same way. A signature that does not match is the one failure a
+    // retry can never get past, and the only way through it is the removal - so it is a button.
+    val needsReplace = failed && item.errorCode == dev.wystore.updates.model.QueueErrorCode.SIGNATURE
     WyCard(
         modifier = Modifier.fillMaxWidth(),
         containerColor = if (failed) {
@@ -442,6 +450,11 @@ fun QueueItemCard(
                 horizontalArrangement = Arrangement.End
             ) {
                 when {
+                    needsReplace -> {
+                        TextButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+                        Spacer(Modifier.width(4.dp))
+                        Button(onClick = onReplace) { Text(stringResource(R.string.queue_replace)) }
+                    }
                     stopped -> Button(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
                     // An item merely waiting in line can be started on its own, rather than only
                     // by starting the whole queue.

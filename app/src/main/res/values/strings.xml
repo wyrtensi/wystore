@@ -345,6 +345,7 @@
     <string name="updates_title">Updates</string>
     <string name="updates_intro">The background service checks for and downloads verified updates. Without root, installing requires the Android system confirmation.</string>
     <string name="updates_queue_title">Queue (%1$d)</string>
+    <string name="queue_replace">Uninstall and install</string>
     <string name="queue_discard">Remove from queue</string>
     <string name="updates_queue_start">Start</string>
     <string name="updates_check_now">Check</string>

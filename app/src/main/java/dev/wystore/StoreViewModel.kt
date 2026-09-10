@@ -1407,6 +1407,22 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
+    /**
+     * Records a handover that starts from a stopped queue row, so the same source is used again
+     * once the app has been removed. The caller opens Android's uninstall dialog.
+     */
+    fun confirmReplaceFromQueue(item: InstallQueueItem) {
+        PendingReinstallStore(getApplication()).save(
+            PendingReinstall(
+                removedPackageName = item.packageName,
+                installPackageName = item.packageName,
+                label = item.label.ifBlank { item.packageName },
+                startedAt = System.currentTimeMillis(),
+                queueId = item.id
+            )
+        )
+    }
+
     fun updateManaged(app: ManagedApp) {
         repository.saveManaged(app)
         refreshLibrary()

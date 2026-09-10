@@ -97,6 +97,8 @@ fun WyStoreRoot(
     // What is on the phone and what the catalogue offers in its place, for a handover that cannot
     // happen as an install and has to go through a removal.
     var replaceDialog by remember { mutableStateOf<Pair<InstalledApp, StoreApp>?>(null) }
+    // The same offer made from a stopped queue row, where the signature is what stands in the way.
+    var queueReplaceDialog by remember { mutableStateOf<dev.wystore.InstallQueueItem?>(null) }
     var githubInstallDialog by remember { mutableStateOf<GitHubAsset?>(null) }
     val snackbars = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -387,6 +389,7 @@ fun WyStoreRoot(
                         onQueueSkip = viewModel::queueSkip,
                         onQueueDownload = viewModel::queueDownload,
                         onQueueDiscard = viewModel::queueDiscard,
+                        onQueueReplace = { queueReplaceDialog = it },
                         onStartQueue = viewModel::startQueue
                     )
                     WyStoreDestination.Categories -> dev.wystore.ui.home.AllCategoriesScreen(
@@ -525,6 +528,34 @@ fun WyStoreRoot(
             },
             dismissButton = {
                 TextButton(onClick = { replaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
+            }
+        )
+    }
+
+    queueReplaceDialog?.let { item ->
+        val installedVersion = state.installed.firstOrNull { it.packageName == item.packageName }?.versionName
+        AlertDialog(
+            onDismissRequest = { queueReplaceDialog = null },
+            title = { Text(stringResource(R.string.dialog_replace_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.dialog_replace_text,
+                        item.label.ifBlank { item.packageName },
+                        item.versionName.ifBlank { stringResource(R.string.common_no_data) },
+                        installedVersion ?: stringResource(R.string.common_no_data)
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.confirmReplaceFromQueue(item)
+                    queueReplaceDialog = null
+                    launchUninstall(context, item.packageName)
+                }) { Text(stringResource(R.string.dialog_replace_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { queueReplaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }

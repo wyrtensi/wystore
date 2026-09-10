@@ -8,7 +8,15 @@ data class PendingReinstall(
     val removedPackageName: String,
     val installPackageName: String,
     val label: String,
-    val startedAt: Long
+    val startedAt: Long,
+    /**
+     * A queue row to put back through its own source instead of enqueuing a fresh RuStore install.
+     *
+     * A handover started from a stopped row already knows where the file comes from - a GitHub
+     * release, an asset pattern, a release id - and none of that survives being re-enqueued as a
+     * package name.
+     */
+    val queueId: String? = null
 )
 
 /**
@@ -35,6 +43,7 @@ class PendingReinstallStore(context: Context) {
             putString(KEY_INSTALL, pending.installPackageName)
             putString(KEY_LABEL, pending.label)
             putLong(KEY_STARTED_AT, pending.startedAt)
+            putString(KEY_QUEUE_ID, pending.queueId)
         }
     }
 
@@ -45,7 +54,8 @@ class PendingReinstallStore(context: Context) {
             removedPackageName = removed,
             installPackageName = install,
             label = preferences.getString(KEY_LABEL, null).orEmpty().ifBlank { install },
-            startedAt = preferences.getLong(KEY_STARTED_AT, 0L)
+            startedAt = preferences.getLong(KEY_STARTED_AT, 0L),
+            queueId = preferences.getString(KEY_QUEUE_ID, null)
         )
     }
 
@@ -58,5 +68,6 @@ class PendingReinstallStore(context: Context) {
         const val KEY_INSTALL = "install_package"
         const val KEY_LABEL = "label"
         const val KEY_STARTED_AT = "started_at"
+        const val KEY_QUEUE_ID = "queue_id"
     }
 }
