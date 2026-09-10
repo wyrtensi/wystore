@@ -32,8 +32,9 @@ class GitHubInstallStatePolicyTest {
 
     @Test
     fun anOlderReleaseIsNotAnUpdate() {
-        // Browsing an older release of an app that is already ahead of it.
-        assertEquals(GitHubInstallState.Current, state("2.0.0", "v1.9.9"))
+        // Browsing an older release of an app that is already ahead of it. Not "current" either:
+        // nothing here can install over what is on the phone.
+        assertEquals(GitHubInstallState.InstalledNewer, state("2.0.0", "v1.9.9"))
     }
 
     @Test

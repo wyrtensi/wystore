@@ -37,6 +37,7 @@ import dev.wystore.data.GitHubAsset
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.wystore.data.StoreApp
 import dev.wystore.data.StoreCategory
 import androidx.compose.ui.platform.LocalContext
 import dev.wystore.ui.catalog.CategoryScreen
@@ -93,6 +94,9 @@ fun WyStoreRoot(
     var installDialog by remember { mutableStateOf(false) }
     var adoptDialog by remember { mutableStateOf<InstalledApp?>(null) }
     var forceDialog by remember { mutableStateOf<ManagedApp?>(null) }
+    // What is on the phone and what the catalogue offers in its place, for a handover that cannot
+    // happen as an install and has to go through a removal.
+    var replaceDialog by remember { mutableStateOf<Pair<InstalledApp, StoreApp>?>(null) }
     var githubInstallDialog by remember { mutableStateOf<GitHubAsset?>(null) }
     val snackbars = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -240,7 +244,8 @@ fun WyStoreRoot(
             onInstall = {
                 if (selectedInstalled != null && selectedManaged == null) installDialog = true
                 else viewModel.installSelected()
-            }
+            },
+            onReplace = { selectedInstalled?.let { replaceDialog = it to selected } }
         )
     } else {
         Scaffold(
@@ -492,6 +497,35 @@ fun WyStoreRoot(
                 launchUninstall(context, prompt.app.packageName)
             },
             onDismiss = viewModel::dismissGoogleAdoption
+        )
+    }
+
+    replaceDialog?.let { (installedApp, catalogApp) ->
+        AlertDialog(
+            onDismissRequest = { replaceDialog = null },
+            title = { Text(stringResource(R.string.dialog_replace_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.dialog_replace_text,
+                        installedApp.label,
+                        catalogApp.versionName,
+                        installedApp.versionName
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    // Recorded first: the uninstall dialog takes the screen and may outlive this
+                    // process, and the install has to survive that trip.
+                    viewModel.confirmReplaceInstall(installedApp.packageName, catalogApp.name)
+                    replaceDialog = null
+                    launchUninstall(context, installedApp.packageName)
+                }) { Text(stringResource(R.string.dialog_replace_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { replaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
+            }
         )
     }
 

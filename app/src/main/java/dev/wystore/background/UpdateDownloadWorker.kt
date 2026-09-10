@@ -26,6 +26,7 @@ import dev.wystore.updates.InstallMode
 import dev.wystore.updates.InstallModePolicy
 import dev.wystore.updates.AutoInstallStore
 import dev.wystore.updates.BackgroundInstaller
+import dev.wystore.data.EventLog
 import dev.wystore.updates.QueueOrigin
 import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.model.QueueAction
@@ -239,12 +240,29 @@ class UpdateDownloadWorker(
                     // what makes Wy Store the installer of record.
                     allowReinstall = QueueOrigin.isUserRequested(entity.priority)
                 )
-                // Not newer than what is installed means there was nothing to fetch, which is
-                // neither a failure nor an install. Reported as a failure it left a red row about
-                // an app that is perfectly up to date - and the file it had just downloaded for
-                // nothing sitting on disk behind it.
+                // Not newer than what is installed means there was nothing to fetch. For a check
+                // nobody asked for that is neither a failure nor an install: reported as a failure
+                // it left a red row about an app that is perfectly up to date. But the same silence
+                // swallowed downloads people started by hand - "hand updates to Wy Store" on an app
+                // the catalogue is behind fetched the whole APK, dropped it, said nothing, and
+                // offered the button again. Written down either way, so the diagnostics report has
+                // it the first time rather than the third.
                 if (verification.error == VerificationError.DOWNGRADE) {
+                    runCatching {
+                        EventLog(context).record(
+                            packageName = entity.packageName,
+                            code = VerificationError.DOWNGRADE.name,
+                            detail = "source ${verification.identity.versionCode} < installed ${installed?.versionCode}"
+                        )
+                    }
                     tempDir.deleteRecursively()
+                    if (QueueOrigin.isUserRequested(entity.priority)) {
+                        throw dev.wystore.data.TransferFailure(
+                            retryable = false,
+                            code = dev.wystore.updates.model.QueueErrorCode.DOWNGRADE,
+                            detail = VerificationError.DOWNGRADE.name
+                        )
+                    }
                     queueRepository.discard(queueId)
                     return@withContext
                 }

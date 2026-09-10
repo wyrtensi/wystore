@@ -38,6 +38,14 @@ enum class QueueErrorCode {
     TIMEOUT,
 
     /**
+     * The source carries an older build than the one on the phone, so nothing can be installed.
+     * A check finding this discards its download in silence, because an app that is ahead of the
+     * catalogue is not a problem; a download somebody asked for by hand ends up here instead of
+     * vanishing without a word.
+     */
+    DOWNGRADE,
+
+    /**
      * The app failed, not the network or the source. Reporting these as NETWORK sent users chasing
      * their connection over a bug: an illegal queue transition was shown as "network error".
      */

@@ -72,6 +72,9 @@ import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.UninstallIconButton
 import dev.wystore.data.SignatureCompatibility
 import dev.wystore.data.SignatureCompatibilityPolicy
+import dev.wystore.data.TakeoverObstacle
+import dev.wystore.data.TakeoverPath
+import dev.wystore.data.TakeoverPolicy
 import dev.wystore.ui.components.installerLabel
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.DetailFacts
@@ -101,7 +104,9 @@ fun AppDetailsScreen(
     onBack: () -> Unit,
     onLaunch: (String) -> Unit,
     onInstallPending: (String) -> Unit,
-    onInstall: () -> Unit
+    onInstall: () -> Unit,
+    /** Asks to remove the installed copy and install this one, when nothing can install in place. */
+    onReplace: () -> Unit
 ) {
     var screenshotPreview by remember { mutableStateOf<String?>(null) }
     var shownReviews by remember(app.packageName) { mutableIntStateOf(REVIEW_PAGE) }
@@ -260,7 +265,17 @@ fun AppDetailsScreen(
                         if (pendingUpdate != null) {
                             add(stringResource(R.string.details_pending_downloaded, pendingUpdate.versionName))
                         } else if (installed != null && !canUpdate) {
-                            add(stringResource(R.string.details_already_latest))
+                            // "You already have the latest" is true only when the card is not
+                            // behind the phone. On an app the catalogue has not caught up with it
+                            // read as reassurance while the take-over button below it was quietly
+                            // impossible.
+                            add(
+                                if (app.versionCode < installed.versionCode) {
+                                    stringResource(R.string.details_catalog_older, app.versionName)
+                                } else {
+                                    stringResource(R.string.details_already_latest)
+                                }
+                            )
                         }
                         if (deviceTooOld && requiredSdk != null) {
                             add(
@@ -300,39 +315,80 @@ fun AppDetailsScreen(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                // What the store signs with against what the phone installed
-                                // under. A different key is not a smaller version of the same
-                                // problem - no update can install over it at all - so it is said
-                                // here rather than discovered as a red row after the download.
-                                val compatibility = SignatureCompatibilityPolicy.evaluate(
-                                    installed.signingDigests,
-                                    app.signatureHint
+                                // Whether the handover can be an install at all, and if not, why.
+                                // The page used to ask only about the certificate and offer the
+                                // button to everyone else - including apps whose catalogue copy is
+                                // older than the phone's, where the install is a downgrade Android
+                                // refuses. That button downloaded the whole APK and did nothing.
+                                val takeover = TakeoverPolicy.decide(
+                                    installedVersionCode = installed.versionCode,
+                                    installedDigests = installed.signingDigests,
+                                    ownedByStore = owner == context.packageName,
+                                    catalogVersionCode = app.versionCode,
+                                    catalogSignatureHint = app.signatureHint
                                 )
-                                if (compatibility == SignatureCompatibility.MISMATCH) {
-                                    Text(
-                                        stringResource(R.string.details_signature_incompatible),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.error
-                                    )
-                                } else if (owner != context.packageName) {
-                                    Text(
-                                        stringResource(R.string.details_take_over_hint),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    // Said before it happens: an app Wy Store did not install
-                                    // stops on Android's dialog once, and people read that dialog
-                                    // as something having gone wrong rather than as the handover.
-                                    Text(
-                                        stringResource(R.string.details_first_update_manual),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    TextButton(
-                                        onClick = runInstall,
-                                        enabled = !busy,
-                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                                    ) { Text(stringResource(R.string.details_take_over)) }
+                                when (takeover.path) {
+                                    // Nothing to hand over - but an app Wy Store already owns can
+                                    // still be signed with a key the catalogue does not carry, and
+                                    // then no update from here will ever install. The warning
+                                    // predates the handover button and does not belong to it.
+                                    TakeoverPath.NONE -> {
+                                        val compatibility = SignatureCompatibilityPolicy.evaluate(
+                                            installed.signingDigests,
+                                            app.signatureHint
+                                        )
+                                        if (compatibility == SignatureCompatibility.MISMATCH) {
+                                            Text(
+                                                stringResource(R.string.details_signature_incompatible),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    }
+                                    TakeoverPath.IN_PLACE -> {
+                                        Text(
+                                            stringResource(R.string.details_take_over_hint),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        // Said before it happens: an app Wy Store did not install
+                                        // stops on Android's dialog once, and people read that
+                                        // dialog as something having gone wrong rather than as the
+                                        // handover.
+                                        Text(
+                                            stringResource(R.string.details_first_update_manual),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        TextButton(
+                                            onClick = runInstall,
+                                            enabled = !busy,
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                        ) { Text(stringResource(R.string.details_take_over)) }
+                                    }
+                                    TakeoverPath.REPLACE -> {
+                                        Text(
+                                            stringResource(
+                                                if (takeover.obstacle == TakeoverObstacle.SIGNATURE) {
+                                                    R.string.details_signature_incompatible
+                                                } else {
+                                                    R.string.details_catalog_older_blocks
+                                                }
+                                            ),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                        // The same offer the library makes for a Google-installed
+                                        // app, made wherever the install cannot happen in place.
+                                        TextButton(
+                                            onClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                                onReplace()
+                                            },
+                                            enabled = !busy,
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                        ) { Text(stringResource(R.string.details_replace)) }
+                                    }
                                 }
                             }
                         }

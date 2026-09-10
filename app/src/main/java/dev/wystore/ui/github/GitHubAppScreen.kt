@@ -307,6 +307,21 @@ fun GitHubAppScreen(
                                 installedApp?.let { UninstallIconButton(it.packageName) }
                             }
 
+                            // Nothing to offer: an install over an app that is ahead of this
+                            // release is a downgrade, and Android refuses those. The page used to
+                            // put "hand updates to Wy Store" here, which downloaded the asset in
+                            // full and then dropped it without saying anything.
+                            GitHubInstallState.InstalledNewer -> Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                FilledTonalButton(
+                                    onClick = { installedApp?.let { onOpenInstalled(it.packageName) } },
+                                    modifier = Modifier.weight(1f)
+                                ) { Text(stringResource(R.string.common_open)) }
+                                installedApp?.let { UninstallIconButton(it.packageName) }
+                            }
+
                             GitHubInstallState.Current,
                             GitHubInstallState.Unknown -> Row(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -332,7 +347,16 @@ fun GitHubAppScreen(
                                 installedApp?.let { UninstallIconButton(it.packageName) }
                             }
                         }
-                        if (installedApp != null && !ownedByUs) {
+                        if (installState == GitHubInstallState.InstalledNewer) {
+                            Text(
+                                stringResource(
+                                    R.string.github_installed_newer,
+                                    installedApp?.versionName.orEmpty()
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        } else if (installedApp != null && !ownedByUs) {
                             Text(
                                 stringResource(R.string.details_take_over_hint),
                                 style = MaterialTheme.typography.labelSmall,

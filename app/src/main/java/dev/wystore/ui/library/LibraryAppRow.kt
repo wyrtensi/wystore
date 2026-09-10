@@ -37,6 +37,7 @@ import dev.wystore.data.PendingUpdate
 import dev.wystore.ui.components.StateBadge
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.WyDivider
+import dev.wystore.ui.components.installerLabel
 import dev.wystore.ui.components.managedSourceLabel
 import dev.wystore.ui.components.sourceBadgeLabel
 import dev.wystore.ui.components.shortVersionName
@@ -144,6 +145,21 @@ fun LibraryAppRow(
             )
             Text(
                 stringResource(R.string.library_updated_at, formatLastUpdated(app.lastUpdateTime)),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            // The badge above says where the updates are looked for, and once an app is adopted
+            // that is all it says - a row for a Google-installed app read "RuStore" and then
+            // offered a switch that exists only for Google-installed apps. Who Android actually
+            // holds responsible is a different fact, and it is the one that decides whether an
+            // update can arrive without a dialog.
+            Text(
+                stringResource(
+                    R.string.details_owner,
+                    installerLabel(app.installerPackageName)
+                ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,

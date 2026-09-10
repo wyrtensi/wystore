@@ -116,9 +116,12 @@
     <string name="dialog_adopt_title">Принять под управление Wy Store</string>
     <string name="dialog_adopt_text">Wy Store будет искать проверенные обновления для %1$s и обновлять его.</string>
     <string name="dialog_adopt_confirm">Принять</string>
-    <string name="dialog_force_title">Форсировать обновления Google Play</string>
-    <string name="dialog_force_text">%1$s установлено через Google Play. Если включить форсирование, фоновая задача будет обновлять его через Wy Store при совпадении цифровой подписи разработчика.</string>
-    <string name="dialog_force_confirm">Форсировать</string>
+    <string name="dialog_replace_title">Переустановить приложение</string>
+    <string name="dialog_replace_text">%1$s будет удалено и установлено заново из каталога: версия %2$s вместо %3$s. Данные приложения при этом, как правило, теряются — войти в аккаунт, скорее всего, придётся заново. Оба шага Android попросит подтвердить.</string>
+    <string name="dialog_replace_confirm">Удалить и установить</string>
+    <string name="dialog_force_title">Обновлять вместо Google Play</string>
+    <string name="dialog_force_text">%1$s установлено через Google Play, и такие приложения Wy Store оставляет ему. Если включить, фоновые проверки будут обновлять его через Wy Store при совпадении цифровой подписи разработчика.</string>
+    <string name="dialog_force_confirm">Включить</string>
     <string name="dialog_uninstall_confirm">Удалить</string>
     <string name="dialog_github_install_title">Установка APK из GitHub</string>
     <string name="dialog_github_install_text">Вы собираетесь установить %1$s напрямую из релиза GitHub. Убедитесь, что доверяете репозиторию.</string>
@@ -207,7 +210,7 @@
     <string name="library_search_clear">Очистить поиск</string>
     <string name="library_expand_all">Раскрыть все</string>
     <string name="library_collapse_all">Скрыть все</string>
-    <string name="library_intro">Сначала показаны приложения, которые Wy Store уже установил или обновлял. Google Play-приложения исключены, пока не включишь форсирование.</string>
+    <string name="library_intro">Сначала показаны приложения, которые Wy Store уже установил или обновлял. Google Play-приложения исключены, пока это не включено для конкретного приложения.</string>
     <string name="library_search_label">Поиск среди установленных</string>
     <string name="library_search_placeholder">Название или package name</string>
     <string name="library_sort_title">Сортировка</string>
@@ -221,7 +224,7 @@
     <string name="library_update_available">Найдено обновление — ещё не скачано</string>
     <string name="library_update_available_version">Найдено обновление: %1$s — ещё не скачано</string>
     <string name="library_auto_update">Автообновление</string>
-    <string name="library_force_wystore">Форсировать Wy Store</string>
+    <string name="library_force_wystore">Обновлять вместо Google Play</string>
     <string name="library_remove">Убрать</string>
     <string name="library_check_progress">Проверено %1$d из %2$d · найдено обновлений: %3$d</string>
 
@@ -430,6 +433,7 @@
     <string name="queue_error_install_failed">Android не смог установить приложение</string>
     <string name="queue_error_artifact_missing">Скачанный файл больше недоступен</string>
     <string name="queue_error_timeout">Истекло время ожидания</string>
+    <string name="queue_error_downgrade">В источнике версия старше установленной</string>
     <string name="queue_error_internal">Сбой самого Wy Store, а не сети</string>
     <string name="settings_queue_mode">Очередь обновлений</string>
     <string name="settings_queue_mode_smart">Умные подсказки</string>
@@ -629,6 +633,9 @@
     <string name="details_owner">Обновления контролирует: %1$s</string>
     <string name="details_owner_none">никто — установлено вручную</string>
     <string name="details_take_over">Передать обновления Wy Store</string>
+    <string name="details_catalog_older">В каталоге версия %1$s — старше установленной.</string>
+    <string name="details_catalog_older_blocks">Обновление отсюда не встанет поверх установленного: Android не ставит версию ниже той, что на телефоне. Передать обновления можно только с удалением и установкой заново — данные при этом, как правило, не сохраняются.</string>
+    <string name="details_replace">Удалить и переустановить через Wy Store</string>
     <string name="details_signature_incompatible">Обновление отсюда не встанет поверх установленного: приложение подписано другим ключом. Его придётся удалить и установить заново — данные при этом, как правило, не сохраняются.</string>
     <string name="details_first_update_manual">Первое обновление через Wy Store придётся подтвердить вручную. После него контроль перейдёт к Wy Store, и дальше он сможет обновлять приложение сам.</string>
     <string name="details_take_over_hint">Android разрешает тихо обновлять только тому, кто приложение установил. Переустановка через Wy Store делает контролирующим его.</string>
@@ -636,6 +643,7 @@
     <string name="details_share">Поделиться</string>
     <string name="details_share_subject">%1$s в RuStore</string>
     <string name="details_share_chooser">Поделиться ссылкой на приложение</string>
+    <string name="github_installed_newer">Установлена версия %1$s — новее этого релиза. Android не ставит версию ниже той, что на телефоне, поэтому поверх неё отсюда ничего не встанет.</string>
     <string name="github_share_subject">%1$s на GitHub</string>
     <string name="check_finished_with_problems">Проверка завершена, часть приложений опросить не удалось</string>
     <string name="queue_download_now">Скачать сейчас</string>

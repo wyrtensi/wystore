@@ -10,8 +10,16 @@ enum class GitHubInstallState {
     /** The release is genuinely newer than what is installed. */
     UpdateAvailable,
 
-    /** What is installed is this release, or newer. */
+    /** What is installed is exactly this release. */
     Current,
+
+    /**
+     * The phone is ahead of the release on screen - an older one picked from the list, or a
+     * project whose GitHub builds trail what is installed. Nothing can be installed over it:
+     * Android refuses a downgrade, and the store used to download the whole asset before finding
+     * that out and dropping it without a word.
+     */
+    InstalledNewer,
 
     /** Installed, but the two version strings cannot be compared. */
     Unknown
@@ -35,10 +43,11 @@ object GitHubInstallStatePolicy {
         val installed = SelfUpdateVersion.parse(installedVersionName)
             ?: return GitHubInstallState.Unknown
         val release = SelfUpdateVersion.parse(releaseTag) ?: return GitHubInstallState.Unknown
-        return if (SelfUpdateVersion.compare(release, installed) > 0) {
-            GitHubInstallState.UpdateAvailable
-        } else {
-            GitHubInstallState.Current
+        val comparison = SelfUpdateVersion.compare(release, installed)
+        return when {
+            comparison > 0 -> GitHubInstallState.UpdateAvailable
+            comparison < 0 -> GitHubInstallState.InstalledNewer
+            else -> GitHubInstallState.Current
         }
     }
 }

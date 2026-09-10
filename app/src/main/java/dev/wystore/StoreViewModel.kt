@@ -1387,6 +1387,26 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         _state.update { it.copy(googleAdoption = null) }
     }
 
+    /**
+     * Records a handover that has to go through a removal: the app on screen is uninstalled and
+     * the catalogue's copy of the same package takes its place.
+     *
+     * The same store the Google handover writes to, for the same reason - the caller then opens
+     * Android's uninstall dialog, and the intent to install has to outlive the trip through it.
+     * The caller opens that dialog; this only writes the note, so a cancelled removal installs
+     * nothing.
+     */
+    fun confirmReplaceInstall(packageName: String, label: String) {
+        PendingReinstallStore(getApplication()).save(
+            PendingReinstall(
+                removedPackageName = packageName,
+                installPackageName = packageName,
+                label = label,
+                startedAt = System.currentTimeMillis()
+            )
+        )
+    }
+
     fun updateManaged(app: ManagedApp) {
         repository.saveManaged(app)
         refreshLibrary()
