@@ -42,9 +42,7 @@ import dev.wystore.selfupdate.SelfUpdateStatus
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.Icon
-import dev.wystore.RuStoreCompatibilityTask
 import dev.wystore.data.PendingUpdate
-import dev.wystore.data.RuStoreCompatibility
 import dev.wystore.data.StoreSettings
 import dev.wystore.updates.model.QueueMode
 import dev.wystore.ui.components.LocalBottomBarInset
@@ -70,15 +68,11 @@ private enum class SettingsSubScreen {
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     settings: StoreSettings,
-    ruStoreCompatibility: RuStoreCompatibility,
-    ruStoreCompatibilityTask: RuStoreCompatibilityTask?,
     rootAvailable: Boolean?,
     managedCount: Int,
     githubCount: Int,
     onSave: (StoreSettings) -> Unit,
     onCheckRoot: () -> Unit,
-    onCheckRuStore: () -> Unit,
-    onSetRuStoreVersionCode: (Long) -> Unit,
     onExportUri: (android.net.Uri) -> Unit,
     onImportUri: (android.net.Uri, Boolean) -> Unit,
     onExportJson: () -> String,
@@ -95,8 +89,6 @@ fun SettingsScreen(
     var subScreen by remember { mutableStateOf<SettingsSubScreen?>(null) }
     var editedSettings by remember(settings) { mutableStateOf(settings) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
-    var showManualRuStoreDialog by remember { mutableStateOf(false) }
-    var manualRuStoreInput by remember(ruStoreCompatibility.apiVersionCode) { mutableStateOf(ruStoreCompatibility.apiVersionCode.toString()) }
     val haptic = LocalHapticFeedback.current
 
     when (subScreen) {
@@ -144,15 +136,11 @@ fun SettingsScreen(
         SettingsSubScreen.SOURCES -> {
             SourceSettingsScreen(
                 settings = editedSettings,
-                ruStoreCompatibility = ruStoreCompatibility,
-                ruStoreCompatibilityTask = ruStoreCompatibilityTask,
                 githubRepositoriesCount = githubCount,
                 onUpdateSettings = {
                     editedSettings = it
                     onSave(it)
                 },
-                onCheckRuStore = onCheckRuStore,
-                onManualRuStoreCode = { showManualRuStoreDialog = true },
                 onBack = { subScreen = null }
             )
             return
@@ -232,7 +220,7 @@ fun SettingsScreen(
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_sources_title),
-                        subtitle = stringResource(R.string.settings_hub_sources_subtitle, ruStoreCompatibility.apiVersionCode),
+                        subtitle = stringResource(R.string.settings_hub_sources_subtitle),
                         onClick = { subScreen = SettingsSubScreen.SOURCES }
                     )
                     // The GitHub Releases screen had no reachable entry point anywhere in the app.
@@ -525,27 +513,6 @@ fun SettingsScreen(
         )
     }
 
-    if (showManualRuStoreDialog) {
-        AlertDialog(
-            onDismissRequest = { showManualRuStoreDialog = false },
-            title = { Text(stringResource(R.string.settings_rustore_code_title)) },
-            text = {
-                OutlinedTextField(
-                    value = manualRuStoreInput,
-                    onValueChange = { manualRuStoreInput = it.filter(Char::isDigit) },
-                    label = { Text(stringResource(R.string.settings_rustore_code_label)) },
-                    singleLine = true
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    manualRuStoreInput.toLongOrNull()?.let(onSetRuStoreVersionCode)
-                    showManualRuStoreDialog = false
-                }) { Text(stringResource(R.string.common_apply)) }
-            },
-            dismissButton = { TextButton(onClick = { showManualRuStoreDialog = false }) { Text(stringResource(R.string.common_cancel)) } }
-        )
-    }
 }
 
 /** One destination inside the settings menu card. */

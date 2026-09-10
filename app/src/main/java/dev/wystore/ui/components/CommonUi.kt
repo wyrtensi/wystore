@@ -221,20 +221,6 @@ fun CompactSettingSwitch(label: String, checked: Boolean, enabled: Boolean = tru
 }
 
 @Composable
-fun ruStoreTaskLabel(status: String): String = stringResource(
-    when (status) {
-        "QUEUED" -> R.string.rustore_task_queued
-        "PREPARING" -> R.string.rustore_task_preparing
-        "DOWNLOADING" -> R.string.rustore_task_downloading
-        "VERIFYING" -> R.string.rustore_task_verifying
-        "PROBING" -> R.string.rustore_task_probing
-        "COMPLETE" -> R.string.rustore_task_complete
-        "FAILED" -> R.string.rustore_task_failed
-        else -> R.string.rustore_task_verifying
-    }
-)
-
-@Composable
 fun Loading(operation: String? = null) {
     Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         WySpinner(size = 40.dp, strokeWidth = 4.dp)

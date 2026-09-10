@@ -74,13 +74,6 @@
     <string name="details_rating">Рейтинг: %1$s (%2$d)</string>
     <string name="details_downloads">Скачивания: %1$s</string>
 
-    <string name="rustore_task_queued">Проверка APK RuStore в очереди</string>
-    <string name="rustore_task_preparing">Готовим проверку APK RuStore</string>
-    <string name="rustore_task_downloading">Скачиваем APK RuStore</string>
-    <string name="rustore_task_verifying">Проверяем APK RuStore</string>
-    <string name="rustore_task_probing">Проверяем API-код RuStore</string>
-    <string name="rustore_task_complete">Проверка APK RuStore завершена</string>
-    <string name="rustore_task_failed">Проверка APK RuStore не удалась</string>
 
     <string name="queue_status_preparing">Подготавливаем</string>
     <string name="queue_status_queued">В очереди</string>
@@ -252,7 +245,7 @@
     <string name="settings_hub_notifications_title">Уведомления</string>
     <string name="settings_hub_notifications_subtitle">Готовые обновления, ошибки, каналы</string>
     <string name="settings_hub_sources_title">Источники приложений</string>
-    <string name="settings_hub_sources_subtitle">RuStore (%1$d), GitHub Releases</string>
+    <string name="settings_hub_sources_subtitle">RuStore и GitHub Releases</string>
     <string name="settings_hub_github_subtitle_count">Репозиториев: %1$d</string>
     <string name="settings_hub_github_subtitle_empty">Добавь репозиторий для установки APK</string>
 
@@ -273,8 +266,6 @@
     <string name="settings_privacy_text">Wy Store не использует аккаунты, аналитику, рекламу, push-сервисы или собственный сервер. Запросы каталога и APK идут непосредственно к RuStore. Фоновая проверка работает без root; тихая root-установка выключена по умолчанию.</string>
     <string name="common_got_it">Понятно</string>
 
-    <string name="settings_rustore_code_title">API-код RuStore</string>
-    <string name="settings_rustore_code_label">Число версии</string>
     <string name="common_apply">Применить</string>
 
     <string name="appearance_theme_title">Тема оформления</string>
@@ -300,9 +291,6 @@
     <string name="notifications_system_channels">Системные настройки каналов уведомлений</string>
 
     <string name="sources_rustore_description">Основной каталог и источник APK. Запросы идут напрямую к API RuStore без промежуточных серверов.</string>
-    <string name="sources_api_code">API-код совместимости: %1$d</string>
-    <string name="sources_match">Сопоставить</string>
-    <string name="sources_manual">Вручную</string>
     <string name="sources_github_enable">Включить источник GitHub</string>
     <string name="sources_github_enable_subtitle">Позволяет устанавливать APK и проверять обновления из GitHub Releases (сохранено: %1$d)</string>
 
@@ -389,9 +377,6 @@
     <string name="vm_backup_read_failed">Не удалось прочитать файл резервной копии</string>
     <string name="vm_backup_import_failed">Ошибка импорта резервной копии</string>
     <string name="vm_backup_restore_failed">Ошибка восстановления резервной копии</string>
-    <string name="vm_check_queued">Проверка добавлена в очередь</string>
-    <string name="vm_version_code_positive">VersionCode должен быть положительным числом</string>
-    <string name="vm_rustore_api_changed">API-код RuStore изменён</string>
     <string name="vm_signature_read_failed">Не удалось прочитать подпись установленного приложения</string>
     <string name="vm_autoupdate_off">Автообновление для %1$s выключено — проверка его не будет скачивать или устанавливать обновление</string>
     <string name="vm_check_already_running">Проверка обновлений уже выполняется</string>
@@ -603,14 +588,7 @@
     <string name="status_skipped">Пропущено</string>
     <string name="status_offer_next">Обновить следующее приложение</string>
     <string name="rustore_compat_title">Wy Store: совместимость с RuStore</string>
-    <string name="rustore_compat_preparing">Подготовка проверки</string>
-    <string name="rustore_compat_fetching">Получаем официальный APK RuStore</string>
-    <string name="rustore_compat_verifying">Проверяем пакет и подпись RuStore</string>
-    <string name="rustore_compat_probing">Пробуем API-код %1$d</string>
     <string name="rustore_compat_downloading">Скачиваем APK RuStore</string>
-    <string name="rustore_compat_using">Используется API-код %1$d</string>
-    <string name="rustore_compat_result">RuStore %1$s, APK %2$d, API %3$d</string>
-    <string name="rustore_compat_failed">Не удалось проверить APK RuStore</string>
     <string name="rustore_compat_progress">Скачиваем RuStore: %1$d%%</string>
     <string name="root_error_no_artifacts">Устанавливать нечего: комплект проверенных APK пуст.</string>
     <string name="root_error_artifact_missing">Проверенный APK больше недоступен. Скачайте заново.</string>

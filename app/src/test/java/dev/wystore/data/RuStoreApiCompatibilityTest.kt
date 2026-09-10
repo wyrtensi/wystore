@@ -2,42 +2,29 @@ package dev.wystore.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RuStoreApiCompatibilityTest {
     @Test
-    fun derivesApiCodeFromOfficialVersionNameInsteadOfManifestVersionCode() {
-        assertEquals(110802L, RuStoreApiCompatibilityPolicy.fromOfficialVersionName("1.108.0.2"))
-        assertEquals(110502L, RuStoreApiCompatibilityPolicy.fromOfficialVersionName("1.105.0.2"))
-        assertNull(RuStoreApiCompatibilityPolicy.fromOfficialVersionName("1.108-beta"))
-        assertNull(RuStoreApiCompatibilityPolicy.fromOfficialVersionName(null))
-    }
-
-    @Test
-    fun startsWithDiscoveredCodeAndKeepsBoundedFallbacks() {
+    fun startsWithTheBakedInCodeAndKeepsBoundedFallbacks() {
         assertEquals(
-            listOf(110802L, 1108002L, 1_000_000L, 247L),
-            RuStoreApiCompatibilityPolicy.candidates(preferred = 1108002L, discovered = 110802L)
-        )
-        assertEquals(
-            listOf(110802L, 1_000_000L, 247L),
-            RuStoreApiCompatibilityPolicy.candidates(preferred = 110802L, discovered = 110802L)
+            listOf(110910L, 1_000_000L, 247L),
+            RuStoreApiCompatibilityPolicy.candidates()
         )
     }
 
     @Test
     fun migrationRejectsManifestVersionPreviouslyStoredAsApiCode() {
-        assertEquals(110802L, RuStoreApiCompatibilityPolicy.migrateLegacyCode(1105002L))
+        assertEquals(110910L, RuStoreApiCompatibilityPolicy.migrateLegacyCode(1105002L))
         assertEquals(110502L, RuStoreApiCompatibilityPolicy.migrateLegacyCode(110502L))
-        assertEquals(110802L, RuStoreApiCompatibilityPolicy.codeFromBackup(backupVersion = 1, versionCode = 1105002L))
+        assertEquals(110910L, RuStoreApiCompatibilityPolicy.codeFromBackup(backupVersion = 1, versionCode = 1105002L))
         assertEquals(1200000L, RuStoreApiCompatibilityPolicy.codeFromBackup(backupVersion = 2, versionCode = 1200000L))
     }
 
     @Test
-    fun cleanInstallUsesCurrentlyVerifiedDefaultCode() {
-        assertEquals(110802L, RuStoreCompatibility().apiVersionCode)
+    fun cleanInstallCarriesTheBakedInCode() {
+        assertEquals(110910L, RuStoreCompatibility().apiVersionCode)
     }
 
     @Test

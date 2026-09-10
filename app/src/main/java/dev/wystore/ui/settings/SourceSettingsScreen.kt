@@ -32,23 +32,16 @@ import androidx.compose.ui.unit.dp
 import dev.wystore.ui.components.WySpinner
 import dev.wystore.R
 import dev.wystore.ui.components.WyCard
-import dev.wystore.ui.components.ruStoreTaskLabel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import dev.wystore.RuStoreCompatibilityTask
-import dev.wystore.data.RuStoreCompatibility
 import dev.wystore.data.StoreSettings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SourceSettingsScreen(
     settings: StoreSettings,
-    ruStoreCompatibility: RuStoreCompatibility,
-    ruStoreCompatibilityTask: RuStoreCompatibilityTask?,
     githubRepositoriesCount: Int,
     onUpdateSettings: (StoreSettings) -> Unit,
-    onCheckRuStore: () -> Unit,
-    onManualRuStoreCode: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -83,57 +76,6 @@ fun SourceSettingsScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-
-            Text(stringResource(R.string.sources_api_code, ruStoreCompatibility.apiVersionCode), style = MaterialTheme.typography.titleSmall)
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = onCheckRuStore,
-                    enabled = ruStoreCompatibilityTask == null,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.sources_match))
-                }
-                OutlinedButton(onClick = onManualRuStoreCode, modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.sources_manual))
-                }
-            }
-
-            // The task state was passed into this screen and never rendered: pressing "match"
-            // looked like it did nothing until the API code silently changed some seconds later.
-            ruStoreCompatibilityTask?.let { task ->
-                WyCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                ) {
-                    Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                ruStoreTaskLabel(task.status),
-                                modifier = Modifier.weight(1f),
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            if (task.status !in setOf("COMPLETE", "FAILED")) {
-                                WySpinner(size = 18.dp, strokeWidth = 2.dp)
-                            }
-                        }
-                        task.detail?.let {
-                            Text(it, style = MaterialTheme.typography.bodySmall)
-                        }
-                        task.progress?.takeIf { it.totalBytes > 0 }?.let { progress ->
-                            LinearProgressIndicator(
-                                progress = { progress.fraction.coerceIn(0f, 1f) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(MaterialTheme.shapes.extraSmall)
-                            )
-                        }
-                    }
-                }
-            }
 
             HorizontalDivider()
 

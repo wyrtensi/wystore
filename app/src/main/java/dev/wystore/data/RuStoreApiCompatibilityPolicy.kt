@@ -6,22 +6,27 @@ data class RuStoreApiAttempt<T>(
     val accepted: Boolean
 )
 
+/**
+ * The `ruStoreVerCode` header the source expects, and what to do when it stops accepting it.
+ *
+ * The value is written here rather than discovered: the app used to download the official RuStore
+ * client and read the number out of its manifest, which meant fetching eighty megabytes to learn
+ * six digits. It is derived from the published version name of the client - 1.109.1.0 - the way the
+ * source itself derives it.
+ */
 object RuStoreApiCompatibilityPolicy {
-    const val DEFAULT_VERSION_CODE = 110_802L
+    /** From RuStore 1.109.1.0, the client published at rustore.ru at the time of this release. */
+    const val DEFAULT_VERSION_CODE = 110_910L
     const val ATTEMPTS_PER_CANDIDATE = 3
     private val FALLBACK_VERSION_CODES = listOf(1_000_000L, 247L)
     private val REJECTED_HTTP_CODES = setOf(417, 419)
 
-    fun fromOfficialVersionName(versionName: String?): Long? {
-        val parts = versionName?.split('.') ?: return null
-        if (parts.size < 2 || parts.any { it.isEmpty() || it.any { character -> !character.isDigit() } }) return null
-        return parts.joinToString(separator = "").toLongOrNull()?.takeIf { it > 0L }
-    }
-
-    fun candidates(preferred: Long, discovered: Long? = null): List<Long> =
-        listOfNotNull(discovered, preferred, *FALLBACK_VERSION_CODES.toTypedArray())
-            .filter { it > 0L }
-            .distinct()
+    /**
+     * What to try, in order. The baked-in code first; the fallbacks exist only so that a rejected
+     * header does not take the catalogue down until the next release of this app.
+     */
+    fun candidates(): List<Long> =
+        (listOf(DEFAULT_VERSION_CODE) + FALLBACK_VERSION_CODES).filter { it > 0L }.distinct()
 
     fun migrateLegacyCode(versionCode: Long): Long =
         versionCode.takeIf { it in 247L..1_100_000L } ?: DEFAULT_VERSION_CODE

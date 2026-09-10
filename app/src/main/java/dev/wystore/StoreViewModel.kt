@@ -22,7 +22,6 @@ import dev.wystore.data.SearchResultPolicy
 import dev.wystore.data.StoreApp
 import dev.wystore.data.StoreRepository
 import dev.wystore.data.StoreSettings
-import dev.wystore.data.RuStoreCompatibility
 import dev.wystore.data.UpdateCheckSummary
 import dev.wystore.R
 import dev.wystore.data.AdoptionCandidate
@@ -50,7 +49,6 @@ import dev.wystore.updates.PendingReinstall
 import dev.wystore.updates.PendingReinstallStore
 import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.model.QueueState
-import dev.wystore.updates.RuStoreCompatibilityScheduler
 import dev.wystore.settings.toStoreSettings
 import dev.wystore.settings.toAppSettings
 import kotlinx.coroutines.Dispatchers
@@ -145,12 +143,6 @@ data class InstallQueueItem(
     val detail: String? = null
 )
 
-data class RuStoreCompatibilityTask(
-    val status: String,
-    val detail: String? = null,
-    val progress: DownloadProgress? = null
-)
-
 data class UpdateCheckTask(
     val status: String,
     val detail: String? = null,
@@ -189,8 +181,6 @@ data class StoreUiState(
     val installed: List<InstalledApp> = emptyList(),
     val managed: List<ManagedApp> = emptyList(),
     val settings: StoreSettings = StoreSettings(),
-    val ruStoreCompatibility: RuStoreCompatibility = RuStoreCompatibility(),
-    val ruStoreCompatibilityTask: RuStoreCompatibilityTask? = null,
     val updateCheckTask: UpdateCheckTask? = null,
     val googleAdoption: GoogleAdoptionPrompt? = null,
     val lastUpdateCheck: UpdateCheckSummary? = null,
@@ -263,34 +253,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     private val manualCheckWorkInfos =
         workManager.getWorkInfosForUniqueWorkLiveData(UpdateScheduler.MANUAL_CHECK_WORK_NAME)
-    private val ruStoreCompatibilityWorkInfos =
-        workManager.getWorkInfosForUniqueWorkLiveData(RuStoreCompatibilityScheduler.WORK_NAME)
     private var lastUpdateCheckTerminalId: UUID? = null
-    private val ruStoreCompatibilityObserver = Observer<List<WorkInfo>> { infos ->
-        val info = infos.lastOrNull() ?: return@Observer
-        val progress = info.progress
-        val status = progress.getString("status") ?: when (info.state) {
-            WorkInfo.State.ENQUEUED, WorkInfo.State.BLOCKED -> "QUEUED"
-            WorkInfo.State.RUNNING -> "PREPARING"
-            WorkInfo.State.SUCCEEDED -> "COMPLETE"
-            WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> "FAILED"
-        }
-        val total = progress.getLong("total", 0L)
-        val download = if (total > 0L) DownloadProgress(
-            downloadedBytes = progress.getLong("downloaded", 0L),
-            totalBytes = total,
-            artifactIndex = 1,
-            artifactCount = 1,
-            bytesPerSecond = progress.getLong("speed", 0L)
-        ) else null
-        val detail = progress.getString("detail") ?: info.outputData.getString("detail")
-        _state.update {
-            it.copy(
-                ruStoreCompatibility = repository.ruStoreCompatibility(),
-                ruStoreCompatibilityTask = RuStoreCompatibilityTask(status, detail, download)
-            )
-        }
-    }
     private val updateCheckObserver = Observer<List<WorkInfo>> { infos ->
         // REPLACE leaves the superseded runs in this list, so a run still in flight is what the UI
         // should follow; the newest finished one is the fallback.
@@ -421,15 +384,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         // list, not behind an error that offers to fetch them all over again.
         viewModelScope.launch { runCatching { queueRepository.restoreDeclinedInstalls() } }
         refreshLibrary()
-        _state.update { it.copy(githubRepositories = repository.githubRepositories(), ruStoreCompatibility = repository.ruStoreCompatibility()) }
+        _state.update { it.copy(githubRepositories = repository.githubRepositories()) }
         UpdateScheduler.schedule(application, repository.settings())
-        ruStoreCompatibilityWorkInfos.observeForever(ruStoreCompatibilityObserver)
         manualCheckWorkInfos.observeForever(updateCheckObserver)
         if (repository.settings().backgroundRootUpdates) checkRoot()
     }
 
     override fun onCleared() {
-        ruStoreCompatibilityWorkInfos.removeObserver(ruStoreCompatibilityObserver)
         manualCheckWorkInfos.removeObserver(updateCheckObserver)
         super.onCleared()
     }
@@ -1266,7 +1227,6 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             _state.update { it.copy(
                 githubRepositories = repository.githubRepositories(),
                 settings = repository.settings(),
-                ruStoreCompatibility = repository.ruStoreCompatibility(),
                 message = summary.message + restoreCaveat()
             ) }
         }.onFailure { error ->
@@ -1296,33 +1256,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 _state.update { it.copy(
                     githubRepositories = repository.githubRepositories(),
                     settings = repository.settings(),
-                    ruStoreCompatibility = repository.ruStoreCompatibility(),
                     message = summary.message
                 ) }
             }
             .onFailure { error ->
                 _state.update { it.copy(message = error.message ?: string(R.string.vm_backup_restore_failed)) }
             }
-    }
-
-    fun checkRuStoreCompatibility() {
-        RuStoreCompatibilityScheduler.enqueue(getApplication())
-        _state.update {
-            it.copy(
-                ruStoreCompatibilityTask = RuStoreCompatibilityTask("QUEUED", string(R.string.vm_check_queued)),
-                message = null
-            )
-        }
-    }
-
-    fun setRuStoreVersionCode(versionCode: Long) {
-        if (versionCode <= 0L) {
-            _state.update { it.copy(message = string(R.string.vm_version_code_positive)) }
-            return
-        }
-        val compatibility = repository.ruStoreCompatibility().copy(apiVersionCode = versionCode)
-        repository.saveRuStoreCompatibility(compatibility)
-        _state.update { it.copy(ruStoreCompatibility = compatibility, message = string(R.string.vm_rustore_api_changed)) }
     }
 
     fun setManaged(app: InstalledApp, enabled: Boolean) {

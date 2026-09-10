@@ -48,6 +48,10 @@ Wy Store не собирает персональные данные, не за�
 Обработка данных на стороне RuStore и GitHub регулируется их собственными правилами; Wy Store
 не связан с этими сервисами.
 
+Запросы идут только к публичным адресам, которые отвечают без авторизации. Приложение не создаёт
+сессию RuStore, не использует чужие учётные записи, не передаёт логинов и токенов и не обходит
+защиту сервиса — подробно об этом в [SECURITY.md](SECURITY.md).
+
 ## Разрешения
 
 | Разрешение | Зачем |
@@ -129,6 +133,10 @@ It never creates or uses a RuStore `User-Token`.
 
 How RuStore and GitHub handle data is governed by their own policies; Wy Store is not affiliated
 with either.
+
+Requests go only to public addresses that answer without authentication. The app creates no RuStore
+session, uses nobody else's account, sends no logins or tokens, and works around none of the
+service's protections - see [SECURITY.md](SECURITY.md) for the detail.
 
 ## Permissions
 

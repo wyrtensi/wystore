@@ -74,13 +74,6 @@
     <string name="details_rating">Rating: %1$s (%2$d)</string>
     <string name="details_downloads">Downloads: %1$s</string>
 
-    <string name="rustore_task_queued">RuStore APK check queued</string>
-    <string name="rustore_task_preparing">Preparing RuStore APK check</string>
-    <string name="rustore_task_downloading">Downloading RuStore APK</string>
-    <string name="rustore_task_verifying">Verifying RuStore APK</string>
-    <string name="rustore_task_probing">Checking RuStore API code</string>
-    <string name="rustore_task_complete">RuStore APK check complete</string>
-    <string name="rustore_task_failed">RuStore APK check failed</string>
 
     <string name="queue_status_preparing">Preparing</string>
     <string name="queue_status_queued">Queued</string>
@@ -252,7 +245,7 @@
     <string name="settings_hub_notifications_title">Notifications</string>
     <string name="settings_hub_notifications_subtitle">Ready updates, errors, channels</string>
     <string name="settings_hub_sources_title">App sources</string>
-    <string name="settings_hub_sources_subtitle">RuStore (%1$d), GitHub Releases</string>
+    <string name="settings_hub_sources_subtitle">RuStore and GitHub Releases</string>
     <string name="settings_hub_github_subtitle_count">Repositories: %1$d</string>
     <string name="settings_hub_github_subtitle_empty">Add a repository to install APKs</string>
 
@@ -273,8 +266,6 @@
     <string name="settings_privacy_text">Wy Store uses no accounts, analytics, ads, push services or server of its own. Catalog and APK requests go straight to RuStore. Background checks work without root; silent root installation is off by default.</string>
     <string name="common_got_it">Got it</string>
 
-    <string name="settings_rustore_code_title">RuStore API code</string>
-    <string name="settings_rustore_code_label">Version number</string>
     <string name="common_apply">Apply</string>
 
     <string name="appearance_theme_title">Theme</string>
@@ -300,9 +291,6 @@
     <string name="notifications_system_channels">System notification channel settings</string>
 
     <string name="sources_rustore_description">The main catalog and APK source. Requests go straight to the RuStore API with no intermediate servers.</string>
-    <string name="sources_api_code">Compatibility API code: %1$d</string>
-    <string name="sources_match">Match</string>
-    <string name="sources_manual">Manually</string>
     <string name="sources_github_enable">Enable the GitHub source</string>
     <string name="sources_github_enable_subtitle">Lets you install APKs and check for updates from GitHub Releases (saved: %1$d)</string>
 
@@ -389,9 +377,6 @@
     <string name="vm_backup_read_failed">Could not read the backup file</string>
     <string name="vm_backup_import_failed">Backup import failed</string>
     <string name="vm_backup_restore_failed">Backup restore failed</string>
-    <string name="vm_check_queued">Check queued</string>
-    <string name="vm_version_code_positive">VersionCode must be a positive number</string>
-    <string name="vm_rustore_api_changed">RuStore API code changed</string>
     <string name="vm_signature_read_failed">Could not read the signature of the installed app</string>
     <string name="vm_autoupdate_off">Auto-update for %1$s is off — checks will not download or install its updates</string>
     <string name="vm_check_already_running">An update check is already running</string>
@@ -603,14 +588,7 @@
     <string name="status_skipped">Skipped</string>
     <string name="status_offer_next">Update next app in queue</string>
     <string name="rustore_compat_title">Wy Store: RuStore compatibility</string>
-    <string name="rustore_compat_preparing">Preparing the check</string>
-    <string name="rustore_compat_fetching">Fetching the official RuStore APK</string>
-    <string name="rustore_compat_verifying">Checking the RuStore package and signature</string>
-    <string name="rustore_compat_probing">Trying API code %1$d</string>
     <string name="rustore_compat_downloading">Downloading the RuStore APK</string>
-    <string name="rustore_compat_using">Using API code %1$d</string>
-    <string name="rustore_compat_result">RuStore %1$s, APK %2$d, API %3$d</string>
-    <string name="rustore_compat_failed">Could not verify the RuStore APK</string>
     <string name="rustore_compat_progress">Downloading RuStore: %1$d%%</string>
     <string name="root_error_no_artifacts">Nothing to install: the verified APK set is empty.</string>
     <string name="root_error_artifact_missing">The verified APK is no longer available. Download it again.</string>

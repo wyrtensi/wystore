@@ -35,6 +35,31 @@
 исправление и релиз, потом публикация. Авторство находки указывается в CHANGELOG.md, если вы не
 против.
 
+## Как Wy Store обращается к RuStore
+
+Приложение пользуется только тем, что RuStore отдаёт публично, и не обходит его защиту.
+
+- Адреса `backapi.rustore.ru` и `www.rustore.ru` отвечают по интернету **без пользовательской
+  авторизации**. Именно на них Wy Store и ходит — теми же запросами, что и открытая страница
+  каталога.
+- Приложение **не крадёт логины и токены**, не создаёт и не подделывает сессию RuStore, не
+  пользуется чужой учётной записью и ничего не подбирает к паролю. `User-Token` официального
+  клиента не запрашивается и не используется.
+- Приложение **не эксплуатирует уязвимости**: ни SQL-инъекций, ни выполнения кода, ни обхода
+  проверок на стороне сервиса. Ничего закрытого — персональных данных, платного контента,
+  внутренних панелей — оно не получает и не пытается получить.
+- Бесплатный APK в итоге выдаёт **сама инфраструктура RuStore** по её собственной ссылке. Wy Store
+  не раздаёт файлы со своей стороны и не хранит их копий: своего сервера у проекта нет.
+- Единственное, что приложение подставляет от себя, — числовой заголовок `ruStoreVerCode`, который
+  сервис ждёт от любого клиента. Он **зашит в сборку** и виден в исходниках; никаких пользовательских
+  данных в нём нет. Раньше приложение вычисляло его само, скачивая официальный клиент, — этот
+  механизм убран.
+- Wy Store читает публичные страницы, а не документированный стабильный API. Разбор маршрутов — в
+  [docs/RUSTORE_API_COMPATIBILITY_RU.md](docs/RUSTORE_API_COMPATIBILITY_RU.md).
+
+Если RuStore закроет эти адреса или потребует авторизацию, Wy Store перестанет их читать. Обходить
+такое ограничение проект не будет.
+
 ## Что относится к этой политике
 
 Всё, что касается доставки и установки:
@@ -121,6 +146,31 @@ This is a one-person project, so there is no "response within 24 hours" here. Re
 as soon as they are seen, and progress is shared in the same thread. Disclosure is coordinated: fix
 and release first, publication after. Credit goes in CHANGELOG.md unless you would rather it did
 not.
+
+## How Wy Store talks to RuStore
+
+The app uses only what RuStore serves publicly, and works around none of its protections.
+
+- `backapi.rustore.ru` and `www.rustore.ru` answer over the internet **without user
+  authentication**. Those are the addresses Wy Store calls, with the same requests the open
+  catalogue page makes.
+- The app **steals no logins and no tokens**, creates or forges no RuStore session, uses nobody
+  else's account and guesses at no password. The official client's `User-Token` is neither
+  requested nor used.
+- The app **exploits nothing**: no SQL injection, no code execution, no bypassing of server-side
+  checks. It obtains no private data - personal records, paid content, internal consoles - and does
+  not try to.
+- A free APK is served in the end by **RuStore's own infrastructure**, from its own link. Wy Store
+  serves no files itself and keeps no copies of them: the project has no server.
+- The one thing the app supplies of its own is the numeric `ruStoreVerCode` header the service
+  expects from any client. It is **compiled into the build** and visible in the source; it carries
+  no user data. The app used to work the value out by downloading the official client - that
+  mechanism has been removed.
+- Wy Store reads public pages, not a documented stable API. The routes are described in
+  [docs/RUSTORE_API_COMPATIBILITY_RU.md](docs/RUSTORE_API_COMPATIBILITY_RU.md) (Russian).
+
+If RuStore closes those addresses or starts requiring authentication, Wy Store will stop reading
+them. The project will not work around such a restriction.
 
 ## In scope
 

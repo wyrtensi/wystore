@@ -22,7 +22,7 @@ class RuStoreSource(context: Context) : StoreSource {
     // Process-wide, so browsing the catalogue reuses one connection instead of opening a TLS
     // session per ViewModel and per worker that happens to construct a source.
     private val client = HttpClients.ruStore(context)
-    private val apiClient = RuStoreApiClient(client, repository)
+    private val apiClient = RuStoreApiClient(client)
 
     companion object {
         @Volatile
