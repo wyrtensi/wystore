@@ -18,6 +18,7 @@ import dev.wystore.root.RootInstaller
 import dev.wystore.updates.QueueRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -31,9 +32,10 @@ import java.util.concurrent.TimeUnit
  * worse than one that says nothing. It runs a shell command, so this is only ever called when
  * somebody asks for a report.
  *
- * Everything the system can be asked is asked here too, and every one of those questions is
- * wrapped: a report is collected because something is already wrong, so one unavailable service
- * must never be the reason the whole report fails to appear.
+ * Everything else is read locally: no request leaves the device to build a report, because a report
+ * is asked for when something is already wrong and a button that needs the network to explain why
+ * the network is not working helps nobody. Every question put to the system is wrapped, so one
+ * unavailable service cannot be the reason the whole report fails to appear.
  */
 class DiagnosticsCollector(context: Context) {
 
@@ -45,8 +47,20 @@ class DiagnosticsCollector(context: Context) {
         val permissions = PermissionRepository(appContext).snapshot()
         val metrics = appContext.resources.displayMetrics
         val configuration = appContext.resources.configuration
-        val queue = runCatching { QueueRepository.getInstance(appContext).snapshotAll() }
-            .getOrDefault(emptyList())
+        val queueRepository = runCatching { QueueRepository.getInstance(appContext) }.getOrNull()
+        val queue = queueRepository
+            ?.let { repository -> runCatching { repository.snapshotAll() }.getOrNull() }
+            .orEmpty()
+        val pending = queueRepository
+            ?.let { repository -> runCatching { repository.getPendingUpdates() }.getOrNull() }
+            .orEmpty()
+        val managed = runCatching { storeRepository.managedApps() }.getOrDefault(emptyList())
+        val workStates = readWorkStates(
+            queue.map { TransferDispatcher.downloadWorkName(it.id) } + listOf(
+                UpdateWorkScheduler.MANUAL_CHECK_WORK,
+                UpdateWorkScheduler.PERIODIC_CHECK_WORK
+            )
+        )
 
         Diagnostics(
             appVersionName = BuildConfig.VERSION_NAME,
@@ -82,6 +96,11 @@ class DiagnosticsCollector(context: Context) {
             dataSaver = describeDataSaver(),
             transferMechanism = TransferDispatcher.determineMechanism().name,
             cacheFreeBytes = runCatching { appContext.cacheDir.usableSpace }.getOrDefault(-1L),
+            artifactBytes = runCatching {
+                File(appContext.filesDir, ARTIFACT_DIRECTORY).walkBottomUp()
+                    .filter { it.isFile }
+                    .sumOf { it.length() }
+            }.getOrDefault(-1L),
             notificationsGranted = permissions.notificationsGranted,
             notificationChannels = describeNotificationChannels(),
             canInstallUnknownApps = permissions.canInstallUnknownApps,
@@ -93,8 +112,16 @@ class DiagnosticsCollector(context: Context) {
                 appContext.getSystemService(PowerManager::class.java)?.isDeviceIdleMode == true
             }.getOrDefault(false),
             standbyBucket = describeStandbyBucket(),
-            managedApps = storeRepository.managedApps().size,
-            githubRepositories = storeRepository.githubRepositories().size,
+            managedApps = managed.size,
+            managedBySource = managed
+                .groupingBy { it.source?.name ?: "не указан" }
+                .eachCount()
+                .toList()
+                .sortedByDescending { (_, count) -> count },
+            managedWithoutAutoUpdate = managed.count { !it.autoUpdate },
+            managedForcedToStore = managed.count { it.forceWyStore },
+            githubRepositories = runCatching { storeRepository.githubRepositories().size }
+                .getOrDefault(0),
             queueRows = queue.map { item ->
                 DiagnosticsQueueRow(
                     headline = "${item.packageName} ${item.versionName} ${item.state}" +
@@ -105,72 +132,75 @@ class DiagnosticsCollector(context: Context) {
                             "приоритет ${item.priority}",
                         "скачано: ${item.downloadedBytes / 1_048_576} / " +
                             "${item.totalBytes / 1_048_576} МБ",
-                        "задача: ${describeWork(TransferDispatcher.downloadWorkName(item.id))}"
+                        "задача: " + (
+                            workStates[TransferDispatcher.downloadWorkName(item.id)] ?: "нет"
+                            )
                     )
                 )
             },
+            downloadedNotInstalled = pending.map { update ->
+                "${update.packageName} ${update.versionName} (${update.source.name}), " +
+                    "файлов ${update.filePaths.size}, " +
+                    "скачано ${DateFormat.getDateTimeInstance().format(Date(update.downloadedAt))}"
+            },
             backgroundWork = listOf(
-                "проверка (по кнопке)" to describeWork(UpdateWorkScheduler.MANUAL_CHECK_WORK),
-                "проверка (по расписанию)" to describeWork(UpdateWorkScheduler.PERIODIC_CHECK_WORK)
+                "проверка (по кнопке)" to
+                    (workStates[UpdateWorkScheduler.MANUAL_CHECK_WORK] ?: "нет"),
+                "проверка (по расписанию)" to
+                    (workStates[UpdateWorkScheduler.PERIODIC_CHECK_WORK] ?: "нет")
             ),
             lastCheck = storeRepository.lastUpdateCheck()?.let { summary ->
                 "${DateFormat.getDateTimeInstance().format(Date(summary.finishedAt))} — " +
-                    "проверено ${summary.checked}, обновлений ${summary.updates}, " +
-                    "проблем ${summary.problems}"
+                    (if (summary.manual) "по кнопке" else "по расписанию") + ", " +
+                    "проверено ${summary.checked} из ${summary.total}, " +
+                    "обновлений ${summary.updates}, проблем ${summary.problems}"
             },
-            settings = listOf(
-                "wifiOnly" to settings.wifiOnly.toString(),
-                "showExcludedUpdates" to settings.showExcludedUpdates.toString(),
-                "allowMobileData" to settings.allowMobileData.toString(),
-                "requiresCharging" to settings.requiresCharging.toString(),
-                "updateIntervalHours" to settings.updateIntervalHours.toString(),
-                "autoDownloadUpdates" to settings.autoDownloadUpdates.toString(),
-                "autoInstallUpdates" to settings.autoInstallUpdates.toString(),
-                "autoInstallNewApps" to settings.autoInstallNewApps.toString(),
-                "silentUpdatesEnabled" to settings.silentUpdatesEnabled.toString(),
-                "selfUpdateEnabled" to settings.selfUpdateEnabled.toString(),
-                "githubEnabled" to settings.githubEnabled.toString(),
-                "respectBatterySaver" to settings.respectBatterySaver.toString(),
-                "queueMode" to settings.queueMode.name
-            ),
+            lastCheckProblems = storeRepository.lastUpdateCheck()?.problemApps.orEmpty()
+                .map { problem -> "${problem.packageName} — ${problem.reason.name}" },
+            settings = DiagnosticsSettingsDump.of(settings),
             events = EventLog(appContext).read()
         )
     }
 
     /**
-     * WorkManager's own account of one unique work name.
+     * WorkManager's own account of every task this report mentions, by unique work name.
      *
      * Everything the store records about a transfer is written from inside the worker, so a failure
      * that happens before the worker starts leaves no trace of any kind - the row simply waits,
      * which in a report is indistinguishable from a row that is genuinely next in line. The state
      * and the attempt count come from the system and cover exactly that gap.
+     *
+     * Asked name by name, because a unique work name is not one of a request's tags and a query
+     * across tags cannot say which name each result belongs to. Every lookup is bounded: a report
+     * is asked for when something is already wrong, and a line saying the answer never arrived
+     * beats a button that spins forever.
      */
-    private fun describeWork(uniqueName: String): String = runCatching {
-        // Bounded on purpose. A report is collected because something is already wrong, and an
-        // unbounded get() on a database that is not answering would leave the button spinning
-        // forever on exactly the devices this report exists to describe. A line saying the answer
-        // did not arrive is worth more than no report at all.
-        val infos = WorkManager.getInstance(appContext)
-            .getWorkInfosForUniqueWork(uniqueName)
-            .get(2, TimeUnit.SECONDS)
-        if (infos.isEmpty()) {
-            "нет"
-        } else {
-            infos.joinToString("; ") { info ->
-                buildString {
-                    append(info.state.name)
-                    append(", попыток ")
-                    append(info.runAttemptCount)
-                    if (info.state == WorkInfo.State.ENQUEUED &&
-                        info.stopReason != WorkInfo.STOP_REASON_NOT_STOPPED
-                    ) {
-                        append(", остановлена системой: ")
-                        append(info.stopReason)
-                    }
+    private fun readWorkStates(names: List<String>): Map<String, String> {
+        val manager = runCatching { WorkManager.getInstance(appContext) }.getOrNull()
+            ?: return emptyMap()
+        return names.associateWith { name ->
+            runCatching {
+                val infos = manager.getWorkInfosForUniqueWork(name).get(2, TimeUnit.SECONDS)
+                if (infos.isEmpty()) {
+                    "нет"
+                } else {
+                    infos.joinToString("; ") { describeWorkInfo(it) }
                 }
-            }
+            }.getOrElse { "не удалось прочитать" }
         }
-    }.getOrElse { "не удалось прочитать" }
+    }
+
+    private fun describeWorkInfo(info: WorkInfo): String = buildString {
+        append(info.state.name)
+        append(", попыток ")
+        append(info.runAttemptCount)
+        if (info.state == WorkInfo.State.ENQUEUED &&
+            info.stopReason != WorkInfo.STOP_REASON_NOT_STOPPED
+        ) {
+            append(", остановлена системой: ")
+            append(info.stopReason)
+        }
+    }
 
     /**
      * What the network looks like to the constraints a transfer carries.
@@ -194,8 +224,10 @@ class DiagnosticsCollector(context: Context) {
         }
         val metered = !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
         val validated = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        val vpn = !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
         "$transport, лимитная: ${if (metered) "да" else "нет"}" +
-            if (validated) "" else ", без доступа в интернет"
+            (if (validated) "" else ", без доступа в интернет") +
+            (if (vpn && transport != "VPN") ", через VPN" else "")
     }.getOrElse { "неизвестно" }
 
     /** Data Saver stops background traffic on a metered network, and says nothing while it does. */
@@ -215,7 +247,7 @@ class DiagnosticsCollector(context: Context) {
      *
      * Below Android 12 a transfer the user starts runs as a foreground service, which means it
      * needs its notification; a channel the user turned off can therefore stop a download rather
-     * than just silence it.
+     * than just silence it. Above it, a channel that is off is why "nothing told me" happens.
      */
     private fun describeNotificationChannels(): List<Pair<String, String>> = runCatching {
         val manager = appContext.getSystemService(NotificationManager::class.java)
@@ -243,7 +275,6 @@ class DiagnosticsCollector(context: Context) {
      * the schedule simply being ignored.
      */
     private fun describeStandbyBucket(): String = runCatching {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return@runCatching "не применимо"
         val manager = appContext.getSystemService(UsageStatsManager::class.java)
             ?: return@runCatching "неизвестно"
         when (val bucket = manager.appStandbyBucket) {
@@ -255,4 +286,8 @@ class DiagnosticsCollector(context: Context) {
             else -> bucket.toString()
         }
     }.getOrElse { "неизвестно" }
+
+    private companion object {
+        const val ARTIFACT_DIRECTORY = "pending_updates"
+    }
 }

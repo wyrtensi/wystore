@@ -10,12 +10,17 @@ class DiagnosticsReportTest {
         rootAvailable: Boolean? = false,
         events: List<DiagnosticsEvent> = emptyList(),
         queueRows: List<DiagnosticsQueueRow> = emptyList(),
+        downloadedNotInstalled: List<String> = emptyList(),
         backgroundWork: List<Pair<String, String>> = emptyList(),
         networkSummary: String = "Wi-Fi, лимитная: нет",
         dataSaver: String = "выкл",
         transferMechanism: String = "USER_INITIATED_JOB",
         notificationChannels: List<Pair<String, String>> = emptyList(),
-        standbyBucket: String = "ACTIVE"
+        standbyBucket: String = "ACTIVE",
+        managedBySource: List<Pair<String, Int>> = emptyList(),
+        managedWithoutAutoUpdate: Int = 0,
+        managedForcedToStore: Int = 0,
+        lastCheckProblems: List<String> = emptyList()
     ) = Diagnostics(
         appVersionName = "0.1.25",
         appVersionCode = 26,
@@ -42,6 +47,7 @@ class DiagnosticsReportTest {
         dataSaver = dataSaver,
         transferMechanism = transferMechanism,
         cacheFreeBytes = 12L * 1024 * 1024 * 1024,
+        artifactBytes = 64L * 1024 * 1024,
         notificationsGranted = true,
         notificationChannels = notificationChannels,
         canInstallUnknownApps = true,
@@ -50,11 +56,16 @@ class DiagnosticsReportTest {
         deviceIdleMode = false,
         standbyBucket = standbyBucket,
         managedApps = 19,
+        managedBySource = managedBySource,
+        managedWithoutAutoUpdate = managedWithoutAutoUpdate,
+        managedForcedToStore = managedForcedToStore,
         githubRepositories = 3,
         queueRows = queueRows,
+        downloadedNotInstalled = downloadedNotInstalled,
         backgroundWork = backgroundWork,
-        lastCheck = "9 сент. 2026 г. — проверено 17",
-        settings = listOf("wifiOnly" to "true"),
+        lastCheck = "9 сент. 2026 г. — по кнопке, проверено 17 из 19",
+        lastCheckProblems = lastCheckProblems,
+        settings = DiagnosticsSettingsDump.of(StoreSettings()),
         events = events
     )
 
@@ -78,11 +89,13 @@ class DiagnosticsReportTest {
     }
 
     @Test
-    fun anEmptyQueueAndAnEmptyLogSayThatRatherThanNothing() {
+    fun everyEmptySectionSaysSoRatherThanVanishing() {
         val text = DiagnosticsReport.render(diagnostics(), now = 0L)
 
         assertTrue(text.contains("Очередь (0)"))
         assertTrue(text.contains("пусто"))
+        assertTrue(text.contains("Скачано, но не установлено (0)"))
+        assertTrue(text.contains("ничего"))
         assertTrue(text.contains("не записано"))
     }
 
@@ -135,6 +148,43 @@ class DiagnosticsReportTest {
         assertTrue(text.contains("канал передач: выключен"))
         assertTrue(text.contains("Категория активности: RESTRICTED"))
         assertTrue(text.contains("Свободно под загрузки: 12288 МБ"))
+        assertTrue(text.contains("Занято скачанными файлами: 64 МБ"))
+    }
+
+    /** "It downloaded and then nothing happened" has its own section, because it is its own bug. */
+    @Test
+    fun whatIsWaitingToBeInstalledIsListed() {
+        val text = DiagnosticsReport.render(
+            diagnostics(
+                downloadedNotInstalled = listOf(
+                    "org.telegram.messenger 11.2.0 (RUSTORE), файлов 1, скачано 10 сент. 2026 г."
+                )
+            ),
+            now = 0L
+        )
+
+        assertTrue(text.contains("Скачано, но не установлено (1)"))
+        assertTrue(text.contains("org.telegram.messenger 11.2.0 (RUSTORE)"))
+    }
+
+    /** "Why was my app not checked" is answered by name and reason, not by a count. */
+    @Test
+    fun aCheckThatCouldNotSeeAnAppSaysWhichOneAndWhy() {
+        val text = DiagnosticsReport.render(
+            diagnostics(
+                lastCheckProblems = listOf("ru.beru.android — NOT_IN_CATALOGUE"),
+                managedBySource = listOf("RUSTORE" to 16, "GITHUB" to 3),
+                managedWithoutAutoUpdate = 2,
+                managedForcedToStore = 1
+            ),
+            now = 0L
+        )
+
+        assertTrue(text.contains("Не удалось проверить:"))
+        assertTrue(text.contains("ru.beru.android — NOT_IN_CATALOGUE"))
+        assertTrue(text.contains("  RUSTORE: 16"))
+        assertTrue(text.contains("без автообновления: 2"))
+        assertTrue(text.contains("принудительно через Wy Store: 1"))
     }
 
     @Test
@@ -154,5 +204,16 @@ class DiagnosticsReportTest {
         )
 
         assertTrue(text.contains("ru.beru.android INTERNAL: Another queue item is active"))
+    }
+
+    /** Every switch has to be in the text, including the ones nobody thought to print. */
+    @Test
+    fun theSettingsSectionCarriesTheOnesThatUsedToBeMissing() {
+        val text = DiagnosticsReport.render(diagnostics(), now = 0L)
+
+        assertTrue(text.contains("quietHoursEnabled = false"))
+        assertTrue(text.contains("readyNotificationsEnabled = true"))
+        assertTrue(text.contains("artifactRetentionDays = 7"))
+        assertTrue(text.contains("themeMode = SYSTEM"))
     }
 }

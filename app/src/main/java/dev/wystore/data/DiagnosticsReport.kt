@@ -52,6 +52,7 @@ data class Diagnostics(
     val dataSaver: String,
     val transferMechanism: String,
     val cacheFreeBytes: Long,
+    val artifactBytes: Long,
     val notificationsGranted: Boolean,
     val notificationChannels: List<Pair<String, String>>,
     val canInstallUnknownApps: Boolean,
@@ -60,10 +61,15 @@ data class Diagnostics(
     val deviceIdleMode: Boolean,
     val standbyBucket: String,
     val managedApps: Int,
+    val managedBySource: List<Pair<String, Int>>,
+    val managedWithoutAutoUpdate: Int,
+    val managedForcedToStore: Int,
     val githubRepositories: Int,
     val queueRows: List<DiagnosticsQueueRow>,
+    val downloadedNotInstalled: List<String>,
     val backgroundWork: List<Pair<String, String>>,
     val lastCheck: String?,
+    val lastCheckProblems: List<String>,
     val settings: List<Pair<String, String>>,
     val events: List<DiagnosticsEvent>
 )
@@ -71,20 +77,29 @@ data class Diagnostics(
 /**
  * Renders a report a person can paste into an issue.
  *
- * Plain text on purpose: it is read by whoever receives it, not parsed. It carries what actually
- * decides behaviour here - the Android version and the device, whether root is there, whether the
- * permissions and the power rules that gate downloading and installing are in the way, and what
- * the queue last did - and it carries no identifiers of the person: no account, no file paths, no
- * URLs, and package names only for the apps this store manages, which is what a queue problem is
- * about.
+ * Plain text on purpose: it is read by whoever receives it, not parsed. Everything it carries is
+ * already on the device - nothing is fetched, no request is made on the way to building it - and it
+ * carries no identifiers of the person: no account, no file paths, no URLs, and package names only
+ * for the apps this store manages, which is what a queue problem is about.
  *
- * It also carries the verdicts that belong to the system rather than to the store: WorkManager
- * state for every transfer and every check, whether the network counts as metered, whether the app
- * sits in a standby bucket that stops its jobs, and whether the notification channels a foreground
- * transfer needs are still switched on. The first report of a queue that never moved said only
- * that two rows were waiting: the failure had happened inside WorkManager, before any of this app
- * ran, so the store had nothing to log and the report read as if nothing were wrong at all. What
- * the store cannot see about itself is now asked of whoever can see it.
+ * It is arranged by the questions people actually arrive with, so that whichever of them this
+ * report is about, the answer is somewhere in the text:
+ *
+ *  - nothing downloads - the network and how the system counts it, Data Saver, the standby bucket,
+ *    power saving, free space, and WorkManager's own state for the transfer;
+ *  - it downloaded and then nothing happened - what is waiting to be installed, and whether this
+ *    store may install at all;
+ *  - the check finds nothing, or the wrong thing - which apps it could not check and why, how many
+ *    apps are managed, by which source, and how many are excluded from automatic updates;
+ *  - nothing arrives in the background - the periodic task's state, the battery rules, and the
+ *    interval;
+ *  - no notifications - every channel this app posts to and whether it is still switched on.
+ *
+ * It also carries the verdicts that belong to the system rather than to the store. The first report
+ * of a queue that never moved said only that two rows were waiting: the failure had happened inside
+ * WorkManager, before any of this app ran, so the store had nothing to log and the report read as
+ * if nothing were wrong at all. What the store cannot see about itself is now asked of whoever can
+ * see it.
  */
 object DiagnosticsReport {
 
@@ -122,6 +137,7 @@ object DiagnosticsReport {
         appendLine("Экономия трафика: ${diagnostics.dataSaver}")
         appendLine("Механизм передачи: ${diagnostics.transferMechanism}")
         appendLine("Свободно под загрузки: ${megabytes(diagnostics.cacheFreeBytes)}")
+        appendLine("Занято скачанными файлами: ${megabytes(diagnostics.artifactBytes)}")
         appendLine()
 
         appendLine("Уведомления: ${yesNo(diagnostics.notificationsGranted)}")
@@ -134,8 +150,17 @@ object DiagnosticsReport {
         appendLine()
 
         appendLine("Принятых приложений: ${diagnostics.managedApps}")
+        diagnostics.managedBySource.forEach { (source, count) -> appendLine("  $source: $count") }
+        appendLine("  без автообновления: ${diagnostics.managedWithoutAutoUpdate}")
+        appendLine("  принудительно через Wy Store: ${diagnostics.managedForcedToStore}")
         appendLine("Репозиториев GitHub: ${diagnostics.githubRepositories}")
+        appendLine()
+
         appendLine("Последняя проверка: ${diagnostics.lastCheck ?: "не было"}")
+        if (diagnostics.lastCheckProblems.isNotEmpty()) {
+            appendLine("Не удалось проверить:")
+            diagnostics.lastCheckProblems.forEach { appendLine("  $it") }
+        }
         appendLine()
 
         appendLine("Очередь (${diagnostics.queueRows.size}):")
@@ -146,6 +171,14 @@ object DiagnosticsReport {
                 appendLine("  ${row.headline}")
                 row.details.forEach { appendLine("    $it") }
             }
+        }
+        appendLine()
+
+        appendLine("Скачано, но не установлено (${diagnostics.downloadedNotInstalled.size}):")
+        if (diagnostics.downloadedNotInstalled.isEmpty()) {
+            appendLine("  ничего")
+        } else {
+            diagnostics.downloadedNotInstalled.forEach { appendLine("  $it") }
         }
         appendLine()
 
