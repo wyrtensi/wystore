@@ -25,7 +25,8 @@ class UpdatesScreenTest {
                 updateCheckTask = null,
                 lastUpdateCheck = null,
                 onOpen = {},
-                onInstallPending = {}
+                onInstallPending = {},
+                onDiscardPending = {}
             )
         }
 

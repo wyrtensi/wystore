@@ -24,6 +24,7 @@ class LibraryScreenTest {
                 pendingUpdates = emptyList(),
                 updateCheckTask = null,
                 onCheckUpdates = {},
+                onUpdateAll = {},
                 onAdopt = {},
                 onUpdateManaged = {},
                 onRequestForce = {},

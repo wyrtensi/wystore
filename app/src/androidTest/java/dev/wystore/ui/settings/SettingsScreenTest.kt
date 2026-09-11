@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.wystore.R
-import dev.wystore.data.RuStoreCompatibility
 import dev.wystore.data.StoreSettings
 import org.junit.Rule
 import org.junit.Test
@@ -22,15 +21,11 @@ class SettingsScreenTest {
         composeTestRule.setContent {
             SettingsScreen(
                 settings = StoreSettings(),
-                ruStoreCompatibility = RuStoreCompatibility(),
-                ruStoreCompatibilityTask = null,
                 rootAvailable = true,
                 managedCount = 5,
                 githubCount = 2,
                 onSave = {},
                 onCheckRoot = {},
-                onCheckRuStore = {},
-                onSetRuStoreVersionCode = {},
                 onExportUri = {},
                 onImportUri = { _, _ -> },
                 onExportJson = { "{}" },
