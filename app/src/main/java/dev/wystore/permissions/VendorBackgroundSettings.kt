@@ -18,16 +18,15 @@ import android.content.Intent
  * device, and can open it. No state is claimed, because none can be read - a card that guessed
  * "on" or "off" here would be guessing.
  *
- * Found by asking the system what it can open, never by reading a build property. The build
- * property is the usual way and it does not work: a Xiaomi running HyperOS reports an empty
- * `ro.miui.ui.version.name` and carries no security-centre package at all, while the Xiaomi in the
- * bug report is a MIUI build that has both. Whether the screen is there is a question with a real
- * answer; which shell this is, is not.
+ * Found by asking the system what it can open, never by reading a build property or a brand. Two
+ * Xiaomi phones settle that: one runs MIUI and has both screens, the other is the same
+ * manufacturer running a custom AOSP build with no MIUI property and no security-centre package
+ * at all. "Is this a Xiaomi" has the same answer for both and tells us nothing; "can this device
+ * open an autostart screen" has opposite answers, and is the question worth asking.
  *
  * Actions come before class names for the same reason. On a MIUI device the autostart screen
- * answers to `miui.intent.action.OP_AUTO_START` as the default handler for it, and an action
- * survives the renaming and moving of a class across shell versions - which is exactly what a
- * HyperOS release is free to do.
+ * resolves as the default handler for `miui.intent.action.OP_AUTO_START`, and an action outlives
+ * the renaming or moving of a class between shell versions.
  */
 object VendorBackgroundSettings {
 
@@ -42,9 +41,10 @@ object VendorBackgroundSettings {
     )
 
     /**
-     * Explicit screens, tried when no action answers. The MIUI pair is verified; the rest are the
-     * names those shells have used and are here on the same terms as everything else - resolved
-     * before use, so a name that is wrong or gone simply means no card rather than a dead button.
+     * Explicit screens, tried when no action answers. Only the MIUI pair has been checked against
+     * a device; the rest are the names those shells are reported to use, and are here on the same
+     * terms as everything else - resolved before use, so a name that is wrong, renamed or gone
+     * means no card rather than a dead button.
      */
     private val COMPONENTS = listOf(
         ComponentName(
