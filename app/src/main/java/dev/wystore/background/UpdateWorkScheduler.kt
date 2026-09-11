@@ -1,6 +1,7 @@
 package dev.wystore.background
 
 import android.content.Context
+import android.os.Build
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
@@ -99,6 +100,22 @@ object UpdateCheckPolicy {
      */
     fun mayDownloadAfterCheck(autoUpdateEnabledForApp: Boolean): Boolean = autoUpdateEnabledForApp
 
+    /**
+     * Whether a check may ask WorkManager to expedite it.
+     *
+     * From API 31 an expedited request is a job the platform runs early and nothing else is
+     * needed. Below that WorkManager can only deliver "early" by running the worker as a
+     * foreground service, so it demands a notification from the worker before starting it - and
+     * a worker that has none fails on the spot, which is what made the check button report
+     * failure on every Android 9, 10 and 11 install.
+     *
+     * A check fetches a few kilobytes of version numbers. It does not deserve a permanent
+     * notification, and it does not need one: as unique work with only a network constraint it
+     * starts immediately anyway.
+     */
+    fun checkMayBeExpedited(sdkInt: Int = Build.VERSION.SDK_INT): Boolean =
+        sdkInt >= Build.VERSION_CODES.S
+
     fun shouldRetryWorker(error: Throwable): Boolean {
         return try {
             val failure = classifyThrowable(error)
@@ -182,7 +199,11 @@ object UpdateWorkScheduler {
                     .build()
             )
             .setConstraints(Constraints.Builder().setRequiredNetworkType(network).build())
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .apply {
+                if (UpdateCheckPolicy.checkMayBeExpedited()) {
+                    setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                }
+            }
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .build()
 

@@ -7,6 +7,7 @@
     <string name="nav_settings">Настройки</string>
 
     <string name="notif_downloading_title">Скачивание %1$s</string>
+    <string name="notif_downloading_title_generic">Скачивание</string>
     <string name="notif_downloading_progress">%1$.1f / %2$.1f МБ (%3$d%%)</string>
     <string name="notif_downloading_indeterminate">Загрузка...</string>
     <string name="notif_ready_title">Обновление готово</string>

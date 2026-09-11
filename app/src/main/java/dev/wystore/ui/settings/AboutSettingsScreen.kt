@@ -319,9 +319,9 @@ private val QUEUE_STATES = setOf(
 /**
  * Hands over a plain-text report about this install.
  *
- * One action, because there is only one thing to do with it: the share sheet carries the report
- * both ways at once - as a file for whoever wants to attach it to an issue, and as text for a chat
- * that only takes text - so choosing between them beforehand was a choice nobody needed to make.
+ * One action, because there is only one thing to do with it: the share sheet carries the report as
+ * a file, ready to attach to an issue. Everything the report has to say is inside that file and
+ * nothing is copied alongside it.
  *
  * The report is built when the button is pressed. It asks the system whether root is there, and an
  * answer from an hour ago would be worse than none.
@@ -370,9 +370,10 @@ private fun shareIntent(context: android.content.Context, text: String): Intent 
     return Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_STREAM, uri)
-        // Both, on purpose: a file for an issue tracker, the same words for a chat that takes only
-        // text. Whichever the target understands is the one it uses.
-        putExtra(Intent.EXTRA_TEXT, text)
+        // The file and nothing else. The same text used to travel as EXTRA_TEXT so a chat that
+        // takes no attachments would still get something, but a report worth reading is long, and
+        // targets that accept both pasted the whole of it into the message box beside the file.
+        // One attachment is what gets sent, so one attachment is what is offered.
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 }

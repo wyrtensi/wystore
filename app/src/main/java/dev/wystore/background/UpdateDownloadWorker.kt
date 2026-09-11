@@ -2,6 +2,7 @@ package dev.wystore.background
 
 import android.content.Context
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import android.os.Build
 import dev.wystore.data.CatalogRepository
@@ -46,17 +47,44 @@ class UpdateDownloadWorker(
     private val queueRepository = QueueRepository.getInstance(appContext)
     private val executor = TransferExecutor(appContext, queueRepository)
 
+    /**
+     * The notification Android shows while this transfer runs.
+     *
+     * Below API 31 WorkManager carries an expedited request as a foreground service, and it asks
+     * for this before [doWork] is ever entered. The inherited implementation throws, so every
+     * transfer a user started on Android 9, 10 or 11 died there: the work failed before any of
+     * this app's code ran, the queue row stayed at AVAILABLE, and nothing was recorded because
+     * the recording happens inside [doWork]. The buttons looked dead because they were.
+     *
+     * It has to answer even when the row cannot be read, so the notification falls back to a
+     * title without the app's name rather than letting an exception kill the transfer.
+     */
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val item = inputData.getString(KEY_QUEUE_ID)
+            ?.let { queueId -> runCatching { queueRepository.getById(queueId) }.getOrNull() }
+        return DownloadForegroundInfoFactory.createForegroundInfo(
+            context = applicationContext,
+            label = item?.label,
+            packageName = item?.packageName
+        )
+    }
+
     override suspend fun doWork(): Result {
         val queueId = inputData.getString(KEY_QUEUE_ID) ?: return Result.failure()
         val item = queueRepository.getById(queueId) ?: return Result.failure()
 
-        setForeground(
-            DownloadForegroundInfoFactory.createForegroundInfo(
-                context = applicationContext,
-                label = item.label,
-                packageName = item.packageName
+        // Promotion can be refused - notifications turned off, a foreground service the system
+        // will not start right now - and that is not a reason to abandon a download the user
+        // asked for. Let it run without its notification instead of failing silently.
+        runCatching {
+            setForeground(
+                DownloadForegroundInfoFactory.createForegroundInfo(
+                    context = applicationContext,
+                    label = item.label,
+                    packageName = item.packageName
+                )
             )
-        )
+        }
 
         return try {
             executor.execute(queueId)

@@ -10,9 +10,13 @@ import dev.wystore.R
 import dev.wystore.data.DownloadProgress
 
 object DownloadForegroundInfoFactory {
+    /**
+     * @param label the app being fetched, or null when the notification has to exist before the
+     * queue row behind it has been read - WorkManager asks for one before the worker starts.
+     */
     fun createForegroundInfo(
         context: Context,
-        label: String,
+        label: String?,
         progress: DownloadProgress? = null,
         packageName: String? = null
     ): ForegroundInfo {
@@ -31,7 +35,13 @@ object DownloadForegroundInfoFactory {
             // not change appearance the moment the first bytes arrive.
             .setLargeIcon(packageName?.let { NotificationArt.iconFor(context, it) })
             .setColor(ContextCompat.getColor(context, R.color.notification_accent))
-            .setContentTitle(context.getString(R.string.notif_downloading_title, label))
+            .setContentTitle(
+                if (label != null) {
+                    context.getString(R.string.notif_downloading_title, label)
+                } else {
+                    context.getString(R.string.notif_downloading_title_generic)
+                }
+            )
             .setContentText(contentText)
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setProgress(100, percent ?: 0, progress == null || progress.totalBytes <= 0)

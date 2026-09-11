@@ -9,7 +9,7 @@
 |---|---|
 | Название | Wy Store |
 | Имя пакета | `app.wystore` |
-| Версия | 0.2.3 (versionCode 32) |
+| Версия | 0.2.4 (versionCode 33) |
 | Минимальная версия Android | 9.0 (API 28) |
 | Целевой API | 36 |
 | Категория | Инструменты / Утилиты |
@@ -73,10 +73,12 @@ Wy Store — независимый проект с открытым исход�
 Исходный код и релизы: github.com/wyrtensi/wystore
 ```
 
-## Что нового (0.2.3)
+## Что нового (0.2.4)
 
 ```
-• Приложение называется «Wy Store» — под иконкой, в системных списках и в уведомлениях.
+• На Android 9, 10 и 11 снова работают загрузки: раньше приложение вставало в очередь и не двигалось, а проверка обновлений отвечала «не удалась».
+• Загрузка не срывается, если система отказалась показать уведомление о её ходе.
+• Отчёт о диагностике стал подробнее: состояние фоновых задач, тип сети и механизм передачи.
 • Убрана лишняя цепочка связи с RuStore: приложение больше не выясняет служебный параметр отдельным обращением к нему.
 • Кнопка «Передать обновления Wy Store» наконец работает: раньше файл скачивался и молча отбрасывался на последнем шаге.
 • Если поставить поверх нельзя — версия в каталоге ниже установленной или другая подпись — приложение предлагает удалить и поставить заново, а не оставляет в тупике.
@@ -119,7 +121,7 @@ Wy Store — независимый проект с открытым исход�
 
 ## Файлы релиза
 
-APK: `wystore-0.2.3.apk` (30,8 МБ), подписан тем же ключом, что и релизы на GitHub —
+APK: `wystore-0.2.4.apk` (30,8 МБ), подписан тем же ключом, что и релизы на GitHub —
 отпечаток сертификата SHA-256 `33dcb50061a08190f68bbee2d743be38ad4f7307d98dc18dd7e76719c815a258`.
 
 ---
@@ -169,10 +171,12 @@ Wy Store is an independent open-source project (MIT licence). It is not affiliat
 Source code and releases: github.com/wyrtensi/wystore
 ```
 
-## What's new (0.2.3)
+## What's new (0.2.4)
 
 ```
-• The app is called "Wy Store" — under the icon, in the system's app lists and in notifications.
+• Downloads work again on Android 9, 10 and 11: they used to join the queue and stay there, and checking for updates reported a failure.
+• A download no longer dies because the system refused to show its progress notification.
+• The diagnostics report says more: background task states, network type and transfer mechanism.
 • One redundant round trip to RuStore is gone: the app no longer works out a service parameter by asking RuStore for it.
 • "Hand updates to Wy Store" finally works: the file used to download and then be dropped without a word at the last step.
 • When nothing can install over the app — an older catalogue version or a different signing key — the app offers to uninstall and install again instead of leaving a dead end.

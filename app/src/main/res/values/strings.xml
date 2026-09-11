@@ -7,6 +7,7 @@
     <string name="nav_settings">Settings</string>
 
     <string name="notif_downloading_title">Downloading %1$s</string>
+    <string name="notif_downloading_title_generic">Downloading</string>
     <string name="notif_downloading_progress">%1$.1f / %2$.1f MB (%3$d%%)</string>
     <string name="notif_downloading_indeterminate">Downloading...</string>
     <string name="notif_ready_title">Update ready</string>
