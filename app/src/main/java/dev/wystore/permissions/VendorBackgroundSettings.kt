@@ -18,39 +18,51 @@ import android.content.Intent
  * device, and can open it. No state is claimed, because none can be read - a card that guessed
  * "on" or "off" here would be guessing.
  *
- * Resolved by component rather than by build property. The user's own Xiaomi runs HyperOS with an
- * empty `ro.miui.ui.version.name` and no security-centre package at all, while the phone in the
- * bug report is a MIUI build that has both: what matters is whether the screen is there, and that
- * is a question with a real answer.
+ * Found by asking the system what it can open, never by reading a build property. The build
+ * property is the usual way and it does not work: a Xiaomi running HyperOS reports an empty
+ * `ro.miui.ui.version.name` and carries no security-centre package at all, while the Xiaomi in the
+ * bug report is a MIUI build that has both. Whether the screen is there is a question with a real
+ * answer; which shell this is, is not.
+ *
+ * Actions come before class names for the same reason. On a MIUI device the autostart screen
+ * answers to `miui.intent.action.OP_AUTO_START` as the default handler for it, and an action
+ * survives the renaming and moving of a class across shell versions - which is exactly what a
+ * HyperOS release is free to do.
  */
 object VendorBackgroundSettings {
 
     /**
-     * Candidate screens, tried in order. Each is a vendor's own activity and may be absent, renamed
-     * or unexported on any given build, which is why nothing here is assumed to work.
+     * Vendor actions, tried first. Both MIUI entries were read off a MIUI device: the autostart
+     * screen and the per-app battery screen each declare theirs with a DEFAULT category, so an
+     * implicit intent reaches them.
      */
-    private val CANDIDATES = listOf(
-        // Xiaomi: MIUI autostart. The one that matters for the report this was written for.
+    private val ACTIONS = listOf(
+        "miui.intent.action.OP_AUTO_START",
+        "miui.intent.action.HIDDEN_APPS_CONFIG_ACTIVITY"
+    )
+
+    /**
+     * Explicit screens, tried when no action answers. The MIUI pair is verified; the rest are the
+     * names those shells have used and are here on the same terms as everything else - resolved
+     * before use, so a name that is wrong or gone simply means no card rather than a dead button.
+     */
+    private val COMPONENTS = listOf(
         ComponentName(
             "com.miui.securitycenter",
             "com.miui.permcenter.autostart.AutoStartManagementActivity"
         ),
-        // Xiaomi: MIUI per-app battery policy, separate again from Android's exemption.
         ComponentName(
             "com.miui.powerkeeper",
             "com.miui.powerkeeper.ui.HiddenAppsConfigActivity"
         ),
-        // Huawei
         ComponentName(
             "com.huawei.systemmanager",
             "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity"
         ),
-        // Oppo / realme
         ComponentName(
             "com.coloros.safecenter",
             "com.coloros.safecenter.permission.startup.StartupAppListActivity"
         ),
-        // vivo
         ComponentName(
             "com.vivo.permissionmanager",
             "com.vivo.permissionmanager.activity.BgStartUpManagerActivity"
@@ -60,20 +72,19 @@ object VendorBackgroundSettings {
     /** The first screen this device actually has, or null when the vendor adds no rules of its own. */
     fun intentFor(context: Context): Intent? {
         val packageManager = context.applicationContext.packageManager
-        return CANDIDATES.firstNotNullOfOrNull { component ->
-            val intent = Intent().apply {
-                this.component = component
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            intent.takeIf {
-                runCatching { packageManager.resolveActivity(it, 0) }.getOrNull() != null
-            }
+        val candidates = ACTIONS.map { action ->
+            Intent(action).addCategory(Intent.CATEGORY_DEFAULT)
+        } + COMPONENTS.map { component ->
+            Intent().setComponent(component)
         }
+        return candidates.firstOrNull { intent ->
+            runCatching { packageManager.resolveActivity(intent, 0) }.getOrNull() != null
+        }?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
     /** For the diagnostics report: which vendor screen was found, if any. */
     fun describe(context: Context): String {
         val intent = intentFor(context) ?: return "нет"
-        return intent.component?.packageName ?: "есть"
+        return intent.action ?: intent.component?.packageName ?: "есть"
     }
 }
