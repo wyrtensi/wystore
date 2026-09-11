@@ -1,21 +1,35 @@
 package dev.wystore
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import dev.wystore.background.NotificationIntentFactory
 import dev.wystore.data.StoreRepository
 import dev.wystore.localization.AppLocaleController
+import dev.wystore.permissions.NotificationPermissionPolicy
+import dev.wystore.permissions.NotificationPermissionStore
+import dev.wystore.permissions.PermissionRepository
 import dev.wystore.localization.VerificationTextResolver
 import dev.wystore.settings.SettingsRepository
 import dev.wystore.settings.toAppSettings
@@ -44,6 +58,10 @@ class MainActivity : AppCompatActivity() {
         AppLocaleController.apply(settings.language)
         setContent {
             val state by storeViewModel.state.collectAsState()
+            AskForNotificationsOnce(
+                hasSomethingToReportAbout = state.managed.isNotEmpty() ||
+                    state.installQueue.isNotEmpty()
+            )
             WyStoreTheme(settings = state.settings.toAppSettings()) {
                 // Not ::beginPendingInstall. A tap goes into the queue, and the queue hands one
                 // package at a time to the collector below - Android shows one confirmation dialog
@@ -205,4 +223,42 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+/**
+ * Asks Android for notifications once, and only when there is something to notify about.
+ *
+ * Never at first launch: the dialog is one-shot - a refusal is final for the life of the install -
+ * and a question asked before anyone knows what this app is, is a question likely to be refused.
+ * Once the store is actually looking after something, the question has an answer the user can give
+ * on evidence: "should this tell you when it finds an update for the apps you just gave it".
+ *
+ * Below Android 13 nothing happens here at all; there is no permission to ask for, and
+ * notifications switched off in Settings are turned back on in Settings.
+ */
+@Composable
+private fun AskForNotificationsOnce(hasSomethingToReportAbout: Boolean) {
+    val context = LocalContext.current
+    val store = remember(context) { NotificationPermissionStore(context) }
+    var asked by rememberSaveable { mutableStateOf(store.asked()) }
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
+
+    LaunchedEffect(hasSomethingToReportAbout, asked) {
+        if (asked) return@LaunchedEffect
+        val granted = PermissionRepository(context).snapshot().notificationsGranted
+        if (!NotificationPermissionPolicy.shouldOfferUnprompted(
+                granted = granted,
+                alreadyAsked = false,
+                hasSomethingToReportAbout = hasSomethingToReportAbout
+            )
+        ) {
+            return@LaunchedEffect
+        }
+        store.markAsked()
+        asked = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+}
 }

@@ -185,7 +185,25 @@ class StoreRepository(private val context: Context) {
      */
     fun installedApps(): List<InstalledApp> {
         installedCache?.let { return it }
-        return readInstalledApps().also { installedCache = it }
+        // Nothing above this is prepared for it to throw, and everything goes through it: the
+        // update check, the download worker, the installer and every return to a screen. A phone
+        // where this read fails once - a package too large for one binder transaction, a vendor
+        // build that answers differently - would take down whatever happened to be running, and
+        // leave nothing behind to say why, because the store's own recording lives further in.
+        // The failure is written down instead, and deliberately not cached: the next caller asks
+        // again rather than inheriting an empty device forever.
+        return runCatching { readInstalledApps() }
+            .onSuccess { installedCache = it }
+            .getOrElse { error ->
+                runCatching {
+                    EventLog(context).record(
+                        packageName = context.packageName,
+                        code = "INSTALLED_APPS_UNREADABLE",
+                        detail = "${error.javaClass.simpleName}: ${error.message}"
+                    )
+                }
+                emptyList()
+            }
     }
 
     private fun readInstalledApps(): List<InstalledApp> {

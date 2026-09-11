@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -34,6 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import dev.wystore.permissions.NotificationPermissionAction
+import dev.wystore.permissions.NotificationPermissionPolicy
+import dev.wystore.permissions.NotificationPermissionStore
 import dev.wystore.permissions.PermissionRepository
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +45,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationManagerCompat
 import dev.wystore.ui.components.StateBadge
 import dev.wystore.R
@@ -72,6 +78,16 @@ fun PermissionCenterScreen(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // Android's own dialog where it can still appear, Settings where it cannot. It is one-shot:
+    // after a refusal the system never shows it again, and the button has to stop pretending.
+    val permissionStore = remember(context) { NotificationPermissionStore(context) }
+    var notificationsAsked by remember { mutableStateOf(permissionStore.asked()) }
+    val notificationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        snapshot = permissionRepository.snapshot()
     }
 
     val notificationsEnabled = snapshot.notificationsGranted
@@ -128,10 +144,22 @@ fun PermissionCenterScreen(
                     )
                     OutlinedButton(
                         onClick = {
-                            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            val action = NotificationPermissionPolicy.actionForRequest(
+                                granted = notificationsEnabled,
+                                alreadyAsked = notificationsAsked
+                            )
+                            if (action == NotificationPermissionAction.ASK_SYSTEM &&
+                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                            ) {
+                                permissionStore.markAsked()
+                                notificationsAsked = true
+                                notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                }
+                                context.startActivity(intent)
                             }
-                            context.startActivity(intent)
                         },
                         modifier = Modifier.align(Alignment.End)
                     ) {
