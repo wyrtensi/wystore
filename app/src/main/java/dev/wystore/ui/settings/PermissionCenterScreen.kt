@@ -39,6 +39,7 @@ import dev.wystore.permissions.NotificationPermissionAction
 import dev.wystore.permissions.NotificationPermissionPolicy
 import dev.wystore.permissions.NotificationPermissionStore
 import dev.wystore.permissions.PermissionRepository
+import dev.wystore.permissions.VendorBackgroundSettings
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -88,6 +89,10 @@ fun PermissionCenterScreen(
         ActivityResultContracts.RequestPermission()
     ) {
         snapshot = permissionRepository.snapshot()
+    }
+
+    val vendorBackgroundIntent = remember(context) {
+        runCatching { VendorBackgroundSettings.intentFor(context) }.getOrNull()
     }
 
     val notificationsEnabled = snapshot.notificationsGranted
@@ -226,6 +231,31 @@ fun PermissionCenterScreen(
                         modifier = Modifier.align(Alignment.End)
                     ) {
                         Text(stringResource(R.string.permissions_background_button))
+                    }
+                }
+            }
+
+            // 3a. The vendor's own background rules, where the vendor has any. No badge: the
+            // list cannot be read, and a card that guessed "on" or "off" here would be guessing.
+            vendorBackgroundIntent?.let { intent ->
+                WyCard(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            stringResource(R.string.permissions_vendor_title),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Text(
+                            stringResource(R.string.permissions_vendor_text),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        OutlinedButton(
+                            onClick = { runCatching { context.startActivity(intent) } },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text(stringResource(R.string.permissions_vendor_button))
+                        }
                     }
                 }
             }

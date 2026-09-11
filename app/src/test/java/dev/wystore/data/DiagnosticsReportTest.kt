@@ -17,6 +17,7 @@ class DiagnosticsReportTest {
         transferMechanism: String = "USER_INITIATED_JOB",
         notificationChannels: List<Pair<String, String>> = emptyList(),
         standbyBucket: String = "ACTIVE",
+        vendorBackgroundSettings: String = "нет",
         managedBySource: List<Pair<String, Int>> = emptyList(),
         managedWithoutAutoUpdate: Int = 0,
         managedForcedToStore: Int = 0,
@@ -55,6 +56,7 @@ class DiagnosticsReportTest {
         powerSaveMode = false,
         deviceIdleMode = false,
         standbyBucket = standbyBucket,
+        vendorBackgroundSettings = vendorBackgroundSettings,
         managedApps = 19,
         managedBySource = managedBySource,
         managedWithoutAutoUpdate = managedWithoutAutoUpdate,
@@ -137,7 +139,8 @@ class DiagnosticsReportTest {
                 dataSaver = "вкл, фоновый трафик запрещён",
                 transferMechanism = "WORK_MANAGER_FOREGROUND",
                 notificationChannels = listOf("канал передач" to "выключен"),
-                standbyBucket = "RESTRICTED"
+                standbyBucket = "RESTRICTED",
+                vendorBackgroundSettings = "com.miui.securitycenter"
             ),
             now = 0L
         )
@@ -147,6 +150,7 @@ class DiagnosticsReportTest {
         assertTrue(text.contains("Механизм передачи: WORK_MANAGER_FOREGROUND"))
         assertTrue(text.contains("канал передач: выключен"))
         assertTrue(text.contains("Категория активности: RESTRICTED"))
+        assertTrue(text.contains("Свои правила автозапуска у прошивки: com.miui.securitycenter"))
         assertTrue(text.contains("Свободно под загрузки: 12288 МБ"))
         assertTrue(text.contains("Занято скачанными файлами: 64 МБ"))
     }

@@ -79,8 +79,8 @@ object SigningVerifier {
 
     @Suppress("DEPRECATION")
     fun archiveIdentity(packageManager: PackageManager, file: File): ArchiveIdentity? {
-        val flags = SigningFlags.forSdk(Build.VERSION.SDK_INT)
-        val info = packageManager.getPackageArchiveInfo(file.absolutePath, flags) ?: return null
+        val info = packageManager.getPackageArchiveInfo(file.absolutePath, SigningFlags.forArchive())
+            ?: return null
         return ArchiveIdentity(
             packageName = info.packageName,
             versionName = info.versionName.orEmpty(),
@@ -149,8 +149,20 @@ object SigningVerifier {
         }
     }.getOrDefault(false)
 
+    /**
+     * Whichever of the two the platform actually filled in.
+     *
+     * [PackageInfo.signingInfo] is the right field and the one to prefer, but for an APK read off
+     * disk Android 10 leaves it empty, and reading only that turned every finished download into
+     * an unreadable signature there. The legacy array carries the same certificates out of the
+     * same file; both are hashed the same way and compared against an installed app's, so the
+     * comparison stays like for like whichever one answered.
+     */
+    @Suppress("DEPRECATION")
     private fun signatures(info: PackageInfo): Array<out android.content.pm.Signature> =
-        info.signingInfo?.apkContentsSigners ?: emptyArray()
+        info.signingInfo?.apkContentsSigners?.takeIf { it.isNotEmpty() }
+            ?: info.signatures
+            ?: emptyArray()
 
     private fun invalid(reason: VerificationError): VerificationResult = VerificationResult(
         ArchiveIdentity("", "", 0, null, emptySet()),

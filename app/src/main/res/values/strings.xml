@@ -303,6 +303,9 @@
     <string name="permissions_state_denied">Denied</string>
     <string name="permissions_notifications_text">Needed to notify you about updates that are downloaded and ready to install.</string>
     <string name="permissions_notifications_button">Notification settings</string>
+    <string name="permissions_vendor_title">Autostart in the vendor shell</string>
+    <string name="permissions_vendor_text">This firmware keeps its own list of apps allowed to work in the background, separate from the Android battery setting. An app missing from it has its scheduled checks dropped without a word. Wy Store can neither read that list nor add itself to it — only you can.</string>
+    <string name="permissions_vendor_button">Open the list</string>
     <string name="permissions_unknown_sources_title">Install unknown apps</string>
     <string name="permissions_unknown_sources_text">Android requires it to unpack and launch the system APK installer.</string>
     <string name="permissions_unknown_sources_button">Allow installation</string>

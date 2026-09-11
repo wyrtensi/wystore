@@ -60,6 +60,7 @@ data class Diagnostics(
     val powerSaveMode: Boolean,
     val deviceIdleMode: Boolean,
     val standbyBucket: String,
+    val vendorBackgroundSettings: String,
     val managedApps: Int,
     val managedBySource: List<Pair<String, Int>>,
     val managedWithoutAutoUpdate: Int,
@@ -147,6 +148,7 @@ object DiagnosticsReport {
         appendLine("Энергосбережение: ${onOff(diagnostics.powerSaveMode)}")
         appendLine("Спящий режим (Doze): ${yesNo(diagnostics.deviceIdleMode)}")
         appendLine("Категория активности: ${diagnostics.standbyBucket}")
+        appendLine("Свои правила автозапуска у прошивки: ${diagnostics.vendorBackgroundSettings}")
         appendLine()
 
         appendLine("Принятых приложений: ${diagnostics.managedApps}")

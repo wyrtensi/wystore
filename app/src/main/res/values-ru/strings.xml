@@ -303,6 +303,9 @@
     <string name="permissions_state_denied">Запрещено</string>
     <string name="permissions_notifications_text">Необходимы для оповещения о скачанных и готовых к установке обновлениях.</string>
     <string name="permissions_notifications_button">Настройки уведомлений</string>
+    <string name="permissions_vendor_title">Автозапуск в прошивке</string>
+    <string name="permissions_vendor_text">У этой прошивки свой список приложений, которым разрешено работать в фоне, — отдельно от настройки батареи Android. Приложение не из этого списка теряет проверки по расписанию молча. Wy Store не может ни прочитать этот список, ни добавить себя в него — только вы.</string>
+    <string name="permissions_vendor_button">Открыть список</string>
     <string name="permissions_unknown_sources_title">Установка неизвестных приложений</string>
     <string name="permissions_unknown_sources_text">Требуется Android для распаковки и запуска системного установщика APK.</string>
     <string name="permissions_unknown_sources_button">Разрешить установку</string>

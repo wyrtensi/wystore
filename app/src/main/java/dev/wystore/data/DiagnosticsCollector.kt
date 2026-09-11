@@ -14,6 +14,7 @@ import dev.wystore.background.NotificationCoordinator
 import dev.wystore.background.TransferDispatcher
 import dev.wystore.background.UpdateWorkScheduler
 import dev.wystore.permissions.PermissionRepository
+import dev.wystore.permissions.VendorBackgroundSettings
 import dev.wystore.root.RootInstaller
 import dev.wystore.updates.QueueRepository
 import kotlinx.coroutines.Dispatchers
@@ -112,6 +113,9 @@ class DiagnosticsCollector(context: Context) {
                 appContext.getSystemService(PowerManager::class.java)?.isDeviceIdleMode == true
             }.getOrDefault(false),
             standbyBucket = describeStandbyBucket(),
+            vendorBackgroundSettings = runCatching {
+                VendorBackgroundSettings.describe(appContext)
+            }.getOrDefault("неизвестно"),
             managedApps = managed.size,
             managedBySource = managed
                 .groupingBy { it.source?.name ?: "не указан" }
