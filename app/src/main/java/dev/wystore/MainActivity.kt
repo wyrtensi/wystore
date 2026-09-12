@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         // Keeps the synchronous settings cache fresh so workers and startup never block on DataStore.
         SettingsRepository(this).warmUp(lifecycleScope)
         val settings = StoreRepository(this).settings()
-        AppLocaleController.apply(settings.language)
+        AppLocaleController.applyOnStartup(settings.language)
         setContent {
             val state by storeViewModel.state.collectAsState()
             AskForNotificationsOnce(
