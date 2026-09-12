@@ -469,6 +469,19 @@
     setTimeout(startQueue, 2500);
   }
 
+  /* The language menu closes the way a menu is expected to: anywhere else, or Escape.
+     <details> does neither on its own. */
+
+  var lang = document.querySelector(".lang");
+  if (lang) {
+    document.addEventListener("click", function (e) {
+      if (lang.open && !lang.contains(e.target)) lang.open = false;
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && lang.open) lang.open = false;
+    });
+  }
+
   window.addEventListener("hashchange", function () {
     var n = scenes.findIndex(function (s) { return "#" + s.id === location.hash; });
     if (n > -1) show(n, true);

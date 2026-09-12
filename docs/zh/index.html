@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wy Store — 俄罗斯应用，没人盯着你装什么</title>
+<meta name="description" content="Android 上的 RuStore 第三方客户端：与 RuStore 相同的应用，外加 GitHub 发布版。不需要账号，没有追踪，没有广告。开源，MIT 许可。">
+<meta name="keywords" content="Wy Store, RuStore 第三方客户端, 不用账号的 RuStore, 俄罗斯应用, APK, Android">
+<link rel="canonical" href="https://wystore.ru/zh/">
+<link rel="alternate" hreflang="ru" href="https://wystore.ru/">
+<link rel="alternate" hreflang="en" href="https://wystore.ru/en/">
+<link rel="alternate" hreflang="uk" href="https://wystore.ru/uk/">
+<link rel="alternate" hreflang="be" href="https://wystore.ru/be/">
+<link rel="alternate" hreflang="kk" href="https://wystore.ru/kk/">
+<link rel="alternate" hreflang="uz" href="https://wystore.ru/uz/">
+<link rel="alternate" hreflang="lv" href="https://wystore.ru/lv/">
+<link rel="alternate" hreflang="zh" href="https://wystore.ru/zh/">
+<link rel="alternate" hreflang="x-default" href="https://wystore.ru/">
+<meta name="theme-color" content="#0e0e0e">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:site_name" content="Wy Store">
+<meta property="og:title" content="Wy Store — 俄罗斯应用，没人盯着你装什么">
+<meta property="og:description" content="RuStore 第三方客户端：相同的应用，外加 GitHub 发布版。不需要账号，没有追踪，没有广告。">
+<meta property="og:url" content="https://wystore.ru/zh/">
+<meta property="og:image" content="https://wystore.ru/assets/img/og-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/img/favicon-32.png" sizes="32x32">
+<link rel="icon" href="../assets/img/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="../assets/img/icon-180.png">
+<link rel="preload" href="../assets/fonts/plex-sans-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/plex-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/img/shots/en-home.webp" as="image">
+<link rel="preload" href="../assets/app.js" as="script">
+<script>document.documentElement.className += " js";</script>
+<link rel="stylesheet" href="../assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://wystore.ru/zh/#website",
+      "url": "https://wystore.ru/zh/",
+      "name": "Wy Store",
+      "alternateName": "RuStore 第三方客户端",
+      "description": "Android 上的 RuStore 第三方客户端：与 RuStore 相同的应用，外加 GitHub 发布版。不需要账号，没有追踪，没有广告。",
+      "inLanguage": "zh"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://wystore.ru/#app",
+      "name": "Wy Store",
+      "alternateName": "RuStore 第三方客户端",
+      "url": "https://wystore.ru/zh/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Android 9.0+",
+      "softwareVersion": "0.2.1",
+      "downloadUrl": "https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk",
+      "license": "https://github.com/wyrtensi/wystore/blob/main/LICENSE",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB" },
+      "image": "https://wystore.ru/assets/img/icon-512.png",
+      "screenshot": "https://wystore.ru/assets/img/shots/en-home.webp",
+      "author": { "@type": "Person", "name": "wyrtensi", "url": "https://github.com/wyrtensi" },
+      "sameAs": "https://github.com/wyrtensi/wystore"
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<canvas id="warp" aria-hidden="true"></canvas>
+
+<header class="masthead">
+  <nav class="nav" aria-label="链接">
+    <a href="https://github.com/wyrtensi/wystore">GitHub</a>
+    <details class="lang">
+      <summary>简体中文</summary>
+      <ul>
+        <li><a href="../" hreflang="ru">Русский</a></li>
+        <li><a href="../en/" hreflang="en">English</a></li>
+        <li><a href="../uk/" hreflang="uk">Українська</a></li>
+        <li><a href="../be/" hreflang="be">Беларуская</a></li>
+        <li><a href="../kk/" hreflang="kk">Қазақша</a></li>
+        <li><a href="../uz/" hreflang="uz">Oʻzbekcha</a></li>
+        <li><a href="../lv/" hreflang="lv">Latviešu</a></li>
+      </ul>
+    </details>
+  </nav>
+</header>
+
+<main class="stage" id="deck">
+
+  <div class="pane">
+
+    <section class="scene is-on" id="hero" tabindex="-1" data-screen="home" aria-hidden="true">
+      <p class="brandline" style="--i:0"><img src="../assets/img/icon-192.webp" width="192" height="192" alt="">Wy&nbsp;Store</p>
+      <h1 style="--i:1">熟悉的俄罗斯应用，<em>没人盯着</em>你装什么</h1>
+      <p style="--i:2">
+        与 RuStore 里相同的应用，外加 GitHub 上的发布版。Wy&nbsp;Store 自己下载、自己安装，
+        走 Android 系统自带的安装器。不需要账号 —— RuStore 的不要，别家的也不要。
+      </p>
+      <p class="cta" style="--i:3">
+        <a class="btn" data-download href="https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
+          下载 APK
+        </a>
+        <button class="link" type="button" data-go="next">它是怎么工作的</button>
+        <img class="badge" fetchpriority="low" decoding="async" alt="GitHub 下载次数" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
+      </p>
+      <p class="small" style="--i:4">Android 9.0 及以上 · 约 9 MB · 开源，MIT 许可</p>
+    </section>
+
+    <section class="scene" id="github" tabindex="-1" aria-hidden="true">
+      <h2 style="--i:0">第二个来源：GitHub</h2>
+      <p style="--i:1">
+        RuStore 里没有的开源项目发布版 —— Droid-ify、Neo Store、Syncthing、Ente Photos、
+        Stratum 等等，直接从各自的 releases 安装，每个条目都标出来源。
+      </p>
+      <p style="--i:2">
+        任何公开仓库都可以用链接添加。发布版按规则挑选：nightly 标签、以及没有可用 APK 的发布版
+        会被跳过。目录本身面向俄罗斯的用户，所以其中大部分是俄语；界面支持上方菜单中的所有语言。
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← 返回</button>
+        <button class="link" type="button" data-go="next">继续 →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="app" tabindex="-1" data-screen="app" aria-hidden="true">
+      <h2 style="--i:0">与 RuStore 里相同的文件</h2>
+      <p style="--i:1">
+        Wy&nbsp;Store 装的，正是开发者自己发布到 RuStore 的那些应用 —— 没有改动，中间没有经手人。
+        文件来自 RuStore 的服务器，安装前 Wy&nbsp;Store 会核对它就是原件：开发者签名和版本
+        与商店条目一致。
+      </p>
+      <p style="--i:2">
+        页面上有版本、大小、所需的 Android 版本、评分和下载次数，和 RuStore 一样。
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← 返回</button>
+        <button class="link" type="button" data-go="next">继续 →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="updates" tabindex="-1" data-screen="home" aria-hidden="true">
+      <h2 style="--i:0">在后台更新</h2>
+      <p style="--i:1">
+        Wy&nbsp;Store 按计划检查更新，并自己把它们下载下来。再往后就看手机了：有些 Android 版本
+        不问一声就装上，有些则要你确认。我们尽量把需要你动手的部分压到最小，但这没法在每台设备上
+        都保证。
+      </p>
+      <table class="tbl" style="--i:2">
+        <caption class="vh">通常是这样</caption>
+        <tbody>
+          <tr><th scope="row">Android 12 及以上</th><td>一般不问 —— 对 Wy&nbsp;Store 自己装的应用而言</td></tr>
+          <tr><th scope="row">Android 9、10、11</th><td>系统会请你确认，任何商店都一样</td></tr>
+          <tr><th scope="row">首次安装</th><td>总是要确认</td></tr>
+          <tr><th scope="row">有 root</th><td>支持：一切在后台静默安装，没有通知 —— 在设置里开启</td></tr>
+        </tbody>
+      </table>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← 返回</button>
+        <button class="link" type="button" data-go="next">继续 →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="library" tabindex="-1" data-screen="library" aria-hidden="true">
+      <h2 style="--i:0">我的应用</h2>
+      <p style="--i:1">
+        所有已装的应用，按来源筛选：Wy&nbsp;Store、GitHub、RuStore。由 Wy&nbsp;Store 自己安装或
+        更新过的排在前面。更新和卸载都在同一个列表里，“检查并安装”一下全办完。
+      </p>
+      <p style="--i:2">
+        来自 Google&nbsp;Play 的应用不会被动，除非你为某个具体应用打开它。
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← 返回</button>
+        <button class="link" type="button" data-go="next">继续 →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="privacy" tabindex="-1" aria-hidden="true">
+      <ul class="nos">
+        <li><span>没有</span>账号。</li>
+        <li><span>没有</span>统计。</li>
+        <li><span>没有</span>广告。</li>
+        <li><span>不要</span>你的数据。</li>
+      </ul>
+      <p style="--i:5">
+        Wy&nbsp;Store 不收集关于你的任何东西，也不往任何地方发送。应用只与 RuStore 和 GitHub
+        通信，为的是目录和文件。其余一切都留在手机上。
+        <a href="https://github.com/wyrtensi/wystore/blob/main/PRIVACY.md">完整的隐私政策</a>。
+      </p>
+      <p class="nav-links" style="--i:6">
+        <button class="link" type="button" data-go="prev">← 返回</button>
+        <button class="link" type="button" data-go="next">安装 →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="install" tabindex="-1" aria-hidden="true">
+      <h2 style="--i:0">安装</h2>
+      <p class="cta" style="--i:1">
+        <a class="btn btn-xl" data-download href="https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
+          下载 APK
+        </a>
+        <img class="badge" fetchpriority="low" decoding="async" alt="GitHub 下载次数" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
+      </p>
+      <ol class="steps" style="--i:2">
+        <li>打开下载好的 <code>wystore.apk</code>。</li>
+        <li>Android 会就“允许从此来源安装”问一次。</li>
+        <li>此后 Wy&nbsp;Store 自己更新自己 —— 它盯着仓库里的发布版。</li>
+      </ol>
+      <figure class="warn" style="--i:3">
+        <img decoding="async" data-src="../assets/img/play-protect-en.webp" width="520" height="677" alt="Google Play Protect 弹窗：“已拦截应用以保护你的设备”，底部是“仍要安装”链接">
+        <figcaption>
+          <strong>你可能会看到这个。</strong> 只要应用不在 Google&nbsp;Play 上，Google Play Protect
+          就会警告：Wy&nbsp;Store 是一个开源项目，Google 对它一无所知，而文件来自浏览器或聊天软件。
+          点“仍要安装”。
+        </figcaption>
+      </figure>
+      <p class="fine" style="--i:4">
+        Wy&nbsp;Store 的每个版本都用同一个开发者密钥签名，Android 不会让更新把它换成别人的构建。
+        如何手动校验签名，写在<a href="https://github.com/wyrtensi/wystore/blob/main/SECURITY.md">安全说明</a>里。
+      </p>
+      <nav class="links" style="--i:5" aria-label="项目链接">
+        <a href="https://github.com/wyrtensi/wystore">源代码</a>
+        <a href="https://github.com/wyrtensi/wystore/releases">发布版</a>
+        <a href="https://github.com/wyrtensi/wystore/blob/main/CHANGELOG.md">更新记录</a>
+        <a href="https://github.com/wyrtensi/wystore/blob/main/DISCLAIMER.md">关于项目</a>
+        <a href="https://t.me/+_YytpJdDHgQ4OTYy">Telegram</a>
+      </nav>
+      <p class="nav-links" style="--i:6">
+        <button class="link" type="button" data-go="hero">↑ 回到开头</button>
+      </p>
+      <p class="fine" style="--i:7">
+        Wy&nbsp;Store 与 RuStore 没有关联，也不代表它行事：RuStore 在这里是数据来源。
+        支持的是免费应用。
+      </p>
+    </section>
+
+  </div>
+
+  <div class="stagepane" aria-hidden="true">
+    <div class="phone" style="--shot: 560 / 1201">
+      <div class="screen">
+        <img class="scr is-on" data-name="home" src="../assets/img/shots/en-home.webp" width="560" height="1201" alt="">
+        <img class="scr" decoding="async" data-name="app" data-src="../assets/img/shots/en-app.webp" width="560" height="1201" alt="">
+        <img class="scr" decoding="async" data-name="library" data-src="../assets/img/shots/en-library.webp" width="560" height="1201" alt="">
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="../assets/app.js" defer></script>
+
+</body>
+</html>

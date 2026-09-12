@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="be">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wy Store — расійскія дадаткі, і ніхто не сочыць, што вы ставіце</title>
+<meta name="description" content="Альтэрнатыўная крама RuStore для Android: тыя ж дадаткі, што і ў RuStore, плюс рэлізы з GitHub. Без уліковага запісу, без сачэння, без рэкламы. Адкрыты код, MIT.">
+<meta name="keywords" content="Wy Store, альтэрнатыўная крама RuStore, RuStore без уліковага запісу, расійскія дадаткі, APK, Android">
+<link rel="canonical" href="https://wystore.ru/be/">
+<link rel="alternate" hreflang="ru" href="https://wystore.ru/">
+<link rel="alternate" hreflang="en" href="https://wystore.ru/en/">
+<link rel="alternate" hreflang="uk" href="https://wystore.ru/uk/">
+<link rel="alternate" hreflang="be" href="https://wystore.ru/be/">
+<link rel="alternate" hreflang="kk" href="https://wystore.ru/kk/">
+<link rel="alternate" hreflang="uz" href="https://wystore.ru/uz/">
+<link rel="alternate" hreflang="lv" href="https://wystore.ru/lv/">
+<link rel="alternate" hreflang="zh" href="https://wystore.ru/zh/">
+<link rel="alternate" hreflang="x-default" href="https://wystore.ru/">
+<meta name="theme-color" content="#0e0e0e">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="be_BY">
+<meta property="og:site_name" content="Wy Store">
+<meta property="og:title" content="Wy Store — расійскія дадаткі, і ніхто не сочыць, што вы ставіце">
+<meta property="og:description" content="Альтэрнатыўная крама RuStore: тыя ж дадаткі, плюс рэлізы з GitHub. Без уліковага запісу, без сачэння, без рэкламы.">
+<meta property="og:url" content="https://wystore.ru/be/">
+<meta property="og:image" content="https://wystore.ru/assets/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/img/favicon-32.png" sizes="32x32">
+<link rel="icon" href="../assets/img/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="../assets/img/icon-180.png">
+<link rel="preload" href="../assets/fonts/plex-sans-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/plex-sans-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/img/shots/ru-home.webp" as="image">
+<link rel="preload" href="../assets/app.js" as="script">
+<script>document.documentElement.className += " js";</script>
+<link rel="stylesheet" href="../assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://wystore.ru/be/#website",
+      "url": "https://wystore.ru/be/",
+      "name": "Wy Store",
+      "alternateName": "Альтэрнатыўная крама RuStore",
+      "description": "Альтэрнатыўная крама RuStore для Android: тыя ж дадаткі, што і ў RuStore, плюс рэлізы з GitHub. Без уліковага запісу, без сачэння, без рэкламы.",
+      "inLanguage": "be"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://wystore.ru/#app",
+      "name": "Wy Store",
+      "alternateName": "Альтэрнатыўная крама RuStore",
+      "url": "https://wystore.ru/be/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Android 9.0+",
+      "softwareVersion": "0.2.1",
+      "downloadUrl": "https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk",
+      "license": "https://github.com/wyrtensi/wystore/blob/main/LICENSE",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB" },
+      "image": "https://wystore.ru/assets/img/icon-512.png",
+      "screenshot": "https://wystore.ru/assets/img/shots/ru-home.webp",
+      "author": { "@type": "Person", "name": "wyrtensi", "url": "https://github.com/wyrtensi" },
+      "sameAs": "https://github.com/wyrtensi/wystore"
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<canvas id="warp" aria-hidden="true"></canvas>
+
+<header class="masthead">
+  <nav class="nav" aria-label="Спасылкі">
+    <a href="https://github.com/wyrtensi/wystore">GitHub</a>
+    <details class="lang">
+      <summary>Беларуская</summary>
+      <ul>
+        <li><a href="../" hreflang="ru">Русский</a></li>
+        <li><a href="../en/" hreflang="en">English</a></li>
+        <li><a href="../uk/" hreflang="uk">Українська</a></li>
+        <li><a href="../kk/" hreflang="kk">Қазақша</a></li>
+        <li><a href="../uz/" hreflang="uz">Oʻzbekcha</a></li>
+        <li><a href="../lv/" hreflang="lv">Latviešu</a></li>
+        <li><a href="../zh/" hreflang="zh">简体中文</a></li>
+      </ul>
+    </details>
+  </nav>
+</header>
+
+<main class="stage" id="deck">
+
+  <div class="pane">
+
+    <section class="scene is-on" id="hero" tabindex="-1" data-screen="home" aria-hidden="true">
+      <p class="brandline" style="--i:0"><img src="../assets/img/icon-192.webp" width="192" height="192" alt="">Wy&nbsp;Store</p>
+      <h1 style="--i:1">Звыклыя расійскія дадаткі — і <em>ніхто не сочыць</em>, што вы ставіце</h1>
+      <p style="--i:2">
+        Тыя ж дадаткі, што і ў RuStore, плюс рэлізы з GitHub. Wy&nbsp;Store спампоўвае і ставіць
+        іх сам, праз сістэмны ўсталёўшчык Android. Уліковы запіс не патрэбны — ні RuStore, ні які-небудзь яшчэ.
+      </p>
+      <p class="cta" style="--i:3">
+        <a class="btn" data-download href="https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
+          Спампаваць APK
+        </a>
+        <button class="link" type="button" data-go="next">Як гэта працуе</button>
+        <img class="badge" fetchpriority="low" decoding="async" alt="Колькасць спамповак з GitHub" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=%D1%81%D0%BF%D0%B0%D0%BC%D0%BF%D0%BE%D0%B2%D0%B0%D0%BA&amp;labelColor=1b1b1b&amp;color=8aacff">
+      </p>
+      <p class="small" style="--i:4">Android 9.0 і навейшы · каля 9 МБ · адкрыты код, ліцэнзія MIT</p>
+    </section>
+
+    <section class="scene" id="search" tabindex="-1" data-screen="search" aria-hidden="true">
+      <h2 style="--i:0">Пошук па каталогу RuStore</h2>
+      <p style="--i:1">
+        Шукайце па назве, банку, распрацоўшчыку або package name. У картцы — рэйтынг, раздзел і
+        статус: усталявана, ёсць абнаўленне ці яшчэ няма на тэлефоне. Каталог і APK запытваюцца
+        напрамую ў RuStore: Wy&nbsp;Store не ставіць яго кліент і не трымае свайго сервера.
+      </p>
+      <p style="--i:2">
+        Падтрымліваюцца бясплатныя дадаткі. Платнае і пакупкі ўнутры застаюцца за афіцыйным
+        кліентам.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Назад</button>
+        <button class="link" type="button" data-go="next">Далей →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="github" tabindex="-1" data-screen="github" aria-hidden="true">
+      <h2 style="--i:0">Другая крыніца — GitHub</h2>
+      <p style="--i:1">
+        Рэлізы праектаў з адкрытым кодам, якіх у RuStore няма: Droid-ify, Neo Store, Syncthing,
+        Ente Photos, Stratum і іншыя. Ставяцца проста з рэлізаў, у кожнай карткі падпісана
+        крыніца.
+      </p>
+      <p style="--i:2">
+        Свой публічны рэпазіторый дадаецца спасылкай. Рэліз выбіраецца па правілах: nightly-тэгі
+        і рэлізы без прыдатнага APK прапускаюцца.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Назад</button>
+        <button class="link" type="button" data-go="next">Далей →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="app" tabindex="-1" data-screen="app" aria-hidden="true">
+      <h2 style="--i:0">Тыя ж файлы, што і ў RuStore</h2>
+      <p style="--i:1">
+        Wy&nbsp;Store ставіць роўна тыя дадаткі, якія распрацоўшчыкі самі выклалі ў RuStore, —
+        без зменаў і без пасярэднікаў. Файл прыходзіць з сервераў RuStore, і перад усталяваннем
+        Wy&nbsp;Store зверае, што ён той самы: подпіс распрацоўшчыка і версія супадаюць
+        з карткай.
+      </p>
+      <p style="--i:2">
+        На картцы — версія, памер, патрэбны Android, рэйтынг і колькасць спамповак, як
+        і ў RuStore.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Назад</button>
+        <button class="link" type="button" data-go="next">Далей →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="updates" tabindex="-1" data-screen="updates" aria-hidden="true">
+      <h2 style="--i:0">Абнаўляецца ў фоне</h2>
+      <p style="--i:1">
+        Wy&nbsp;Store правярае абнаўленні па раскладзе і спампоўвае іх сам. Далей усё залежыць
+        ад тэлефона: на адных сістэма ставіць абнаўленні без пытанняў, на іншых — просіць
+        пацвердзіць. Мы стараемся, каб вашага ўдзелу патрабавалася як мага менш, але абяцаць
+        гэта на кожнай прыладзе нельга.
+      </p>
+      <table class="tbl" style="--i:2">
+        <caption class="vh">Як гэта звычайна бывае</caption>
+        <tbody>
+          <tr><th scope="row">Android 12 і навейшы</th><td>як правіла, без пытанняў — для дадаткаў, якія ставіў Wy&nbsp;Store</td></tr>
+          <tr><th scope="row">Android 9, 10, 11</th><td>сістэма папросіць пацвердзіць — так у любой крамы</td></tr>
+          <tr><th scope="row">Першае ўсталяванне</th><td>заўсёды з пацвярджэннем</td></tr>
+          <tr><th scope="row">З root</th><td>падтрымліваецца: усё ставіцца ціха, у фоне, без апавяшчэнняў — уключаецца ў наладах</td></tr>
+        </tbody>
+      </table>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Назад</button>
+        <button class="link" type="button" data-go="next">Далей →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="library" tabindex="-1" data-screen="library" aria-hidden="true">
+      <h2 style="--i:0">Мае дадаткі</h2>
+      <p style="--i:1">
+        Усё ўсталяванае, з фільтрамі па крыніцы: Wy&nbsp;Store, GitHub, RuStore. Першымі ідуць
+        дадаткі, якія Wy&nbsp;Store паставіў або абнаўляў сам. Абнавіць і выдаліць — з гэтага
+        ж спісу, «Праверыць і ўсталяваць» — адной кнопкай.
+      </p>
+      <p style="--i:2">
+        Дадаткі з Google&nbsp;Play не чапаюцца, пакуль вы не ўключыце гэта для канкрэтнага
+        дадатку.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Назад</button>
+        <button class="link" type="button" data-go="next">Далей →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="privacy" tabindex="-1" aria-hidden="true">
+      <ul class="nos">
+        <li><span>Ні</span> ўліковага запісу.</li>
+        <li><span>Ні</span> аналітыкі.</li>
+        <li><span>Ні</span> рэкламы.</li>
+        <li><span>Ні</span> вашых даных.</li>
+      </ul>
+      <p style="--i:5">
+        Wy&nbsp;Store нічога пра вас не збірае і нікуды не адпраўляе. Дадатак звяртаецца
+        толькі да RuStore і GitHub — па каталог і файлы. Усё астатняе застаецца на тэлефоне.
+        <a href="https://github.com/wyrtensi/wystore/blob/main/PRIVACY.md">Палітыка цалкам</a>.
+      </p>
+      <p class="nav-links" style="--i:6">
+        <button class="link" type="button" data-go="prev">← Назад</button>
+        <button class="link" type="button" data-go="next">Паставіць →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="install" tabindex="-1" aria-hidden="true">
+      <h2 style="--i:0">Паставіць</h2>
+      <p class="cta" style="--i:1">
+        <a class="btn btn-xl" data-download href="https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
+          Спампаваць APK
+        </a>
+        <img class="badge" fetchpriority="low" decoding="async" alt="Колькасць спамповак з GitHub" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=%D1%81%D0%BF%D0%B0%D0%BC%D0%BF%D0%BE%D0%B2%D0%B0%D0%BA&amp;labelColor=1b1b1b&amp;color=8aacff">
+      </p>
+      <ol class="steps" style="--i:2">
+        <li>Адкрыйце спампаваны <code>wystore.apk</code>.</li>
+        <li>Android адзін раз спытае дазвол на ўсталяванне з гэтай крыніцы.</li>
+        <li>Далей Wy&nbsp;Store абнаўляе сябе сам — ён сочыць за рэлізамі ў рэпазіторыі.</li>
+      </ol>
+      <figure class="warn" style="--i:3">
+        <img decoding="async" data-src="../assets/img/play-protect-ru.webp" width="520" height="891" alt="Акно Google Play Protect: «Падазроны дадатак заблакіраваны», унізе спасылка «Усё роўна ўсталяваць»">
+        <figcaption>
+          <strong>Можа з’явіцца такое акно.</strong> Google Play Protect папярэджвае пра любы
+          дадатак, якога няма ў Google&nbsp;Play: Wy&nbsp;Store — адкрыты праект, у Google
+          пра яго няма звестак, а файл прыходзіць з браўзера ці месенджара. Націсніце
+          «Усё роўна ўсталяваць».
+        </figcaption>
+      </figure>
+      <p class="fine" style="--i:4">
+        Усе версіі Wy&nbsp;Store падпісаны адным ключом распрацоўшчыка, і Android не дасць падмяніць
+        дадатак чужой зборкай пры абнаўленні. Як праверыць подпіс уручную — у
+        <a href="https://github.com/wyrtensi/wystore/blob/main/SECURITY.md">апісанні бяспекі</a>.
+      </p>
+      <nav class="links" style="--i:5" aria-label="Спасылкі праекта">
+        <a href="https://github.com/wyrtensi/wystore">Зыходны код</a>
+        <a href="https://github.com/wyrtensi/wystore/releases">Рэлізы</a>
+        <a href="https://github.com/wyrtensi/wystore/blob/main/CHANGELOG.md">Змены</a>
+        <a href="https://github.com/wyrtensi/wystore/blob/main/DISCLAIMER.md">Пра праект</a>
+        <a href="https://t.me/+_YytpJdDHgQ4OTYy">Telegram</a>
+      </nav>
+      <p class="nav-links" style="--i:6">
+        <button class="link" type="button" data-go="hero">↑ У пачатак</button>
+      </p>
+      <p class="fine" style="--i:7">
+        Wy&nbsp;Store не звязаны з RuStore і не дзейнічае ад яго імя: RuStore тут — крыніца
+        даных.
+      </p>
+    </section>
+
+  </div>
+
+  <div class="stagepane" aria-hidden="true">
+    <div class="phone">
+      <div class="screen">
+        <img class="scr is-on" data-name="home" src="../assets/img/shots/ru-home.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="search" data-src="../assets/img/shots/ru-search.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="github" data-src="../assets/img/shots/ru-github.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="app" data-src="../assets/img/shots/ru-app.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="updates" data-src="../assets/img/shots/ru-updates.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="library" data-src="../assets/img/shots/ru-library.webp" width="560" height="1110" alt="">
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="../assets/app.js" defer></script>
+
+</body>
+</html>

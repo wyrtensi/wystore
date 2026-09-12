@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wy Store — ресейлік қолданбалар, ал не орнатқаныңызды ешкім бақыламайды</title>
+<meta name="description" content="Android үшін балама RuStore дүкені: RuStore-дағы сол қолданбалар, оған қоса GitHub релиздері. Аккаунтсыз, бақылаусыз, жарнамасыз. Ашық бастапқы код, MIT.">
+<meta name="keywords" content="Wy Store, балама RuStore дүкені, аккаунтсыз RuStore, ресейлік қолданбалар, APK, Android">
+<link rel="canonical" href="https://wystore.ru/kk/">
+<link rel="alternate" hreflang="ru" href="https://wystore.ru/">
+<link rel="alternate" hreflang="en" href="https://wystore.ru/en/">
+<link rel="alternate" hreflang="uk" href="https://wystore.ru/uk/">
+<link rel="alternate" hreflang="be" href="https://wystore.ru/be/">
+<link rel="alternate" hreflang="kk" href="https://wystore.ru/kk/">
+<link rel="alternate" hreflang="uz" href="https://wystore.ru/uz/">
+<link rel="alternate" hreflang="lv" href="https://wystore.ru/lv/">
+<link rel="alternate" hreflang="zh" href="https://wystore.ru/zh/">
+<link rel="alternate" hreflang="x-default" href="https://wystore.ru/">
+<meta name="theme-color" content="#0e0e0e">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="kk_KZ">
+<meta property="og:site_name" content="Wy Store">
+<meta property="og:title" content="Wy Store — ресейлік қолданбалар, ал не орнатқаныңызды ешкім бақыламайды">
+<meta property="og:description" content="Балама RuStore дүкені: сол қолданбалар, оған қоса GitHub релиздері. Аккаунтсыз, бақылаусыз, жарнамасыз.">
+<meta property="og:url" content="https://wystore.ru/kk/">
+<meta property="og:image" content="https://wystore.ru/assets/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/img/favicon-32.png" sizes="32x32">
+<link rel="icon" href="../assets/img/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="../assets/img/icon-180.png">
+<link rel="preload" href="../assets/fonts/plex-sans-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/plex-sans-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/img/shots/ru-home.webp" as="image">
+<link rel="preload" href="../assets/app.js" as="script">
+<script>document.documentElement.className += " js";</script>
+<link rel="stylesheet" href="../assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://wystore.ru/kk/#website",
+      "url": "https://wystore.ru/kk/",
+      "name": "Wy Store",
+      "alternateName": "Балама RuStore дүкені",
+      "description": "Android үшін балама RuStore дүкені: RuStore-дағы сол қолданбалар, оған қоса GitHub релиздері. Аккаунтсыз, бақылаусыз, жарнамасыз.",
+      "inLanguage": "kk"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://wystore.ru/#app",
+      "name": "Wy Store",
+      "alternateName": "Балама RuStore дүкені",
+      "url": "https://wystore.ru/kk/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Android 9.0+",
+      "softwareVersion": "0.2.1",
+      "downloadUrl": "https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk",
+      "license": "https://github.com/wyrtensi/wystore/blob/main/LICENSE",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB" },
+      "image": "https://wystore.ru/assets/img/icon-512.png",
+      "screenshot": "https://wystore.ru/assets/img/shots/ru-home.webp",
+      "author": { "@type": "Person", "name": "wyrtensi", "url": "https://github.com/wyrtensi" },
+      "sameAs": "https://github.com/wyrtensi/wystore"
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<canvas id="warp" aria-hidden="true"></canvas>
+
+<header class="masthead">
+  <nav class="nav" aria-label="Сілтемелер">
+    <a href="https://github.com/wyrtensi/wystore">GitHub</a>
+    <details class="lang">
+      <summary>Қазақша</summary>
+      <ul>
+        <li><a href="../" hreflang="ru">Русский</a></li>
+        <li><a href="../en/" hreflang="en">English</a></li>
+        <li><a href="../uk/" hreflang="uk">Українська</a></li>
+        <li><a href="../be/" hreflang="be">Беларуская</a></li>
+        <li><a href="../uz/" hreflang="uz">Oʻzbekcha</a></li>
+        <li><a href="../lv/" hreflang="lv">Latviešu</a></li>
+        <li><a href="../zh/" hreflang="zh">简体中文</a></li>
+      </ul>
+    </details>
+  </nav>
+</header>
+
+<main class="stage" id="deck">
+
+  <div class="pane">
+
+    <section class="scene is-on" id="hero" tabindex="-1" data-screen="home" aria-hidden="true">
+      <p class="brandline" style="--i:0"><img src="../assets/img/icon-192.webp" width="192" height="192" alt="">Wy&nbsp;Store</p>
+      <h1 style="--i:1">Әдеттегі ресейлік қолданбалар — ал не орнатқаныңызды <em>ешкім бақыламайды</em></h1>
+      <p style="--i:2">
+        RuStore-дағы сол қолданбалар, оған қоса GitHub релиздері. Wy&nbsp;Store оларды өзі жүктеп
+        алып, Android-тың жүйелік орнатқышы арқылы өзі орнатады. Аккаунт қажет емес — RuStore аккаунты
+        да, басқа ешқандайы да.
+      </p>
+      <p class="cta" style="--i:3">
+        <a class="btn" data-download href="https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
+          APK жүктеп алу
+        </a>
+        <button class="link" type="button" data-go="next">Бұл қалай жұмыс істейді</button>
+        <img class="badge" fetchpriority="low" decoding="async" alt="GitHub-тан жүктеп алу саны" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=%D0%B6%D2%AF%D0%BA%D1%82%D0%B5%D1%83%D0%BB%D0%B5%D1%80&amp;labelColor=1b1b1b&amp;color=8aacff">
+      </p>
+      <p class="small" style="--i:4">Android 9.0 және одан жаңа · шамамен 9 МБ · ашық бастапқы код, MIT лицензиясы</p>
+    </section>
+
+    <section class="scene" id="search" tabindex="-1" data-screen="search" aria-hidden="true">
+      <h2 style="--i:0">RuStore каталогынан іздеу</h2>
+      <p style="--i:1">
+        Атауы, банкі, әзірлеушісі немесе package name бойынша іздеңіз. Карточкада — рейтингі, бөлімі
+        және күйі: орнатылған, жаңартуы бар немесе телефонда әлі жоқ. Каталог пен APK тікелей
+        RuStore-дан сұралады: Wy&nbsp;Store оның клиентін орнатпайды және өз серверін ұстамайды.
+      </p>
+      <p style="--i:2">
+        Тегін қолданбаларға қолдау көрсетіледі. Ақылы қолданбалар мен қолданба ішіндегі сатып
+        алулар ресми клиенттің еншісінде қалады.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Артқа</button>
+        <button class="link" type="button" data-go="next">Әрі қарай →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="github" tabindex="-1" data-screen="github" aria-hidden="true">
+      <h2 style="--i:0">Екінші дереккөз — GitHub</h2>
+      <p style="--i:1">
+        RuStore-да жоқ ашық бастапқы кодты жобалардың релиздері: Droid-ify, Neo Store, Syncthing,
+        Ente Photos, Stratum және басқалары. Тікелей релиздерден орнатылады, әр карточкада дереккөзі
+        жазылған.
+      </p>
+      <p style="--i:2">
+        Өз ашық репозиторийіңізді сілтеме арқылы қосуға болады. Релиз ережелер бойынша таңдалады:
+        nightly-тегтер мен жарамды APK-сы жоқ релиздер өткізіліп жіберіледі.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Артқа</button>
+        <button class="link" type="button" data-go="next">Әрі қарай →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="app" tabindex="-1" data-screen="app" aria-hidden="true">
+      <h2 style="--i:0">RuStore-дағы сол файлдар</h2>
+      <p style="--i:1">
+        Wy&nbsp;Store әзірлеушілердің өздері RuStore-ға жариялаған қолданбаларды дәл сол күйінде
+        орнатады — өзгеріссіз және делдалсыз. Файл RuStore серверлерінен келеді, ал орнатар алдында
+        Wy&nbsp;Store оның нақ сол файл екенін тексереді: әзірлеушінің қолтаңбасы мен нұсқасы
+        карточкадағымен сәйкес келеді.
+      </p>
+      <p style="--i:2">
+        Карточкада — нұсқасы, өлшемі, қажетті Android, рейтингі және жүктеп алу саны, RuStore-дағыдай.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Артқа</button>
+        <button class="link" type="button" data-go="next">Әрі қарай →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="updates" tabindex="-1" data-screen="updates" aria-hidden="true">
+      <h2 style="--i:0">Фонда жаңарады</h2>
+      <p style="--i:1">
+        Wy&nbsp;Store жаңартуларды кесте бойынша тексеріп, оларды өзі жүктеп алады. Одан әрі не болатыны
+        телефонға байланысты: кейбірінде жүйе жаңартуларды сұрақсыз орнатады, кейбірінде — растауды
+        сұрайды. Сіздің қатысуыңыз мүмкіндігінше аз керек болуына тырысамыз, бірақ мұны әр құрылғыда
+        уәде ете алмаймыз.
+      </p>
+      <table class="tbl" style="--i:2">
+        <caption class="vh">Әдетте бұл қалай болады</caption>
+        <tbody>
+          <tr><th scope="row">Android 12 және одан жаңа</th><td>әдетте сұрақсыз — Wy&nbsp;Store орнатқан қолданбалар үшін</td></tr>
+          <tr><th scope="row">Android 9, 10, 11</th><td>жүйе растауды сұрайды — кез келген дүкенде солай</td></tr>
+          <tr><th scope="row">Алғашқы орнату</th><td>әрқашан растаумен</td></tr>
+          <tr><th scope="row">Root болса</th><td>қолдау көрсетіледі: бәрі үнсіз, фонда, хабарландырусыз орнатылады — параметрлерде қосылады</td></tr>
+        </tbody>
+      </table>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Артқа</button>
+        <button class="link" type="button" data-go="next">Әрі қарай →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="library" tabindex="-1" data-screen="library" aria-hidden="true">
+      <h2 style="--i:0">Менің қолданбаларым</h2>
+      <p style="--i:1">
+        Орнатылғанның бәрі, дереккөз бойынша сүзгілермен: Wy&nbsp;Store, GitHub, RuStore. Алдымен
+        Wy&nbsp;Store өзі орнатқан немесе жаңартқан қолданбалар тұрады. Жаңарту мен жою — осы
+        тізімнен, «Тексеру және орнату» — бір батырмамен.
+      </p>
+      <p style="--i:2">
+        Wy&nbsp;Store Google&nbsp;Play-ден орнатылған қолданбаларға тимейді — нақты қолданба үшін
+        мұны өзіңіз қоспайынша.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Артқа</button>
+        <button class="link" type="button" data-go="next">Әрі қарай →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="privacy" tabindex="-1" aria-hidden="true">
+      <ul class="nos">
+        <li>Аккаунт <span>жоқ</span>.</li>
+        <li>Аналитика <span>жоқ</span>.</li>
+        <li>Жарнама <span>жоқ</span>.</li>
+        <li>Деректеріңіз <span>жоқ</span>.</li>
+      </ul>
+      <p style="--i:5">
+        Wy&nbsp;Store сіз туралы ештеңе жинамайды және ешқайда жібермейді. Қолданба тек RuStore мен
+        GitHub-қа ғана жүгінеді — каталог пен файлдар үшін. Қалғанының бәрі телефонда қалады.
+        <a href="https://github.com/wyrtensi/wystore/blob/main/PRIVACY.md">Саясаттың толық мәтіні</a>.
+      </p>
+      <p class="nav-links" style="--i:6">
+        <button class="link" type="button" data-go="prev">← Артқа</button>
+        <button class="link" type="button" data-go="next">Орнату →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="install" tabindex="-1" aria-hidden="true">
+      <h2 style="--i:0">Орнату</h2>
+      <p class="cta" style="--i:1">
+        <a class="btn btn-xl" data-download href="https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
+          APK жүктеп алу
+        </a>
+        <img class="badge" fetchpriority="low" decoding="async" alt="GitHub-тан жүктеп алу саны" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=%D0%B6%D2%AF%D0%BA%D1%82%D0%B5%D1%83%D0%BB%D0%B5%D1%80&amp;labelColor=1b1b1b&amp;color=8aacff">
+      </p>
+      <ol class="steps" style="--i:2">
+        <li>Жүктеп алынған <code>wystore.apk</code> файлын ашыңыз.</li>
+        <li>Android осы дереккөзден орнатуға рұқсатты бір рет сұрайды.</li>
+        <li>Әрі қарай Wy&nbsp;Store өзін өзі жаңартады — ол репозиторийдегі релиздерді қадағалайды.</li>
+      </ol>
+      <figure class="warn" style="--i:3">
+        <img decoding="async" data-src="../assets/img/play-protect-ru.webp" width="520" height="891" alt="Google Play Protect терезесі: «Күдікті қолданба бұғатталды», төменде «Бәрібір орнату» сілтемесі">
+        <figcaption>
+          <strong>Мұндай терезе шығуы мүмкін.</strong> Google Play Protect Google&nbsp;Play-де жоқ
+          кез келген қолданба туралы ескертеді: Wy&nbsp;Store — ашық жоба, Google-да ол туралы
+          мәлімет жоқ, ал файл браузерден немесе мессенджерден келеді. «Бәрібір орнату» дегенді
+          басыңыз.
+        </figcaption>
+      </figure>
+      <p class="fine" style="--i:4">
+        Wy&nbsp;Store-дың барлық нұсқасы әзірлеушінің бір кілтімен қол қойылған, сондықтан Android
+        жаңарту кезінде қолданбаны бөгде жинақпен алмастыруға жол бермейді. Қолтаңбаны қолмен қалай
+        тексеруге болатыны — <a href="https://github.com/wyrtensi/wystore/blob/main/SECURITY.md">қауіпсіздік сипаттамасында</a>.
+      </p>
+      <nav class="links" style="--i:5" aria-label="Жоба сілтемелері">
+        <a href="https://github.com/wyrtensi/wystore">Бастапқы код</a>
+        <a href="https://github.com/wyrtensi/wystore/releases">Релиздер</a>
+        <a href="https://github.com/wyrtensi/wystore/blob/main/CHANGELOG.md">Өзгерістер</a>
+        <a href="https://github.com/wyrtensi/wystore/blob/main/DISCLAIMER.md">Жоба туралы</a>
+        <a href="https://t.me/+_YytpJdDHgQ4OTYy">Telegram</a>
+      </nav>
+      <p class="nav-links" style="--i:6">
+        <button class="link" type="button" data-go="hero">↑ Басына</button>
+      </p>
+      <p class="fine" style="--i:7">
+        Wy&nbsp;Store RuStore-мен байланысты емес және оның атынан әрекет етпейді: RuStore мұнда —
+        деректер көзі.
+      </p>
+    </section>
+
+  </div>
+
+  <div class="stagepane" aria-hidden="true">
+    <div class="phone">
+      <div class="screen">
+        <img class="scr is-on" data-name="home" src="../assets/img/shots/ru-home.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="search" data-src="../assets/img/shots/ru-search.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="github" data-src="../assets/img/shots/ru-github.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="app" data-src="../assets/img/shots/ru-app.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="updates" data-src="../assets/img/shots/ru-updates.webp" width="560" height="1110" alt="">
+        <img class="scr" decoding="async" data-name="library" data-src="../assets/img/shots/ru-library.webp" width="560" height="1110" alt="">
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="../assets/app.js" defer></script>
+
+</body>
+</html>

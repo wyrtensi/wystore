@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="lv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wy Store — Krievijas lietotnes, un neviens neseko, ko jūs instalējat</title>
+<meta name="description" content="Alternatīvs RuStore klients Android ierīcēm: tās pašas lietotnes, kas RuStore, plus laidieni no GitHub. Bez konta, bez izsekošanas, bez reklāmas. Atvērtais pirmkods, MIT.">
+<meta name="keywords" content="Wy Store, alternatīvs RuStore klients, RuStore bez konta, Krievijas lietotnes, APK, Android">
+<link rel="canonical" href="https://wystore.ru/lv/">
+<link rel="alternate" hreflang="ru" href="https://wystore.ru/">
+<link rel="alternate" hreflang="en" href="https://wystore.ru/en/">
+<link rel="alternate" hreflang="uk" href="https://wystore.ru/uk/">
+<link rel="alternate" hreflang="be" href="https://wystore.ru/be/">
+<link rel="alternate" hreflang="kk" href="https://wystore.ru/kk/">
+<link rel="alternate" hreflang="uz" href="https://wystore.ru/uz/">
+<link rel="alternate" hreflang="lv" href="https://wystore.ru/lv/">
+<link rel="alternate" hreflang="zh" href="https://wystore.ru/zh/">
+<link rel="alternate" hreflang="x-default" href="https://wystore.ru/">
+<meta name="theme-color" content="#0e0e0e">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="lv_LV">
+<meta property="og:site_name" content="Wy Store">
+<meta property="og:title" content="Wy Store — Krievijas lietotnes, un neviens neseko, ko jūs instalējat">
+<meta property="og:description" content="Alternatīvs RuStore klients: tās pašas lietotnes, plus laidieni no GitHub. Bez konta, bez izsekošanas, bez reklāmas.">
+<meta property="og:url" content="https://wystore.ru/lv/">
+<meta property="og:image" content="https://wystore.ru/assets/img/og-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../assets/img/favicon-32.png" sizes="32x32">
+<link rel="icon" href="../assets/img/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="../assets/img/icon-180.png">
+<link rel="preload" href="../assets/fonts/plex-sans-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/fonts/plex-sans-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="../assets/img/shots/en-home.webp" as="image">
+<link rel="preload" href="../assets/app.js" as="script">
+<script>document.documentElement.className += " js";</script>
+<link rel="stylesheet" href="../assets/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://wystore.ru/lv/#website",
+      "url": "https://wystore.ru/lv/",
+      "name": "Wy Store",
+      "alternateName": "Alternatīvs RuStore klients",
+      "description": "Alternatīvs RuStore klients Android ierīcēm: tās pašas lietotnes, kas RuStore, plus laidieni no GitHub. Bez konta, bez izsekošanas, bez reklāmas.",
+      "inLanguage": "lv"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://wystore.ru/#app",
+      "name": "Wy Store",
+      "alternateName": "Alternatīvs RuStore klients",
+      "url": "https://wystore.ru/lv/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Android 9.0+",
+      "softwareVersion": "0.2.1",
+      "downloadUrl": "https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk",
+      "license": "https://github.com/wyrtensi/wystore/blob/main/LICENSE",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB" },
+      "image": "https://wystore.ru/assets/img/icon-512.png",
+      "screenshot": "https://wystore.ru/assets/img/shots/en-home.webp",
+      "author": { "@type": "Person", "name": "wyrtensi", "url": "https://github.com/wyrtensi" },
+      "sameAs": "https://github.com/wyrtensi/wystore"
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<canvas id="warp" aria-hidden="true"></canvas>
+
+<header class="masthead">
+  <nav class="nav" aria-label="Saites">
+    <a href="https://github.com/wyrtensi/wystore">GitHub</a>
+    <details class="lang">
+      <summary>Latviešu</summary>
+      <ul>
+        <li><a href="../" hreflang="ru">Русский</a></li>
+        <li><a href="../en/" hreflang="en">English</a></li>
+        <li><a href="../uk/" hreflang="uk">Українська</a></li>
+        <li><a href="../be/" hreflang="be">Беларуская</a></li>
+        <li><a href="../kk/" hreflang="kk">Қазақша</a></li>
+        <li><a href="../uz/" hreflang="uz">Oʻzbekcha</a></li>
+        <li><a href="../zh/" hreflang="zh">简体中文</a></li>
+      </ul>
+    </details>
+  </nav>
+</header>
+
+<main class="stage" id="deck">
+
+  <div class="pane">
+
+    <section class="scene is-on" id="hero" tabindex="-1" data-screen="home" aria-hidden="true">
+      <p class="brandline" style="--i:0"><img src="../assets/img/icon-192.webp" width="192" height="192" alt="">Wy&nbsp;Store</p>
+      <h1 style="--i:1">Pazīstamās Krievijas lietotnes — un <em>neviens neseko</em>, ko jūs instalējat</h1>
+      <p style="--i:2">
+        Tās pašas lietotnes, kas RuStore, plus laidieni no GitHub. Wy&nbsp;Store tās lejupielādē un
+        instalē pats, izmantojot Android sistēmas pakotņu instalētāju. Konts nav vajadzīgs — ne
+        RuStore, ne kur citur.
+      </p>
+      <p class="cta" style="--i:3">
+        <a class="btn" data-download href="https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
+          Lejupielādēt APK
+        </a>
+        <button class="link" type="button" data-go="next">Kā tas darbojas</button>
+        <img class="badge" fetchpriority="low" decoding="async" alt="GitHub lejupielāžu skaits" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
+      </p>
+      <p class="small" style="--i:4">Android 9.0 un jaunāks · aptuveni 9 MB · atvērtais pirmkods, MIT licence</p>
+    </section>
+
+    <section class="scene" id="github" tabindex="-1" aria-hidden="true">
+      <h2 style="--i:0">Otrs avots — GitHub</h2>
+      <p style="--i:1">
+        Atvērtā pirmkoda projektu laidieni, kuru RuStore nav — Droid-ify, Neo Store, Syncthing,
+        Ente Photos, Stratum un citi — tiek instalēti tieši no to laidieniem, un katram ierakstam
+        ir norādīts avots.
+      </p>
+      <p style="--i:2">
+        Jebkuru publisku repozitoriju var pievienot ar saiti. Laidiens tiek izvēlēts pēc
+        noteikumiem: nightly tagi un laidieni bez derīga APK tiek izlaisti. Pats katalogs ir domāts
+        lietotājiem Krievijā, tāpēc lielākā tā daļa ir krievu valodā; saskarne runā visās
+        valodās, kas ir izvēlnē augšpusē.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Atpakaļ</button>
+        <button class="link" type="button" data-go="next">Tālāk →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="app" tabindex="-1" data-screen="app" aria-hidden="true">
+      <h2 style="--i:0">Tie paši faili, kas RuStore</h2>
+      <p style="--i:1">
+        Wy&nbsp;Store instalē tieši tās lietotnes, ko izstrādātāji paši ir publicējuši RuStore, —
+        nemainītas un bez starpniekiem. Fails nāk no RuStore serveriem, un pirms instalēšanas
+        Wy&nbsp;Store pārliecinās, ka tas ir tas pats: izstrādātāja paraksts un versija sakrīt ar
+        ierakstu katalogā.
+      </p>
+      <p style="--i:2">
+        Lapā redzama versija, izmērs, nepieciešamā Android versija, vērtējums un lejupielāžu
+        skaits — tāpat kā RuStore.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Atpakaļ</button>
+        <button class="link" type="button" data-go="next">Tālāk →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="updates" tabindex="-1" data-screen="home" aria-hidden="true">
+      <h2 style="--i:0">Atjauninās fonā</h2>
+      <p style="--i:1">
+        Wy&nbsp;Store pēc grafika pārbauda atjauninājumus un lejupielādē tos pats. Kas notiek
+        tālāk, atkarīgs no telefona: dažās Android versijās atjauninājumi tiek instalēti bez
+        jautājumiem, citās sistēma lūdz apstiprināt. Mēs cenšamies, lai jūsu līdzdalība būtu pēc
+        iespējas mazāka, bet apsolīt to katrā ierīcē nevar.
+      </p>
+      <table class="tbl" style="--i:2">
+        <caption class="vh">Kā tas parasti notiek</caption>
+        <tbody>
+          <tr><th scope="row">Android 12 un jaunāks</th><td>parasti bez jautājumiem — lietotnēm, ko instalējis Wy&nbsp;Store</td></tr>
+          <tr><th scope="row">Android 9, 10, 11</th><td>sistēma lūgs apstiprināt — tāpat kā jebkuram veikalam</td></tr>
+          <tr><th scope="row">Pirmā instalēšana</th><td>vienmēr ar apstiprinājumu</td></tr>
+          <tr><th scope="row">Ar root</th><td>atbalstīts: viss tiek instalēts klusi, fonā, bez paziņojumiem — ieslēdzams iestatījumos</td></tr>
+        </tbody>
+      </table>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Atpakaļ</button>
+        <button class="link" type="button" data-go="next">Tālāk →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="library" tabindex="-1" data-screen="library" aria-hidden="true">
+      <h2 style="--i:0">Bibliotēka</h2>
+      <p style="--i:1">
+        Viss instalētais ar filtriem pēc avota: Wy&nbsp;Store, GitHub, RuStore. Pirmās ir
+        lietotnes, ko Wy&nbsp;Store instalējis vai atjauninājis pats. Atjaunināt un atinstalēt var
+        no tā paša saraksta; „Pārbaudīt un instalēt“ izdara visu ar vienu pieskārienu.
+      </p>
+      <p style="--i:2">
+        Google&nbsp;Play lietotnes netiek aiztiktas, kamēr jūs to neieslēdzat konkrētai lietotnei.
+      </p>
+      <p class="nav-links" style="--i:3">
+        <button class="link" type="button" data-go="prev">← Atpakaļ</button>
+        <button class="link" type="button" data-go="next">Tālāk →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="privacy" tabindex="-1" aria-hidden="true">
+      <ul class="nos">
+        <li><span>Nav</span> konta.</li>
+        <li><span>Nav</span> analītikas.</li>
+        <li><span>Nav</span> reklāmas.</li>
+        <li><span>Nekādu</span> jūsu datu.</li>
+      </ul>
+      <p style="--i:5">
+        Wy&nbsp;Store neko par jums nevāc un nekur neko nesūta. Lietotne sazinās tikai ar RuStore
+        un GitHub — pēc kataloga un failiem. Viss pārējais paliek telefonā.
+        <a href="https://github.com/wyrtensi/wystore/blob/main/PRIVACY.md">Politika pilnā apjomā</a>.
+      </p>
+      <p class="nav-links" style="--i:6">
+        <button class="link" type="button" data-go="prev">← Atpakaļ</button>
+        <button class="link" type="button" data-go="next">Instalēt →</button>
+      </p>
+    </section>
+
+    <section class="scene" id="install" tabindex="-1" aria-hidden="true">
+      <h2 style="--i:0">Instalēt</h2>
+      <p class="cta" style="--i:1">
+        <a class="btn btn-xl" data-download href="https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8v8.4M4.6 6.9 8 10.3l3.4-3.4M2.4 13.2h11.2"/></svg>
+          Lejupielādēt APK
+        </a>
+        <img class="badge" fetchpriority="low" decoding="async" alt="GitHub lejupielāžu skaits" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
+      </p>
+      <ol class="steps" style="--i:2">
+        <li>Atveriet lejupielādēto <code>wystore.apk</code>.</li>
+        <li>Android vienu reizi palūgs atļauju instalēt no šī avota.</li>
+        <li>Turpmāk Wy&nbsp;Store atjaunina sevi pats — tas seko laidieniem savā repozitorijā.</li>
+      </ol>
+      <figure class="warn" style="--i:3">
+        <img decoding="async" data-src="../assets/img/play-protect-en.webp" width="520" height="677" alt="Google Play Protect logs: „Lietotne bloķēta, lai aizsargātu jūsu ierīci“, apakšā saite „Tomēr instalēt“">
+        <figcaption>
+          <strong>Var parādīties šāds logs.</strong> Google Play Protect brīdina par jebkuru
+          lietotni, kuras nav Google&nbsp;Play: Wy&nbsp;Store ir atvērtā pirmkoda projekts, par ko
+          Google neko nezina, un fails nāk no pārlūka vai ziņojumapmaiņas lietotnes. Pieskarieties
+          „Tomēr instalēt“.
+        </figcaption>
+      </figure>
+      <p class="fine" style="--i:4">
+        Katra Wy&nbsp;Store versija ir parakstīta ar vienu un to pašu izstrādātāja atslēgu, un
+        Android neļaus atjauninājumā aizstāt to ar kāda cita būvējumu. Kā pārbaudīt parakstu
+        manuāli, aprakstīts <a href="https://github.com/wyrtensi/wystore/blob/main/SECURITY.md">drošības piezīmēs</a>.
+      </p>
+      <nav class="links" style="--i:5" aria-label="Projekta saites">
+        <a href="https://github.com/wyrtensi/wystore">Pirmkods</a>
+        <a href="https://github.com/wyrtensi/wystore/releases">Laidieni</a>
+        <a href="https://github.com/wyrtensi/wystore/blob/main/CHANGELOG.md">Izmaiņas</a>
+        <a href="https://github.com/wyrtensi/wystore/blob/main/DISCLAIMER.md">Par projektu</a>
+        <a href="https://t.me/+_YytpJdDHgQ4OTYy">Telegram</a>
+      </nav>
+      <p class="nav-links" style="--i:6">
+        <button class="link" type="button" data-go="hero">↑ Uz sākumu</button>
+      </p>
+      <p class="fine" style="--i:7">
+        Wy&nbsp;Store nav saistīts ar RuStore un nerīkojas tā vārdā: RuStore šeit ir datu avots.
+        Tiek atbalstītas bezmaksas lietotnes.
+      </p>
+    </section>
+
+  </div>
+
+  <div class="stagepane" aria-hidden="true">
+    <div class="phone" style="--shot: 560 / 1201">
+      <div class="screen">
+        <img class="scr is-on" data-name="home" src="../assets/img/shots/en-home.webp" width="560" height="1201" alt="">
+        <img class="scr" decoding="async" data-name="app" data-src="../assets/img/shots/en-app.webp" width="560" height="1201" alt="">
+        <img class="scr" decoding="async" data-name="library" data-src="../assets/img/shots/en-library.webp" width="560" height="1201" alt="">
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="../assets/app.js" defer></script>
+
+</body>
+</html>
