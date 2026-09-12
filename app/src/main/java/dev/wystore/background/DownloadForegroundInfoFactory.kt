@@ -29,6 +29,14 @@ object DownloadForegroundInfoFactory {
             context.getString(R.string.notif_downloading_indeterminate)
         }
 
+        // The channel has to exist before the notification is handed to anyone. Android 15
+        // validates it when a user-initiated job publishes one and kills the process if it is
+        // missing - and the throw arrives asynchronously, on the binder callback, where no
+        // try/catch around this code can catch it. It is missing whenever nothing has built a
+        // NotificationCoordinator in this process yet, which is exactly the case when a job or a
+        // worker starts one cold.
+        NotificationCoordinator.ensureChannels(context)
+
         val notification = NotificationCompat.Builder(context, NotificationCoordinator.CHANNEL_TRANSFERS)
             .setSmallIcon(R.drawable.ic_stat_wystore)
             // The same face as the progress notification this one is replaced by, so the entry does

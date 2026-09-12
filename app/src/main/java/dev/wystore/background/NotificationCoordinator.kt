@@ -339,53 +339,88 @@ class NotificationCoordinator(
     }
 
     private fun createChannels() {
-        run {
-            notificationManager.createNotificationChannelGroup(
-                NotificationChannelGroup(GROUP_UPDATES, appContext.getString(R.string.channel_group_updates))
-            )
-            // Importance is fixed when a channel is first created and the system ignores later
-            // changes, so the rebalanced channels carry new ids and the originals are removed.
-            LEGACY_CHANNELS.forEach { runCatching { notificationManager.deleteNotificationChannel(it) } }
-            val channels = listOf(
-                channel(
-                    CHANNEL_CHECKS,
-                    R.string.channel_checks,
-                    R.string.channel_checks_description,
-                    NotificationManager.IMPORTANCE_MIN
-                ),
-                channel(
-                    CHANNEL_TRANSFERS,
-                    R.string.channel_transfers,
-                    R.string.channel_transfers_description,
-                    NotificationManager.IMPORTANCE_LOW
-                ),
-                channel(
-                    CHANNEL_READY,
-                    R.string.channel_ready,
-                    R.string.channel_ready_description,
-                    NotificationManager.IMPORTANCE_DEFAULT
-                ),
-                // Errors are the one thing worth interrupting for, but not with a full-screen
-                // heads-up: DEFAULT rather than HIGH.
-                channel(
-                    CHANNEL_ERRORS,
-                    R.string.channel_errors,
-                    R.string.channel_errors_description,
-                    NotificationManager.IMPORTANCE_DEFAULT
-                )
-            )
-            notificationManager.createNotificationChannels(channels)
-        }
+        ensureChannels(appContext)
     }
 
-    private fun channel(id: String, nameRes: Int, descriptionRes: Int, importance: Int) =
-        NotificationChannel(id, appContext.getString(nameRes), importance).apply {
+    companion object {
+
+        /**
+         * Creates the channels this app posts to, from anywhere, without building a coordinator.
+         *
+         * They used to exist only as a side effect of constructing [NotificationCoordinator], and
+         * a notification can be built without one: the download notification is assembled straight
+         * from [DownloadForegroundInfoFactory], by a worker or by a job, in a process where no
+         * coordinator has been made yet. Android 15 validates the channel when a user-initiated
+         * job publishes its notification and kills the process when it is missing - from the
+         * binder callback, so nothing around the call site can catch it.
+         *
+         * Cheap to call repeatedly: creating a channel that already exists leaves it alone.
+         */
+        fun ensureChannels(context: Context) {
+            val appContext = context.applicationContext
+            val notificationManager =
+                appContext.getSystemService(NotificationManager::class.java) ?: return
+            runCatching {
+                notificationManager.createNotificationChannelGroup(
+                    NotificationChannelGroup(
+                        GROUP_UPDATES,
+                        appContext.getString(R.string.channel_group_updates)
+                    )
+                )
+                // Importance is fixed when a channel is first created and the system ignores later
+                // changes, so the rebalanced channels carry new ids and the originals are removed.
+                LEGACY_CHANNELS.forEach {
+                    runCatching { notificationManager.deleteNotificationChannel(it) }
+                }
+                notificationManager.createNotificationChannels(
+                    listOf(
+                        channel(
+                            appContext,
+                            CHANNEL_CHECKS,
+                            R.string.channel_checks,
+                            R.string.channel_checks_description,
+                            NotificationManager.IMPORTANCE_MIN
+                        ),
+                        channel(
+                            appContext,
+                            CHANNEL_TRANSFERS,
+                            R.string.channel_transfers,
+                            R.string.channel_transfers_description,
+                            NotificationManager.IMPORTANCE_LOW
+                        ),
+                        channel(
+                            appContext,
+                            CHANNEL_READY,
+                            R.string.channel_ready,
+                            R.string.channel_ready_description,
+                            NotificationManager.IMPORTANCE_DEFAULT
+                        ),
+                        // Errors are the one thing worth interrupting for, but not with a
+                        // full-screen heads-up: DEFAULT rather than HIGH.
+                        channel(
+                            appContext,
+                            CHANNEL_ERRORS,
+                            R.string.channel_errors,
+                            R.string.channel_errors_description,
+                            NotificationManager.IMPORTANCE_DEFAULT
+                        )
+                    )
+                )
+            }
+        }
+
+        private fun channel(
+            appContext: Context,
+            id: String,
+            nameRes: Int,
+            descriptionRes: Int,
+            importance: Int
+        ) = NotificationChannel(id, appContext.getString(nameRes), importance).apply {
             description = appContext.getString(descriptionRes)
             group = GROUP_UPDATES
             setShowBadge(id == CHANNEL_READY || id == CHANNEL_ERRORS)
         }
 
-    companion object {
         const val CHANNEL_CHECKS = "wy_store_update_checks_v2"
         const val CHANNEL_TRANSFERS = "wy_store_active_transfers_v2"
         const val CHANNEL_READY = "wy_store_ready_updates_v2"
