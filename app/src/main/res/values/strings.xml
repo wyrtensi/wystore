@@ -354,7 +354,7 @@
     <string name="install_queue_waiting">Install queue: %1$d more waiting</string>
     <string name="check_problem_not_in_source">%1$s — RuStore does not carry this app, there is nothing to update it from</string>
     <string name="check_problem_unreachable">%1$s — the source did not answer, could not check</string>
-    <string name="check_problem_signature">%1$s — its signature is not the one the source states: an update from here cannot install over it, only a reinstall can</string>
+    <string name="check_problem_signature">%1$s — its signature is not the one the source states. Open the app\'s page</string>
     <string name="check_problem_more">…and %1$d more</string>
     <string name="updates_install_all">Install all</string>
     <string name="updates_ready_title">Ready to install (%1$d)</string>

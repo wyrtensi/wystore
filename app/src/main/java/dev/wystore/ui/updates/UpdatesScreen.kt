@@ -1,5 +1,6 @@
 package dev.wystore.ui.updates
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
@@ -92,6 +93,8 @@ fun UpdatesScreen(
     /** Opens the "the source, not you" dialog for a failure nothing on this phone can fix. */
     onSourceFailureHelp: () -> Unit = {},
     onConfirmUnverifiedSource: (String) -> Unit = {},
+    /** Opens an app's page by package name, for a check problem that has to be answered there. */
+    onOpenPackage: (String) -> Unit = {},
     /** Stops a running transfer and keeps the bytes it has. */
     onQueuePause: (String) -> Unit = {},
     /** Carries a paused transfer on from the bytes on disk. */
@@ -168,7 +171,7 @@ fun UpdatesScreen(
             }
 
             lastUpdateCheck?.let { summary ->
-                item { LastUpdateCheckCard(summary) }
+                item { LastUpdateCheckCard(summary, onOpenApp = onOpenPackage) }
             }
 
             if (actionableQueue.isNotEmpty()) {
@@ -330,7 +333,10 @@ fun PendingUpdateCard(
 }
 
 @Composable
-fun LastUpdateCheckCard(summary: UpdateCheckSummary) {
+fun LastUpdateCheckCard(
+    summary: UpdateCheckSummary,
+    onOpenApp: (String) -> Unit = {}
+) {
     WyCard(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
@@ -359,6 +365,10 @@ fun LastUpdateCheckCard(summary: UpdateCheckSummary) {
             // be reached just now or cannot be updated from here at all - those are different
             // problems with different answers, and the card used to give the same number to both.
             summary.problemApps.take(PROBLEMS_SHOWN).forEach { problem ->
+                // A signature the source does not vouch for is answered on the app's page and
+                // nowhere else, so the line that reports it leads there. Naming a problem the
+                // screen gives no way to act on is how an app quietly stops updating.
+                val answerable = problem.reason == CheckProblemReason.SIGNATURE_CHANGED
                 Text(
                     stringResource(
                         when (problem.reason) {
@@ -368,6 +378,14 @@ fun LastUpdateCheckCard(summary: UpdateCheckSummary) {
                         },
                         problem.label
                     ),
+                    modifier = if (answerable) {
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenApp(problem.packageName) }
+                            .padding(vertical = 4.dp)
+                    } else {
+                        Modifier
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
                 )

@@ -354,7 +354,7 @@
     <string name="install_queue_waiting">Очередь на установку: ещё %1$d</string>
     <string name="check_problem_not_in_source">%1$s — этого приложения нет в RuStore, обновлять его неоткуда</string>
     <string name="check_problem_unreachable">%1$s — источник не ответил, проверить не удалось</string>
-    <string name="check_problem_signature">%1$s — подпись не та, которую заявляет источник: обновление отсюда не встанет поверх, поможет только переустановка</string>
+    <string name="check_problem_signature">%1$s — подпись не совпадает с заявленной источником. Откройте карточку приложения</string>
     <string name="check_problem_more">…и ещё %1$d</string>
     <string name="updates_install_all">Установить все</string>
     <string name="updates_ready_title">Готовы к установке (%1$d)</string>

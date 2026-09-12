@@ -448,6 +448,7 @@ fun WyStoreRoot(
                         onQueueReplace = { queueReplaceDialog = it },
                         onSourceFailureHelp = { sourceFailureHelp = true },
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
+                        onOpenPackage = { packageName -> viewModel.openDetails(packageName) },
                         onQueuePause = viewModel::queuePause,
                         onQueueResume = viewModel::queueResume,
                         onStartQueue = viewModel::startQueue
