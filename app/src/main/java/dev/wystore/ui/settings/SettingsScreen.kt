@@ -23,10 +23,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TextButton
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -86,7 +88,12 @@ fun SettingsScreen(
     onInstallDownloadedSelfUpdate: () -> Unit = {},
     onCancelSelfUpdateDownload: (String) -> Unit = {}
 ) {
-    var subScreen by remember { mutableStateOf<SettingsSubScreen?>(null) }
+    var subScreen by rememberSaveable { mutableStateOf<SettingsSubScreen?>(null) }
+
+    // Back out of a sub-screen to the hub, not out of Settings altogether. These screens are local
+    // state rather than destinations, so the root handler saw only "not Home" and went there -
+    // opening Permissions and pressing back dropped the user on the home screen.
+    BackHandler(enabled = subScreen != null) { subScreen = null }
     var editedSettings by remember(settings) { mutableStateOf(settings) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current

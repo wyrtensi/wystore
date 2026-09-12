@@ -144,6 +144,9 @@
     <string name="search_field_placeholder">Поиск приложений и игр</string>
     <string name="search_clear">Очистить</string>
     <string name="search_action">Искать в RuStore</string>
+    <string name="search_sources_all">Оба</string>
+    <string name="search_sources_rustore">RuStore</string>
+    <string name="search_sources_github">GitHub</string>
     <string name="search_disclaimer">Каталог и APK запрашиваются напрямую у RuStore. Wy Store не устанавливает его клиент и не использует свой сервер.</string>
     <string name="search_results_count">Результаты: %1$d</string>
     <string name="search_quick_install">Быстро установить</string>
@@ -613,7 +616,7 @@
     <string name="review_edited">%1$s · изменён</string>
     <string name="review_votes">👍 %1$d · 👎 %2$d</string>
     <string name="review_anonymous_author">Пользователь RuStore</string>
-    <string name="details_reviews_count">Отзывы (%1$d)</string>
+    <string name="details_reviews_count">Последние %1$d отзывов</string>
     <string name="details_reviews_show_more">Показать ещё %1$d</string>
     <string name="details_reviews_loading">Загружаем отзывы…</string>
     <string name="details_reviews_load_all">Загрузить все отзывы</string>
@@ -637,6 +640,7 @@
     <string name="queue_download_now">Скачать сейчас</string>
     <string name="about_independent">Wy Store — независимый альтернативный клиент для каталога RuStore и релизов GitHub. Проект не связан с RuStore, не одобрен им и не действует от его имени.</string>
     <string name="about_disclaimer_link">Заявление о проекте и независимости</string>
+    <string name="about_issues_link">Сообщить о проблеме на GitHub</string>
     <string name="category_adsandservices">Объявления и услуги</string>
     <string name="category_books">Книги</string>
     <string name="category_business">Бизнес-сервисы</string>

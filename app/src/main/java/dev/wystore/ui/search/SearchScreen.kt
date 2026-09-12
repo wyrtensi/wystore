@@ -35,7 +35,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +58,7 @@ import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
 import dev.wystore.isInFlight
 import dev.wystore.R
+import dev.wystore.data.SearchSources
 import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.PendingUpdate
@@ -88,6 +91,10 @@ fun SearchScreen(
     pendingUpdates: List<PendingUpdate> = emptyList(),
     githubResults: List<GitHubCatalogEntry> = emptyList(),
     onOpenGitHubApp: (GitHubCatalogEntry) -> Unit = {},
+    sources: SearchSources = SearchSources.ALL,
+    onSourcesChange: (SearchSources) -> Unit = {},
+    /** Matches the bundled catalogue without asking RuStore anything; see [SearchSources]. */
+    onSearchLocal: (String) -> Unit = {},
     onSearch: (String) -> Unit,
     onLoadMore: () -> Unit = {},
     onOpen: (StoreApp) -> Unit,
@@ -100,7 +107,14 @@ fun SearchScreen(
         val requested = text.trim()
         if (requested.isNotEmpty() && !busy) onSearch(requested)
     }
-    val hasResults = apps.isNotEmpty() || githubResults.isNotEmpty()
+    // With RuStore out of the picture there is nothing to wait for and nothing to press: the
+    // bundled catalogue is already here, so the list follows the typing.
+    LaunchedEffect(text, sources) {
+        if (!sources.includesRuStore) onSearchLocal(text)
+    }
+    val visibleGitHub = if (sources.includesGitHub) githubResults else emptyList()
+    val visibleApps = if (sources.includesRuStore) apps else emptyList()
+    val hasResults = visibleApps.isNotEmpty() || visibleGitHub.isNotEmpty()
 
     Scaffold(
         modifier = modifier,
@@ -164,12 +178,33 @@ fun SearchScreen(
                             disabledIndicatorColor = Color.Transparent
                         )
                     )
-                    Button(
-                        onClick = runSearch,
-                        enabled = text.isNotBlank() && !busy,
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.search_action)) }
-                    DisclaimerNote(stringResource(R.string.search_disclaimer))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SearchSources.entries.forEach { option ->
+                            FilterChip(
+                                selected = sources == option,
+                                onClick = { onSourcesChange(option) },
+                                label = {
+                                    Text(
+                                        stringResource(
+                                            when (option) {
+                                                SearchSources.ALL -> R.string.search_sources_all
+                                                SearchSources.RUSTORE -> R.string.search_sources_rustore
+                                                SearchSources.GITHUB -> R.string.search_sources_github
+                                            }
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                    }
+                    if (sources.includesRuStore) {
+                        Button(
+                            onClick = runSearch,
+                            enabled = text.isNotBlank() && !busy,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text(stringResource(R.string.search_action)) }
+                        DisclaimerNote(stringResource(R.string.search_disclaimer))
+                    }
                 }
             }
 
@@ -195,24 +230,24 @@ fun SearchScreen(
 
             // GitHub entries come from a local catalogue, so they can be shown before the RuStore
             // request finishes rather than being hidden behind it.
-            if (githubResults.isNotEmpty()) {
+            if (visibleGitHub.isNotEmpty()) {
                 item {
                     SectionHeader(
                         title = stringResource(R.string.github_catalog_section),
                         subtitle = stringResource(R.string.github_catalog_hint)
                     )
                 }
-                items(githubResults, key = { "github:${it.slug}" }) { entry ->
+                items(visibleGitHub, key = { "github:${it.slug}" }) { entry ->
                     GitHubCatalogCard(entry = entry, onOpen = { onOpenGitHubApp(entry) })
                 }
             }
 
-            total?.let {
+            total?.takeIf { sources.includesRuStore }?.let {
                 item {
                     SectionHeader(title = stringResource(R.string.search_results_count, it))
                 }
             }
-            items(apps, key = { it.packageName }) { app ->
+            items(visibleApps, key = { it.packageName }) { app ->
                 SearchCard(
                     app = app,
                     installed = installed.firstOrNull { it.packageName == app.packageName },

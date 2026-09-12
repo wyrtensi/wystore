@@ -157,6 +157,16 @@ fun AboutSettingsScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(stringResource(R.string.about_disclaimer_link)) }
+                    OutlinedButton(
+                        onClick = {
+                            runCatching {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, SelfUpdateChecker.ISSUES_URL.toUri())
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(stringResource(R.string.about_issues_link)) }
                     WyDivider()
                     // The answers to the first three questions anyone asks about a bug - which
                     // Android, which device, is there root - plus what the queue actually did.

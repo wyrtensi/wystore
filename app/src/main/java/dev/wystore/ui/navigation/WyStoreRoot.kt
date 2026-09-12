@@ -354,6 +354,11 @@ fun WyStoreRoot(
                         onInstallPending = onInstallPending,
                         githubResults = state.githubSearchResults,
                         onOpenGitHubApp = viewModel::openGitHubApp,
+                        sources = state.settings.searchSources,
+                        onSourcesChange = { chosen ->
+                            viewModel.saveSettings(state.settings.copy(searchSources = chosen))
+                        },
+                        onSearchLocal = viewModel::searchLocal,
                         onSearch = viewModel::search,
                         onLoadMore = viewModel::searchMore,
                         onOpen = { app -> viewModel.openDetails(app.packageName) },

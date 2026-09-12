@@ -144,6 +144,9 @@
     <string name="search_field_placeholder">Search apps and games</string>
     <string name="search_clear">Clear</string>
     <string name="search_action">Search RuStore</string>
+    <string name="search_sources_all">Both</string>
+    <string name="search_sources_rustore">RuStore</string>
+    <string name="search_sources_github">GitHub</string>
     <string name="search_disclaimer">The catalog and APKs are requested from RuStore directly. Wy Store does not install its client and does not use a server of its own.</string>
     <string name="search_results_count">Results: %1$d</string>
     <string name="search_quick_install">Quick install</string>
@@ -613,7 +616,7 @@
     <string name="review_edited">%1$s · edited</string>
     <string name="review_votes">👍 %1$d · 👎 %2$d</string>
     <string name="review_anonymous_author">RuStore user</string>
-    <string name="details_reviews_count">Reviews (%1$d)</string>
+    <string name="details_reviews_count">Latest %1$d reviews</string>
     <string name="details_reviews_show_more">Show %1$d more</string>
     <string name="details_reviews_loading">Loading reviews…</string>
     <string name="details_reviews_load_all">Load all reviews</string>
@@ -637,6 +640,7 @@
     <string name="queue_download_now">Download now</string>
     <string name="about_independent">Wy Store is an independent alternative client for the RuStore catalogue and for GitHub releases. It is not affiliated with RuStore, not endorsed by it, and does not act on its behalf.</string>
     <string name="about_disclaimer_link">Project statement and independence</string>
+    <string name="about_issues_link">Report a problem on GitHub</string>
     <string name="category_adsandservices">Ads and services</string>
     <string name="category_books">Books</string>
     <string name="category_business">Business</string>

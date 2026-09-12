@@ -446,6 +446,31 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Matches the bundled GitHub catalogue and nothing else.
+     *
+     * For the source filter set to GitHub: those entries ship with the app, so there is no request
+     * to make and no button to press - results follow the typing. Any RuStore page still on screen
+     * from an earlier search is cleared, because it is no longer part of what was asked for.
+     */
+    fun searchLocal(query: String) {
+        val trimmed = query.trim()
+        searchJob?.cancel()
+        _state.update {
+            it.copy(
+                query = trimmed,
+                searching = false,
+                operation = null,
+                search = null,
+                githubSearchResults = if (trimmed.isBlank()) {
+                    emptyList()
+                } else {
+                    GitHubCatalog.search(trimmed, it.githubRepositories)
+                }
+            )
+        }
+    }
+
     /** Appends the next page of the current search. */
     fun searchMore() {
         val current = _state.value

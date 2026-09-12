@@ -32,6 +32,7 @@ internal object SettingsCodec {
     val KEY_ROOT_SILENT_INSTALL = booleanPreferencesKey("root_silent_install")
     val KEY_UPDATE_INTERVAL_HOURS = longPreferencesKey("interval_hours")
     val KEY_QUEUE_MODE = stringPreferencesKey("queue_mode")
+    val KEY_SEARCH_SOURCES = stringPreferencesKey("search_sources")
     val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
     val KEY_LANGUAGE = stringPreferencesKey("language")
     val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
@@ -98,6 +99,9 @@ internal object SettingsCodec {
             autoInstallNewApps = prefs[KEY_AUTO_INSTALL_NEW_APPS] ?: defaults.autoInstallNewApps,
             showExcludedUpdates = prefs[KEY_SHOW_EXCLUDED_UPDATES] ?: defaults.showExcludedUpdates,
             sourceCategories = prefs[KEY_SOURCE_CATEGORIES] ?: defaults.sourceCategories,
+            searchSources = prefs[KEY_SEARCH_SOURCES]?.let { raw ->
+                runCatching { dev.wystore.data.SearchSources.valueOf(raw) }.getOrNull()
+            } ?: defaults.searchSources,
             artifactRetentionDays = prefs[KEY_ARTIFACT_RETENTION_DAYS] ?: defaults.artifactRetentionDays,
             artifactStorageLimitMb = prefs[KEY_ARTIFACT_STORAGE_LIMIT_MB] ?: defaults.artifactStorageLimitMb
         )
@@ -155,6 +159,7 @@ internal object SettingsCodec {
         prefs.put(KEY_AUTO_INSTALL_NEW_APPS, updated.autoInstallNewApps, current.autoInstallNewApps)
         prefs.put(KEY_SHOW_EXCLUDED_UPDATES, updated.showExcludedUpdates, current.showExcludedUpdates)
         prefs.put(KEY_SOURCE_CATEGORIES, updated.sourceCategories, current.sourceCategories)
+        prefs.put(KEY_SEARCH_SOURCES, updated.searchSources.name, current.searchSources.name)
         prefs.put(
             KEY_ARTIFACT_RETENTION_DAYS,
             updated.artifactRetentionDays,

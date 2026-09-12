@@ -42,6 +42,7 @@ object DiagnosticsSettingsDump {
         "autoDownloadUpdates" to settings.autoDownloadUpdates.toString(),
         "sourceCategories" to settings.sourceCategories.toString(),
         "showExcludedUpdates" to settings.showExcludedUpdates.toString(),
+        "searchSources" to settings.searchSources.name,
         "autoInstallUpdates" to settings.autoInstallUpdates.toString(),
         "autoInstallNewApps" to settings.autoInstallNewApps.toString(),
         "artifactRetentionDays" to settings.artifactRetentionDays.toString(),

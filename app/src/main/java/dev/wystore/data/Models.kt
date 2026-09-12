@@ -199,6 +199,8 @@ data class StoreSettings(
      * hand - it is still never downloaded on its own, that is decided separately.
      */
     val showExcludedUpdates: Boolean = false,
+    /** Which catalogues the search screen looks in; remembered between launches. */
+    val searchSources: SearchSources = SearchSources.ALL,
     /** Hand a downloaded update straight to the installer instead of waiting for a tap. */
     val autoInstallUpdates: Boolean = true,
     /** The same for an app being installed for the first time. */
