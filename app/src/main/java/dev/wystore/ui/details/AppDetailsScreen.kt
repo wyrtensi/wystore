@@ -351,11 +351,22 @@ fun AppDetailsScreen(
                                             acceptedFingerprint = acceptedDigest
                                         )
                                         when (compatibility) {
-                                            SignatureCompatibility.MISMATCH -> Text(
-                                                stringResource(R.string.details_signature_incompatible),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.error
-                                            )
+                                            // The catalogue and the phone disagree, and that is
+                                            // visible here without fetching anything - so this is
+                                            // where it can be answered, rather than after a
+                                            // download that the check will not even start.
+                                            SignatureCompatibility.MISMATCH -> {
+                                                Text(
+                                                    stringResource(R.string.unverified_source_catalogue),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                                TextButton(
+                                                    onClick = { onConfirmUnverifiedSource(app.packageName) },
+                                                    enabled = !busy,
+                                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                                ) { Text(stringResource(R.string.unverified_source_force)) }
+                                            }
                                             // Not an error on this phone, and not red: the source
                                             // is the one contradicting itself.
                                             SignatureCompatibility.SOURCE_UNCONFIRMED -> Text(

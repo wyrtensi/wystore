@@ -114,6 +114,20 @@ class UnverifiedSourceStore(context: Context) {
     }
 
     /**
+     * The same answer given before anything was downloaded.
+     *
+     * An app that is already installed can be compared against the catalogue without fetching a
+     * thing, so the disagreement is visible - and answerable - on its page. What is accepted there
+     * is the signature the phone already carries: if the file the source serves turns out to carry
+     * another one, it is refused again and the question comes back, this time about the file.
+     */
+    fun accept(packageName: String, advertisedDigest: String?, archiveDigest: String?): Boolean {
+        val record = UnverifiedSourceConsent.record(advertisedDigest, archiveDigest) ?: return false
+        prefs.edit().putString(ACCEPTED + packageName, record).commit()
+        return true
+    }
+
+    /**
      * The signature the user accepted for this package against this advertised fingerprint, or null
      * when they have accepted nothing that applies to what the source is claiming now.
      */

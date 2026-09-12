@@ -594,7 +594,7 @@
     <string name="status_failed_storage">Недостаточно места</string>
     <string name="status_failed_signature">Несовпадение цифровой подписи</string>
     <string name="status_failed_generic">Ошибка установки</string>
-    <string name="unverified_source_status">RuStore не подтвердил подпись приложения. Скачать всё равно?</string>
+    <string name="unverified_source_status">RuStore не подтвердил подпись приложения в своём же каталоге. Скачать всё равно?</string>
     <string name="unverified_source_confirm">Подтвердить</string>
     <string name="unverified_source_title">RuStore не подтвердил приложение</string>
     <string name="unverified_source_body">RuStore заявляет для «%1$s» один отпечаток подписи, а выдал файл с другим. Чаще всего это устаревшая карточка в каталоге, но так же выглядит и подменённый файл. Отличить одно от другого Wy Store не может.</string>
@@ -604,6 +604,8 @@
     <string name="unverified_source_why_title">Почему так бывает</string>
     <string name="unverified_source_why">Разработчик перевыпустил приложение с новым ключом подписи, а карточка в каталоге осталась со старым отпечатком. RuStore пересобрал или переподписал файл и не обновил карточку. Данные в карточке просто устарели. Или файл по ссылке — не тот, что описан в карточке: это редкость, и отсюда она выглядит так же, как всё перечисленное, потому что сверять больше не с чем — только со словами самого источника.</string>
     <string name="unverified_source_why_open">Почему так бывает</string>
+    <string name="unverified_source_catalogue">RuStore не смог подтвердить подпись приложения в своём же каталоге: в карточке заявлен один отпечаток, а установленная копия несёт другой. Wy Store может скачать приложение принудительно — остальные проверки при установке остаются.</string>
+    <string name="unverified_source_force">Скачать принудительно</string>
     <string name="status_cancelled">Отменено</string>
     <string name="status_skipped">Пропущено</string>
     <string name="status_offer_next">Обновить следующее приложение</string>

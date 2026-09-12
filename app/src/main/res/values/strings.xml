@@ -594,7 +594,7 @@
     <string name="status_failed_storage">Storage is full</string>
     <string name="status_failed_signature">Signature mismatch</string>
     <string name="status_failed_generic">Installation failed</string>
-    <string name="unverified_source_status">RuStore did not confirm this app\'s signature. Download anyway?</string>
+    <string name="unverified_source_status">RuStore did not confirm this app\'s signature in its own catalogue. Download anyway?</string>
     <string name="unverified_source_confirm">Confirm</string>
     <string name="unverified_source_title">RuStore did not confirm this app</string>
     <string name="unverified_source_body">RuStore states one signing fingerprint for %1$s and served a file signed with another. Usually that means the catalogue entry is out of date; it can also mean the file is not the one the developer signed. Wy Store cannot tell the two apart.</string>
@@ -604,6 +604,8 @@
     <string name="unverified_source_why_title">Why this happens</string>
     <string name="unverified_source_why">A developer re-releases the app under a new signing key and the catalogue entry keeps the old fingerprint. RuStore rebuilds or re-signs the file and does not update the entry. The entry is simply out of date. Or the file behind the link is not the one the entry describes — rare, and indistinguishable from the rest from here, because the only thing there is to compare against is what the source itself says.</string>
     <string name="unverified_source_why_open">Why this happens</string>
+    <string name="unverified_source_catalogue">RuStore could not confirm this app\'s signature in its own catalogue: the entry states one fingerprint and the installed copy carries another. Wy Store can fetch the app anyway — everything else is still checked at install time.</string>
+    <string name="unverified_source_force">Download anyway</string>
     <string name="status_cancelled">Cancelled</string>
     <string name="status_skipped">Skipped</string>
     <string name="status_offer_next">Update next app in queue</string>

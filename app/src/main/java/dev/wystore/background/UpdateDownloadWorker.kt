@@ -294,6 +294,12 @@ class UpdateDownloadWorker(
                     // The one refusal that is a question rather than a verdict: both fingerprints
                     // are written down here so the row can ask about them and a later answer can
                     // name the file it was given for.
+                    // An answer given on the app's page says the installed copy is the file this
+                    // source serves. The file just proved otherwise, so the answer goes with it -
+                    // and the page stops repeating a claim the download disproved.
+                    if (verification.error == VerificationError.SIGNATURE_MISMATCH) {
+                        runCatching { UnverifiedSourceStore(context).clear(entity.packageName) }
+                    }
                     if (verification.error == VerificationError.SOURCE_FINGERPRINT_MISMATCH) {
                         runCatching {
                             UnverifiedSourceStore(context).rememberRefusal(

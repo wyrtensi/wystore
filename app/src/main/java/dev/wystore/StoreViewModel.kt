@@ -149,6 +149,20 @@ data class InstallQueueItem(
     val detail: String? = null
 )
 
+/**
+ * The question about a file the source would not vouch for, and where it was raised.
+ *
+ * A refused download names its row; an app already on the phone names the two fingerprints that
+ * disagree, because there is no row and nothing has been fetched yet.
+ */
+data class UnverifiedSourcePrompt(
+    val packageName: String,
+    val label: String,
+    val queueId: String? = null,
+    val advertisedDigest: String? = null,
+    val installedDigest: String? = null
+)
+
 data class UpdateCheckTask(
     val status: String,
     val detail: String? = null,
@@ -222,7 +236,7 @@ data class StoreUiState(
      * Held here rather than on a screen because the row it belongs to shows up on Home, Search,
      * the app page, the library and the queue, and the question is the same one everywhere.
      */
-    val unverifiedSource: InstallQueueItem? = null,
+    val unverifiedSource: UnverifiedSourcePrompt? = null,
     val installAllRemaining: List<String> = emptyList(),
     /** The app whose confirmation dialog is up, if the queue is working through a batch. */
     val installAllCurrent: String? = null,
@@ -1499,7 +1513,38 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     fun askAboutUnverifiedSource(packageName: String) {
         val row = _state.value.installQueue.firstOrNull { it.packageName == packageName } ?: return
         if (!UnverifiedSourceConsent.isAnswerable(row.errorCode, row.detail)) return
-        _state.update { it.copy(unverifiedSource = row) }
+        _state.update {
+            it.copy(
+                unverifiedSource = UnverifiedSourcePrompt(
+                    packageName = row.packageName,
+                    label = row.label.ifBlank { row.packageName },
+                    queueId = row.id
+                )
+            )
+        }
+    }
+
+    /**
+     * The same question, asked about an app that is already installed.
+     *
+     * Nothing has to be fetched to see this one: the source states the fingerprint in its catalogue
+     * and the phone knows the signature it installed under. The answer is what lets the app be
+     * fetched at all - without it the check skips this app for good, because an update that cannot
+     * install is not worth two hundred megabytes.
+     */
+    fun askAboutUnverifiedInstalled(packageName: String) {
+        val app = _state.value.selected?.takeIf { it.packageName == packageName } ?: return
+        val installed = _state.value.installed.firstOrNull { it.packageName == packageName } ?: return
+        _state.update {
+            it.copy(
+                unverifiedSource = UnverifiedSourcePrompt(
+                    packageName = packageName,
+                    label = app.name.ifBlank { packageName },
+                    advertisedDigest = app.signatureHint,
+                    installedDigest = installed.signingDigests.firstOrNull()
+                )
+            )
+        }
     }
 
     fun dismissUnverifiedSource() {
@@ -1514,16 +1559,25 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * [UnverifiedSourceStore].
      */
     fun confirmUnverifiedSource() {
-        val row = _state.value.unverifiedSource ?: return
+        val prompt = _state.value.unverifiedSource ?: return
         _state.update { it.copy(unverifiedSource = null) }
+        val store = UnverifiedSourceStore(getApplication())
+        val queueId = prompt.queueId
+        if (queueId == null) {
+            // Answered from the app's page, before anything was fetched: what is accepted is the
+            // signature the phone already carries, and the download is what the button promises.
+            store.accept(prompt.packageName, prompt.advertisedDigest, prompt.installedDigest)
+            quickInstall(prompt.packageName)
+            return
+        }
         viewModelScope.launch {
             runCatching {
                 // The refusal is written down where the file is refused, so a row that failed under
                 // a build that did not do that has nothing to accept yet. The download starts
                 // either way rather than leaving a button that does nothing: it is refused again,
                 // this time with both fingerprints recorded, and the question comes back answerable.
-                UnverifiedSourceStore(getApplication()).accept(row.packageName)
-                queueCoordinator.retry(row.id)
+                store.accept(prompt.packageName)
+                queueCoordinator.retry(queueId)
             }
         }
     }

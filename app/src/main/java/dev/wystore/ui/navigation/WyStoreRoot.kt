@@ -150,10 +150,10 @@ fun WyStoreRoot(
 
     // Asked at the root so the answer is the same one from Home, Search, the app page, the library
     // and the queue - every screen a failed row can appear on.
-    state.unverifiedSource?.let { row ->
+    state.unverifiedSource?.let { prompt ->
         UnverifiedSourceDialog(
-            appLabel = row.label.ifBlank { row.packageName },
-            isUpdate = state.installed.any { it.packageName == row.packageName },
+            appLabel = prompt.label,
+            isUpdate = state.installed.any { it.packageName == prompt.packageName },
             onConfirm = viewModel::confirmUnverifiedSource,
             onDismiss = viewModel::dismissUnverifiedSource
         )
@@ -284,7 +284,7 @@ fun WyStoreRoot(
                 if (selectedInstalled != null && selectedManaged == null) installDialog = true
                 else viewModel.installSelected()
             },
-            onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
+            onConfirmUnverifiedSource = viewModel::askAboutUnverifiedInstalled,
             onReplace = { selectedInstalled?.let { replaceDialog = it to selected } }
         )
     } else {
