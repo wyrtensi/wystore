@@ -13,41 +13,88 @@ import dev.wystore.updates.model.QueueErrorCode
  * that is not what it claims to be. That is a decision, not a diagnosis - so it is offered to the
  * user instead of being taken silently either way.
  *
- * Consent is recorded for one package at one version. It is not a setting and does not carry to the
- * next version, and it waives exactly this one check: the package name still has to match, an
- * update still has to keep the signature of what is installed, and Android refuses it otherwise.
+ * What the answer waives is exactly this one comparison: the package name still has to match, an
+ * update still has to keep the signature of what is installed, the download still has to match the
+ * hash the source gave for it, and Android refuses it otherwise.
  */
 object UnverifiedSourceConsent {
+
+    private const val SEPARATOR = "|"
 
     fun isAnswerable(errorCode: QueueErrorCode?, detail: String?): Boolean =
         errorCode == QueueErrorCode.SIGNATURE &&
             detail == VerificationError.SOURCE_FINGERPRINT_MISMATCH.name
 
-    fun key(packageName: String, versionCode: Long): String = "$packageName@$versionCode"
+    /** What a refusal is: the fingerprint the source advertised, and the one the file carries. */
+    fun record(advertisedDigest: String?, archiveDigest: String?): String? {
+        val advertised = advertisedDigest?.lowercase()?.takeIf { it.isNotBlank() } ?: return null
+        val archive = archiveDigest?.lowercase()?.takeIf { it.isNotBlank() } ?: return null
+        return "$advertised$SEPARATOR$archive"
+    }
+
+    /**
+     * The signature an accepted [record] allows, when it was accepted against the fingerprint the
+     * source is advertising now. A source that has since changed its claim matches nothing, and
+     * the file is refused again rather than let through on an answer about something else.
+     */
+    fun acceptedArchiveDigest(record: String?, advertisedDigest: String?): String? {
+        val advertised = advertisedDigest?.lowercase() ?: return null
+        val parts = record?.split(SEPARATOR) ?: return null
+        if (parts.size != 2 || parts[0] != advertised) return null
+        return parts[1].takeIf { it.isNotBlank() }
+    }
 }
 
-/** Where that consent is kept, so the download that acts on it can read it from its own process. */
+/**
+ * What was refused, and what the user said about it.
+ *
+ * Consent names the two fingerprints the user was shown - the one the source advertises and the one
+ * the file actually carries - and not the app's version. A queue row for an app that is not
+ * installed yet carries no version at all (there is nothing to read one from until the download
+ * starts), so a version-shaped key would have read the same for every future first install of that
+ * package: a waiver given once would silently cover a different build later, in the very case where
+ * the advertised fingerprint is the only cross-check there is.
+ *
+ * Tied to the pair instead, the answer covers the file it was given for. RuStore correcting its
+ * catalogue, or serving something signed by anyone else, no longer matches, and the question is
+ * asked again.
+ */
 class UnverifiedSourceStore(context: Context) {
 
     private val prefs = context.applicationContext
         .getSharedPreferences("wystore_queue", Context.MODE_PRIVATE)
 
-    fun allow(packageName: String, versionCode: Long) {
-        if (packageName.isBlank()) return
-        // Committed rather than applied: the download may start before an apply() has landed.
-        prefs.edit().putStringSet(KEY, allowed() + UnverifiedSourceConsent.key(packageName, versionCode)).commit()
+    /** Written where the file is refused, so the answer has something to be about. */
+    fun rememberRefusal(packageName: String, advertisedDigest: String?, archiveDigests: Set<String>) {
+        val record = UnverifiedSourceConsent.record(advertisedDigest, archiveDigests.firstOrNull())
+            ?: return
+        // Committed rather than applied: a worker's process can end the moment it returns.
+        prefs.edit().putString(PENDING + packageName, record).commit()
     }
 
-    fun isAllowed(packageName: String, versionCode: Long): Boolean =
-        UnverifiedSourceConsent.key(packageName, versionCode) in allowed()
-
-    fun clear(packageName: String, versionCode: Long) {
-        prefs.edit().putStringSet(KEY, allowed() - UnverifiedSourceConsent.key(packageName, versionCode)).commit()
+    /** The user's answer to the refusal last recorded for this package. */
+    fun accept(packageName: String): Boolean {
+        val pending = prefs.getString(PENDING + packageName, null) ?: return false
+        prefs.edit().putString(ACCEPTED + packageName, pending).commit()
+        return true
     }
 
-    private fun allowed(): Set<String> = prefs.getStringSet(KEY, emptySet())?.toSet().orEmpty()
+    /**
+     * The signature the user accepted for this package against this advertised fingerprint, or null
+     * when they have accepted nothing that applies to what the source is claiming now.
+     */
+    fun acceptedArchiveDigest(packageName: String, advertisedDigest: String?): String? =
+        UnverifiedSourceConsent.acceptedArchiveDigest(
+            record = prefs.getString(ACCEPTED + packageName, null),
+            advertisedDigest = advertisedDigest
+        )
+
+    fun clear(packageName: String) {
+        prefs.edit().remove(PENDING + packageName).remove(ACCEPTED + packageName).commit()
+    }
 
     private companion object {
-        const val KEY = "unverified_source_allowed"
+        const val PENDING = "unverified_source_refused:"
+        const val ACCEPTED = "unverified_source_accepted:"
     }
 }

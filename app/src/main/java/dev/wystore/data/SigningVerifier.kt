@@ -98,11 +98,14 @@ object SigningVerifier {
      * those buttons could never do anything. An older version is still refused either way.
      */
     /**
-     * @param allowUnverifiedSource waives the comparison against [expectedSourceDigest], and only
-     * that one. The source's own metadata disagreeing with the file the source served is the one
-     * refusal a user can answer for - see [dev.wystore.updates.UnverifiedSourceConsent] - and they
-     * are only ever asked after this check has already refused the file once. Every other check
-     * still runs, including the signature of an installed app, which Android enforces again.
+     * @param acceptedSourceDigest a signature the user has already accepted for this app in place
+     * of the one [expectedSourceDigest] advertises. The source's own metadata disagreeing with the
+     * file the source served is the one refusal a user can answer for - see
+     * [dev.wystore.updates.UnverifiedSourceConsent] - and they are only ever asked after this check
+     * has refused the file once, with both fingerprints in front of them. It waives that one
+     * comparison and no other: a file signed by anyone else still does not match what was accepted,
+     * and every remaining check runs, including the signature of an installed app, which Android
+     * enforces again.
      */
     fun verifyArtifacts(
         packageManager: PackageManager,
@@ -111,7 +114,7 @@ object SigningVerifier {
         expectedPackageName: String?,
         expectedSourceDigest: String? = null,
         allowReinstall: Boolean = false,
-        allowUnverifiedSource: Boolean = false
+        acceptedSourceDigest: String? = null
     ): VerificationResult {
         if (files.isEmpty() || files.any { !isApkContainer(it) }) {
             return invalid(VerificationError.NOT_AN_APK)
@@ -127,13 +130,14 @@ object SigningVerifier {
         if (identities.filterNotNull().any { it.signingDigests != base.signingDigests || it.signingDigests.isEmpty() }) {
             return invalid(VerificationError.MIXED_SIGNATURES)
         }
-        expectedSourceDigest
-            ?.takeUnless { allowUnverifiedSource }
-            ?.lowercase()
-            ?.takeIf { it.matches(Regex("[0-9a-f]{64}")) }
-            ?.let { digest ->
-                if (digest !in base.signingDigests) return invalid(VerificationError.SOURCE_FINGERPRINT_MISMATCH)
+        expectedSourceDigest?.lowercase()?.takeIf { it.matches(Regex("[0-9a-f]{64}")) }?.let { digest ->
+            val accepted = acceptedSourceDigest?.lowercase()
+            if (digest !in base.signingDigests && accepted !in base.signingDigests) {
+                // Carries the identity, so whoever asks the user about this can tell them - and
+                // later recognise - which signature the file actually has.
+                return invalid(VerificationError.SOURCE_FINGERPRINT_MISMATCH, base)
             }
+        }
         if (installed != null) {
             if (installed.packageName != base.packageName) return invalid(VerificationError.WRONG_PACKAGE_FOR_UPDATE)
             if (base.versionCode < installed.versionCode) return invalid(VerificationError.DOWNGRADE)
@@ -176,10 +180,10 @@ object SigningVerifier {
             ?: info.signatures
             ?: emptyArray()
 
-    private fun invalid(reason: VerificationError): VerificationResult = VerificationResult(
-        ArchiveIdentity("", "", 0, null, emptySet()),
-        reason
-    )
+    private fun invalid(
+        reason: VerificationError,
+        identity: ArchiveIdentity = ArchiveIdentity("", "", 0, null, emptySet())
+    ): VerificationResult = VerificationResult(identity, reason)
 
     private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
         .digest(bytes)

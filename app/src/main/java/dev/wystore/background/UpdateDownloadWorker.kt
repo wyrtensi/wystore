@@ -250,9 +250,9 @@ class UpdateDownloadWorker(
                     installed = installed,
                     expectedPackageName = expectedPackageName,
                     expectedSourceDigest = sourceSignatureHint,
-                    // Only ever true because the user was shown this exact refusal and answered it.
-                    allowUnverifiedSource = UnverifiedSourceStore(context)
-                        .isAllowed(entity.packageName, entity.versionCode),
+                    // Set only where the user was shown this exact refusal and answered it.
+                    acceptedSourceDigest = UnverifiedSourceStore(context)
+                        .acceptedArchiveDigest(entity.packageName, sourceSignatureHint),
                     // "Hand updates to Wy Store" and "reinstall" are requests to install the
                     // version that is already there - that install is the whole point, since it is
                     // what makes Wy Store the installer of record.
@@ -285,6 +285,18 @@ class UpdateDownloadWorker(
                     return@withContext
                 }
                 if (!verification.isValid) {
+                    // The one refusal that is a question rather than a verdict: both fingerprints
+                    // are written down here so the row can ask about them and a later answer can
+                    // name the file it was given for.
+                    if (verification.error == VerificationError.SOURCE_FINGERPRINT_MISMATCH) {
+                        runCatching {
+                            UnverifiedSourceStore(context).rememberRefusal(
+                                packageName = entity.packageName,
+                                advertisedDigest = sourceSignatureHint,
+                                archiveDigests = verification.identity.signingDigests
+                            )
+                        }
+                    }
                     // Surfaced to the user through the queue's typed error code, not this text.
                     throw dev.wystore.data.TransferFailure(
                         retryable = false,
@@ -391,10 +403,6 @@ class UpdateDownloadWorker(
                 files = files,
                 installed = installedApp,
                 expectedPackageName = entity.packageName,
-                // The same answer the download was allowed to finish on; without it the root route
-                // would refuse the file the user has already been asked about.
-                allowUnverifiedSource = UnverifiedSourceStore(context)
-                    .isAllowed(entity.packageName, entity.versionCode),
                 // Same reason as the two dialog paths: a reinstall the user asked for is not a
                 // downgrade. Without this the root route quietly produced no plan and handed the
                 // handover back to a confirmation flow that refused it too.

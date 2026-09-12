@@ -1509,18 +1509,20 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Records the answer and fetches the file again without that one check.
      *
-     * The consent is written against the package and the version it was given for, so it covers
-     * this download and no other, and it waives only the comparison with the fingerprint the
-     * source advertised - see [UnverifiedSourceConsent].
+     * The answer is written against the two fingerprints the refusal was about, not against the
+     * app's version, so it covers the file it was given for and nothing else - see
+     * [UnverifiedSourceStore].
      */
     fun confirmUnverifiedSource() {
         val row = _state.value.unverifiedSource ?: return
         _state.update { it.copy(unverifiedSource = null) }
         viewModelScope.launch {
             runCatching {
-                val snapshot = queueRepository.getById(row.id) ?: return@runCatching
-                UnverifiedSourceStore(getApplication())
-                    .allow(snapshot.packageName, snapshot.versionCode)
+                // The refusal is written down where the file is refused, so a row that failed under
+                // a build that did not do that has nothing to accept yet. The download starts
+                // either way rather than leaving a button that does nothing: it is refused again,
+                // this time with both fingerprints recorded, and the question comes back answerable.
+                UnverifiedSourceStore(getApplication()).accept(row.packageName)
                 queueCoordinator.retry(row.id)
             }
         }
