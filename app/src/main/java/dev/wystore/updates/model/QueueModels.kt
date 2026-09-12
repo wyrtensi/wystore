@@ -11,6 +11,14 @@ enum class QueueState {
     AVAILABLE,
     CHECKING,
     DOWNLOADING,
+
+    /**
+     * Stopped by the user, with its bytes kept.
+     *
+     * Not AVAILABLE: the queue starts the next AVAILABLE row on its own, and a paused download
+     * that restarts itself is not paused. It waits for the button instead.
+     */
+    PAUSED,
     VERIFYING,
     READY_TO_INSTALL,
     AWAITING_UNKNOWN_SOURCES_PERMISSION,
@@ -107,6 +115,12 @@ sealed interface QueueAction {
     data object Cancel : QueueAction
 
     data object Retry : QueueAction
+
+    /** Stop the transfer and keep what it has fetched, so it can go on later. */
+    data object Pause : QueueAction
+
+    /** Put a paused row back in line; the transfer picks up from the bytes on disk. */
+    data object Resume : QueueAction
 
     data object OfferNext : QueueAction
 }

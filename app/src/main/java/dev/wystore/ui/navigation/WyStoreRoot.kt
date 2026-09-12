@@ -342,6 +342,8 @@ fun WyStoreRoot(
                         onInstall = viewModel::quickInstall,
                         onInstallDownloaded = onInstallPending,
                         onDownloadNow = viewModel::downloadNow,
+                        onPauseDownload = viewModel::pauseDownload,
+                        onResumeDownload = viewModel::resumeDownload,
                         onLaunch = viewModel::launchInstalledApp
                     )
                     is WyStoreDestination.Category -> CategoryScreen(
@@ -357,6 +359,8 @@ fun WyStoreRoot(
                         onInstall = viewModel::quickInstall,
                         onInstallDownloaded = onInstallPending,
                         onDownloadNow = viewModel::downloadNow,
+                        onPauseDownload = viewModel::pauseDownload,
+                        onResumeDownload = viewModel::resumeDownload,
                         onLaunch = viewModel::launchInstalledApp
                     )
                     WyStoreDestination.Search -> SearchScreen(
@@ -427,6 +431,8 @@ fun WyStoreRoot(
                         onQueueDiscard = viewModel::queueDiscard,
                         onQueueReplace = { queueReplaceDialog = it },
                         onSourceFailureHelp = { sourceFailureHelp = true },
+                        onQueuePause = viewModel::queuePause,
+                        onQueueResume = viewModel::queueResume,
                         onStartQueue = viewModel::startQueue
                     )
                     WyStoreDestination.Categories -> dev.wystore.ui.home.AllCategoriesScreen(

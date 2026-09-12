@@ -583,6 +583,8 @@
     <string name="status_downloading">Скачивание %1$s%%</string>
     <string name="status_downloading_detail">Скачивание %1$s%% (%2$s/%3$s)</string>
     <string name="status_verifying">Проверка пакета…</string>
+    <string name="status_paused">Пауза</string>
+    <string name="queue_status_paused">Приостановлено</string>
     <string name="status_ready_to_install">Готово к установке</string>
     <string name="status_awaiting_permission">Разрешите установку из этого источника</string>
     <string name="status_awaiting_confirmation">Подтвердите установку</string>

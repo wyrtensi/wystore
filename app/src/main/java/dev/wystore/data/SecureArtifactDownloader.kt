@@ -290,3 +290,18 @@ class SecureArtifactDownloader(context: Context? = null) {
  */
 private fun fail(error: SourceError, detail: String): Nothing =
     throw SourceFormatException(error, detail)
+
+/** Throws away a partial that came from somewhere other than what is being fetched now. */
+private fun discardForeignPartial(temporary: File, marker: File, url: String, expectedBytes: Long) {
+    if (!temporary.exists()) return
+    val stored = runCatching { marker.takeIf { it.isFile }?.readText() }.getOrNull()
+    if (!PartialDownloadIdentity.matches(stored, url, expectedBytes)) {
+        temporary.delete()
+        marker.delete()
+    }
+}
+
+/** Records where the bytes now being written came from, for the attempt after this one. */
+private fun rememberPartial(marker: File, url: String, expectedBytes: Long) {
+    runCatching { marker.writeText(PartialDownloadIdentity.marker(url, expectedBytes)) }
+}

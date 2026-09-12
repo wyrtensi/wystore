@@ -76,6 +76,25 @@ object PackageUiStateReducer {
                         isCompatible = isCompatible
                     )
                 }
+                InstallQueueStatus.PAUSED -> {
+                    return PackageUiState(
+                        packageName = packageName,
+                        label = label,
+                        versionName = app?.versionName ?: installed?.versionName,
+                        versionCode = app?.versionCode ?: installed?.versionCode,
+                        iconUrl = iconUrl,
+                        publisher = publisher,
+                        status = StatusMessage(StatusCode.PAUSED),
+                        primaryAction = PrimaryAction.Resume,
+                        secondaryAction = SecondaryAction.Cancel,
+                        // The bytes already fetched are kept, and the bar keeps showing them:
+                        // a paused download that reads as empty looks like a lost one.
+                        progress = progressFraction,
+                        transferInfo = null,
+                        sourceProvenance = managed?.source?.name ?: app?.let { "RuStore" },
+                        isCompatible = isCompatible
+                    )
+                }
                 InstallQueueStatus.VERIFYING -> {
                     return PackageUiState(
                         packageName = packageName,

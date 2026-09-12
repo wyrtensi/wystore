@@ -65,6 +65,10 @@ fun CategoryScreen(
     onInstallDownloaded: (String) -> Unit = {},
     /** Take the transfer slot for a queued app now, displacing whatever is running. */
     onDownloadNow: (String) -> Unit = {},
+    /** Stop a running transfer and keep the bytes it has. */
+    onPauseDownload: (String) -> Unit = {},
+    /** Carry a paused transfer on from the bytes on disk. */
+    onResumeDownload: (String) -> Unit = {},
     onLaunch: (String) -> Unit = {}
 ) {
     Scaffold(
@@ -121,6 +125,8 @@ fun CategoryScreen(
                             RowAction.Enqueue -> onInstall(app.packageName)
                             RowAction.InstallDownloaded -> onInstallDownloaded(app.packageName)
                             RowAction.DownloadNow -> onDownloadNow(app.packageName)
+                            RowAction.Pause -> onPauseDownload(app.packageName)
+                            RowAction.Resume -> onResumeDownload(app.packageName)
                             RowAction.OpenApp -> onLaunch(app.packageName)
                             RowAction.Nothing -> Unit
                         }

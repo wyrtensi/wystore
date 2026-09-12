@@ -90,6 +90,10 @@ fun UpdatesScreen(
     onQueueReplace: (InstallQueueItem) -> Unit = {},
     /** Opens the "the source, not you" dialog for a failure nothing on this phone can fix. */
     onSourceFailureHelp: () -> Unit = {},
+    /** Stops a running transfer and keeps the bytes it has. */
+    onQueuePause: (String) -> Unit = {},
+    /** Carries a paused transfer on from the bytes on disk. */
+    onQueueResume: (String) -> Unit = {},
     onStartQueue: () -> Unit = {}
 ) {
     val installedByPackage = remember(installed) { installed.associateBy { it.packageName } }
@@ -184,7 +188,9 @@ fun UpdatesScreen(
                         onDownload = { onQueueDownload(item.id) },
                         onDiscard = { onQueueDiscard(item.id) },
                         onReplace = { onQueueReplace(item) },
-                        onSourceFailureHelp = onSourceFailureHelp
+                        onSourceFailureHelp = onSourceFailureHelp,
+                        onPause = { onQueuePause(item.id) },
+                        onResume = { onQueueResume(item.id) }
                     )
                 }
             }
@@ -389,7 +395,9 @@ fun QueueItemCard(
     onDownload: () -> Unit = {},
     onDiscard: () -> Unit = {},
     onReplace: () -> Unit = {},
-    onSourceFailureHelp: () -> Unit = {}
+    onSourceFailureHelp: () -> Unit = {},
+    onPause: () -> Unit = {},
+    onResume: () -> Unit = {}
 ) {
     val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED
     val failed = item.status == InstallQueueStatus.FAILED
@@ -487,6 +495,17 @@ fun QueueItemCard(
                         TextButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
                         Spacer(Modifier.width(4.dp))
                         Button(onClick = onDownload) { Text(stringResource(R.string.queue_download_now)) }
+                    }
+                    // A transfer running now can be stopped without losing what it has fetched.
+                    item.status == InstallQueueStatus.DOWNLOADING -> {
+                        OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
+                        Spacer(Modifier.width(4.dp))
+                        Button(onClick = onPause) { Text(stringResource(R.string.common_pause)) }
+                    }
+                    item.status == InstallQueueStatus.PAUSED -> {
+                        OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
+                        Spacer(Modifier.width(4.dp))
+                        Button(onClick = onResume) { Text(stringResource(R.string.common_resume)) }
                     }
                     else -> {
                         TextButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }

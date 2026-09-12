@@ -97,8 +97,15 @@ class UpdateDownloadWorker(
             // whoever finishes; being second in line is not a failure and must not be shown as one.
             Result.success()
         } catch (cancellation: CancellationException) {
-            runCatching { queueRepository.transition(queueId, QueueAction.Cancel) }
-            runCatching { workingDirectory(queueId).deleteRecursively() }
+            // A pause arrives as a cancellation too, and is told apart by the row: whoever paused
+            // it marked it PAUSED before stopping the work. Its bytes are the point of pausing, so
+            // neither the state nor the working directory is touched.
+            val paused = runCatching { queueRepository.getById(queueId)?.state }.getOrNull() ==
+                QueueState.PAUSED
+            if (!paused) {
+                runCatching { queueRepository.transition(queueId, QueueAction.Cancel) }
+                runCatching { workingDirectory(queueId).deleteRecursively() }
+            }
             throw cancellation
         } catch (error: Throwable) {
             val failure = classifyThrowable(error)

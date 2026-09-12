@@ -67,6 +67,7 @@ enum class InstallQueueStatus {
     RESOLVING,
     QUEUED,
     DOWNLOADING,
+    PAUSED,
     VERIFYING,
     READY,
     INSTALLING,
@@ -86,6 +87,7 @@ fun QueueState.toInstallQueueStatus(): InstallQueueStatus = when (this) {
     QueueState.AVAILABLE,
     QueueState.CHECKING -> InstallQueueStatus.QUEUED
     QueueState.DOWNLOADING -> InstallQueueStatus.DOWNLOADING
+    QueueState.PAUSED -> InstallQueueStatus.PAUSED
     QueueState.VERIFYING -> InstallQueueStatus.VERIFYING
     // The download is finished and the item is waiting for the user to start the install, so cards
     // must offer Install rather than keep saying queued.
@@ -114,6 +116,8 @@ val InstallQueueStatus.isInFlight: Boolean
         InstallQueueStatus.DOWNLOADING,
         InstallQueueStatus.VERIFYING,
         InstallQueueStatus.INSTALLING -> true
+        // Paused is a row with nothing running: the button that resumes it has to be live.
+        InstallQueueStatus.PAUSED,
         InstallQueueStatus.READY,
         InstallQueueStatus.COMPLETE,
         InstallQueueStatus.CANCELED,
@@ -1111,6 +1115,18 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { queueCoordinator.skip(id) }
     }
 
+    /** Stops the transfer on this row and keeps its bytes. */
+    fun queuePause(id: String) {
+        viewModelScope.launch { runCatching { queueCoordinator.pause(id) } }
+    }
+
+    /** Carries this row on from the bytes it already has. */
+    fun queueResume(id: String) {
+        askOnMeteredNetwork {
+            viewModelScope.launch { runCatching { queueCoordinator.resume(id) } }
+        }
+    }
+
     /**
      * Retries a stopped queue item. The consolidated error notification is rebuilt from what is
      * still failing, so acting on the notification makes it go away instead of leaving a stale
@@ -1451,11 +1467,25 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * looked up here. Nothing happens for an app that is not queued - "download now" is an answer
      * to being in a queue, and [quickInstall] is what puts it there.
      */
-    fun downloadNow(packageName: String) {
+    fun downloadNow(packageName: String) = withQueueRow(packageName) { id ->
+        queueCoordinator.downloadNow(id)
+    }
+
+    /** Stops the transfer for this app and keeps the bytes it already has. */
+    fun pauseDownload(packageName: String) = withQueueRow(packageName) { id ->
+        queueCoordinator.pause(id)
+    }
+
+    /** Carries a paused transfer on from the bytes on disk. */
+    fun resumeDownload(packageName: String) = withQueueRow(packageName) { id ->
+        queueCoordinator.resume(id)
+    }
+
+    private fun withQueueRow(packageName: String, block: suspend (String) -> Unit) {
         val id = _state.value.installQueue
             .firstOrNull { it.packageName == packageName }?.id
             ?.takeIf { it.isNotBlank() } ?: return
-        viewModelScope.launch { runCatching { queueCoordinator.downloadNow(id) } }
+        viewModelScope.launch { runCatching { block(id) } }
     }
 
     fun quickInstall(packageName: String) {

@@ -13,6 +13,10 @@ object QueueReducer {
             setOf(QueueState.AVAILABLE, QueueState.CHECKING),
             QueueState.DOWNLOADING
         )
+        QueueAction.Pause -> transition(current, QueueState.DOWNLOADING, QueueState.PAUSED)
+        // Back to waiting rather than straight to downloading: the worker that picks it up is
+        // what moves it on, through exactly the same StartDownload every other row goes through.
+        QueueAction.Resume -> transition(current, QueueState.PAUSED, QueueState.AVAILABLE)
         is QueueAction.DownloadProgress -> updateProgress(current, action)
         QueueAction.StartVerification -> transition(current, QueueState.DOWNLOADING, QueueState.VERIFYING)
         QueueAction.Verified -> transition(current, QueueState.VERIFYING, QueueState.READY_TO_INSTALL)

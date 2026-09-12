@@ -25,6 +25,7 @@ object StatusTextResolver {
         StatusCode.NOT_INSTALLED -> R.string.status_not_installed
         StatusCode.QUEUED -> R.string.status_queued
         StatusCode.DOWNLOADING -> R.string.status_downloading
+        StatusCode.PAUSED -> R.string.status_paused
         StatusCode.VERIFYING -> R.string.status_verifying
         StatusCode.READY_TO_INSTALL -> R.string.status_ready_to_install
         StatusCode.AWAITING_UNKNOWN_SOURCES_PERMISSION -> R.string.status_awaiting_permission

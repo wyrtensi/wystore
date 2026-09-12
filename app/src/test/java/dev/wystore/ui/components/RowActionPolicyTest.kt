@@ -31,14 +31,10 @@ class RowActionPolicyTest {
     }
 
     @Test
-    fun updateResumeAndRetryAllGoThroughTheQueue() {
+    fun updateAndRetryGoThroughTheQueue() {
         assertEquals(
             RowAction.Enqueue,
             RowActionPolicy.actionFor(PrimaryAction.Update, StatusCode.INSTALLED)
-        )
-        assertEquals(
-            RowAction.Enqueue,
-            RowActionPolicy.actionFor(PrimaryAction.Resume, StatusCode.CANCELLED)
         )
         assertEquals(
             RowAction.Enqueue,
@@ -46,12 +42,24 @@ class RowActionPolicyTest {
         )
     }
 
+    /**
+     * The two controls on a transfer used to end in Nothing - the most obvious buttons on the row
+     * did nothing at all. Pausing keeps the bytes; resuming carries on from them.
+     */
     @Test
-    fun aTransferInFlightIsLeftAlone() {
+    fun aTransferCanBeStoppedAndCarriedOn() {
         assertEquals(
-            RowAction.Nothing,
+            RowAction.Pause,
             RowActionPolicy.actionFor(PrimaryAction.Pause, StatusCode.DOWNLOADING)
         )
+        assertEquals(
+            RowAction.Resume,
+            RowActionPolicy.actionFor(PrimaryAction.Resume, StatusCode.PAUSED)
+        )
+    }
+
+    @Test
+    fun anInstallInProgressIsLeftAlone() {
         assertEquals(
             RowAction.Nothing,
             RowActionPolicy.actionFor(PrimaryAction.Installing, StatusCode.INSTALLING)
@@ -59,6 +67,14 @@ class RowActionPolicyTest {
         assertEquals(
             RowAction.Nothing,
             RowActionPolicy.actionFor(PrimaryAction.None, StatusCode.INSTALLED)
+        )
+    }
+
+    @Test
+    fun aQueuedRowTakesTheSlot() {
+        assertEquals(
+            RowAction.DownloadNow,
+            RowActionPolicy.actionFor(PrimaryAction.DownloadNow, StatusCode.QUEUED)
         )
     }
 }

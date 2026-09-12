@@ -281,6 +281,7 @@ fun queueStatusLabel(item: InstallQueueItem): String = when (item.status) {
     InstallQueueStatus.RESOLVING -> item.detail ?: stringResource(R.string.queue_status_preparing)
     InstallQueueStatus.QUEUED -> stringResource(R.string.queue_status_queued)
     InstallQueueStatus.DOWNLOADING -> stringResource(R.string.queue_status_downloading)
+    InstallQueueStatus.PAUSED -> stringResource(R.string.queue_status_paused)
     InstallQueueStatus.VERIFYING -> stringResource(R.string.queue_status_verifying)
     InstallQueueStatus.READY -> stringResource(R.string.queue_status_ready)
     InstallQueueStatus.INSTALLING -> stringResource(R.string.queue_status_installing)

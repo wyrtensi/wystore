@@ -84,6 +84,30 @@ class QueueCoordinator(
         repository.resetForRetry(id, errorCode = null, errorDetail = null)
     }
 
+    /**
+     * Stops a transfer without losing what it has fetched.
+     *
+     * The row is marked PAUSED before the work is cancelled, and that order is the whole trick:
+     * the worker checks its row on the way out and leaves a paused one alone, where a cancelled
+     * one is marked CANCELED and has its partial files deleted. Resuming then hands the bytes on
+     * disk back to the server as a range, which the downloader has always been able to do - it
+     * simply had no way to be asked.
+     */
+    suspend fun pause(id: String) {
+        val current = repository.getById(id) ?: return
+        if (current.state != QueueState.DOWNLOADING) return
+        repository.transition(id, QueueAction.Pause)
+        TransferDispatcher.cancel(context, id)
+    }
+
+    /** Puts a paused row back in line and starts it, taking the slot as "download now" does. */
+    suspend fun resume(id: String) {
+        val current = repository.getById(id) ?: return
+        if (current.state != QueueState.PAUSED) return
+        repository.transition(id, QueueAction.Resume)
+        downloadNow(id)
+    }
+
     suspend fun install(id: String, installer: UserConfirmedInstaller) {
         installer.install(id)
     }

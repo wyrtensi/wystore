@@ -583,6 +583,8 @@
     <string name="status_downloading">Downloading %1$s%%</string>
     <string name="status_downloading_detail">Downloading %1$s%% (%2$s/%3$s)</string>
     <string name="status_verifying">Verifying package…</string>
+    <string name="status_paused">Paused</string>
+    <string name="queue_status_paused">Paused</string>
     <string name="status_ready_to_install">Ready to install</string>
     <string name="status_awaiting_permission">Grant permission to install apps</string>
     <string name="status_awaiting_confirmation">Confirm installation</string>

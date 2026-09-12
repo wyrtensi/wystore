@@ -14,6 +14,12 @@ enum class RowAction {
     /** It is queued behind something else; take the transfer slot for it now. */
     DownloadNow,
 
+    /** It is downloading; stop it and keep the bytes. */
+    Pause,
+
+    /** It is paused; carry on from the bytes on disk. */
+    Resume,
+
     /** The queue is busy with it, or there is nothing to do. */
     Nothing
 }
@@ -32,11 +38,12 @@ object RowActionPolicy {
             if (status == StatusCode.READY_TO_INSTALL) RowAction.InstallDownloaded
             else RowAction.Enqueue
         PrimaryAction.DownloadNow -> RowAction.DownloadNow
+        // Both used to end in Nothing, so the two most obvious buttons on a transferring row did
+        // nothing at all - see QueueCoordinator.pause.
+        PrimaryAction.Pause -> RowAction.Pause
+        PrimaryAction.Resume -> RowAction.Resume
         PrimaryAction.Update,
-        PrimaryAction.Resume,
         PrimaryAction.Retry -> RowAction.Enqueue
-        // A transfer already under way answers to the row's own controls, not to this one.
-        PrimaryAction.Pause,
         PrimaryAction.Installing,
         PrimaryAction.None -> RowAction.Nothing
     }
