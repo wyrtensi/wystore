@@ -207,4 +207,31 @@ class UpdateCheckPolicyTest {
         assertFalse(UpdateCheckPolicy.shouldRetryCheck(attempted = 5, retryableFailures = 0))
         assertTrue(UpdateCheckPolicy.shouldRetryCheck(attempted = 5, retryableFailures = 5))
     }
+
+    /**
+     * The check button names what pressing it will do, and it must not promise an install that
+     * cannot happen: with automatic downloads off a check finds updates and fetches nothing, so
+     * there is never anything to hand to the installer.
+     */
+    @Test
+    fun `the button promises installs only when a check can actually reach the installer`() {
+        assertTrue(
+            UpdateCheckPolicy.checkWillInstallWhatItFinds(
+                autoDownloadEnabled = true,
+                autoInstallEnabled = true
+            )
+        )
+        assertFalse(
+            UpdateCheckPolicy.checkWillInstallWhatItFinds(
+                autoDownloadEnabled = false,
+                autoInstallEnabled = true
+            )
+        )
+        assertFalse(
+            UpdateCheckPolicy.checkWillInstallWhatItFinds(
+                autoDownloadEnabled = true,
+                autoInstallEnabled = false
+            )
+        )
+    }
 }

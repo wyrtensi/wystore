@@ -342,6 +342,7 @@
     <string name="queue_discard">Убрать из очереди</string>
     <string name="updates_queue_start">Запустить</string>
     <string name="updates_check_now">Проверить</string>
+    <string name="updates_check_and_install">Проверить и установить</string>
     <string name="metered_download_title">Сейчас мобильный интернет</string>
     <string name="metered_download_body">В настройках выбрано «Только Wi-Fi», а эта сеть платная. Всё равно скачать?</string>
     <string name="metered_download_always">Всегда качать по мобильному</string>

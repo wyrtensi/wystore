@@ -1,6 +1,7 @@
 package dev.wystore.ui.navigation
 
 import androidx.activity.compose.BackHandler
+import dev.wystore.background.UpdateCheckPolicy
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -381,6 +382,10 @@ fun WyStoreRoot(
                         lastUpdateCheck = state.lastUpdateCheck,
                         queue = state.installQueue,
                         packageIcons = state.packageIcons,
+                        installsWhatItFinds = UpdateCheckPolicy.checkWillInstallWhatItFinds(
+                            autoDownloadEnabled = state.settings.autoDownloadUpdates,
+                            autoInstallEnabled = state.settings.autoInstallUpdates
+                        ),
                         onCheckUpdates = { viewModel.checkForUpdates() },
                         onUpdateAll = { viewModel.updateAll() },
                         onOpen = { managedApp ->

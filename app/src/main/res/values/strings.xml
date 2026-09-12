@@ -342,6 +342,7 @@
     <string name="queue_discard">Remove from queue</string>
     <string name="updates_queue_start">Start</string>
     <string name="updates_check_now">Check</string>
+    <string name="updates_check_and_install">Check and install</string>
     <string name="metered_download_title">Mobile data right now</string>
     <string name="metered_download_body">Settings say Wi-Fi only, and this connection charges for traffic. Download anyway?</string>
     <string name="metered_download_always">Always download over mobile data</string>

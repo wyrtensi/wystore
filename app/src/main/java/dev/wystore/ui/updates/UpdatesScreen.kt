@@ -70,6 +70,14 @@ fun UpdatesScreen(
     packageIcons: Map<String, String> = emptyMap(),
     onOpen: (ManagedApp) -> Unit,
     onCheckUpdates: () -> Unit = {},
+    /**
+     * Whether a check will also hand what it finds to the installer, so the button can say so.
+     *
+     * It is the same switch that governs it - "install as soon as it is downloaded" - rather than
+     * a second one beside it: two settings for one behaviour would eventually disagree. The button
+     * only reports what is already true.
+     */
+    installsWhatItFinds: Boolean = false,
     onUpdateAll: () -> Unit = {},
     onInstallPending: (String) -> Unit,
     onDiscardPending: (String) -> Unit,
@@ -116,8 +124,11 @@ fun UpdatesScreen(
                     TextButton(onClick = onCheckUpdates, enabled = updateCheckTask?.running != true) {
                         Text(
                             stringResource(
-                                if (updateCheckTask?.running == true) R.string.library_checking
-                                else R.string.updates_check_now
+                                when {
+                                    updateCheckTask?.running == true -> R.string.library_checking
+                                    installsWhatItFinds -> R.string.updates_check_and_install
+                                    else -> R.string.updates_check_now
+                                }
                             )
                         )
                     }

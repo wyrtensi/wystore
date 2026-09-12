@@ -116,6 +116,18 @@ object UpdateCheckPolicy {
     fun checkMayBeExpedited(sdkInt: Int = Build.VERSION.SDK_INT): Boolean =
         sdkInt >= Build.VERSION_CODES.S
 
+    /**
+     * Whether pressing "check" will end in installs, which is what lets the button say so.
+     *
+     * Both switches, not just the install one: a check that may not download has nothing to hand
+     * to the installer, so a button promising to install would be lying on a phone where automatic
+     * downloads are off.
+     */
+    fun checkWillInstallWhatItFinds(
+        autoDownloadEnabled: Boolean,
+        autoInstallEnabled: Boolean
+    ): Boolean = autoDownloadEnabled && autoInstallEnabled
+
     fun shouldRetryWorker(error: Throwable): Boolean {
         return try {
             val failure = classifyThrowable(error)
