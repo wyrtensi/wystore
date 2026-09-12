@@ -17,6 +17,7 @@ import dev.wystore.permissions.PermissionRepository
 import dev.wystore.permissions.VendorBackgroundSettings
 import dev.wystore.root.RootInstaller
 import dev.wystore.updates.QueueRepository
+import dev.wystore.updates.SessionInstallSupport
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -116,6 +117,9 @@ class DiagnosticsCollector(context: Context) {
             vendorBackgroundSettings = runCatching {
                 VendorBackgroundSettings.describe(appContext)
             }.getOrDefault("неизвестно"),
+            sessionsRefusedByFirmware = SessionInstallSupport(appContext).sessionsRefused(),
+            firmwareShell = runCatching { FirmwareShell.describe(FirmwareShell::systemProperty) }
+                .getOrDefault("неизвестно"),
             managedApps = managed.size,
             managedBySource = managed
                 .groupingBy { it.source?.name ?: "не указан" }

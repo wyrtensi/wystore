@@ -1,5 +1,7 @@
 package dev.wystore.data
 
+import dev.wystore.updates.FirmwareInstallFallback
+import dev.wystore.updates.SessionInstallRejection
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -61,6 +63,10 @@ data class Diagnostics(
     val deviceIdleMode: Boolean,
     val standbyBucket: String,
     val vendorBackgroundSettings: String,
+    /** Whether this device has been seen refusing installer sessions; see SessionInstallRejection. */
+    val sessionsRefusedByFirmware: Boolean,
+    /** The vendor shell as the build properties describe it, or that there is no sign of one. */
+    val firmwareShell: String,
     val managedApps: Int,
     val managedBySource: List<Pair<String, Int>>,
     val managedWithoutAutoUpdate: Int,
@@ -132,6 +138,23 @@ object DiagnosticsReport {
         )
         appendLine("Тихая root-установка: ${onOff(diagnostics.rootSilentInstall)}")
         appendLine("Фоновые загрузки через root: ${onOff(diagnostics.rootBackgroundDownloads)}")
+        appendLine()
+
+        appendLine(
+            "Способ установки: " + if (diagnostics.sessionsRefusedByFirmware) {
+                "системный установщик (сессии отклоняются прошивкой)"
+            } else {
+                "сессия PackageInstaller"
+            }
+        )
+        appendLine("Оболочка: ${diagnostics.firmwareShell}")
+        val findings = findings(diagnostics)
+        if (findings.isEmpty()) {
+            appendLine("Распознано: ничего")
+        } else {
+            appendLine("Распознано:")
+            findings.forEach { appendLine("  $it") }
+        }
         appendLine()
 
         appendLine("Сеть: ${diagnostics.networkSummary}")
@@ -207,6 +230,36 @@ object DiagnosticsReport {
 
         appendLine("Настройки:")
         diagnostics.settings.forEach { (key, value) -> appendLine("  $key = $value") }
+    }
+
+    /**
+     * Known situations read out of the failures, so the report names them instead of leaving them
+     * to whoever happens to recognise the error line.
+     *
+     * The first report of MIUI refusing installs carried the answer four times over - the same
+     * `INSTALL_FAILED_INTERNAL_ERROR: Permission Denied` against four apps - and nothing in it said
+     * what that line means. It is counted from the log as well as from the stored flag, because a
+     * report from a build that had not learnt it yet still shows the refusals.
+     */
+    fun findings(diagnostics: Diagnostics): List<String> = buildList {
+        val refusals = diagnostics.events.count { event ->
+            event.code == FirmwareInstallFallback.EVENT_SESSION_REFUSED ||
+                SessionInstallRejection.isFirmwareRefusal(event.detail)
+        }
+        if (diagnostics.sessionsRefusedByFirmware || refusals > 0) {
+            add(
+                "прошивка отклоняет установку через сессию PackageInstaller" +
+                    (if (refusals > 0) " ($refusals)" else "") +
+                    " — так делает MIUI с включённой оптимизацией; " +
+                    if (diagnostics.sessionsRefusedByFirmware) {
+                        "установка идёт через системный установщик"
+                    } else {
+                        "эта версия ещё не переключилась на системный установщик"
+                    }
+            )
+        }
+        val refetched = diagnostics.events.count { it.code == FirmwareInstallFallback.EVENT_WHOLE_APK_REFETCH }
+        if (refetched > 0) add("скачано заново одним APK вместо частей ($refetched)")
     }
 
     private fun onOff(value: Boolean) = if (value) "вкл" else "выкл"

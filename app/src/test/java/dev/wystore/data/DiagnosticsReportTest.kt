@@ -18,6 +18,8 @@ class DiagnosticsReportTest {
         notificationChannels: List<Pair<String, String>> = emptyList(),
         standbyBucket: String = "ACTIVE",
         vendorBackgroundSettings: String = "нет",
+        sessionsRefusedByFirmware: Boolean = false,
+        firmwareShell: String = "нет признаков MIUI",
         managedBySource: List<Pair<String, Int>> = emptyList(),
         managedWithoutAutoUpdate: Int = 0,
         managedForcedToStore: Int = 0,
@@ -57,6 +59,8 @@ class DiagnosticsReportTest {
         deviceIdleMode = false,
         standbyBucket = standbyBucket,
         vendorBackgroundSettings = vendorBackgroundSettings,
+        sessionsRefusedByFirmware = sessionsRefusedByFirmware,
+        firmwareShell = firmwareShell,
         managedApps = 19,
         managedBySource = managedBySource,
         managedWithoutAutoUpdate = managedWithoutAutoUpdate,
@@ -219,5 +223,57 @@ class DiagnosticsReportTest {
         assertTrue(text.contains("readyNotificationsEnabled = true"))
         assertTrue(text.contains("artifactRetentionDays = 7"))
         assertTrue(text.contains("themeMode = SYSTEM"))
+    }
+
+    private val refusal = DiagnosticsEvent(
+        at = 0L,
+        packageName = "com.yandex.bank",
+        code = "INSTALL_FAILED",
+        detail = "INSTALL_FAILED_INTERNAL_ERROR: Permission Denied"
+    )
+
+    /** Issue #2: four refused installs, and the report had to be read by someone who knew MIUI. */
+    @Test
+    fun aFirmwareThatRefusesSessionsIsRecognisedFromTheFailuresAlone() {
+        val text = DiagnosticsReport.render(
+            diagnostics(
+                events = listOf(refusal, refusal.copy(packageName = "com.avito.android")),
+                firmwareShell = "MIUI V12, оптимизация MIUI: не задана (по умолчанию вкл)"
+            ),
+            now = 0L
+        )
+
+        assertTrue(text.contains("Оболочка: MIUI V12, оптимизация MIUI: не задана (по умолчанию вкл)"))
+        assertTrue(text.contains("Распознано:"))
+        assertTrue(text.contains("прошивка отклоняет установку через сессию PackageInstaller (2)"))
+    }
+
+    @Test
+    fun theInstallRouteSaysWhenTheSystemInstallerHasTakenOver() {
+        val text = DiagnosticsReport.render(diagnostics(sessionsRefusedByFirmware = true), now = 0L)
+
+        assertTrue(text.contains("Способ установки: системный установщик"))
+        assertTrue(text.contains("прошивка отклоняет установку через сессию PackageInstaller"))
+    }
+
+    @Test
+    fun anOrdinaryDeviceHasNothingRecognised() {
+        val text = DiagnosticsReport.render(diagnostics(), now = 0L)
+
+        assertTrue(text.contains("Способ установки: сессия PackageInstaller"))
+        assertTrue(text.contains("Распознано: ничего"))
+    }
+
+    @Test
+    fun splitPartsFetchedAgainWholeAreCounted() {
+        val text = DiagnosticsReport.render(
+            diagnostics(
+                sessionsRefusedByFirmware = true,
+                events = listOf(DiagnosticsEvent(0L, "ru.ozon.app.android", "WHOLE_APK_REFETCH", null))
+            ),
+            now = 0L
+        )
+
+        assertTrue(text.contains("скачано заново одним APK вместо частей (1)"))
     }
 }
