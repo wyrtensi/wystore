@@ -88,4 +88,47 @@ class RootInstaller {
     }
 
     private fun shellQuote(value: String): String = "'" + value.replace("'", "'\\''") + "'"
+
+    /**
+     * Starts `su`, wherever this device keeps it.
+     *
+     * One hardcoded absolute path is what this used to be, and it is the wrong shape of assumption:
+     * Magisk usually puts one at /system/bin, but not on every build, and an emulator image keeps
+     * its own at /system/xbin. On a device where the path differs the app did not report a failure
+     * - it reported that root was unavailable, which is a different answer and the wrong one.
+     *
+     * The bare name is tried first, because a working root almost always puts it on PATH and that
+     * answer costs nothing; the absolute paths follow for the installs that do not. Whichever
+     * starts is remembered, so the search happens once.
+     */
+    private fun startSu(command: String): Process? {
+        resolved?.let { path ->
+            return runCatching { spawn(path, command) }.getOrNull()
+        }
+        for (candidate in CANDIDATES) {
+            val process = runCatching { spawn(candidate, command) }.getOrNull() ?: continue
+            resolved = candidate
+            return process
+        }
+        return null
+    }
+
+    private fun spawn(path: String, command: String): Process =
+        ProcessBuilder(path, "-c", command).redirectErrorStream(true).start()
+
+    companion object {
+        /** Where an su binary is actually found, in the order worth trying. */
+        val CANDIDATES = listOf(
+            "su",
+            "/system/bin/su",
+            "/system/xbin/su",
+            "/sbin/su",
+            "/su/bin/su",
+            "/debug_ramdisk/su"
+        )
+
+        /** Shared across instances: the path does not change while the app is running. */
+        @Volatile
+        private var resolved: String? = null
+    }
 }

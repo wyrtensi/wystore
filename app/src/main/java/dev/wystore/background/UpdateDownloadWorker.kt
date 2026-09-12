@@ -255,8 +255,7 @@ class UpdateDownloadWorker(
                 val expectedPackageName = entity.packageName.takeIf {
                     entity.source != ManagedSource.GITHUB.name || !GitHubInstallScheduler.isPlaceholder(it)
                 }
-                val installed = expectedPackageName
-                    ?.let { name -> storeRepository.installedApps().firstOrNull { it.packageName == name } }
+                val installed = expectedPackageName?.let(storeRepository::installedApp)
                 val verification = SigningVerifier.verifyArtifacts(
                     packageManager = context.packageManager,
                     files = downloadedFiles,
@@ -371,8 +370,7 @@ class UpdateDownloadWorker(
             val files = queueRepository.artifactFilesFor(queueId)
             if (files.isEmpty()) return false
 
-            val installedApp = storeRepository.installedApps()
-                .firstOrNull { it.packageName == entity.packageName }
+            val installedApp = storeRepository.installedApp(entity.packageName)
             val recheck = SigningVerifier.verifyArtifacts(
                 packageManager = context.packageManager,
                 files = files,

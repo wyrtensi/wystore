@@ -206,6 +206,52 @@ class StoreRepository(private val context: Context) {
             }
     }
 
+    /**
+     * One app, asked for by name.
+     *
+     * The verification paths need exactly one package, and they used to pick it out of the full
+     * list. That list is now allowed to come back empty when the bulk read fails, and an empty
+     * list is indistinguishable from "not installed" - which would drop the comparison of the
+     * downloaded certificate against the installed one, quietly, in the one place it matters. A
+     * single-package read cannot be confused that way: absent throws NameNotFound, and anything
+     * else propagates instead of pretending the app is new.
+     */
+    fun installedApp(packageName: String): InstalledApp? {
+        installedCache?.let { cached ->
+            cached.firstOrNull { it.packageName == packageName }?.let { return it }
+        }
+        val info = runCatching {
+            if (Build.VERSION.SDK_INT >= 33) {
+                context.packageManager.getPackageInfo(
+                    packageName,
+                    PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong())
+                )
+            } else {
+                context.packageManager.getPackageInfo(
+                    packageName,
+                    SigningFlags.forSdk(Build.VERSION.SDK_INT)
+                )
+            }
+        }.getOrNull() ?: return null
+        return info.toInstalledApp()
+    }
+
+    private fun PackageInfo.toInstalledApp(): InstalledApp {
+        // Asked once and used twice: the coarse source and the installer's name are the same fact,
+        // and reading it twice per package doubled the work on a phone with three hundred of them.
+        val installer = installerOf(packageName)
+        return InstalledApp(
+            packageName = packageName,
+            label = applicationInfo?.loadLabel(context.packageManager)?.toString().orEmpty(),
+            versionName = versionName.orEmpty(),
+            versionCode = versionCodeCompat(),
+            lastUpdateTime = lastUpdateTime,
+            source = sourceFor(installer),
+            signingDigests = SigningVerifier.installedDigests(this),
+            installerPackageName = installer
+        )
+    }
+
     private fun readInstalledApps(): List<InstalledApp> {
         val packages = if (Build.VERSION.SDK_INT >= 33) {
             context.packageManager.getInstalledPackages(

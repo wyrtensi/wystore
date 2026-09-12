@@ -52,7 +52,7 @@ class InstallSessionWriter(private val context: Context) {
             "Downloaded APK files are missing or unreadable"
         }
 
-        val installed = storeRepository.installedApps().firstOrNull { it.packageName == entity.packageName }
+        val installed = storeRepository.installedApp(entity.packageName)
         val verification = SigningVerifier.verifyArtifacts(
             packageManager = appContext.packageManager,
             files = files,
