@@ -41,5 +41,21 @@ class ThemePolicyTest {
         assertEquals("", ThemePolicy.languageTag(AppLanguage.SYSTEM))
         assertEquals("ru", ThemePolicy.languageTag(AppLanguage.RU))
         assertEquals("en", ThemePolicy.languageTag(AppLanguage.EN))
+        assertEquals("uk", ThemePolicy.languageTag(AppLanguage.UK))
+        assertEquals("be", ThemePolicy.languageTag(AppLanguage.BE))
+        assertEquals("kk", ThemePolicy.languageTag(AppLanguage.KK))
+        assertEquals("uz", ThemePolicy.languageTag(AppLanguage.UZ))
+        assertEquals("lv", ThemePolicy.languageTag(AppLanguage.LV))
+        assertEquals("zh", ThemePolicy.languageTag(AppLanguage.ZH))
+    }
+
+    @Test
+    fun everyLanguageButTheSystemOneNamesItself() {
+        // The picker shows these instead of a translated name, so a blank one is an unreachable
+        // language; a repeated one is two chips that look the same.
+        val named = AppLanguage.entries.filter { it != AppLanguage.SYSTEM }
+        assertTrue(named.all { it.tag.isNotEmpty() && it.endonym.isNotEmpty() })
+        assertEquals(named.size, named.map { it.tag }.toSet().size)
+        assertEquals(named.size, named.map { it.endonym }.toSet().size)
     }
 }

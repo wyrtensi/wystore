@@ -4,7 +4,27 @@ import dev.wystore.data.StoreSettings
 import dev.wystore.updates.model.QueueMode
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
-enum class AppLanguage { SYSTEM, RU, EN }
+
+/**
+ * The languages the interface ships in.
+ *
+ * Every entry carries the tag its resources live under and its own name in its own language: a
+ * picker that translates the names hides the one the reader is looking for. [tag] has to match the
+ * `values-<tag>` directory and the entry in `locales_config.xml`, which is the list Android's own
+ * per-app language picker reads.
+ */
+enum class AppLanguage(val tag: String, val endonym: String) {
+    /** Whatever the device asks for; the only entry whose name has to be translated. */
+    SYSTEM("", ""),
+    RU("ru", "Русский"),
+    EN("en", "English"),
+    UK("uk", "Українська"),
+    BE("be", "Беларуская"),
+    KK("kk", "Қазақша"),
+    UZ("uz", "Oʻzbekcha"),
+    LV("lv", "Latviešu"),
+    ZH("zh", "简体中文")
+}
 
 data class AppSettings(
     val wifiOnly: Boolean = true,

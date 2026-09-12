@@ -2,7 +2,8 @@ package dev.wystore.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,7 +31,7 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import dev.wystore.localization.AppLocaleController
 import dev.wystore.settings.AppLanguage
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun LanguageSettingsScreen(
     settings: StoreSettings,
@@ -70,34 +71,36 @@ fun LanguageSettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Row(
+            // Seven entries do not fit one line on a narrow screen at a large font scale, and a
+            // language nobody can reach is worse than one nobody chose.
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FilterChip(
-                    selected = settings.language == AppLanguage.SYSTEM,
-                    onClick = {
-                        AppLocaleController.apply(AppLanguage.SYSTEM)
-                        onUpdateSettings(settings.copy(language = AppLanguage.SYSTEM))
-                    },
-                    label = { Text(stringResource(R.string.language_system)) }
-                )
-                FilterChip(
-                    selected = settings.language == AppLanguage.RU,
-                    onClick = {
-                        AppLocaleController.apply(AppLanguage.RU)
-                        onUpdateSettings(settings.copy(language = AppLanguage.RU))
-                    },
-                    label = { Text(stringResource(R.string.language_russian)) }
-                )
-                FilterChip(
-                    selected = settings.language == AppLanguage.EN,
-                    onClick = {
-                        AppLocaleController.apply(AppLanguage.EN)
-                        onUpdateSettings(settings.copy(language = AppLanguage.EN))
-                    },
-                    label = { Text("English") }
-                )
+                // What is in force, not what was last tapped here: a language chosen in Android's
+                // own per-app settings never passes through this screen.
+                val chosen = AppLocaleController.inForce(settings.language)
+                AppLanguage.entries.forEach { language ->
+                    FilterChip(
+                        selected = chosen == language,
+                        onClick = {
+                            AppLocaleController.apply(language)
+                            onUpdateSettings(settings.copy(language = language))
+                        },
+                        label = {
+                            Text(
+                                if (language == AppLanguage.SYSTEM) {
+                                    stringResource(R.string.language_system)
+                                } else {
+                                    // A language names itself: translating the names would hide the
+                                    // one the reader came here for.
+                                    language.endonym
+                                }
+                            )
+                        }
+                    )
+                }
             }
         }
     }

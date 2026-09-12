@@ -9,7 +9,7 @@
     <string name="notif_downloading_title">Downloading %1$s</string>
     <string name="notif_downloading_title_generic">Downloading</string>
     <string name="notif_downloading_progress">%1$.1f / %2$.1f MB (%3$d%%)</string>
-    <string name="notif_downloading_indeterminate">Downloading...</string>
+    <string name="notif_downloading_indeterminate">Downloading…</string>
     <string name="notif_ready_title">Update ready</string>
     <string name="notif_ready_text">%1$s %2$s is ready to install</string>
     <string name="notif_ready_summary_title">Updates ready to install</string>
@@ -245,7 +245,7 @@
     <string name="settings_hub_appearance_title">Appearance</string>
     <string name="settings_hub_appearance_subtitle">Theme, Material You dynamic colors</string>
     <string name="settings_hub_language_title">App language</string>
-    <string name="settings_hub_language_subtitle">Русский, English, system</string>
+    <string name="settings_hub_language_subtitle">The one you pick, or the one the device asks for</string>
     <string name="settings_hub_notifications_title">Notifications</string>
     <string name="settings_hub_notifications_subtitle">Ready updates, errors, channels</string>
     <string name="settings_hub_sources_title">App sources</string>
@@ -283,7 +283,6 @@
     <string name="language_pick">Choose a language</string>
     <string name="language_hint">The language changes immediately, no device restart needed.</string>
     <string name="language_system">System</string>
-    <string name="language_russian">Русский</string>
 
     <string name="notifications_categories_title">Notification categories</string>
     <string name="notifications_ready_title">Ready updates</string>

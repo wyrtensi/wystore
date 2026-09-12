@@ -9,7 +9,7 @@
     <string name="notif_downloading_title">Скачивание %1$s</string>
     <string name="notif_downloading_title_generic">Скачивание</string>
     <string name="notif_downloading_progress">%1$.1f / %2$.1f МБ (%3$d%%)</string>
-    <string name="notif_downloading_indeterminate">Загрузка...</string>
+    <string name="notif_downloading_indeterminate">Загрузка…</string>
     <string name="notif_ready_title">Обновление готово</string>
     <string name="notif_ready_text">%1$s %2$s готово к установке</string>
     <string name="notif_ready_summary_title">Обновления готовы к установке</string>
@@ -245,7 +245,7 @@
     <string name="settings_hub_appearance_title">Внешний вид</string>
     <string name="settings_hub_appearance_subtitle">Тема оформления, динамические цвета Material You</string>
     <string name="settings_hub_language_title">Язык приложения</string>
-    <string name="settings_hub_language_subtitle">Русский, English, системный</string>
+    <string name="settings_hub_language_subtitle">Выбранный или тот, что просит устройство</string>
     <string name="settings_hub_notifications_title">Уведомления</string>
     <string name="settings_hub_notifications_subtitle">Готовые обновления, ошибки, каналы</string>
     <string name="settings_hub_sources_title">Источники приложений</string>
@@ -283,7 +283,6 @@
     <string name="language_pick">Выберите язык</string>
     <string name="language_hint">Язык изменится сразу без перезапуска устройства.</string>
     <string name="language_system">Системный</string>
-    <string name="language_russian">Русский</string>
 
     <string name="notifications_categories_title">Категории уведомлений</string>
     <string name="notifications_ready_title">Готовые обновления</string>

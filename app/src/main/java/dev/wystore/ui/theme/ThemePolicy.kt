@@ -14,9 +14,6 @@ object ThemePolicy {
     fun canUseDynamicColor(dynamicColorEnabled: Boolean, sdkInt: Int): Boolean =
         dynamicColorEnabled && sdkInt >= 31
 
-    fun languageTag(language: AppLanguage): String = when (language) {
-        AppLanguage.SYSTEM -> ""
-        AppLanguage.RU -> "ru"
-        AppLanguage.EN -> "en"
-    }
+    /** Empty for [AppLanguage.SYSTEM], which means "whatever the device asks for". */
+    fun languageTag(language: AppLanguage): String = language.tag
 }
