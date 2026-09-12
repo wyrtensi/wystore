@@ -127,6 +127,11 @@ private fun RowScope.Destination(
         label = {
             // The label shrinks to fit its fifth of the bar instead of wrapping or being clipped,
             // which is what a long word plus a large system font size used to do to it.
+            //
+            // softWrap has to stay on for that: turned off, the text is measured against an
+            // unbounded width, every size "fits", and the largest one is chosen and then cropped by
+            // the bar - which is exactly what the Ukrainian "Налаштування" did. maxLines keeps it
+            // on one line; the shrinking is what makes that line fit.
             BasicText(
                 text = label,
                 style = MaterialTheme.typography.labelMedium.copy(
@@ -134,8 +139,7 @@ private fun RowScope.Destination(
                     textAlign = TextAlign.Center
                 ),
                 maxLines = 1,
-                softWrap = false,
-                autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 12.sp)
+                autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 12.sp)
             )
         },
         colors = NavigationBarItemDefaults.colors(
