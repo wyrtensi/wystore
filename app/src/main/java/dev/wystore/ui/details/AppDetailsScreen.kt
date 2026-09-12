@@ -361,11 +361,20 @@ fun AppDetailsScreen(
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
-                                                TextButton(
-                                                    onClick = { onConfirmUnverifiedSource(app.packageName) },
-                                                    enabled = !busy,
-                                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                                                ) { Text(stringResource(R.string.unverified_source_force)) }
+                                                // Only where there is nothing else to press. With
+                                                // a newer version in the catalogue the page already
+                                                // offers Update, and that fetches the same file and
+                                                // asks the same question at the end of it - two
+                                                // buttons doing one thing is just a choice nobody
+                                                // asked for. Without it the app is stuck: the check
+                                                // skips it, and no other control here acts on it.
+                                                if (!canUpdate) {
+                                                    TextButton(
+                                                        onClick = { onConfirmUnverifiedSource(app.packageName) },
+                                                        enabled = !busy,
+                                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                                    ) { Text(stringResource(R.string.unverified_source_force)) }
+                                                }
                                             }
                                             // Not an error on this phone, and not red: the source
                                             // is the one contradicting itself.
