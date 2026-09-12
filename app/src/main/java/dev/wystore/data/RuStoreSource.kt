@@ -310,16 +310,18 @@ object RustoreHtmlParser {
         val parsed = JsonParser.parseString(array).takeIf { it.isJsonArray }?.asJsonArray ?: return emptyList()
         return parsed.mapNotNull { element ->
             val review = element.takeIf { it.isJsonObject }?.asJsonObject ?: return@mapNotNull null
-            val body = review.string("comment")?.trim().orEmpty()
+            val body = review.string("comment")?.let { RuStoreText.decodeEscapes(it) }?.trim().orEmpty()
             if (body.isBlank()) return@mapNotNull null
             StoreReview(
-                author = review.string("firstName")?.trim().orEmpty(),
+                author = review.string("firstName")
+                    ?.let { RuStoreText.decodeEscapes(it) }?.trim().orEmpty(),
                 publishedAt = review.string("commentDate"),
                 rating = review.get("rating")?.takeUnless { it.isJsonNull }?.asInt?.takeIf { it in 1..5 },
                 text = body,
                 likes = review.get("likesCount")?.takeUnless { it.isJsonNull }?.asInt ?: 0,
                 dislikes = review.get("dislikesCount")?.takeUnless { it.isJsonNull }?.asInt ?: 0,
-                developerResponse = review.string("devResponse")?.trim()?.takeIf { it.isNotBlank() },
+                developerResponse = review.string("devResponse")
+                    ?.let { RuStoreText.decodeEscapes(it) }?.trim()?.takeIf { it.isNotBlank() },
                 developerRespondedAt = review.string("devResponseDate"),
                 edited = review.string("editedAt") != null
             )
