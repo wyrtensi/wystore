@@ -744,7 +744,16 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             settingsRepository.update { effective.toAppSettings() }
         }
         UpdateScheduler.schedule(getApplication(), effective)
-        _state.value = _state.value.copy(settings = effective, message = getApplication<Application>().getString(R.string.msg_settings_saved))
+        val announce = dev.wystore.settings.SettingsSaveAnnouncement
+            .announces(_state.value.settings, effective)
+        _state.value = _state.value.copy(
+            settings = effective,
+            message = if (announce) {
+                getApplication<Application>().getString(R.string.msg_settings_saved)
+            } else {
+                null
+            }
+        )
     }
 
     fun pendingUpdate(packageName: String): PendingUpdate? = _state.value.pendingUpdates.firstOrNull { it.packageName == packageName }
