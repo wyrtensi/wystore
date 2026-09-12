@@ -425,6 +425,10 @@ fun WyStoreRoot(
                         pendingUpdates = state.pendingUpdates,
                         updateCheckTask = state.updateCheckTask,
                         onCheckUpdates = { viewModel.checkForUpdates() },
+                        installsWhatItFinds = UpdateCheckPolicy.checkWillInstallWhatItFinds(
+                            autoDownloadEnabled = state.settings.autoDownloadUpdates,
+                            autoInstallEnabled = state.settings.autoInstallUpdates
+                        ),
                         onUpdateAll = { viewModel.updateAll() },
                         onOpenStorePage = viewModel::openDetails,
                         onAdopt = { app ->

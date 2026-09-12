@@ -84,6 +84,8 @@ fun LibraryScreen(
     pendingUpdates: List<PendingUpdate>,
     updateCheckTask: UpdateCheckTask?,
     onCheckUpdates: () -> Unit,
+    /** Whether a check will also fetch and install what it finds; see the Updates screen. */
+    installsWhatItFinds: Boolean = false,
     onUpdateAll: () -> Unit,
     onAdopt: (InstalledApp) -> Unit,
     onUpdateManaged: (ManagedApp) -> Unit,
@@ -163,7 +165,10 @@ fun LibraryScreen(
                         when {
                             installsWaiting -> stringResource(R.string.library_install_count, pendingUpdates.size)
                             updateCheckTask?.running == true -> stringResource(R.string.library_checking)
-                            else -> stringResource(R.string.library_check_and_install)
+                            // The label used to promise an install unconditionally, on a phone
+                            // where the switch for it may well be off.
+                            installsWhatItFinds -> stringResource(R.string.library_check_and_install)
+                            else -> stringResource(R.string.updates_check_now)
                         }
                     )
                 }
