@@ -641,6 +641,13 @@
     <string name="about_independent">Wy Store — независимый альтернативный клиент для каталога RuStore и релизов GitHub. Проект не связан с RuStore, не одобрен им и не действует от его имени.</string>
     <string name="about_disclaimer_link">Заявление о проекте и независимости</string>
     <string name="about_issues_link">Сообщить о проблеме на GitHub</string>
+    <string name="source_failure_title">Похоже, дело в источнике</string>
+    <string name="source_failure_body">Wy Store читает RuStore через его публичные страницы, а они могут меняться. Когда это происходит, загрузки перестают идти у всех сразу — до сборки, которая понимает новый формат.</string>
+    <string name="source_failure_update_available">Вышла более новая версия Wy Store: %1$s. Возможно, она уже понимает новый формат.</string>
+    <string name="source_failure_no_update">Новее пока нет. Если дело в приложении, обновление выйдет — и выйдет быстрее, если о проблеме сообщить.</string>
+    <string name="source_failure_save_report">Сохранить отчёт о диагностике</string>
+    <string name="source_failure_report_saved">Отчёт сохранён. Приложи его к сообщению.</string>
+    <string name="source_failure_help">Что делать?</string>
     <string name="category_adsandservices">Объявления и услуги</string>
     <string name="category_books">Книги</string>
     <string name="category_business">Бизнес-сервисы</string>

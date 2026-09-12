@@ -2,6 +2,7 @@ package dev.wystore.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import dev.wystore.background.UpdateCheckPolicy
+import dev.wystore.ui.components.SourceFailureDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -114,6 +115,9 @@ fun WyStoreRoot(
             .ifEmpty { homeState.categories }
     }
 
+    // The one failure the user cannot retry their way out of, because it is not theirs.
+    var sourceFailureHelp by rememberSaveable { mutableStateOf(false) }
+
     BackHandler(
         enabled = state.selected != null ||
             state.githubSelectedRelease != null ||
@@ -129,6 +133,18 @@ fun WyStoreRoot(
             }
             else -> destination = WyStoreDestination.Home
         }
+    }
+
+    if (sourceFailureHelp) {
+        SourceFailureDialog(
+            status = state.selfUpdate,
+            onCheckSelfUpdate = viewModel::checkSelfUpdate,
+            onInstallSelfUpdate = {
+                sourceFailureHelp = false
+                viewModel.installSelfUpdate()
+            },
+            onDismiss = { sourceFailureHelp = false }
+        )
     }
 
     // A transfer the user asked for runs on whatever connection there is, so "Wi-Fi only" was
@@ -408,6 +424,7 @@ fun WyStoreRoot(
                         onQueueDownload = viewModel::queueDownload,
                         onQueueDiscard = viewModel::queueDiscard,
                         onQueueReplace = { queueReplaceDialog = it },
+                        onSourceFailureHelp = { sourceFailureHelp = true },
                         onStartQueue = viewModel::startQueue
                     )
                     WyStoreDestination.Categories -> dev.wystore.ui.home.AllCategoriesScreen(

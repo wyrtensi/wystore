@@ -88,6 +88,8 @@ fun UpdatesScreen(
     onQueueDiscard: (String) -> Unit = {},
     /** Asks to remove the installed copy so this row can be installed in its place. */
     onQueueReplace: (InstallQueueItem) -> Unit = {},
+    /** Opens the "the source, not you" dialog for a failure nothing on this phone can fix. */
+    onSourceFailureHelp: () -> Unit = {},
     onStartQueue: () -> Unit = {}
 ) {
     val installedByPackage = remember(installed) { installed.associateBy { it.packageName } }
@@ -181,7 +183,8 @@ fun UpdatesScreen(
                         onSkip = { onQueueSkip(item.id) },
                         onDownload = { onQueueDownload(item.id) },
                         onDiscard = { onQueueDiscard(item.id) },
-                        onReplace = { onQueueReplace(item) }
+                        onReplace = { onQueueReplace(item) },
+                        onSourceFailureHelp = onSourceFailureHelp
                     )
                 }
             }
@@ -385,7 +388,8 @@ fun QueueItemCard(
     onSkip: () -> Unit,
     onDownload: () -> Unit = {},
     onDiscard: () -> Unit = {},
-    onReplace: () -> Unit = {}
+    onReplace: () -> Unit = {},
+    onSourceFailureHelp: () -> Unit = {}
 ) {
     val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED
     val failed = item.status == InstallQueueStatus.FAILED
@@ -393,6 +397,10 @@ fun QueueItemCard(
     // thing again and fails the same way. A signature that does not match is the one failure a
     // retry can never get past, and the only way through it is the removal - so it is a button.
     val needsReplace = failed && item.errorCode == dev.wystore.updates.model.QueueErrorCode.SIGNATURE
+    // A failure the user cannot retry their way out of, because it is not theirs. Offered as one
+    // more line on the row rather than a banner: it belongs to this app, not to the whole screen.
+    val sourceProblem = failed &&
+        dev.wystore.updates.SourceFailurePolicy.looksLikeSourceProblem(item.errorCode)
     WyCard(
         modifier = Modifier.fillMaxWidth(),
         containerColor = if (failed) {
@@ -455,6 +463,12 @@ fun QueueItemCard(
                         .fillMaxWidth()
                         .clip(MaterialTheme.shapes.extraSmall)
                 )
+            }
+            if (sourceProblem) {
+                TextButton(
+                    onClick = onSourceFailureHelp,
+                    modifier = Modifier.align(Alignment.End)
+                ) { Text(stringResource(R.string.source_failure_help)) }
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
