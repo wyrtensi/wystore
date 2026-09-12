@@ -51,6 +51,9 @@ object TakeoverPolicy {
      * @param installedVersionCode null when the app is not on the phone, which is an install and
      * not a handover.
      * @param ownedByStore whether Wy Store is already the installer of record.
+     * @param acceptedSourceDigest a signature the user accepted from this source in place of the
+     * one it advertises: the phone then holds the file the source serves, and removing the app to
+     * install that same file again would cost its data for nothing.
      * @param catalogVersionCode null when the source states nothing comparable, in which case the
      * version cannot rule anything out and the archive decides at install time.
      */
@@ -59,10 +62,15 @@ object TakeoverPolicy {
         installedDigests: Set<String>,
         ownedByStore: Boolean,
         catalogVersionCode: Long?,
-        catalogSignatureHint: String?
+        catalogSignatureHint: String?,
+        acceptedSourceDigest: String? = null
     ): TakeoverDecision {
         if (installedVersionCode == null || ownedByStore) return TakeoverDecision(TakeoverPath.NONE)
-        val compatibility = SignatureCompatibilityPolicy.evaluate(installedDigests, catalogSignatureHint)
+        val compatibility = SignatureCompatibilityPolicy.evaluate(
+            installedDigests = installedDigests,
+            declaredFingerprint = catalogSignatureHint,
+            acceptedFingerprint = acceptedSourceDigest
+        )
         if (compatibility == SignatureCompatibility.MISMATCH) {
             return TakeoverDecision(TakeoverPath.REPLACE, TakeoverObstacle.SIGNATURE)
         }

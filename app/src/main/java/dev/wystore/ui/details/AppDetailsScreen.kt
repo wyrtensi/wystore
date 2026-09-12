@@ -75,6 +75,7 @@ import dev.wystore.data.SignatureCompatibilityPolicy
 import dev.wystore.data.TakeoverObstacle
 import dev.wystore.data.TakeoverPath
 import dev.wystore.data.TakeoverPolicy
+import dev.wystore.updates.UnverifiedSourceStore
 import dev.wystore.ui.components.installerLabel
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.DetailFacts
@@ -321,12 +322,22 @@ fun AppDetailsScreen(
                                 // button to everyone else - including apps whose catalogue copy is
                                 // older than the phone's, where the install is a downgrade Android
                                 // refuses. That button downloaded the whole APK and did nothing.
+                                // What the user has already answered about this app's signature,
+                                // if anything: with that answer the phone holds the file the source
+                                // serves, and the page must not read it as the phone's fault.
+                                val acceptedDigest = remember(app.packageName, app.signatureHint) {
+                                    runCatching {
+                                        UnverifiedSourceStore(context)
+                                            .acceptedArchiveDigest(app.packageName, app.signatureHint)
+                                    }.getOrNull()
+                                }
                                 val takeover = TakeoverPolicy.decide(
                                     installedVersionCode = installed.versionCode,
                                     installedDigests = installed.signingDigests,
                                     ownedByStore = owner == context.packageName,
                                     catalogVersionCode = app.versionCode,
-                                    catalogSignatureHint = app.signatureHint
+                                    catalogSignatureHint = app.signatureHint,
+                                    acceptedSourceDigest = acceptedDigest
                                 )
                                 when (takeover.path) {
                                     // Nothing to hand over - but an app Wy Store already owns can
@@ -335,15 +346,25 @@ fun AppDetailsScreen(
                                     // predates the handover button and does not belong to it.
                                     TakeoverPath.NONE -> {
                                         val compatibility = SignatureCompatibilityPolicy.evaluate(
-                                            installed.signingDigests,
-                                            app.signatureHint
+                                            installedDigests = installed.signingDigests,
+                                            declaredFingerprint = app.signatureHint,
+                                            acceptedFingerprint = acceptedDigest
                                         )
-                                        if (compatibility == SignatureCompatibility.MISMATCH) {
-                                            Text(
+                                        when (compatibility) {
+                                            SignatureCompatibility.MISMATCH -> Text(
                                                 stringResource(R.string.details_signature_incompatible),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.error
                                             )
+                                            // Not an error on this phone, and not red: the source
+                                            // is the one contradicting itself.
+                                            SignatureCompatibility.SOURCE_UNCONFIRMED -> Text(
+                                                stringResource(R.string.details_source_unconfirmed),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            SignatureCompatibility.COMPATIBLE,
+                                            SignatureCompatibility.UNKNOWN -> Unit
                                         }
                                     }
                                     TakeoverPath.IN_PLACE -> {

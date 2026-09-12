@@ -632,7 +632,14 @@ class QueueRepository(
         githubRepository: GitHubRepository? = null,
         githubReleaseId: Long? = null
     ): UpdateQueueEntity = withContext(Dispatchers.IO) {
+        // A row a person started by hand knows only the package: the version is read from the
+        // source during the download and written onto the row when verification succeeds. Until
+        // then it is zero, and looking the row up by version could not find it - so a check that
+        // ran while such a row was waiting, or after it had been refused, opened a second row for
+        // the same app and fetched the same file all over again.
         val existing = dao.find(packageName, versionCode, source.name)
+            ?: dao.getByPackage(packageName)
+                .firstOrNull { it.source == source.name && it.versionCode == 0L }
         val entity = UpdateQueueEntity(
             id = existing?.id ?: UUID.randomUUID().toString(),
             packageName = packageName,

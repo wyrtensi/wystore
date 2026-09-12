@@ -354,7 +354,7 @@
     <string name="install_queue_waiting">Install queue: %1$d more waiting</string>
     <string name="check_problem_not_in_source">%1$s — RuStore does not carry this app, there is nothing to update it from</string>
     <string name="check_problem_unreachable">%1$s — the source did not answer, could not check</string>
-    <string name="check_problem_signature">%1$s — the developer changed the signing key: an update from here cannot install over it, a reinstall is needed</string>
+    <string name="check_problem_signature">%1$s — its signature is not the one the source states: an update from here cannot install over it, only a reinstall can</string>
     <string name="check_problem_more">…and %1$d more</string>
     <string name="updates_install_all">Install all</string>
     <string name="updates_ready_title">Ready to install (%1$d)</string>
@@ -497,7 +497,7 @@
     <string name="details_min_android_value">Android %1$s and up</string>
     <string name="details_rating_value">%1$s (%2$d)</string>
     <string name="details_fingerprint_note">Declared by RuStore — checked before installing</string>
-    <string name="home_tagline">Russian apps and much more</string>
+    <string name="home_tagline">Russian apps and even more</string>
     <string name="home_empty_featured_title">Nothing to show yet</string>
     <string name="search_empty_title">Nothing found</string>
     <string name="search_empty_message">Try a shorter query or the package name.</string>
@@ -601,6 +601,9 @@
     <string name="unverified_source_body_update">The app is already installed, so Android still requires the new file to carry the same signature as the copy on the phone and refuses it otherwise.</string>
     <string name="unverified_source_body_new">Nothing is installed to compare against, so this download is trusted on RuStore\'s word alone.</string>
     <string name="unverified_source_accept">Download anyway</string>
+    <string name="unverified_source_why_title">Why this happens</string>
+    <string name="unverified_source_why">A developer re-releases the app under a new signing key and the catalogue entry keeps the old fingerprint. RuStore rebuilds or re-signs the file and does not update the entry. The entry is simply out of date. Or the file behind the link is not the one the entry describes — rare, and indistinguishable from the rest from here, because the only thing there is to compare against is what the source itself says.</string>
+    <string name="unverified_source_why_open">Why this happens</string>
     <string name="status_cancelled">Cancelled</string>
     <string name="status_skipped">Skipped</string>
     <string name="status_offer_next">Update next app in queue</string>
@@ -636,7 +639,8 @@
     <string name="details_catalog_older">The catalogue carries version %1$s, older than the one installed.</string>
     <string name="details_catalog_older_blocks">An update from here cannot install over what you have: Android never installs a version below the one on the phone. Handing updates over means uninstalling the app and installing it again, and its data is usually lost.</string>
     <string name="details_replace">Uninstall and install through Wy Store</string>
-    <string name="details_signature_incompatible">An update from here cannot install over what you have: the app is signed with a different key. It has to be uninstalled and installed again, and its data is usually lost.</string>
+    <string name="details_signature_incompatible">The installed copy is not signed with the certificate RuStore states for this app, so an update from here cannot install over it: Android refuses that. It would have to be removed and installed again, which usually loses its data. An app installed from somewhere else looks like this — and so does a catalogue entry that is out of date.</string>
+    <string name="details_source_unconfirmed">RuStore did not confirm this app: it states one signing fingerprint and serves a file signed with another. The installed copy is the file RuStore serves, so updates from here do install over it — it is the catalogue entry that disagrees, not the app on the phone.</string>
     <string name="details_first_update_manual">The first update through Wy Store has to be confirmed by hand. After it Wy Store becomes the installer of record and can update the app on its own.</string>
     <string name="details_take_over_hint">Android lets only the installer of record update an app quietly. Reinstalling it through Wy Store makes that Wy Store.</string>
     <string name="details_uninstall">Uninstall</string>

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
@@ -191,6 +192,11 @@ fun UpdatesScreen(
                         onReplace = { onQueueReplace(item) },
                         onSourceFailureHelp = onSourceFailureHelp,
                         onConfirmUnverifiedSource = { onConfirmUnverifiedSource(item.packageName) },
+                        canReplace = dev.wystore.updates.ReplaceOfferPolicy.offersReplace(
+                            errorCode = item.errorCode,
+                            detail = item.detail,
+                            appInstalled = installed.any { it.packageName == item.packageName }
+                        ),
                         onPause = { onQueuePause(item.id) },
                         onResume = { onQueueResume(item.id) }
                     )
@@ -399,6 +405,8 @@ fun QueueItemCard(
     onReplace: () -> Unit = {},
     onSourceFailureHelp: () -> Unit = {},
     onConfirmUnverifiedSource: () -> Unit = {},
+    /** Whether removing the installed app would get this row past its failure - see ReplaceOfferPolicy. */
+    canReplace: Boolean = false,
     onPause: () -> Unit = {},
     onResume: () -> Unit = {}
 ) {
@@ -407,14 +415,11 @@ fun QueueItemCard(
     // The row said "uninstall it and install it again" and offered Retry, which does the same
     // thing again and fails the same way. A signature that does not match is the one failure a
     // retry can never get past, and the only way through it is the removal - so it is a button.
-    // The source would not vouch for its own file. Answerable by the user, and the one signature
-    // failure removing the installed app cannot help with: nothing here is about the installed
-    // copy, so "uninstall and install" was advice that cost an app and changed nothing.
+    // The source would not vouch for its own file. Answerable by the user, and never the same row
+    // as the one below: nothing about it is about the installed copy.
     val unconfirmed = failed &&
         dev.wystore.updates.UnverifiedSourceConsent.isAnswerable(item.errorCode, item.detail)
-    val needsReplace = failed &&
-        item.errorCode == dev.wystore.updates.model.QueueErrorCode.SIGNATURE &&
-        !unconfirmed
+    val needsReplace = failed && canReplace
     // A failure the user cannot retry their way out of, because it is not theirs. Offered as one
     // more line on the row rather than a banner: it belongs to this app, not to the whole screen.
     val sourceProblem = failed &&
@@ -465,15 +470,27 @@ fun QueueItemCard(
                     }
                 }
             }
-            Text(
-                queueStatusLabel(item),
-                style = MaterialTheme.typography.bodySmall,
-                color = if (failed) {
-                    MaterialTheme.colorScheme.onErrorContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    queueStatusLabel(item),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (failed) {
+                        MaterialTheme.colorScheme.onErrorContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+                // The reasons, reachable without pressing the button that answers the question.
+                if (unconfirmed) {
+                    IconButton(onClick = onConfirmUnverifiedSource) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = stringResource(R.string.unverified_source_why_open)
+                        )
+                    }
                 }
-            )
+            }
             item.progress?.takeIf { it.totalBytes > 0 }?.let { progress ->
                 LinearProgressIndicator(
                     progress = { progress.fraction },

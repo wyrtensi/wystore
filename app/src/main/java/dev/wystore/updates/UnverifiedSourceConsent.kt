@@ -46,6 +46,40 @@ object UnverifiedSourceConsent {
 }
 
 /**
+ * Whether removing the installed app is worth offering for a failure.
+ *
+ * The queue offered "uninstall and install" for every signature failure there is, including on an
+ * app that is not on the phone at all - there was nothing to uninstall, and the button said so to
+ * nobody's benefit. It helps in exactly one situation: something is installed, and it is what the
+ * new file cannot go over.
+ *
+ * It lives beside [UnverifiedSourceConsent] because both answer the same pair, and the two answers
+ * are mutually exclusive: a file the source would not vouch for is a question about the file, and
+ * removing an app the phone may not even have does not answer it.
+ */
+object ReplaceOfferPolicy {
+
+    /** The refusals an uninstall actually clears; the other eight survive it unchanged. */
+    private val CLEARED_BY_REINSTALL = setOf(
+        VerificationError.SIGNATURE_MISMATCH,
+        VerificationError.WRONG_PACKAGE_FOR_UPDATE
+    )
+
+    fun offersReplace(
+        errorCode: QueueErrorCode?,
+        detail: String?,
+        appInstalled: Boolean
+    ): Boolean {
+        if (!appInstalled || errorCode != QueueErrorCode.SIGNATURE) return false
+        // A row that does not name which check refused it cannot be shown to be one an uninstall
+        // clears, and is not offered the one action that costs the app's data.
+        val error = detail?.let { name -> VerificationError.entries.firstOrNull { it.name == name } }
+            ?: return false
+        return error in CLEARED_BY_REINSTALL
+    }
+}
+
+/**
  * What was refused, and what the user said about it.
  *
  * Consent names the two fingerprints the user was shown - the one the source advertises and the one

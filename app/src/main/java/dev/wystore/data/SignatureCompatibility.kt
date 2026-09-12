@@ -8,6 +8,15 @@ enum class SignatureCompatibility {
     /** The source declares a different certificate: Android will refuse to update in place. */
     MISMATCH,
 
+    /**
+     * The installed copy carries the signature the user accepted from this source in place of the
+     * one it advertises - so the phone holds the file the source actually serves, and an update
+     * from there installs over it. The disagreement is between the source's catalogue and the
+     * source's own file, and saying "this app is signed with a different key" about it puts the
+     * fault on the phone, where it is not.
+     */
+    SOURCE_UNCONFIRMED,
+
     /** Not enough is known - no declared fingerprint, or the installed signature is unreadable. */
     UNKNOWN
 }
@@ -30,14 +39,24 @@ object SignatureCompatibilityPolicy {
 
     private val FINGERPRINT = Regex("[0-9a-f]{64}")
 
-    fun evaluate(installedDigests: Set<String>, declaredFingerprint: String?): SignatureCompatibility {
+    /**
+     * @param acceptedFingerprint the signature the user has accepted from this source in place of
+     * the one it advertises, when they have - see [dev.wystore.updates.UnverifiedSourceConsent].
+     */
+    fun evaluate(
+        installedDigests: Set<String>,
+        declaredFingerprint: String?,
+        acceptedFingerprint: String? = null
+    ): SignatureCompatibility {
         val declared = declaredFingerprint?.trim()?.lowercase()?.takeIf { it.matches(FINGERPRINT) }
             ?: return SignatureCompatibility.UNKNOWN
         if (installedDigests.isEmpty()) return SignatureCompatibility.UNKNOWN
-        return if (declared in installedDigests.map { it.lowercase() }) {
-            SignatureCompatibility.COMPATIBLE
-        } else {
-            SignatureCompatibility.MISMATCH
+        val installed = installedDigests.map { it.lowercase() }
+        return when {
+            declared in installed -> SignatureCompatibility.COMPATIBLE
+            acceptedFingerprint?.trim()?.lowercase() in installed ->
+                SignatureCompatibility.SOURCE_UNCONFIRMED
+            else -> SignatureCompatibility.MISMATCH
         }
     }
 }

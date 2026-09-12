@@ -354,7 +354,7 @@
     <string name="install_queue_waiting">Очередь на установку: ещё %1$d</string>
     <string name="check_problem_not_in_source">%1$s — этого приложения нет в RuStore, обновлять его неоткуда</string>
     <string name="check_problem_unreachable">%1$s — источник не ответил, проверить не удалось</string>
-    <string name="check_problem_signature">%1$s — разработчик сменил ключ подписи: обновление отсюда не встанет поверх, нужна переустановка</string>
+    <string name="check_problem_signature">%1$s — подпись не та, которую заявляет источник: обновление отсюда не встанет поверх, поможет только переустановка</string>
     <string name="check_problem_more">…и ещё %1$d</string>
     <string name="updates_install_all">Установить все</string>
     <string name="updates_ready_title">Готовы к установке (%1$d)</string>
@@ -601,6 +601,9 @@
     <string name="unverified_source_body_update">Приложение уже установлено, поэтому Android всё равно потребует, чтобы подпись нового файла совпала с подписью установленного, и откажет, если это не так.</string>
     <string name="unverified_source_body_new">Установленной версии нет, сравнить не с чем: эта загрузка принимается только со слов RuStore.</string>
     <string name="unverified_source_accept">Скачать всё равно</string>
+    <string name="unverified_source_why_title">Почему так бывает</string>
+    <string name="unverified_source_why">Разработчик перевыпустил приложение с новым ключом подписи, а карточка в каталоге осталась со старым отпечатком. RuStore пересобрал или переподписал файл и не обновил карточку. Данные в карточке просто устарели. Или файл по ссылке — не тот, что описан в карточке: это редкость, и отсюда она выглядит так же, как всё перечисленное, потому что сверять больше не с чем — только со словами самого источника.</string>
+    <string name="unverified_source_why_open">Почему так бывает</string>
     <string name="status_cancelled">Отменено</string>
     <string name="status_skipped">Пропущено</string>
     <string name="status_offer_next">Обновить следующее приложение</string>
@@ -636,7 +639,8 @@
     <string name="details_catalog_older">В каталоге версия %1$s — старше установленной.</string>
     <string name="details_catalog_older_blocks">Обновление отсюда не встанет поверх установленного: Android не ставит версию ниже той, что на телефоне. Передать обновления можно только с удалением и установкой заново — данные при этом, как правило, не сохраняются.</string>
     <string name="details_replace">Удалить и переустановить через Wy Store</string>
-    <string name="details_signature_incompatible">Обновление отсюда не встанет поверх установленного: приложение подписано другим ключом. Его придётся удалить и установить заново — данные при этом, как правило, не сохраняются.</string>
+    <string name="details_signature_incompatible">Установленная копия подписана не тем ключом, который RuStore заявляет для этого приложения, поэтому обновление отсюда не встанет поверх — Android откажет. Понадобится удалить и установить заново, а данные при этом, как правило, не сохраняются. Так выглядит и приложение, поставленное из другого источника, и устаревшая карточка в каталоге.</string>
+    <string name="details_source_unconfirmed">RuStore не подтвердил это приложение: он заявляет один отпечаток подписи, а выдаёт файл с другим. Установленная копия — это и есть файл из RuStore, так что обновления отсюда встанут поверх неё. Расходится карточка в каталоге, а не приложение на телефоне.</string>
     <string name="details_first_update_manual">Первое обновление через Wy Store придётся подтвердить вручную. После него контроль перейдёт к Wy Store, и дальше он сможет обновлять приложение сам.</string>
     <string name="details_take_over_hint">Android разрешает тихо обновлять только тому, кто приложение установил. Переустановка через Wy Store делает контролирующим его.</string>
     <string name="details_uninstall">Удалить</string>

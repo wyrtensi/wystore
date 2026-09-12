@@ -55,13 +55,30 @@ class SecureArtifactDownloader(context: Context? = null) {
         artifacts.flatMapIndexed { index, artifact ->
             val temporary = File(directory, "artifact_$index.part")
             val destination = File(directory, "artifact_$index.apk")
+            val marker = File(directory, "artifact_$index.id")
+            // A file already here in full is not fetched again. It matters where a download is
+            // kept after it has been refused: answering "take it anyway" acts on the bytes that
+            // were refused, rather than spending the whole transfer a second time to arrive at
+            // the same file.
+            if (alreadyFetched(destination, marker, artifact.url, artifact.sizeBytes)) {
+                completedBefore += artifact.sizeBytes
+                onProgress(
+                    DownloadProgress(completedBefore, totalExpected, index + 1, artifacts.size, 0, 0)
+                )
+                return@flatMapIndexed extractApksFromBundleIfNeeded(destination, directory, index)
+            }
             destination.delete()
             try {
                 // Anything already on disk from an interrupted attempt is offered back to the
                 // server as a range. A download that died at 90% of a 130 MB APK used to start
                 // again from zero, on a connection that had just proved unreliable.
+                // Only when it is a prefix of this file: the marker says what it came from, and
+                // nothing consulted it before - a new release published under the name of the old
+                // one would have been stapled onto its remains.
+                discardForeignPartial(temporary, marker, artifact.url, artifact.sizeBytes)
                 val resumeFrom = ResumePolicy.resumableBytes(temporary.length(), artifact.sizeBytes)
                 if (resumeFrom == 0L) temporary.delete()
+                rememberPartial(marker, artifact.url, artifact.sizeBytes)
 
                 val request = Request.Builder().url(artifact.url).apply {
                     if (resumeFrom > 0L) header("Range", "bytes=$resumeFrom-")
@@ -141,11 +158,20 @@ class SecureArtifactDownloader(context: Context? = null) {
         directory.mkdirs()
         val temporary = File(directory, "github_asset.part")
         val destination = File(directory, "github_asset.apk")
+        val marker = File(directory, "github_asset.id")
+        if (alreadyFetched(destination, marker, asset.downloadUrl, asset.sizeBytes)) {
+            onProgress(DownloadProgress(asset.sizeBytes, asset.sizeBytes, 1, 1, 0, 0))
+            return@withContext destination
+        }
         destination.delete()
         // Whatever an interrupted attempt left behind, offered back as a range. GitHub's asset CDN
-        // honours ranges, so a 70 MB APK that dropped near the end does not start over.
+        // honours ranges, so a 70 MB APK that dropped near the end does not start over - but only
+        // what this very asset left behind: a rolling release keeps one row, one directory and one
+        // file name across builds, which is the case the marker exists for.
+        discardForeignPartial(temporary, marker, asset.downloadUrl, asset.sizeBytes)
         val resumeFrom = ResumePolicy.resumableBytes(temporary.length(), asset.sizeBytes)
         if (resumeFrom == 0L) temporary.delete()
+        rememberPartial(marker, asset.downloadUrl, asset.sizeBytes)
         try {
             var url = asset.downloadUrl
             repeat(6) { redirect ->
@@ -290,6 +316,16 @@ class SecureArtifactDownloader(context: Context? = null) {
  */
 private fun fail(error: SourceError, detail: String): Nothing =
     throw SourceFormatException(error, detail)
+
+/**
+ * Whether a file fetched earlier is still exactly what would be fetched now: the full length, from
+ * the same place, for the same release.
+ */
+private fun alreadyFetched(destination: File, marker: File, url: String, expectedBytes: Long): Boolean {
+    if (!destination.isFile || destination.length() != expectedBytes) return false
+    val stored = runCatching { marker.takeIf { it.isFile }?.readText() }.getOrNull()
+    return PartialDownloadIdentity.matches(stored, url, expectedBytes)
+}
 
 /** Throws away a partial that came from somewhere other than what is being fetched now. */
 private fun discardForeignPartial(temporary: File, marker: File, url: String, expectedBytes: Long) {

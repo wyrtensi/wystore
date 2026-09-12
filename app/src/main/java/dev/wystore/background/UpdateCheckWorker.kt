@@ -32,6 +32,7 @@ import dev.wystore.selfupdate.SelfUpdateStatus
 import dev.wystore.root.RootInstaller
 import dev.wystore.updates.QueueOrigin
 import dev.wystore.updates.QueueRepository
+import dev.wystore.updates.UnverifiedSourceStore
 import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
@@ -350,8 +351,18 @@ class UpdateCheckWorker(
         // the end. The app's page says so instead, and a download the user starts by hand still
         // goes through - only the archive itself carries the signing lineage that could prove the
         // two certificates are the same developer after a key rotation.
-        if (SignatureCompatibilityPolicy.evaluate(local.signingDigests, app.signatureHint) ==
-            SignatureCompatibility.MISMATCH
+        // Unless the user has already been asked about this app and answered: the phone then holds
+        // the file the source serves, an update from there installs over it, and stopping here
+        // would turn one accepted refusal into an app that never updates again.
+        val accepted = runCatching {
+            UnverifiedSourceStore(applicationContext)
+                .acceptedArchiveDigest(managed.packageName, app.signatureHint)
+        }.getOrNull()
+        if (SignatureCompatibilityPolicy.evaluate(
+                installedDigests = local.signingDigests,
+                declaredFingerprint = app.signatureHint,
+                acceptedFingerprint = accepted
+            ) == SignatureCompatibility.MISMATCH
         ) {
             // Reported rather than passed over in silence. There is a newer version and it cannot
             // be installed over this one; saying nothing made that look like an app with no update.

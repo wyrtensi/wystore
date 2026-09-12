@@ -29,6 +29,7 @@ import dev.wystore.updates.AutoInstallStore
 import dev.wystore.updates.BackgroundInstaller
 import dev.wystore.data.EventLog
 import dev.wystore.updates.QueueOrigin
+import dev.wystore.updates.UnverifiedSourceConsent
 import dev.wystore.updates.UnverifiedSourceStore
 import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.model.QueueAction
@@ -120,8 +121,13 @@ class UpdateDownloadWorker(
                 Result.retry()
             } else {
                 runCatching { queueRepository.markFailed(queueId, failure.code, failure.detail) }
-                // Nothing will resume this, so the partial bytes are dead weight.
-                runCatching { workingDirectory(queueId).deleteRecursively() }
+                // Nothing will resume this, so the partial bytes are dead weight - unless the
+                // refusal is one the user is about to be asked about. Answering "take it anyway"
+                // is an answer about the file that was refused, and it should act on that file
+                // rather than spend the whole transfer again to arrive at the same bytes.
+                if (!UnverifiedSourceConsent.isAnswerable(failure.code, failure.detail)) {
+                    runCatching { workingDirectory(queueId).deleteRecursively() }
+                }
                 // A background download that died used to be silent: the error switch in Settings
                 // guarded a method with no callers.
                 runCatching {
