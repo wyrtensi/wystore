@@ -13,7 +13,11 @@
 [![Telegram chat](https://img.shields.io/badge/Telegram-chat-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
 [![Licence MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=licence)](LICENSE)
 
-[Русский](README.md) · [Releases](https://github.com/wyrtensi/wystore/releases) · [Changelog](CHANGELOG.md) · [Privacy](PRIVACY.md) · [Security](SECURITY.md) · [Project statement](DISCLAIMER.md) · [Licence](LICENSE)
+[Project site](https://wystore.ru/en/)
+
+[Русский](README.md) · **English** · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · [Oʻzbekcha](README.uz.md) · [Latviešu](README.lv.md) · [简体中文](README.zh.md)
+
+[Releases](https://github.com/wyrtensi/wystore/releases) · [Changelog](CHANGELOG.md) · [Privacy](PRIVACY.md) · [Security](SECURITY.md) · [Project statement](DISCLAIMER.md) · [Licence](LICENSE)
 
 </div>
 
@@ -26,7 +30,7 @@ The project has no backend, no accounts, no analytics and no ads. The app talks 
 `rustore.ru`, `github.com` and the storage those services serve their files from.
 
 The catalogue is aimed at users in Russia, so most of the content is in Russian; the interface
-itself ships in Russian and English.
+itself ships in every language listed above.
 
 Wy Store is not affiliated with RuStore and does not act on its behalf: RuStore is a data source
 here. See [DISCLAIMER.md](DISCLAIMER.md).
@@ -59,7 +63,8 @@ here. See [DISCLAIMER.md](DISCLAIMER.md).
   file.
 - **Traffic control.** A Wi-Fi-only mode for background downloads; a manual download over mobile data
   asks for confirmation first.
-- **Interface.** Russian and English, light and dark themes, Material You.
+- **Interface.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文 —
+  light and dark themes, Material You.
 
 ## Install
 
