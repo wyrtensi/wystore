@@ -134,14 +134,14 @@ class PackageUiStateReducerTest {
     }
 
     /**
-     * A row waiting its turn offers no button.
+     * A row waiting its turn offers the way out of the queue, and nothing else.
      *
      * It used to offer "Continue", which did nothing: the handler behind it asked Android to
      * install a downloaded file, and this row has not downloaded one - while enqueueing it again
      * returns early, because it is already in the queue.
      */
     @Test
-    fun aRowWaitingItsTurnOffersNothingToPress() {
+    fun aRowWaitingItsTurnOffersToTakeTheSlot() {
         val queueItem = InstallQueueItem(
             packageName = "ru.vk.store",
             label = "RuStore",
@@ -155,9 +155,13 @@ class PackageUiStateReducerTest {
             queueItem = queueItem,
             pendingUpdate = null
         )
-        assertEquals(PrimaryAction.None, state.primaryAction)
+        assertEquals(PrimaryAction.DownloadNow, state.primaryAction)
         assertEquals(StatusCode.QUEUED, state.status.code)
         assertEquals(SecondaryAction.Cancel, state.secondaryAction)
+        assertEquals(
+            RowAction.DownloadNow,
+            RowActionPolicy.actionFor(state.primaryAction, state.status.code)
+        )
     }
 
     @Test

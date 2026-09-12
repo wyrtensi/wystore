@@ -12,7 +12,11 @@ import dev.wystore.updates.model.QueueItemSnapshot
 import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asStateFlow
+
+private const val DISPLACE_POLLS = 20
+private const val DISPLACE_POLL_MILLIS = 100L
 
 class QueueCoordinator(
     private val context: Context,
@@ -37,6 +41,47 @@ class QueueCoordinator(
 
     suspend fun download(id: String) {
         TransferDispatcher.dispatch(context, id)
+    }
+
+    /**
+     * Makes this row the one being fetched, now, displacing whatever holds the transfer slot.
+     *
+     * The queue moves one item at a time, so asking for a download while another is running used
+     * to do nothing visible at all: the worker started, found the slot taken, and left the row
+     * waiting exactly where it was. "Download now" has to mean now, or it should not be offered.
+     *
+     * What it displaces goes back to waiting rather than to failed: it keeps its place in the
+     * queue and starts again when the slot frees. It does start again from the beginning - the
+     * cancelled transfer clears its partial files, the same as any other cancellation - which is
+     * the price of jumping the line and the reason this is a button rather than something the
+     * queue does on its own.
+     *
+     * An install is never interrupted: it is Android's operation by then, and there is no safe
+     * moment to take a package away from it.
+     */
+    suspend fun downloadNow(id: String) {
+        val target = repository.getById(id) ?: return
+        if (target.state == QueueState.DOWNLOADING || target.state == QueueState.VERIFYING) return
+        repository.snapshotAll()
+            .filter { it.id != id && it.state == QueueState.DOWNLOADING }
+            .forEach { active -> displace(active.id) }
+        download(id)
+    }
+
+    /**
+     * Stops a transfer and puts its row back in line.
+     *
+     * The reset waits for the worker to finish unwinding: cancellation runs in the worker, which
+     * writes CANCELED on its way out, and resetting before that lands would be overwritten by it.
+     */
+    private suspend fun displace(id: String) {
+        TransferDispatcher.cancel(context, id)
+        var waited = 0
+        while (waited < DISPLACE_POLLS && repository.getById(id)?.state == QueueState.DOWNLOADING) {
+            delay(DISPLACE_POLL_MILLIS)
+            waited++
+        }
+        repository.resetForRetry(id, errorCode = null, errorDetail = null)
     }
 
     suspend fun install(id: String, installer: UserConfirmedInstaller) {

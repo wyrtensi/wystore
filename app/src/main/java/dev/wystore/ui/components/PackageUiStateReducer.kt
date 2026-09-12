@@ -157,12 +157,11 @@ object PackageUiStateReducer {
                         iconUrl = iconUrl,
                         publisher = publisher,
                         status = StatusMessage(StatusCode.QUEUED),
-                        // Nothing to offer, so nothing is offered. This used to read "Continue",
-                        // over a row that has not started: the button asked Android to install a
-                        // file that had not been downloaded, and enqueueing it again returns early
-                        // because it is already queued. It did nothing and promised otherwise. The
-                        // status line says it is waiting, and Cancel is the one real action.
-                        primaryAction = PrimaryAction.None,
+                        // Waiting in line, and the useful thing to offer is a way out of the
+                        // line. This used to read "Continue" and do nothing at all: it asked
+                        // Android to install a file that had not been downloaded, while the other
+                        // path returns early because the package is already queued.
+                        primaryAction = PrimaryAction.DownloadNow,
                         secondaryAction = SecondaryAction.Cancel,
                         progress = null,
                         transferInfo = null,

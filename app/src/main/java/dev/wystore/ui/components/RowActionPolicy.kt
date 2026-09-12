@@ -11,6 +11,9 @@ enum class RowAction {
     /** It is installed and current; open it. */
     OpenApp,
 
+    /** It is queued behind something else; take the transfer slot for it now. */
+    DownloadNow,
+
     /** The queue is busy with it, or there is nothing to do. */
     Nothing
 }
@@ -28,6 +31,7 @@ object RowActionPolicy {
         PrimaryAction.Install ->
             if (status == StatusCode.READY_TO_INSTALL) RowAction.InstallDownloaded
             else RowAction.Enqueue
+        PrimaryAction.DownloadNow -> RowAction.DownloadNow
         PrimaryAction.Update,
         PrimaryAction.Resume,
         PrimaryAction.Retry -> RowAction.Enqueue

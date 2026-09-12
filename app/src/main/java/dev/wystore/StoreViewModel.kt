@@ -1444,6 +1444,20 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Takes the transfer slot for an app that is waiting in the queue.
+     *
+     * Addressed by package because that is all a catalogue row knows; the row it belongs to is
+     * looked up here. Nothing happens for an app that is not queued - "download now" is an answer
+     * to being in a queue, and [quickInstall] is what puts it there.
+     */
+    fun downloadNow(packageName: String) {
+        val id = _state.value.installQueue
+            .firstOrNull { it.packageName == packageName }?.id
+            ?.takeIf { it.isNotBlank() } ?: return
+        viewModelScope.launch { runCatching { queueCoordinator.downloadNow(id) } }
+    }
+
     fun quickInstall(packageName: String) {
         if (hasActiveQueueItem(packageName)) return
         askOnMeteredNetwork {

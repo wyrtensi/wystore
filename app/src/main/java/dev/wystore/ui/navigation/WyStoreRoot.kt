@@ -341,6 +341,7 @@ fun WyStoreRoot(
                         // instead of doing it.
                         onInstall = viewModel::quickInstall,
                         onInstallDownloaded = onInstallPending,
+                        onDownloadNow = viewModel::downloadNow,
                         onLaunch = viewModel::launchInstalledApp
                     )
                     is WyStoreDestination.Category -> CategoryScreen(
@@ -355,6 +356,7 @@ fun WyStoreRoot(
                         onRetry = categoryViewModel::retry,
                         onInstall = viewModel::quickInstall,
                         onInstallDownloaded = onInstallPending,
+                        onDownloadNow = viewModel::downloadNow,
                         onLaunch = viewModel::launchInstalledApp
                     )
                     WyStoreDestination.Search -> SearchScreen(

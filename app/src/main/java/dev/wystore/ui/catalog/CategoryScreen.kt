@@ -63,6 +63,8 @@ fun CategoryScreen(
     onRetry: () -> Unit = {},
     onInstall: (String) -> Unit = {},
     onInstallDownloaded: (String) -> Unit = {},
+    /** Take the transfer slot for a queued app now, displacing whatever is running. */
+    onDownloadNow: (String) -> Unit = {},
     onLaunch: (String) -> Unit = {}
 ) {
     Scaffold(
@@ -118,6 +120,7 @@ fun CategoryScreen(
                         when (RowActionPolicy.actionFor(uiState.primaryAction, uiState.status.code)) {
                             RowAction.Enqueue -> onInstall(app.packageName)
                             RowAction.InstallDownloaded -> onInstallDownloaded(app.packageName)
+                            RowAction.DownloadNow -> onDownloadNow(app.packageName)
                             RowAction.OpenApp -> onLaunch(app.packageName)
                             RowAction.Nothing -> Unit
                         }
