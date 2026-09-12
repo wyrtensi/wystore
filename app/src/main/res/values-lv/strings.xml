@@ -34,6 +34,7 @@
     <string name="msg_install_reverify_failed">APK neizturēja atkārtoto pārbaudi pirms instalēšanas</string>
     <string name="msg_install_signature_drift">APK paraksts vairs nesakrīt ar to, kas tika pārbaudīts lejupielādes laikā</string>
     <string name="msg_install_launch_failed">Neizdevās atvērt sistēmas instalētāju</string>
+    <string name="msg_install_split_refused">Lietotne pieejama tikai daļās, bet šīs ierīces instalētājs pieņem vienu APK</string>
     <string name="msg_install_no_confirm_dialog">Android neatvēra instalēšanas apstiprinājuma logu</string>
     <string name="msg_install_needs_redownload">%1$s saglabāja vecāka Wy Store versija, un to nevar pārbaudīt. Lejupielādē to vēlreiz.</string>
     <string name="msg_search_failed">Neizdevās veikt meklēšanu</string>

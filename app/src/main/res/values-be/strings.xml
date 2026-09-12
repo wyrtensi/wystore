@@ -34,6 +34,7 @@
     <string name="msg_install_reverify_failed">APK не прайшоў паўторную праверку перад усталяваннем</string>
     <string name="msg_install_signature_drift">Подпіс APK больш не супадае з праверанай пры спампоўванні</string>
     <string name="msg_install_launch_failed">Не ўдалося адкрыць сістэмны ўсталёўшчык</string>
+    <string name="msg_install_split_refused">Праграма даступная толькі часткамі, а ўсталёўшчык на гэтай прыладзе прымае адзін APK</string>
     <string name="msg_install_no_confirm_dialog">Android не адкрыў акно пацвярджэння ўсталявання</string>
     <string name="msg_install_needs_redownload">%1$s захавана старэйшай версіяй Wy Store, і праверыць яго немагчыма. Спампуйце нанова.</string>
     <string name="msg_search_failed">Не ўдалося выканаць пошук</string>

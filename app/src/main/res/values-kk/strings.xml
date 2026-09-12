@@ -34,6 +34,7 @@
     <string name="msg_install_reverify_failed">APK орнату алдындағы қайта тексеруден өтпеді</string>
     <string name="msg_install_signature_drift">APK қолтаңбасы жүктеп алу кезінде тексерілген қолтаңбамен енді сәйкес келмейді</string>
     <string name="msg_install_launch_failed">Жүйелік орнатқышты ашу мүмкін болмады</string>
+    <string name="msg_install_split_refused">Қолданба тек бөліктермен қолжетімді, ал бұл құрылғының орнатқышы бір APK қабылдайды</string>
     <string name="msg_install_no_confirm_dialog">Android орнатуды растау терезесін ашпады</string>
     <string name="msg_install_needs_redownload">%1$s Wy Store-дың ескі нұсқасымен сақталған, сондықтан оны тексеру мүмкін емес. Қайта жүктеп алыңыз.</string>
     <string name="msg_search_failed">Іздеуді орындау мүмкін болмады</string>

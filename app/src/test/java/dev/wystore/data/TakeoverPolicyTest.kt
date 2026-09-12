@@ -106,4 +106,31 @@ class TakeoverPolicyTest {
         )
         assertEquals(TakeoverDecision(TakeoverPath.IN_PLACE), decision)
     }
+
+    /** Issue #2: on MIUI with optimisation on, the system installer stays the installer of record. */
+    @Test
+    fun `where the store can never become the installer there is no handover to offer`() {
+        val decision = TakeoverPolicy.decide(
+            installedVersionCode = 10,
+            installedDigests = setOf(digest),
+            ownedByStore = false,
+            catalogVersionCode = 11,
+            catalogSignatureHint = digest,
+            storeCanBecomeInstaller = false
+        )
+        assertEquals(TakeoverDecision(TakeoverPath.NONE), decision)
+    }
+
+    @Test
+    fun `a foreign certificate is still worth replacing there, or no update can ever install`() {
+        val decision = TakeoverPolicy.decide(
+            installedVersionCode = 10,
+            installedDigests = setOf(digest),
+            ownedByStore = false,
+            catalogVersionCode = 11,
+            catalogSignatureHint = "0".repeat(64),
+            storeCanBecomeInstaller = false
+        )
+        assertEquals(TakeoverDecision(TakeoverPath.REPLACE, TakeoverObstacle.SIGNATURE), decision)
+    }
 }

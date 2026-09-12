@@ -126,5 +126,9 @@ class InstallReconciliationTest {
             UserInstallRoute.PACKAGE_INSTALLER_SESSION,
             UserInstallRouting.select(sdkInt = 36, artifactCount = 1)
         )
+        assertEquals(
+            UserInstallRoute.LEGACY_SINGLE_APK,
+            UserInstallRouting.select(sdkInt = 29, artifactCount = 1, sessionsRefused = true)
+        )
     }
 }

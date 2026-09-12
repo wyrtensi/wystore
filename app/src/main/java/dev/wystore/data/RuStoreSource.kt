@@ -17,6 +17,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 class RuStoreSource(context: Context) : StoreSource {
+    private val appContext = context.applicationContext
     private val density = context.resources.displayMetrics.densityDpi
     private val repository = StoreRepository(context)
     // Process-wide, so browsing the catalogue reuses one connection instead of opening a TLS
@@ -73,7 +74,10 @@ class RuStoreSource(context: Context) : StoreSource {
             addProperty("firstInstall", true)
             addProperty("screenDensity", density)
             addProperty("sdkVersion", Build.VERSION.SDK_INT)
-            addProperty("withoutSplits", false)
+            // Split parts need an installer session. A device whose firmware refuses sessions
+            // installs through the system installer, which takes one file, so it gets the whole
+            // APK the source also publishes - larger, and the only thing that device can install.
+            addProperty("withoutSplits", dev.wystore.updates.SessionInstallSupport(appContext).sessionsRefused())
             add("supportedAbis", com.google.gson.JsonArray().apply {
                 Build.SUPPORTED_ABIS.forEach { add(it) }
             })

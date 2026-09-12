@@ -1024,6 +1024,11 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         installAllCurrent = null
         installAllHandedOver = false
         _state.update { it.copy(installAllCurrent = null) }
+        // The app that just settled may have asked to be installed again: a firmware that refuses
+        // installer sessions puts it back with a standing request, meant for the system installer.
+        // That request is read when the pending list changes - which can happen while this app is
+        // still the batch's current one and is therefore skipped - so it is read again here.
+        requestAutoInstalls(_state.value.pendingUpdates)
         startNextBatchInstall()
     }
 

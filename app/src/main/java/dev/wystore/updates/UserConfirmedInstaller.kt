@@ -1,6 +1,7 @@
 package dev.wystore.updates
 
 import android.app.Activity
+import android.content.Intent
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.local.WyStoreDatabase
 import dev.wystore.updates.model.QueueAction
@@ -45,6 +46,12 @@ class UserConfirmedInstaller(private val activity: Activity) {
 
         val prepared = try {
             sessionWriter.prepare(queueId)
+        } catch (whole: WholeApkRequiredException) {
+            // Split parts on a device that refuses sessions: fetched again as one APK, which then
+            // installs by itself. Put off, not failed.
+            rollbackToReady(queueId)
+            FirmwareInstallFallback.refetchWhole(activity, queueId)
+            return@withContext false
         } catch (error: Throwable) {
             rollbackToReady(queueId)
             throw error
@@ -67,13 +74,18 @@ class UserConfirmedInstaller(private val activity: Activity) {
         try {
             withContext(Dispatchers.Main) {
                 when (prepared) {
-                    is PreparedInstall.LegacySingleApk -> activity.startActivity(prepared.intent)
+                    is PreparedInstall.LegacySingleApk -> launchSystemInstaller(prepared)
                     is PreparedInstall.Session -> sessionWriter.commitSession(prepared)
                 }
             }
         } catch (error: Throwable) {
             // Android never took the install, so nothing will ever call back for this item.
             sessionWriter.abandon(queueId)
+            if (SessionInstallRejection.isFirmwareRefusal(error.message)) {
+                // The same refusal the receiver handles, only raised at commit rather than reported.
+                FirmwareInstallFallback.afterRefusal(activity, queueId, error.message)
+                return@withContext false
+            }
             queueRepository.reconcileInstallResult(
                 id = queueId,
                 success = false,
@@ -83,6 +95,26 @@ class UserConfirmedInstaller(private val activity: Activity) {
             throw error
         }
         true
+    }
+
+    /**
+     * Hands the APK to the system installer and, where the Activity can take the answer, asks for
+     * one. Without an answer a closed dialog left the row INSTALLING until the next reboot.
+     */
+    private fun launchSystemInstaller(prepared: PreparedInstall.LegacySingleApk) {
+        val host = activity as? SystemInstallerHost
+        if (host == null) {
+            activity.startActivity(prepared.intent)
+            return
+        }
+        LegacyInstallHandover(activity).begin(prepared.queueId, System.currentTimeMillis())
+        host.launchSystemInstaller(
+            Intent(prepared.intent).apply {
+                // A result is only delivered within the caller's task.
+                removeFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                putExtra(Intent.EXTRA_RETURN_RESULT, true)
+            }
+        )
     }
 
     private suspend fun rollbackToReady(queueId: String) {

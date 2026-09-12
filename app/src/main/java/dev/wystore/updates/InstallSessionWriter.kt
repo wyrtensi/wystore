@@ -18,6 +18,13 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 
+/**
+ * These split parts cannot be installed on this device: it refuses sessions, and the install
+ * intent takes a single file. Not a failure of the download - the same app is fetched again whole.
+ */
+class WholeApkRequiredException(val queueId: String, val packageName: String) :
+    IllegalStateException("Split APKs need an installer session, which this device refuses")
+
 sealed interface PreparedInstall {
     val queueId: String
     val packageName: String
@@ -81,10 +88,12 @@ class InstallSessionWriter(private val context: Context) {
             ownPackageName = appContext.packageName
         )
 
-        when (UserInstallRouting.select(Build.VERSION.SDK_INT, files.size)) {
+        val sessionsRefused = SessionInstallSupport(appContext).sessionsRefused()
+        when (UserInstallRouting.select(Build.VERSION.SDK_INT, files.size, sessionsRefused)) {
             UserInstallRoute.LEGACY_SINGLE_APK -> prepareLegacySingleApk(queueId, entity.packageName, files.single())
             UserInstallRoute.PACKAGE_INSTALLER_SESSION ->
                 prepareSession(queueId, entity.packageName, files, silent)
+            UserInstallRoute.WHOLE_APK_REQUIRED -> throw WholeApkRequiredException(queueId, entity.packageName)
         }
     }
 

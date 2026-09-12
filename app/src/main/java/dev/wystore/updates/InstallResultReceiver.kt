@@ -102,7 +102,11 @@ class InstallResultReceiver : BroadcastReceiver() {
                             errorCode = QueueErrorCode.INSTALL_CANCELED,
                             errorDetail = message
                         )
-                    else -> repository.reconcileInstallResult(
+                    // Not a failed install: the firmware refuses sessions, and the same APK goes
+                    // through its own installer instead. Nothing is shown as an error.
+                    else -> if (SessionInstallRejection.isFirmwareRefusal(message)) {
+                        FirmwareInstallFallback.afterRefusal(context, queueId, message)
+                    } else repository.reconcileInstallResult(
                         id = queueId,
                         success = false,
                         errorCode = QueueErrorCode.INSTALL_FAILED,

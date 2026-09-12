@@ -36,6 +36,8 @@ import dev.wystore.settings.toAppSettings
 import dev.wystore.ui.WyStoreApp
 import dev.wystore.ui.theme.WyStoreTheme
 import dev.wystore.data.SigningVerifier
+import dev.wystore.updates.LegacyInstallHandover
+import dev.wystore.updates.SystemInstallerHost
 import dev.wystore.updates.UserConfirmedInstaller
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -45,7 +47,27 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SystemInstallerHost {
+
+    /**
+     * The system installer's answer for an install handed over by intent. Registered here, at
+     * construction, so the answer still arrives after the Activity was recreated behind the dialog.
+     */
+    private val systemInstaller = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val handover = LegacyInstallHandover(this)
+        val pending = handover.take()
+        // Not the Activity's scope: the answer must be recorded even if the Activity is finishing.
+        if (pending != null) kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+            runCatching { handover.finish(pending, result.resultCode, result.data) }
+        }
+    }
+
+    override fun launchSystemInstaller(intent: Intent) {
+        systemInstaller.launch(intent)
+    }
+
     private val storeViewModel by viewModels<StoreViewModel>()
     private var packageWaitingForInstallPermission: String? = null
 
@@ -131,6 +153,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // A handover nobody answered: see LegacyInstallHandover.finish.
+        val orphaned = LegacyInstallHandover(this)
+        orphaned.take()?.let { pending ->
+            kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+                runCatching { orphaned.finish(pending, android.app.Activity.RESULT_CANCELED, null) }
+            }
+        }
         storeViewModel.refreshLibrary(reportConfirmed = true)
         if (!packageManager.canRequestPackageInstalls()) return
         // The in-memory field only survives while this Activity does; the durable queue is what

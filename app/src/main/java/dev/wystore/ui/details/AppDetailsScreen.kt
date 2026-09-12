@@ -75,6 +75,7 @@ import dev.wystore.data.SignatureCompatibilityPolicy
 import dev.wystore.data.TakeoverObstacle
 import dev.wystore.data.TakeoverPath
 import dev.wystore.data.TakeoverPolicy
+import dev.wystore.updates.SessionInstallSupport
 import dev.wystore.updates.UnverifiedSourceStore
 import dev.wystore.ui.components.installerLabel
 import dev.wystore.ui.components.AppIcon
@@ -337,7 +338,8 @@ fun AppDetailsScreen(
                                     ownedByStore = owner == context.packageName,
                                     catalogVersionCode = app.versionCode,
                                     catalogSignatureHint = app.signatureHint,
-                                    acceptedSourceDigest = acceptedDigest
+                                    acceptedSourceDigest = acceptedDigest,
+                                    storeCanBecomeInstaller = !SessionInstallSupport(context).sessionsRefused()
                                 )
                                 when (takeover.path) {
                                     // Nothing to hand over - but an app Wy Store already owns can

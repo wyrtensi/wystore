@@ -56,6 +56,11 @@ object TakeoverPolicy {
      * install that same file again would cost its data for nothing.
      * @param catalogVersionCode null when the source states nothing comparable, in which case the
      * version cannot rule anything out and the archive decides at install time.
+     * @param storeCanBecomeInstaller false on a device whose firmware refuses installer sessions.
+     * Every install there goes through the system installer, which stays the installer of record,
+     * so a handover would download and reinstall the app and change nothing - and the offer would
+     * never go away. Only the signature case is still worth offering: until the app carries the
+     * source's certificate, no update from here can install at all.
      */
     fun decide(
         installedVersionCode: Long?,
@@ -63,7 +68,8 @@ object TakeoverPolicy {
         ownedByStore: Boolean,
         catalogVersionCode: Long?,
         catalogSignatureHint: String?,
-        acceptedSourceDigest: String? = null
+        acceptedSourceDigest: String? = null,
+        storeCanBecomeInstaller: Boolean = true
     ): TakeoverDecision {
         if (installedVersionCode == null || ownedByStore) return TakeoverDecision(TakeoverPath.NONE)
         val compatibility = SignatureCompatibilityPolicy.evaluate(
@@ -74,6 +80,7 @@ object TakeoverPolicy {
         if (compatibility == SignatureCompatibility.MISMATCH) {
             return TakeoverDecision(TakeoverPath.REPLACE, TakeoverObstacle.SIGNATURE)
         }
+        if (!storeCanBecomeInstaller) return TakeoverDecision(TakeoverPath.NONE)
         if (catalogVersionCode != null && catalogVersionCode < installedVersionCode) {
             return TakeoverDecision(TakeoverPath.REPLACE, TakeoverObstacle.OLDER_IN_CATALOGUE)
         }
