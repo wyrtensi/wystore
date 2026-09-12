@@ -20,6 +20,9 @@ enum class RowAction {
     /** It is paused; carry on from the bytes on disk. */
     Resume,
 
+    /** The source did not confirm the file; ask the user whether to take it anyway. */
+    ConfirmSource,
+
     /** The queue is busy with it, or there is nothing to do. */
     Nothing
 }
@@ -44,6 +47,7 @@ object RowActionPolicy {
         PrimaryAction.Resume -> RowAction.Resume
         PrimaryAction.Update,
         PrimaryAction.Retry -> RowAction.Enqueue
+        PrimaryAction.ConfirmSource -> RowAction.ConfirmSource
         PrimaryAction.Installing,
         PrimaryAction.None -> RowAction.Nothing
     }

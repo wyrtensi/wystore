@@ -123,6 +123,43 @@ abstract class UpdateQueueDao {
         }
     }
 
+    /**
+     * Takes the row for one runner, and answers false when something already carries it.
+     *
+     * The single transfer slot was only ever guarded against a *different* row being active, so
+     * nothing stopped two runners of the same row. On Android 14 and newer a transfer can be
+     * carried by a user-initiated job and by WorkManager at the same time, and the second to
+     * arrive found the row already DOWNLOADING: the state machine refused the step and the refusal
+     * came out on the card as "Action is not allowed while queue item ... is DOWNLOADING." The row
+     * itself is the lock, and this is where it is taken.
+     *
+     * The error fields are cleared here rather than left to the reducer, whose result
+     * [transitionToActive] does not write: a row that failed and was started again kept the error
+     * it failed with.
+     */
+    @Transaction
+    open suspend fun claimForTransfer(
+        id: String,
+        allowedFrom: Set<String>,
+        targetState: String
+    ): Boolean {
+        val current = getById(id) ?: return false
+        if (current.state !in allowedFrom) return false
+        if (targetState in ACTIVE_STATES) {
+            val active = getActive(ACTIVE_STATES).filter { it.id != id }
+            if (active.isNotEmpty()) throw QueueBusyException(active.map { it.id })
+        }
+        update(
+            current.copy(
+                state = targetState,
+                errorCode = null,
+                errorDetail = null,
+                updatedAt = System.currentTimeMillis()
+            )
+        )
+        return true
+    }
+
     @Transaction
     open suspend fun transitionToActive(id: String, targetState: String) {
         val current = getById(id) ?: throw IllegalArgumentException("Item not found: $id")

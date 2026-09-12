@@ -97,13 +97,21 @@ object SigningVerifier {
      * install is what makes Wy Store the installer of record. Refusing it as a downgrade meant
      * those buttons could never do anything. An older version is still refused either way.
      */
+    /**
+     * @param allowUnverifiedSource waives the comparison against [expectedSourceDigest], and only
+     * that one. The source's own metadata disagreeing with the file the source served is the one
+     * refusal a user can answer for - see [dev.wystore.updates.UnverifiedSourceConsent] - and they
+     * are only ever asked after this check has already refused the file once. Every other check
+     * still runs, including the signature of an installed app, which Android enforces again.
+     */
     fun verifyArtifacts(
         packageManager: PackageManager,
         files: List<File>,
         installed: InstalledApp?,
         expectedPackageName: String?,
         expectedSourceDigest: String? = null,
-        allowReinstall: Boolean = false
+        allowReinstall: Boolean = false,
+        allowUnverifiedSource: Boolean = false
     ): VerificationResult {
         if (files.isEmpty() || files.any { !isApkContainer(it) }) {
             return invalid(VerificationError.NOT_AN_APK)
@@ -119,9 +127,13 @@ object SigningVerifier {
         if (identities.filterNotNull().any { it.signingDigests != base.signingDigests || it.signingDigests.isEmpty() }) {
             return invalid(VerificationError.MIXED_SIGNATURES)
         }
-        expectedSourceDigest?.lowercase()?.takeIf { it.matches(Regex("[0-9a-f]{64}")) }?.let { digest ->
-            if (digest !in base.signingDigests) return invalid(VerificationError.SOURCE_FINGERPRINT_MISMATCH)
-        }
+        expectedSourceDigest
+            ?.takeUnless { allowUnverifiedSource }
+            ?.lowercase()
+            ?.takeIf { it.matches(Regex("[0-9a-f]{64}")) }
+            ?.let { digest ->
+                if (digest !in base.signingDigests) return invalid(VerificationError.SOURCE_FINGERPRINT_MISMATCH)
+            }
         if (installed != null) {
             if (installed.packageName != base.packageName) return invalid(VerificationError.WRONG_PACKAGE_FOR_UPDATE)
             if (base.versionCode < installed.versionCode) return invalid(VerificationError.DOWNGRADE)

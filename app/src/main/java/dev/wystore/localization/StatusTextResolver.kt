@@ -3,6 +3,9 @@ package dev.wystore.localization
 import android.content.Context
 import androidx.annotation.StringRes
 import dev.wystore.R
+import dev.wystore.data.VerificationError
+import dev.wystore.updates.QueueErrorStrings
+import dev.wystore.updates.model.QueueErrorCode
 import dev.wystore.ui.components.StatusCode
 import dev.wystore.ui.components.StatusMessage
 
@@ -35,10 +38,34 @@ object StatusTextResolver {
         StatusCode.FAILED_NETWORK -> R.string.status_failed_network
         StatusCode.FAILED_STORAGE -> R.string.status_failed_storage
         StatusCode.FAILED_SIGNATURE -> R.string.status_failed_signature
+        StatusCode.FAILED_SOURCE_UNCONFIRMED -> R.string.unverified_source_status
         StatusCode.FAILED_GENERIC -> R.string.status_failed_generic
         StatusCode.CANCELLED -> R.string.status_cancelled
         StatusCode.SKIPPED -> R.string.status_skipped
         StatusCode.OFFER_NEXT -> R.string.status_offer_next
+    }
+
+    /**
+     * The resource for a failed row: the verification reason when the row names one, then the
+     * queue's own code, and the plain sentence when it carries neither.
+     *
+     * A failure used to be announced with the detail the data layer recorded - "Action is not
+     * allowed while queue item ... is DOWNLOADING." and "SOURCE_FINGERPRINT_MISMATCH" both reached
+     * the screen that way. Both codes are typed and both have had a sentence all along; this is
+     * the same ladder the queue screen already climbs.
+     */
+    @StringRes
+    fun failureStringRes(message: StatusMessage): Int {
+        // The question comes before the diagnosis: a row the user can answer for says what it is
+        // asking, not which check refused the file.
+        if (message.code == StatusCode.FAILED_SOURCE_UNCONFIRMED) return stringRes(message.code)
+        message.args[StatusMessage.ARG_VERIFICATION_ERROR]
+            ?.let { name -> VerificationError.entries.firstOrNull { it.name == name } }
+            ?.let { return VerificationTextResolver.stringRes(it) }
+        message.args[StatusMessage.ARG_ERROR_CODE]
+            ?.let { name -> QueueErrorCode.entries.firstOrNull { it.name == name } }
+            ?.let { return QueueErrorStrings.stringRes(it) }
+        return stringRes(message.code)
     }
 
     fun resolve(context: Context, message: StatusMessage): String = when (message.code) {
@@ -52,9 +79,11 @@ object StatusTextResolver {
                 context.getString(R.string.status_downloading, percent)
             }
         }
-        // A concrete reason from the data layer beats the generic sentence.
-        StatusCode.FAILED_GENERIC -> message.args["detail"]?.takeIf { it.isNotBlank() }
-            ?: context.getString(R.string.status_failed_generic)
+        StatusCode.FAILED_NETWORK,
+        StatusCode.FAILED_STORAGE,
+        StatusCode.FAILED_SIGNATURE,
+        StatusCode.FAILED_SOURCE_UNCONFIRMED,
+        StatusCode.FAILED_GENERIC -> context.getString(failureStringRes(message))
         else -> context.getString(stringRes(message.code))
     }
 }

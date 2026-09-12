@@ -48,6 +48,8 @@ import dev.wystore.updates.PendingUpdateCatalog
 import dev.wystore.updates.PendingReinstall
 import dev.wystore.updates.PendingReinstallStore
 import dev.wystore.updates.QueueRepository
+import dev.wystore.updates.UnverifiedSourceConsent
+import dev.wystore.updates.UnverifiedSourceStore
 import dev.wystore.updates.model.QueueState
 import dev.wystore.settings.toStoreSettings
 import dev.wystore.settings.toAppSettings
@@ -214,6 +216,13 @@ data class StoreUiState(
     /** Packages left in an "update everything" run, in the order they will be installed. */
     /** Set while the "this is mobile data" question is on screen; see [StoreViewModel.askOnMeteredNetwork]. */
     val meteredDownloadPrompt: Boolean = false,
+    /**
+     * The queue row whose "the source could not confirm this file" question is on screen.
+     *
+     * Held here rather than on a screen because the row it belongs to shows up on Home, Search,
+     * the app page, the library and the queue, and the question is the same one everywhere.
+     */
+    val unverifiedSource: InstallQueueItem? = null,
     val installAllRemaining: List<String> = emptyList(),
     /** The app whose confirmation dialog is up, if the queue is working through a batch. */
     val installAllCurrent: String? = null,
@@ -1479,6 +1488,42 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     /** Carries a paused transfer on from the bytes on disk. */
     fun resumeDownload(packageName: String) = withQueueRow(packageName) { id ->
         queueCoordinator.resume(id)
+    }
+
+    /**
+     * Raises the question about a file the source would not vouch for.
+     *
+     * Addressed by package, like every other row action: whichever screen the tap came from, the
+     * row is found here and the question is answered in one place.
+     */
+    fun askAboutUnverifiedSource(packageName: String) {
+        val row = _state.value.installQueue.firstOrNull { it.packageName == packageName } ?: return
+        if (!UnverifiedSourceConsent.isAnswerable(row.errorCode, row.detail)) return
+        _state.update { it.copy(unverifiedSource = row) }
+    }
+
+    fun dismissUnverifiedSource() {
+        _state.update { it.copy(unverifiedSource = null) }
+    }
+
+    /**
+     * Records the answer and fetches the file again without that one check.
+     *
+     * The consent is written against the package and the version it was given for, so it covers
+     * this download and no other, and it waives only the comparison with the fingerprint the
+     * source advertised - see [UnverifiedSourceConsent].
+     */
+    fun confirmUnverifiedSource() {
+        val row = _state.value.unverifiedSource ?: return
+        _state.update { it.copy(unverifiedSource = null) }
+        viewModelScope.launch {
+            runCatching {
+                val snapshot = queueRepository.getById(row.id) ?: return@runCatching
+                UnverifiedSourceStore(getApplication())
+                    .allow(snapshot.packageName, snapshot.versionCode)
+                queueCoordinator.retry(row.id)
+            }
+        }
     }
 
     private fun withQueueRow(packageName: String, block: suspend (String) -> Unit) {

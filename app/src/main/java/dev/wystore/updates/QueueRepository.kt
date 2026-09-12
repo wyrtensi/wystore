@@ -108,6 +108,56 @@ class QueueRepository(
     }
 
     /**
+     * Takes the row for the transfer that is about to run, or answers false when it is not this
+     * runner's to take.
+     *
+     * False means the row is already being carried - by the other scheduling mechanism, or by an
+     * attempt that has not finished unwinding - or that it is no longer waiting to be fetched. It
+     * is not a failure: the runner that lost simply has nothing to do, and the row must not be
+     * touched by it. [dev.wystore.data.local.QueueBusyException] still comes through, because a
+     * different row holding the one transfer slot is a different answer.
+     */
+    suspend fun claimForDownload(id: String): Boolean = withContext(Dispatchers.IO) {
+        dao.claimForTransfer(
+            id = id,
+            allowedFrom = setOf(QueueState.AVAILABLE.name, QueueState.CHECKING.name),
+            targetState = QueueState.DOWNLOADING.name
+        )
+    }
+
+    /**
+     * Writes how far the transfer has got, and answers false when the row is not downloading any
+     * more.
+     *
+     * Progress used to go through the reducer, which throws on a row that has moved on - so a user
+     * pausing a download, or anything else changing the row mid-transfer, turned the next progress
+     * tick into an internal failure. The answer replaces the throw: the runner is being told it no
+     * longer owns this row and should stop.
+     */
+    suspend fun recordProgress(
+        id: String,
+        downloadedBytes: Long,
+        totalBytes: Long
+    ): Boolean = withContext(Dispatchers.IO) {
+        val entity = dao.getById(id) ?: return@withContext false
+        if (entity.state != QueueState.DOWNLOADING.name) return@withContext false
+        val next = QueueReducer.reduce(
+            entity.toSnapshot(),
+            QueueAction.DownloadProgress(downloadedBytes, totalBytes)
+        )
+        dao.update(
+            entity.copy(
+                downloadedBytes = next.downloadedBytes,
+                totalBytes = next.totalBytes,
+                errorCode = null,
+                errorDetail = null,
+                updatedAt = System.currentTimeMillis()
+            )
+        )
+        true
+    }
+
+    /**
      * Parks a retryable failure back in AVAILABLE while keeping the diagnosis visible.
      *
      * WorkManager reruns [dev.wystore.background.UpdateDownloadWorker.doWork] from the top, and its

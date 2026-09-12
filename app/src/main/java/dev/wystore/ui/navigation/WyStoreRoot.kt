@@ -3,6 +3,7 @@ package dev.wystore.ui.navigation
 import androidx.activity.compose.BackHandler
 import dev.wystore.background.UpdateCheckPolicy
 import dev.wystore.ui.components.SourceFailureDialog
+import dev.wystore.ui.components.UnverifiedSourceDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -147,6 +148,17 @@ fun WyStoreRoot(
         )
     }
 
+    // Asked at the root so the answer is the same one from Home, Search, the app page, the library
+    // and the queue - every screen a failed row can appear on.
+    state.unverifiedSource?.let { row ->
+        UnverifiedSourceDialog(
+            appLabel = row.label.ifBlank { row.packageName },
+            isUpdate = state.installed.any { it.packageName == row.packageName },
+            onConfirm = viewModel::confirmUnverifiedSource,
+            onDismiss = viewModel::dismissUnverifiedSource
+        )
+    }
+
     // A transfer the user asked for runs on whatever connection there is, so "Wi-Fi only" was
     // spent rather than honoured whenever someone pressed Install on mobile data. Asking is what
     // lets the button stay responsive and the setting stay true.
@@ -272,6 +284,7 @@ fun WyStoreRoot(
                 if (selectedInstalled != null && selectedManaged == null) installDialog = true
                 else viewModel.installSelected()
             },
+            onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
             onReplace = { selectedInstalled?.let { replaceDialog = it to selected } }
         )
     } else {
@@ -344,6 +357,7 @@ fun WyStoreRoot(
                         onDownloadNow = viewModel::downloadNow,
                         onPauseDownload = viewModel::pauseDownload,
                         onResumeDownload = viewModel::resumeDownload,
+                        onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
                         onLaunch = viewModel::launchInstalledApp
                     )
                     is WyStoreDestination.Category -> CategoryScreen(
@@ -361,6 +375,7 @@ fun WyStoreRoot(
                         onDownloadNow = viewModel::downloadNow,
                         onPauseDownload = viewModel::pauseDownload,
                         onResumeDownload = viewModel::resumeDownload,
+                        onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
                         onLaunch = viewModel::launchInstalledApp
                     )
                     WyStoreDestination.Search -> SearchScreen(
@@ -385,6 +400,7 @@ fun WyStoreRoot(
                         onLoadMore = viewModel::searchMore,
                         onOpen = { app -> viewModel.openDetails(app.packageName) },
                         onQuickInstall = viewModel::quickInstall,
+                        onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
                         onLaunch = viewModel::launchInstalledApp
                     )
                     WyStoreDestination.GitHub -> GitHubScreen(
@@ -431,6 +447,7 @@ fun WyStoreRoot(
                         onQueueDiscard = viewModel::queueDiscard,
                         onQueueReplace = { queueReplaceDialog = it },
                         onSourceFailureHelp = { sourceFailureHelp = true },
+                        onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
                         onQueuePause = viewModel::queuePause,
                         onQueueResume = viewModel::queueResume,
                         onStartQueue = viewModel::startQueue

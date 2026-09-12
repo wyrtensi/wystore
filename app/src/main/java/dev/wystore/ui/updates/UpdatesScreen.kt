@@ -90,6 +90,7 @@ fun UpdatesScreen(
     onQueueReplace: (InstallQueueItem) -> Unit = {},
     /** Opens the "the source, not you" dialog for a failure nothing on this phone can fix. */
     onSourceFailureHelp: () -> Unit = {},
+    onConfirmUnverifiedSource: (String) -> Unit = {},
     /** Stops a running transfer and keeps the bytes it has. */
     onQueuePause: (String) -> Unit = {},
     /** Carries a paused transfer on from the bytes on disk. */
@@ -189,6 +190,7 @@ fun UpdatesScreen(
                         onDiscard = { onQueueDiscard(item.id) },
                         onReplace = { onQueueReplace(item) },
                         onSourceFailureHelp = onSourceFailureHelp,
+                        onConfirmUnverifiedSource = { onConfirmUnverifiedSource(item.packageName) },
                         onPause = { onQueuePause(item.id) },
                         onResume = { onQueueResume(item.id) }
                     )
@@ -396,6 +398,7 @@ fun QueueItemCard(
     onDiscard: () -> Unit = {},
     onReplace: () -> Unit = {},
     onSourceFailureHelp: () -> Unit = {},
+    onConfirmUnverifiedSource: () -> Unit = {},
     onPause: () -> Unit = {},
     onResume: () -> Unit = {}
 ) {
@@ -404,7 +407,14 @@ fun QueueItemCard(
     // The row said "uninstall it and install it again" and offered Retry, which does the same
     // thing again and fails the same way. A signature that does not match is the one failure a
     // retry can never get past, and the only way through it is the removal - so it is a button.
-    val needsReplace = failed && item.errorCode == dev.wystore.updates.model.QueueErrorCode.SIGNATURE
+    // The source would not vouch for its own file. Answerable by the user, and the one signature
+    // failure removing the installed app cannot help with: nothing here is about the installed
+    // copy, so "uninstall and install" was advice that cost an app and changed nothing.
+    val unconfirmed = failed &&
+        dev.wystore.updates.UnverifiedSourceConsent.isAnswerable(item.errorCode, item.detail)
+    val needsReplace = failed &&
+        item.errorCode == dev.wystore.updates.model.QueueErrorCode.SIGNATURE &&
+        !unconfirmed
     // A failure the user cannot retry their way out of, because it is not theirs. Offered as one
     // more line on the row rather than a banner: it belongs to this app, not to the whole screen.
     val sourceProblem = failed &&
@@ -483,6 +493,13 @@ fun QueueItemCard(
                 horizontalArrangement = Arrangement.End
             ) {
                 when {
+                    unconfirmed -> {
+                        TextButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+                        Spacer(Modifier.width(4.dp))
+                        Button(onClick = onConfirmUnverifiedSource) {
+                            Text(stringResource(R.string.unverified_source_confirm))
+                        }
+                    }
                     needsReplace -> {
                         TextButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
                         Spacer(Modifier.width(4.dp))

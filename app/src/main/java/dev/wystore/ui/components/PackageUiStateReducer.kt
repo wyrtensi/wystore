@@ -8,6 +8,8 @@ import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
+import dev.wystore.data.VerificationError
+import dev.wystore.updates.UnverifiedSourceConsent
 
 object PackageUiStateReducer {
     fun reduce(
@@ -189,14 +191,8 @@ object PackageUiStateReducer {
                     )
                 }
                 InstallQueueStatus.FAILED -> {
-                    val code = if (queueItem.detail?.contains("network", ignoreCase = true) == true ||
-                        queueItem.detail?.contains("timeout", ignoreCase = true) == true) {
-                        StatusCode.FAILED_NETWORK
-                    } else if (queueItem.detail?.contains("signature", ignoreCase = true) == true) {
-                        StatusCode.FAILED_SIGNATURE
-                    } else {
-                        StatusCode.FAILED_GENERIC
-                    }
+                    val unconfirmed = UnverifiedSourceConsent
+                        .isAnswerable(queueItem.errorCode, queueItem.detail)
                     return PackageUiState(
                         packageName = packageName,
                         label = label,
@@ -205,13 +201,20 @@ object PackageUiStateReducer {
                         iconUrl = iconUrl,
                         publisher = publisher,
                         status = StatusMessage(
-                            code,
-                            queueItem.detail?.takeIf { it.isNotBlank() }?.let { mapOf("detail" to it) } ?: emptyMap()
+                            code = FailureStatusPolicy.statusFor(queueItem.errorCode, queueItem.detail),
+                            args = failureArgs(queueItem)
                         ),
-                        primaryAction = PrimaryAction.Retry,
-                        secondaryAction = null,
+                        // Retrying a file the source refused to vouch for fetches the same file and
+                        // refuses it again, so the answer is the button and the retry stands beside
+                        // it - the download can also simply have gone wrong on the way.
+                        primaryAction = if (unconfirmed) PrimaryAction.ConfirmSource else PrimaryAction.Retry,
+                        secondaryAction = if (unconfirmed) SecondaryAction.Retry else null,
                         progress = null,
-                        transferInfo = queueItem.detail,
+                        // Nothing is being transferred. The failure detail used to be passed here,
+                        // which put the same untranslated sentence under the row a second time -
+                        // and, because the row draws a bar whenever it has transfer text, ran a
+                        // progress animation under a download that had stopped.
+                        transferInfo = null,
                         sourceProvenance = managed?.source?.name ?: app?.let { "RuStore" },
                         isCompatible = isCompatible
                     )
@@ -314,4 +317,15 @@ object PackageUiStateReducer {
             isCompatible = true
         )
     }
+}
+
+/**
+ * The codes a failed row passes to the resolver: what the queue recorded, and - when the detail
+ * names one - which of verification's checks refused the file. The detail itself goes no further.
+ */
+private fun failureArgs(queueItem: InstallQueueItem): Map<String, String> = buildMap {
+    queueItem.errorCode?.let { put(StatusMessage.ARG_ERROR_CODE, it.name) }
+    queueItem.detail
+        ?.takeIf { name -> VerificationError.entries.any { it.name == name } }
+        ?.let { put(StatusMessage.ARG_VERIFICATION_ERROR, it) }
 }

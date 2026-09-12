@@ -127,6 +127,7 @@ fun AppRow(
                         StatusCode.FAILED_NETWORK,
                         StatusCode.FAILED_STORAGE,
                         StatusCode.FAILED_SIGNATURE,
+                        StatusCode.FAILED_SOURCE_UNCONFIRMED,
                         StatusCode.FAILED_GENERIC -> MaterialTheme.colorScheme.error
                         else -> MaterialTheme.colorScheme.primary
                     },
@@ -162,6 +163,7 @@ fun AppRow(
                         Text(
                             when (state.secondaryAction) {
                                 SecondaryAction.Cancel -> stringResource(R.string.common_cancel)
+                                SecondaryAction.Retry -> stringResource(R.string.common_retry)
                                 SecondaryAction.CheckUpdate -> stringResource(R.string.common_check)
                                 SecondaryAction.None -> ""
                             }
@@ -193,6 +195,9 @@ private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
         }
         PrimaryAction.Retry -> Button(onClick, sizing, contentPadding = contentPadding) {
             Text(stringResource(R.string.common_retry), maxLines = 1)
+        }
+        PrimaryAction.ConfirmSource -> Button(onClick, sizing, contentPadding = contentPadding) {
+            Text(stringResource(R.string.unverified_source_confirm), maxLines = 1)
         }
         PrimaryAction.DownloadNow -> Button(onClick, sizing, contentPadding = contentPadding) {
             Text(stringResource(R.string.queue_download_now), maxLines = 1)
@@ -233,6 +238,7 @@ private val REPORTED_STATES = setOf(
     StatusCode.FAILED_NETWORK,
     StatusCode.FAILED_STORAGE,
     StatusCode.FAILED_SIGNATURE,
+    StatusCode.FAILED_SOURCE_UNCONFIRMED,
     StatusCode.FAILED_GENERIC,
     StatusCode.CANCELLED
 )

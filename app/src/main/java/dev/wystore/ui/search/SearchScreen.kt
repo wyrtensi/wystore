@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import dev.wystore.ui.components.WySpinner
 import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
+import dev.wystore.updates.UnverifiedSourceConsent
 import dev.wystore.isInFlight
 import dev.wystore.R
 import dev.wystore.data.SearchSources
@@ -100,6 +101,7 @@ fun SearchScreen(
     onOpen: (StoreApp) -> Unit,
     onQuickInstall: (String) -> Unit,
     onInstallPending: (String) -> Unit = {},
+    onConfirmUnverifiedSource: (String) -> Unit = {},
     onLaunch: (String) -> Unit
 ) {
     var text by remember(query) { mutableStateOf(query) }
@@ -256,6 +258,7 @@ fun SearchScreen(
                     onOpen = onOpen,
                     onQuickInstall = onQuickInstall,
                     onInstallPending = onInstallPending,
+                    onConfirmUnverifiedSource = onConfirmUnverifiedSource,
                     onLaunch = onLaunch
                 )
             }
@@ -318,6 +321,7 @@ fun SearchCard(
     onOpen: (StoreApp) -> Unit,
     onQuickInstall: (String) -> Unit,
     onInstallPending: (String) -> Unit,
+    onConfirmUnverifiedSource: (String) -> Unit,
     onLaunch: (String) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
@@ -438,6 +442,11 @@ fun SearchCard(
                     }
                 }
                 queueItem?.status == InstallQueueStatus.FAILED -> {
+                    // The source refusing to vouch for its own file is a question, not a verdict:
+                    // retrying fetches the same file and fails the same way, so the answer is the
+                    // button and the retry keeps its place beside it.
+                    val unconfirmed = UnverifiedSourceConsent
+                        .isAnswerable(queueItem.errorCode, queueItem.detail)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -455,6 +464,17 @@ fun SearchCard(
                                 onQuickInstall(app.packageName)
                             }
                         ) { Text(stringResource(R.string.common_retry), maxLines = 1) }
+                        if (unconfirmed) {
+                            Spacer(Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                                    onConfirmUnverifiedSource(app.packageName)
+                                }
+                            ) {
+                                Text(stringResource(R.string.unverified_source_confirm), maxLines = 1)
+                            }
+                        }
                     }
                 }
                 installed != null -> {

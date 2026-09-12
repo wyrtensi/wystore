@@ -594,6 +594,13 @@
     <string name="status_failed_storage">Недостаточно места</string>
     <string name="status_failed_signature">Несовпадение цифровой подписи</string>
     <string name="status_failed_generic">Ошибка установки</string>
+    <string name="unverified_source_status">RuStore не подтвердил подпись приложения. Скачать всё равно?</string>
+    <string name="unverified_source_confirm">Подтвердить</string>
+    <string name="unverified_source_title">RuStore не подтвердил приложение</string>
+    <string name="unverified_source_body">RuStore заявляет для «%1$s» один отпечаток подписи, а выдал файл с другим. Чаще всего это устаревшая карточка в каталоге, но так же выглядит и подменённый файл. Отличить одно от другого Wy Store не может.</string>
+    <string name="unverified_source_body_update">Приложение уже установлено, поэтому Android всё равно потребует, чтобы подпись нового файла совпала с подписью установленного, и откажет, если это не так.</string>
+    <string name="unverified_source_body_new">Установленной версии нет, сравнить не с чем: эта загрузка принимается только со слов RuStore.</string>
+    <string name="unverified_source_accept">Скачать всё равно</string>
     <string name="status_cancelled">Отменено</string>
     <string name="status_skipped">Пропущено</string>
     <string name="status_offer_next">Обновить следующее приложение</string>

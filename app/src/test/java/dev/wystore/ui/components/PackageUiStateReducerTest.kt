@@ -1,6 +1,8 @@
 package dev.wystore.ui.components
 
 import dev.wystore.InstallQueueItem
+import dev.wystore.data.VerificationError
+import dev.wystore.updates.model.QueueErrorCode
 import dev.wystore.InstallQueueStatus
 import dev.wystore.data.DownloadProgress
 import dev.wystore.data.InstallSource
@@ -188,6 +190,7 @@ class PackageUiStateReducerTest {
             packageName = "ru.vk.store",
             label = "RuStore",
             status = InstallQueueStatus.FAILED,
+            errorCode = QueueErrorCode.NETWORK,
             detail = "Network timeout"
         )
         val state = PackageUiStateReducer.reduce(
@@ -199,6 +202,87 @@ class PackageUiStateReducerTest {
         )
         assertEquals(PrimaryAction.Retry, state.primaryAction)
         assertEquals(StatusCode.FAILED_NETWORK, state.status.code)
+    }
+
+    /**
+     * The failure detail is an exception message from the data layer, untranslated and written for
+     * a log. It reached the card twice - as the failure line and again under a progress bar that
+     * went on animating over a download that had stopped.
+     */
+    @Test
+    fun `a failed row carries no raw text and no transfer of its own`() {
+        val queueItem = InstallQueueItem(
+            packageName = "ru.vk.store",
+            label = "RuStore",
+            status = InstallQueueStatus.FAILED,
+            errorCode = QueueErrorCode.INTERNAL,
+            detail = "Action is not allowed while queue item 8f2c1cc7 is DOWNLOADING."
+        )
+        val state = PackageUiStateReducer.reduce(
+            app = catalogApp,
+            installed = null,
+            managed = null,
+            queueItem = queueItem,
+            pendingUpdate = null
+        )
+
+        assertEquals(StatusCode.FAILED_GENERIC, state.status.code)
+        assertEquals(null, state.transferInfo)
+        assertEquals(null, state.progress)
+        assertEquals(
+            "only code names travel to the screen",
+            mapOf(StatusMessage.ARG_ERROR_CODE to "INTERNAL"),
+            state.status.args
+        )
+    }
+
+    /**
+     * The one refusal the user can answer: RuStore's own metadata disagreeing with the file
+     * RuStore served. Retrying fetches the same file, so the row asks instead - and keeps the
+     * retry, because a download can also simply have gone wrong on the way.
+     */
+    @Test
+    fun `a file the source would not vouch for is a question with both answers`() {
+        val queueItem = InstallQueueItem(
+            packageName = "ru.gdemoideti.parent",
+            label = "Где мои дети",
+            status = InstallQueueStatus.FAILED,
+            errorCode = QueueErrorCode.SIGNATURE,
+            detail = VerificationError.SOURCE_FINGERPRINT_MISMATCH.name
+        )
+        val state = PackageUiStateReducer.reduce(
+            app = catalogApp,
+            installed = null,
+            managed = null,
+            queueItem = queueItem,
+            pendingUpdate = null
+        )
+
+        assertEquals(StatusCode.FAILED_SOURCE_UNCONFIRMED, state.status.code)
+        assertEquals(PrimaryAction.ConfirmSource, state.primaryAction)
+        assertEquals(SecondaryAction.Retry, state.secondaryAction)
+    }
+
+    /** Any other signature failure stays a verdict: there is nothing there for a user to answer. */
+    @Test
+    fun `a signature that does not match the installed app is not offered as a choice`() {
+        val queueItem = InstallQueueItem(
+            packageName = "ru.vk.store",
+            label = "RuStore",
+            status = InstallQueueStatus.FAILED,
+            errorCode = QueueErrorCode.SIGNATURE,
+            detail = VerificationError.SIGNATURE_MISMATCH.name
+        )
+        val state = PackageUiStateReducer.reduce(
+            app = catalogApp,
+            installed = null,
+            managed = null,
+            queueItem = queueItem,
+            pendingUpdate = null
+        )
+
+        assertEquals(StatusCode.FAILED_SIGNATURE, state.status.code)
+        assertEquals(PrimaryAction.Retry, state.primaryAction)
     }
 
     @Test

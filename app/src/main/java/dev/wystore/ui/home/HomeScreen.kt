@@ -80,6 +80,7 @@ fun HomeScreen(
     onPauseDownload: (String) -> Unit = {},
     /** Carry a paused transfer on from the bytes on disk. */
     onResumeDownload: (String) -> Unit = {},
+    onConfirmUnverifiedSource: (String) -> Unit = {},
     onLaunch: (String) -> Unit = {}
 ) {
     Scaffold(
@@ -195,6 +196,7 @@ fun HomeScreen(
                                 RowAction.DownloadNow -> onDownloadNow(app.packageName)
                                 RowAction.Pause -> onPauseDownload(app.packageName)
                                 RowAction.Resume -> onResumeDownload(app.packageName)
+                                RowAction.ConfirmSource -> onConfirmUnverifiedSource(app.packageName)
                                 RowAction.OpenApp -> onLaunch(app.packageName)
                                 RowAction.Nothing -> Unit
                             }

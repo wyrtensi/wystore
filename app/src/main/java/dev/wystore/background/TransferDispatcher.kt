@@ -44,10 +44,34 @@ object TransferDispatcher {
     fun cancel(context: Context, queueId: String) {
         // Whatever went wrong before, a transfer the user starts again begins with a full budget.
         runCatching { TransferAttemptStore(context).clear(queueId) }
-        WorkManager.getInstance(context).cancelUniqueWork(downloadWorkName(queueId))
-        if (Build.VERSION.SDK_INT >= 34) {
-            runCatching { context.getSystemService(JobScheduler::class.java)?.cancel(jobIdFor(queueId)) }
+        cancelWorkManagerWork(context, queueId)
+        cancelUserInitiatedJob(context, queueId)
+    }
+
+    /**
+     * Tears down whichever mechanism is *not* about to carry this transfer.
+     *
+     * Both can hold the same row at once: a user-initiated job and a WorkManager attempt are
+     * scheduled through different services, neither knows about the other, and a WorkManager retry
+     * outlives the dispatch that created it. Two runners on one row then raced through the queue's
+     * state machine, and the step the loser was refused came out on the card in English. Unlike
+     * [cancel] this leaves the attempt budget alone: the transfer is not being stopped, it is being
+     * handed to the other mechanism.
+     */
+    private fun handOver(context: Context, queueId: String, to: TransferMechanism) {
+        when (to) {
+            TransferMechanism.USER_INITIATED_JOB -> cancelWorkManagerWork(context, queueId)
+            TransferMechanism.WORK_MANAGER_FOREGROUND -> cancelUserInitiatedJob(context, queueId)
         }
+    }
+
+    private fun cancelWorkManagerWork(context: Context, queueId: String) {
+        WorkManager.getInstance(context).cancelUniqueWork(downloadWorkName(queueId))
+    }
+
+    private fun cancelUserInitiatedJob(context: Context, queueId: String) {
+        if (Build.VERSION.SDK_INT < 34) return
+        runCatching { context.getSystemService(JobScheduler::class.java)?.cancel(jobIdFor(queueId)) }
     }
 
     /**
@@ -57,6 +81,7 @@ object TransferDispatcher {
     fun dispatch(context: Context, queueId: String) {
         val mechanism = determineMechanism()
         if (mechanism == TransferMechanism.USER_INITIATED_JOB) {
+            handOver(context, queueId, TransferMechanism.USER_INITIATED_JOB)
             val scheduled = tryScheduleUserInitiatedJob(context, queueId)
             if (scheduled) return
         }
@@ -97,6 +122,10 @@ object TransferDispatcher {
             .build(),
         expedited: Boolean = true
     ) {
+        // enqueueUniqueWork(REPLACE) below already stands in for the WorkManager half of this;
+        // the job scheduled by an earlier dispatch is the half nothing used to clear.
+        handOver(context, queueId, TransferMechanism.WORK_MANAGER_FOREGROUND)
+
         val request = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
             .setInputData(
                 Data.Builder()

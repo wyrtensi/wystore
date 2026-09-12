@@ -29,6 +29,7 @@ import dev.wystore.updates.AutoInstallStore
 import dev.wystore.updates.BackgroundInstaller
 import dev.wystore.data.EventLog
 import dev.wystore.updates.QueueOrigin
+import dev.wystore.updates.UnverifiedSourceStore
 import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.model.QueueAction
 import dev.wystore.updates.model.QueueState
@@ -147,7 +148,10 @@ class UpdateDownloadWorker(
             val entity = queueRepository.getEntityById(queueId)
                 ?: throw IllegalArgumentException("Queue item not found: $queueId")
 
-            queueRepository.transition(queueId, QueueAction.StartDownload)
+            // One row, one runner. Losing the claim means something else is already carrying this
+            // transfer, which is nothing to report and nothing to clean up: the files on disk
+            // belong to whoever holds the row.
+            if (!queueRepository.claimForDownload(queueId)) return@withContext
 
             // Kept across attempts on purpose: partial files are what makes a resumed download
             // possible, and wiping the directory on entry meant every retry restarted from zero.
@@ -176,20 +180,7 @@ class UpdateDownloadWorker(
                         sourceArtifactHash = artifacts.firstOrNull()?.sourceHash
                         downloader.download(artifacts, tempDir) { progress ->
                             currentCoroutineContext().ensureActive()
-                            val snapshot = queueRepository.getById(queueId)
-                            if (snapshot != null) {
-                                coordinator.showTransfer(
-                                    item = snapshot,
-                                    downloadedBytes = progress.downloadedBytes,
-                                    totalBytes = progress.totalBytes,
-                                    speed = progress.bytesPerSecond,
-                                    eta = progress.etaSeconds
-                                )
-                                queueRepository.transition(
-                                    queueId,
-                                    QueueAction.DownloadProgress(progress.downloadedBytes, progress.totalBytes)
-                                )
-                            }
+                            reportProgress(queueId, progress, coordinator)
                         }
                     }
                     ManagedSource.GITHUB.name -> {
@@ -228,27 +219,17 @@ class UpdateDownloadWorker(
 
                         val file = downloader.downloadGitHubApk(asset, tempDir) { progress ->
                             currentCoroutineContext().ensureActive()
-                            val snapshot = queueRepository.getById(queueId)
-                            if (snapshot != null) {
-                                coordinator.showTransfer(
-                                    item = snapshot,
-                                    downloadedBytes = progress.downloadedBytes,
-                                    totalBytes = progress.totalBytes,
-                                    speed = progress.bytesPerSecond,
-                                    eta = progress.etaSeconds
-                                )
-                                queueRepository.transition(
-                                    queueId,
-                                    QueueAction.DownloadProgress(progress.downloadedBytes, progress.totalBytes)
-                                )
-                            }
+                            reportProgress(queueId, progress, coordinator)
                         }
                         listOf(file)
                     }
                     else -> error("Unknown source: ${entity.source}")
                 }
             } catch (t: Throwable) {
-                tempDir.deleteRecursively()
+                // The files stay: whether they are worth keeping is decided in doWork, which keeps
+                // them for a retry and for a pause - the bytes are the whole point of pausing - and
+                // deletes them once the transfer is over for good. Deleting them here emptied the
+                // directory before that decision was ever reached.
                 coordinator.cancelTransfer()
                 throw t
             }
@@ -269,6 +250,9 @@ class UpdateDownloadWorker(
                     installed = installed,
                     expectedPackageName = expectedPackageName,
                     expectedSourceDigest = sourceSignatureHint,
+                    // Only ever true because the user was shown this exact refusal and answered it.
+                    allowUnverifiedSource = UnverifiedSourceStore(context)
+                        .isAllowed(entity.packageName, entity.versionCode),
                     // "Hand updates to Wy Store" and "reinstall" are requests to install the
                     // version that is already there - that install is the whole point, since it is
                     // what makes Wy Store the installer of record.
@@ -356,6 +340,30 @@ class UpdateDownloadWorker(
         }
 
         /**
+         * Shows how far the transfer has got, in the notification and on the row.
+         *
+         * A row that has stopped being DOWNLOADING is no longer this runner's, so the transfer
+         * stops rather than writing onto it. Pausing arrives exactly this way.
+         */
+        private suspend fun reportProgress(
+            queueId: String,
+            progress: dev.wystore.data.DownloadProgress,
+            coordinator: NotificationCoordinator
+        ) {
+            if (!queueRepository.recordProgress(queueId, progress.downloadedBytes, progress.totalBytes)) {
+                throw CancellationException("Queue item $queueId is no longer downloading")
+            }
+            val snapshot = queueRepository.getById(queueId) ?: return
+            coordinator.showTransfer(
+                item = snapshot,
+                downloadedBytes = progress.downloadedBytes,
+                totalBytes = progress.totalBytes,
+                speed = progress.bytesPerSecond,
+                eta = progress.etaSeconds
+            )
+        }
+
+        /**
          * Installs a verified download without the Android dialog when the user turned silent root
          * install on and root is granted. Returns true when the install was handled here.
          *
@@ -383,6 +391,10 @@ class UpdateDownloadWorker(
                 files = files,
                 installed = installedApp,
                 expectedPackageName = entity.packageName,
+                // The same answer the download was allowed to finish on; without it the root route
+                // would refuse the file the user has already been asked about.
+                allowUnverifiedSource = UnverifiedSourceStore(context)
+                    .isAllowed(entity.packageName, entity.versionCode),
                 // Same reason as the two dialog paths: a reinstall the user asked for is not a
                 // downgrade. Without this the root route quietly produced no plan and handed the
                 // handover back to a confirmation flow that refused it too.

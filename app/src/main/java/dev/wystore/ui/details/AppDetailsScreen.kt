@@ -105,6 +105,7 @@ fun AppDetailsScreen(
     onLaunch: (String) -> Unit,
     onInstallPending: (String) -> Unit,
     onInstall: () -> Unit,
+    onConfirmUnverifiedSource: (String) -> Unit = {},
     /** Asks to remove the installed copy and install this one, when nothing can install in place. */
     onReplace: () -> Unit
 ) {
@@ -401,7 +402,15 @@ fun AppDetailsScreen(
             // page of an app that had been up to date for days.
             queueItem
                 ?.takeIf { it.status.isInFlight || it.status == InstallQueueStatus.FAILED }
-                ?.let { item { OperationProgress(it) } }
+                ?.let {
+                    item {
+                        OperationProgress(
+                            item = it,
+                            onConfirmUnverifiedSource = { onConfirmUnverifiedSource(app.packageName) },
+                            onRetry = onInstall
+                        )
+                    }
+                }
 
             item { DetailFacts(app) }
 

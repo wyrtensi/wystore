@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
+import dev.wystore.updates.UnverifiedSourceConsent
 import dev.wystore.updates.model.QueueErrorCode
 import dev.wystore.R
 import dev.wystore.data.InstallSource
@@ -229,7 +232,11 @@ fun Loading(operation: String? = null) {
 }
 
 @Composable
-fun OperationProgress(item: InstallQueueItem) {
+fun OperationProgress(
+    item: InstallQueueItem,
+    onConfirmUnverifiedSource: (() -> Unit)? = null,
+    onRetry: (() -> Unit)? = null
+) {
     WyCard(
         modifier = Modifier.fillMaxWidth(),
         containerColor = if (item.status == InstallQueueStatus.FAILED) {
@@ -242,7 +249,24 @@ fun OperationProgress(item: InstallQueueItem) {
             Text(queueStatusLabel(item), style = MaterialTheme.typography.titleSmall)
             val progress = item.progress
             if (item.status == InstallQueueStatus.FAILED) {
-                Text(item.detail ?: stringResource(R.string.queue_status_failed), color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodySmall)
+                // The line above already names the failure in the user's language. This used to
+                // repeat the raw detail underneath it - an exception message, in English.
+                if (UnverifiedSourceConsent.isAnswerable(item.errorCode, item.detail)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        onRetry?.let {
+                            TextButton(onClick = it) { Text(stringResource(R.string.common_retry)) }
+                            Spacer(Modifier.width(4.dp))
+                        }
+                        onConfirmUnverifiedSource?.let {
+                            Button(onClick = it) {
+                                Text(stringResource(R.string.unverified_source_confirm))
+                            }
+                        }
+                    }
+                }
             } else if (item.status == InstallQueueStatus.COMPLETE) {
                 Text(item.detail ?: stringResource(R.string.queue_status_install_complete), style = MaterialTheme.typography.bodySmall)
             } else if (progress != null && progress.totalBytes > 0) {
@@ -278,7 +302,9 @@ fun OperationProgress(item: InstallQueueItem) {
 
 @Composable
 fun queueStatusLabel(item: InstallQueueItem): String = when (item.status) {
-    InstallQueueStatus.RESOLVING -> item.detail ?: stringResource(R.string.queue_status_preparing)
+    // The detail is whatever the data layer last recorded on the row, so a leftover exception
+    // message stood in for "preparing". A row that is preparing says so.
+    InstallQueueStatus.RESOLVING -> stringResource(R.string.queue_status_preparing)
     InstallQueueStatus.QUEUED -> stringResource(R.string.queue_status_queued)
     InstallQueueStatus.DOWNLOADING -> stringResource(R.string.queue_status_downloading)
     InstallQueueStatus.PAUSED -> stringResource(R.string.queue_status_paused)
@@ -290,10 +316,16 @@ fun queueStatusLabel(item: InstallQueueItem): String = when (item.status) {
     // Failure text comes from the typed code, because the raw detail is an exception message from
     // the data layer and is not translated. A verification failure is the exception: it records
     // which of the ten checks refused the file, and the ten mean very different things.
-    InstallQueueStatus.FAILED -> verificationLabel(item.detail)
-        ?: item.errorCode?.let { queueErrorLabel(it) }
-        ?: item.detail
-        ?: stringResource(R.string.queue_status_failed)
+    // The one failure that is a question: it is asked in the same words wherever the row shows up,
+    // and the buttons beside it are the answer.
+    InstallQueueStatus.FAILED ->
+        if (UnverifiedSourceConsent.isAnswerable(item.errorCode, item.detail)) {
+            stringResource(R.string.unverified_source_status)
+        } else {
+            verificationLabel(item.detail)
+                ?: item.errorCode?.let { queueErrorLabel(it) }
+                ?: stringResource(R.string.queue_status_failed)
+        }
 }
 
 /**
