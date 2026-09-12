@@ -45,9 +45,8 @@ class CategoryViewModel(
 
     fun open(category: StoreCategory) {
         if (_uiState.value.slug == category.slug && _uiState.value.apps.isNotEmpty()) return
-        // Same rule as the tile on Home: a section Wy Store assembled itself is named in the
-        // interface language, a section read from the source keeps the catalogue's own name.
-        val title = category.titleRes
+        // Same rule as the tile on Home.
+        val title = dev.wystore.ui.components.CategoryLabels.titleRes(category)
             ?.let { getApplication<Application>().getString(it) }
             ?: category.title
         _uiState.value = CategoryUiState(slug = category.slug, title = title)

@@ -39,6 +39,17 @@ object CategoryLabels {
     fun stringRes(slug: String): Int? = known[slug.trim().lowercase()]
 
     /**
+     * The name to show for a whole section, rather than for a tag under a card.
+     *
+     * A section Wy Store assembles itself carries its own resource. A section read from the source
+     * arrives named in Russian, which is what the catalogue publishes - but these are the same
+     * slugs this table already names, so the rail follows the interface language too. A section
+     * nobody has a name for keeps what the catalogue published.
+     */
+    fun titleRes(category: dev.wystore.data.StoreCategory): Int? =
+        category.titleRes ?: stringRes(category.slug)
+
+    /**
      * "adsAndServices" -> "Ads and services", for a slug this table has never seen.
      *
      * Only for text shaped like a slug. The same pill also carries labels that were written for

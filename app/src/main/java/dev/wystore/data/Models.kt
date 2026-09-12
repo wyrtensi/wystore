@@ -73,11 +73,12 @@ data class StoreCategory(
     val title: String,
     val iconUrl: String? = null,
     /**
-     * The name of a section Wy Store assembles itself, translated with the interface.
+     * The section's name in the interface language, when the app has one for it.
      *
-     * Sections read from the source keep [title], which is whatever the catalogue publishes and is
-     * not the app's to translate. Wy Store's own sections had their names written into the code in
-     * Russian, so an English interface showed a rail of Russian tiles.
+     * Wy Store's own sections had their names written into the code in Russian, so an English
+     * interface showed a rail of Russian tiles. The source's sections arrive in Russian for the same
+     * reason, and CategoryLabels names the ones the catalogue is known to publish; a section it
+     * does not know keeps [title], which is whatever the catalogue published.
      */
     val titleRes: Int? = null
 )

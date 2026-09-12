@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.ColorUtils
 import coil.compose.AsyncImage
 import dev.wystore.R
+import dev.wystore.ui.components.CategoryLabels
 import dev.wystore.ui.components.fontScaledWidth
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreCategory
@@ -393,9 +394,7 @@ internal fun CategoryTile(
                     )
                 }
                 Text(
-                    // Wy Store's own sections are translated; sections read from the source keep
-                    // the name the catalogue publishes.
-                    category.titleRes?.let { stringResource(it) } ?: category.title,
+                    CategoryLabels.titleRes(category)?.let { stringResource(it) } ?: category.title,
                     // Hyphenated rather than split: a name longer than the tile is wide -
                     // "Государственные" - was broken wherever the line ran out, mid-syllable.
                     style = MaterialTheme.typography.labelLarge.copy(hyphens = Hyphens.Auto),
