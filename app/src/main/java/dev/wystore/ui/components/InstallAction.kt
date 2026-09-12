@@ -7,7 +7,6 @@ sealed interface PrimaryAction {
     data object Pause : PrimaryAction
     data object Resume : PrimaryAction
     data object Retry : PrimaryAction
-    data object AwaitingAction : PrimaryAction
     data object Installing : PrimaryAction
     data object None : PrimaryAction
 }

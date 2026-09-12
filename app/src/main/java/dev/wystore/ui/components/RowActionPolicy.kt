@@ -28,7 +28,6 @@ object RowActionPolicy {
         PrimaryAction.Install ->
             if (status == StatusCode.READY_TO_INSTALL) RowAction.InstallDownloaded
             else RowAction.Enqueue
-        PrimaryAction.AwaitingAction -> RowAction.InstallDownloaded
         PrimaryAction.Update,
         PrimaryAction.Resume,
         PrimaryAction.Retry -> RowAction.Enqueue

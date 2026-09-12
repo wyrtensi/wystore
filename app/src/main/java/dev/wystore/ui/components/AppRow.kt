@@ -194,9 +194,6 @@ private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
         PrimaryAction.Retry -> Button(onClick, sizing, contentPadding = contentPadding) {
             Text(stringResource(R.string.common_retry), maxLines = 1)
         }
-        PrimaryAction.AwaitingAction -> Button(onClick, sizing, contentPadding = contentPadding) {
-            Text(stringResource(R.string.common_continue), maxLines = 1)
-        }
         PrimaryAction.Open -> FilledTonalButton(onClick, sizing, contentPadding = contentPadding) {
             Text(stringResource(R.string.common_open), maxLines = 1)
         }

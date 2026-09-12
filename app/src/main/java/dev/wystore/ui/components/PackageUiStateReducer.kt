@@ -157,7 +157,12 @@ object PackageUiStateReducer {
                         iconUrl = iconUrl,
                         publisher = publisher,
                         status = StatusMessage(StatusCode.QUEUED),
-                        primaryAction = PrimaryAction.AwaitingAction,
+                        // Nothing to offer, so nothing is offered. This used to read "Continue",
+                        // over a row that has not started: the button asked Android to install a
+                        // file that had not been downloaded, and enqueueing it again returns early
+                        // because it is already queued. It did nothing and promised otherwise. The
+                        // status line says it is waiting, and Cancel is the one real action.
+                        primaryAction = PrimaryAction.None,
                         secondaryAction = SecondaryAction.Cancel,
                         progress = null,
                         transferInfo = null,
