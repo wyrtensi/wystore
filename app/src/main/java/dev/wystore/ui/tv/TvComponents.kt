@@ -2,6 +2,12 @@ package dev.wystore.ui.tv
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -65,6 +71,40 @@ import androidx.compose.material3.MaterialTheme as M3Theme
  */
 fun Modifier.tvPointerClick(enabled: Boolean = true, onClick: () -> Unit): Modifier =
     if (!enabled) this else pointerInput(onClick) { detectTapGestures(onTap = { onClick() }) }
+
+/**
+ * Moves the focus to the first item of a lazy row, the target of Down from a control as wide as the
+ * screen: Android's own search picks the item under that control's middle.
+ *
+ * The first item is not composed when the row was left scrolled along, and a fresh row may not be
+ * laid out yet, so the row is scrolled back and the request repeated over a few frames. Returns
+ * whether the focus got there.
+ */
+suspend fun focusRowStart(state: LazyListState, first: FocusRequester): Boolean {
+    if (runCatching { first.requestFocus() }.getOrDefault(false)) return true
+    runCatching { state.scrollToItem(0) }
+    repeat(ROW_START_ATTEMPTS) {
+        withFrameNanos { }
+        if (runCatching { first.requestFocus() }.getOrDefault(false)) return true
+    }
+    return false
+}
+
+private const val ROW_START_ATTEMPTS = 5
+
+/**
+ * Keeps left and right inside a row of cards.
+ *
+ * At either end of a row Android looked for anything further along, above or below included, so
+ * left on the first search result jumped up to the microphone. Up and down still leave the row.
+ */
+fun Modifier.tvRowEdges(): Modifier = focusProperties {
+    onExit = {
+        if (requestedFocusDirection == FocusDirection.Left || requestedFocusDirection == FocusDirection.Right) {
+            cancelFocusChange()
+        }
+    }
+}.focusGroup()
 
 /** What a TV screen can do with a package; the same handlers the phone rows call. */
 data class TvPackageActions(

@@ -18,7 +18,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
@@ -115,6 +118,25 @@ fun TvSearchScreen(
         Unit
     }
     val shouldTakeFocus by rememberUpdatedState(takeFocus || startVoice)
+    val scope = rememberCoroutineScope()
+    val tvRow = rememberLazyListState()
+    val rustoreRow = rememberLazyListState()
+    val githubRow = rememberLazyListState()
+    val tvFirst = remember { FocusRequester() }
+    val rustoreFirst = remember { FocusRequester() }
+    val githubFirst = remember { FocusRequester() }
+    // Down from the field goes to the first result of the first row. The field is as wide as the
+    // screen, and Android's own search picked the result under its middle.
+    val focusFirstResult: () -> Boolean = {
+        val target = when {
+            tvMatches.isNotEmpty() -> tvRow to tvFirst
+            rustoreMatches.isNotEmpty() -> rustoreRow to rustoreFirst
+            trimmed.isNotEmpty() && githubResults.isNotEmpty() -> githubRow to githubFirst
+            else -> null
+        }
+        target?.let { (state, first) -> scope.launch { focusRowStart(state, first) } }
+        target != null
+    }
     val restoreFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         if (!shouldTakeFocus) return@LaunchedEffect
@@ -218,7 +240,7 @@ fun TvSearchScreen(
                     // focus in a field the user has finished with.
                     keyboardActions = KeyboardActions(onSearch = {
                         if (showsRustore && trimmed.isNotEmpty()) onSearchRustore(trimmed)
-                        focusManager.moveFocus(FocusDirection.Down)
+                        if (!focusFirstResult()) focusManager.moveFocus(FocusDirection.Down)
                     }),
                     modifier = Modifier
                         .fillMaxSize()
@@ -236,7 +258,9 @@ fun TvSearchScreen(
                                 Key.DirectionUp -> FocusDirection.Up
                                 else -> null
                             } ?: return@onPreviewKeyEvent false
-                            if (event.type == KeyEventType.KeyDown) focusManager.moveFocus(direction)
+                            if (event.type == KeyEventType.KeyDown) {
+                                if (direction != FocusDirection.Down || !focusFirstResult()) focusManager.moveFocus(direction)
+                            }
                             true
                         }
                 )
@@ -247,6 +271,11 @@ fun TvSearchScreen(
                         modifier = Modifier
                             .matchParentSize()
                             .focusRequester(fieldFocus)
+                            .onPreviewKeyEvent { event ->
+                                if (event.key != Key.DirectionDown) return@onPreviewKeyEvent false
+                                if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent true
+                                focusFirstResult()
+                            }
                             .tvPointerClick(onClick = startEditing),
                         shape = ClickableSurfaceDefaults.shape(fieldShape),
                         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
@@ -274,7 +303,7 @@ fun TvSearchScreen(
                 if (tvMatches.isEmpty()) {
                     Text(stringResource(R.string.search_empty_title), style = MaterialTheme.typography.bodyLarge)
                 } else {
-                    TvResultRow(tvMatches, packages, onOpenApp, markPhone = { false }, restore = restoreFocusTo to restoreFocus)
+                    TvResultRow(tvMatches, packages, onOpenApp, markPhone = { false }, restore = restoreFocusTo to restoreFocus, state = tvRow, firstFocus = tvFirst)
                 }
             }
         }
@@ -289,7 +318,9 @@ fun TvSearchScreen(
                         // Among TV results a phone app is marked; with the phone catalogue alone
                         // there is nothing to tell apart.
                         markPhone = { app -> catalogMode == TvCatalog.BOTH && app.packageName !in tvPackages },
-                        restore = restoreFocusTo to restoreFocus
+                        restore = restoreFocusTo to restoreFocus,
+                        state = rustoreRow,
+                        firstFocus = rustoreFirst
                     )
                     rustoreSearching || trimmed.length >= MIN_SOURCE_QUERY && !rustoreQuery.equals(trimmed, ignoreCase = true) ->
                         Text(stringResource(R.string.vm_searching), style = MaterialTheme.typography.bodyLarge)
@@ -300,7 +331,7 @@ fun TvSearchScreen(
         if (trimmed.isNotEmpty() && githubResults.isNotEmpty()) {
             item(key = "github") {
                 TvSectionTitle(stringResource(R.string.search_sources_github))
-                TvGitHubResultRow(githubResults, onOpenGitHub, restore = restoreFocusTo to restoreFocus)
+                TvGitHubResultRow(githubResults, onOpenGitHub, restore = restoreFocusTo to restoreFocus, state = githubRow, firstFocus = githubFirst)
             }
         }
     }
@@ -310,18 +341,23 @@ fun TvSearchScreen(
 private fun TvGitHubResultRow(
     entries: List<GitHubCatalogEntry>,
     onOpenGitHub: (GitHubCatalogEntry) -> Unit,
-    restore: Pair<String?, FocusRequester>
+    restore: Pair<String?, FocusRequester>,
+    state: LazyListState,
+    firstFocus: FocusRequester
 ) {
     LazyRow(
-        modifier = Modifier.fillMaxWidth().height(TvRowHeight),
+        state = state,
+        modifier = Modifier.fillMaxWidth().height(TvRowHeight).tvRowEdges(),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         contentPadding = PaddingValues(12.dp)
     ) {
-        items(entries, key = { it.slug }) { entry ->
+        itemsIndexed(entries, key = { _, entry -> entry.slug }) { index, entry ->
             TvGitHubCard(
                 entry = entry,
                 onClick = { onOpenGitHub(entry) },
-                modifier = if (entry.tvKey() == restore.first) Modifier.focusRequester(restore.second) else Modifier
+                modifier = Modifier
+                    .then(if (index == 0) Modifier.focusRequester(firstFocus) else Modifier)
+                    .then(if (entry.tvKey() == restore.first) Modifier.focusRequester(restore.second) else Modifier)
             )
         }
     }
@@ -333,19 +369,24 @@ private fun TvResultRow(
     packages: TvPackageContext,
     onOpenApp: (String) -> Unit,
     markPhone: (StoreApp) -> Boolean,
-    restore: Pair<String?, FocusRequester>
+    restore: Pair<String?, FocusRequester>,
+    state: LazyListState,
+    firstFocus: FocusRequester
 ) {
     LazyRow(
-        modifier = Modifier.fillMaxWidth().height(TvRowHeight),
+        state = state,
+        modifier = Modifier.fillMaxWidth().height(TvRowHeight).tvRowEdges(),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         contentPadding = PaddingValues(12.dp)
     ) {
-        items(apps, key = { it.packageName }) { app ->
+        itemsIndexed(apps, key = { _, app -> app.packageName }) { index, app ->
             TvAppCard(
                 app = app,
                 state = rememberPackageState(app, packages),
                 onClick = { onOpenApp(app.packageName) },
-                modifier = if (app.packageName == restore.first) Modifier.focusRequester(restore.second) else Modifier,
+                modifier = Modifier
+                    .then(if (index == 0) Modifier.focusRequester(firstFocus) else Modifier)
+                    .then(if (app.packageName == restore.first) Modifier.focusRequester(restore.second) else Modifier),
                 forPhone = markPhone(app)
             )
         }

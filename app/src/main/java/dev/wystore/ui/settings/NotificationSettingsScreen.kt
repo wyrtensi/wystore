@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.switchRow
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -124,7 +125,9 @@ fun NotificationSettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .switchRow(settings.quietHoursEnabled) { onUpdateSettings(settings.copy(quietHoursEnabled = it)) },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
@@ -132,10 +135,7 @@ fun NotificationSettingsScreen(
                                 modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodyMedium
                             )
-                            Switch(
-                                checked = settings.quietHoursEnabled,
-                                onCheckedChange = { onUpdateSettings(settings.copy(quietHoursEnabled = it)) }
-                            )
+                            Switch(checked = settings.quietHoursEnabled, onCheckedChange = null)
                         }
                         if (settings.quietHoursEnabled) {
                             HourPicker(
@@ -195,6 +195,7 @@ private fun CategoryRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .switchRow(checked, onChange = onChange)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -209,7 +210,7 @@ private fun CategoryRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Switch(checked = checked, onCheckedChange = onChange)
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 

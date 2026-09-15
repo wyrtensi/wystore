@@ -1,5 +1,7 @@
 package dev.wystore.ui.components
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import android.content.res.Resources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -217,11 +219,20 @@ fun DetailFacts(app: StoreApp) {
 
 @Composable
 fun CompactSettingSwitch(label: String, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().switchRow(checked, enabled, onChange), verticalAlignment = Alignment.CenterVertically) {
         Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-        Switch(checked = checked, onCheckedChange = onChange, enabled = enabled)
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
+
+/**
+ * Makes a row with a switch one control: a tap on the label toggles it, and the remote's focus lights
+ * the whole row. On the switch alone the focus was a halo around its thumb that a TV across the room
+ * did not show. The switch inside is given `onCheckedChange = null`, so it is not a second stop.
+ */
+@Composable
+fun Modifier.switchRow(checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit): Modifier =
+    clip(MaterialTheme.shapes.small).toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
 
 @Composable
 fun Loading(operation: String? = null) {

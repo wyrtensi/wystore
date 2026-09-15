@@ -50,6 +50,9 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.material.ripple.RippleAlpha
+import androidx.compose.material3.LocalRippleConfiguration
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -406,7 +409,16 @@ fun TvApp(
                             )
                             // The phone's settings, as they are: every option stays reachable on a
                             // TV, including the device type for anyone the detection got wrong.
-                            TvDestination.SETTINGS -> CompositionLocalProvider(LocalBottomBarInset provides TvOverscanVertical) {
+                            TvDestination.SETTINGS -> CompositionLocalProvider(
+                                LocalBottomBarInset provides TvOverscanVertical,
+                                // The phone widgets show focus as a faint state layer, made for a
+                                // keyboard on a phone; across a room it did not show where the
+                                // remote was. The same layer in the accent colour, several times stronger.
+                                LocalRippleConfiguration provides RippleConfiguration(
+                                    color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                                    rippleAlpha = TvSettingsFocusAlpha
+                                )
+                            ) {
                                 // The phone's settings keep a phone's margin; a TV crops its edges,
                                 // so the rest of the overscan margin is added around them.
                                 SettingsScreen(
@@ -489,3 +501,10 @@ private fun TvBrand() {
         )
     }
 }
+
+private val TvSettingsFocusAlpha = RippleAlpha(
+    draggedAlpha = 0.16f,
+    focusedAlpha = 0.36f,
+    hoveredAlpha = 0.16f,
+    pressedAlpha = 0.24f
+)

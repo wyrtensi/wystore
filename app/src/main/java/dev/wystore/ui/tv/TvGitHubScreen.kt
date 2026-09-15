@@ -233,7 +233,7 @@ fun TvGitHubAppScreen(
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(20.dp),
                         contentPadding = PaddingValues(12.dp),
-                        modifier = Modifier.height(300.dp)
+                        modifier = Modifier.height(300.dp).tvRowEdges()
                     ) {
                         items(screenshots, key = { it }) { url ->
                             val shape = M3Theme.shapes.large

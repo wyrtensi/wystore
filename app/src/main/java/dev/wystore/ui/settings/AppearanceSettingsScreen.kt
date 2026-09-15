@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.switchRow
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -120,7 +121,11 @@ fun AppearanceSettingsScreen(
             HorizontalDivider()
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .switchRow(settings.dynamicColorEnabled, enabled = Build.VERSION.SDK_INT >= 31) {
+                        onUpdateSettings(settings.copy(dynamicColorEnabled = it))
+                    },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -137,7 +142,7 @@ fun AppearanceSettingsScreen(
                 Switch(
                     checked = settings.dynamicColorEnabled,
                     enabled = Build.VERSION.SDK_INT >= 31,
-                    onCheckedChange = { onUpdateSettings(settings.copy(dynamicColorEnabled = it)) }
+                    onCheckedChange = null
                 )
             }
         }

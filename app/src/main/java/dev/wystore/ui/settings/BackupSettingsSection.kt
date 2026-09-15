@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.switchRow
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -151,9 +152,9 @@ fun BackupSettingsSection(
                         label = { Text(stringResource(R.string.backup_json_label)) },
                         textStyle = MaterialTheme.typography.bodySmall
                     )
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().switchRow(mergeMode) { mergeMode = it }, verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.backup_merge), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
-                        Switch(checked = mergeMode, onCheckedChange = { mergeMode = it })
+                        Switch(checked = mergeMode, onCheckedChange = null)
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(

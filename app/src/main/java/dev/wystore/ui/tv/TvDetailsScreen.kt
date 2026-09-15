@@ -222,7 +222,7 @@ fun TvDetailsScreen(
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(20.dp),
                         contentPadding = PaddingValues(12.dp),
-                        modifier = Modifier.height(300.dp)
+                        modifier = Modifier.height(300.dp).tvRowEdges()
                     ) {
                         itemsIndexed(app.screenshots, key = { index, url -> "$index-$url" }) { index, url ->
                             Card(
@@ -251,7 +251,8 @@ fun TvDetailsScreen(
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(20.dp),
                         contentPadding = PaddingValues(12.dp),
-                        verticalAlignment = Alignment.Top
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier.tvRowEdges()
                     ) {
                         itemsIndexed(app.reviews, key = { index, review -> "$index-${review.author}" }) { _, review ->
                             val shape = androidx.compose.material3.MaterialTheme.shapes.large

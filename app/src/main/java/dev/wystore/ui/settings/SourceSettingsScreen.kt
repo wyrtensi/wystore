@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.switchRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -82,7 +83,9 @@ fun SourceSettingsScreen(
 
             Text("GitHub Releases", style = MaterialTheme.typography.titleMedium)
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .switchRow(settings.githubEnabled) { onUpdateSettings(settings.copy(githubEnabled = it)) },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -93,10 +96,7 @@ fun SourceSettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Switch(
-                    checked = settings.githubEnabled,
-                    onCheckedChange = { onUpdateSettings(settings.copy(githubEnabled = it)) }
-                )
+                Switch(checked = settings.githubEnabled, onCheckedChange = null)
             }
         }
     }

@@ -22,6 +22,11 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -158,6 +163,7 @@ fun TvHomeScreen(
     // phone: close enough to the top to be found, after what the device is mostly for.
     val githubAfter = if (githubEntries.isEmpty()) -1 else rows.indexOfFirst { it.key == "tv-popular" || it.key == "phone-popular" || it.key == "phone-0" }
     val githubFocus = remember { FocusRequester() }
+    val firstTileFocus = remember { FocusRequester() }
     // Items before the first row: the update card, and the category rail when it is there.
     val rowsStart = 1 + if (showCategories) 1 else 0
 
@@ -186,7 +192,23 @@ fun TvHomeScreen(
                     packages.activeQueue.map { it.packageName }).distinct().size,
                 onClick = onOpenMyApps,
                 // Home starts here, at the top, and when updates are waiting OK opens them.
-                modifier = Modifier.focusRequester(firstFocus)
+                modifier = Modifier
+                    .focusRequester(firstFocus)
+                    // Down goes to the start of what follows, not to the tile under the middle.
+                    .onPreviewKeyEvent { event ->
+                        if (event.key != Key.DirectionDown || (!showCategories && rows.isEmpty())) {
+                            return@onPreviewKeyEvent false
+                        }
+                        if (event.type == KeyEventType.KeyDown) {
+                            val (state, target) = if (showCategories) {
+                                rowStates.getOrPut("categories") { LazyListState() } to firstTileFocus
+                            } else {
+                                rowStates.getOrPut(rows.first().key) { LazyListState() } to rowFocus.getValue(rows.first().key)
+                            }
+                            scope.launch { focusRowStart(state, target) }
+                        }
+                        true
+                    }
             )
             Spacer(Modifier.height(16.dp))
         }
@@ -208,6 +230,7 @@ fun TvHomeScreen(
                 TvSectionTitle(stringResource(R.string.home_categories_title))
                 LazyRow(
                     state = rowStates.getOrPut("categories") { LazyListState() },
+                    modifier = Modifier.tvRowEdges(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(12.dp)
                 ) {
@@ -215,6 +238,7 @@ fun TvHomeScreen(
                         TvCategoryTile(
                             title = row.title.orEmpty(),
                             accent = index,
+                            modifier = if (index == 0) Modifier.focusRequester(firstTileFocus) else Modifier,
                             previewIcons = row.apps.mapNotNull { it.iconUrl?.takeIf(String::isNotBlank) },
                             onClick = {
                                 val rowIndex = rows.indexOf(row)
@@ -256,7 +280,7 @@ fun TvHomeScreen(
                     )
                     LazyRow(
                         state = rowStates.getOrPut("github") { LazyListState() },
-                        modifier = Modifier.fillMaxWidth().height(TvGitHubRowHeight),
+                        modifier = Modifier.fillMaxWidth().height(TvGitHubRowHeight).tvRowEdges(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(12.dp)
                     ) {
@@ -350,7 +374,8 @@ private fun TvAppRow(
         state = state,
         modifier = Modifier
             .fillMaxWidth()
-            .height(TvRowHeight),
+            .height(TvRowHeight)
+            .tvRowEdges(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         // Room for the focused card to grow without being clipped at either end.
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
