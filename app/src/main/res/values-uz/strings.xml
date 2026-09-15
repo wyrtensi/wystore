@@ -260,6 +260,7 @@
     <string name="settings_network_any">Har qanday</string>
     <string name="settings_charging_only">Faqat quvvatlanayotganda</string>
     <string name="settings_silent_root_install">Jimgina root orqali oʻrnatish</string>
+    <string name="settings_silent_root_uninstall">Jimgina root orqali oʻchirish</string>
     <string name="settings_interval">Interval</string>
     <string name="settings_interval_hours">%1$d soat</string>
 

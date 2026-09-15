@@ -26,6 +26,7 @@ object DiagnosticsSettingsDump {
         "queueMode" to settings.queueMode.name,
         "rootBackgroundDownloadsEnabled" to settings.rootBackgroundDownloadsEnabled.toString(),
         "rootSilentInstallEnabled" to settings.rootSilentInstallEnabled.toString(),
+        "rootSilentUninstallEnabled" to settings.rootSilentUninstallEnabled.toString(),
         "themeMode" to settings.themeMode.name,
         "deviceType" to settings.deviceType.name,
         "tvCatalog" to settings.tvCatalog.name,

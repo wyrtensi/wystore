@@ -260,6 +260,7 @@
     <string name="settings_network_any">Jebkurš</string>
     <string name="settings_charging_only">Tikai uzlādes laikā</string>
     <string name="settings_silent_root_install">Klusā root instalēšana</string>
+    <string name="settings_silent_root_uninstall">Klusā root atinstalēšana</string>
     <string name="settings_interval">Intervāls</string>
     <string name="settings_interval_hours">%1$d st.</string>
 

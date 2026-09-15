@@ -260,6 +260,7 @@
     <string name="settings_network_any">任意</string>
     <string name="settings_charging_only">仅在充电时</string>
     <string name="settings_silent_root_install">Root 静默安装</string>
+    <string name="settings_silent_root_uninstall">Root 静默卸载</string>
     <string name="settings_interval">间隔</string>
     <string name="settings_interval_hours">%1$d小时</string>
 

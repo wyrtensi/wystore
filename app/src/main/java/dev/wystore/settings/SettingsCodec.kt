@@ -30,6 +30,7 @@ internal object SettingsCodec {
     val KEY_ALLOW_MOBILE_DATA = booleanPreferencesKey("allow_mobile_data")
     val KEY_ROOT_BG_DOWNLOADS = booleanPreferencesKey("root_background_downloads")
     val KEY_ROOT_SILENT_INSTALL = booleanPreferencesKey("root_silent_install")
+    val KEY_ROOT_SILENT_UNINSTALL = booleanPreferencesKey("root_silent_uninstall")
     val KEY_UPDATE_INTERVAL_HOURS = longPreferencesKey("interval_hours")
     val KEY_QUEUE_MODE = stringPreferencesKey("queue_mode")
     val KEY_SEARCH_SOURCES = stringPreferencesKey("search_sources")
@@ -72,6 +73,8 @@ internal object SettingsCodec {
                 ?: defaults.rootBackgroundDownloadsEnabled,
             rootSilentInstallEnabled = prefs[KEY_ROOT_SILENT_INSTALL]
                 ?: defaults.rootSilentInstallEnabled,
+            rootSilentUninstallEnabled = prefs[KEY_ROOT_SILENT_UNINSTALL]
+                ?: defaults.rootSilentUninstallEnabled,
             updateIntervalHours = prefs[KEY_UPDATE_INTERVAL_HOURS] ?: defaults.updateIntervalHours,
             queueMode = prefs[KEY_QUEUE_MODE]?.let { raw ->
                 runCatching { QueueMode.valueOf(raw) }.getOrNull()
@@ -134,6 +137,11 @@ internal object SettingsCodec {
             KEY_ROOT_SILENT_INSTALL,
             updated.rootSilentInstallEnabled,
             current.rootSilentInstallEnabled
+        )
+        prefs.put(
+            KEY_ROOT_SILENT_UNINSTALL,
+            updated.rootSilentUninstallEnabled,
+            current.rootSilentUninstallEnabled
         )
         prefs.put(KEY_UPDATE_INTERVAL_HOURS, updated.updateIntervalHours, current.updateIntervalHours)
         prefs.put(KEY_QUEUE_MODE, updated.queueMode.name, current.queueMode.name)

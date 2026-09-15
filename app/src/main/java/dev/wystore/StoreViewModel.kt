@@ -38,6 +38,7 @@ import dev.wystore.updates.ManualInstallScheduler
 import dev.wystore.updates.GitHubInstallScheduler
 import dev.wystore.updates.InstalledUpdateMatcher
 import dev.wystore.ui.github.GitHubAppUiState
+import dev.wystore.ui.components.launchUninstall
 import dev.wystore.data.CatalogRepository
 import dev.wystore.localization.RootTextResolver
 import dev.wystore.localization.SourceTextResolver
@@ -414,7 +415,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         _state.update { it.copy(githubRepositories = repository.githubRepositories()) }
         UpdateScheduler.schedule(application, repository.settings())
         manualCheckWorkInfos.observeForever(updateCheckObserver)
-        if (repository.settings().backgroundRootUpdates) checkRoot()
+        // Root switches read as unavailable until su has answered, so it is asked only when one
+        // of them is on; a root manager answers every probe with a prompt.
+        repository.settings().let { if (it.backgroundRootUpdates || it.rootSilentUninstallEnabled) checkRoot() }
     }
 
     override fun onCleared() {
@@ -633,6 +636,27 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = _state.value.copy(rootAvailable = false, settings = settings)
         } else {
             _state.value = _state.value.copy(rootAvailable = available)
+        }
+    }
+
+    /**
+     * Removes an app: through root with no question asked when the user switched that on, through
+     * Android's dialog otherwise.
+     *
+     * A root removal that does not go through - root taken away since, or pm refusing - falls back
+     * to the dialog rather than doing nothing. Nothing needs refreshing here on success: the
+     * package-removed broadcast that follows is what updates the library and finishes a pending
+     * "remove and install again", whichever way the app was removed.
+     */
+    fun uninstall(packageName: String) {
+        val app = getApplication<Application>()
+        if (!repository.settings().rootSilentUninstallEnabled) {
+            launchUninstall(app, packageName)
+            return
+        }
+        viewModelScope.launch {
+            val result = installer.uninstall(packageName)
+            if (!result.success) launchUninstall(app, packageName)
         }
     }
 

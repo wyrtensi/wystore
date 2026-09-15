@@ -24,6 +24,7 @@ import dev.wystore.root.RootInstaller
 import dev.wystore.selfupdate.SelfUpdateChecker
 import dev.wystore.updates.GitHubInstallScheduler
 import dev.wystore.updates.InstallMode
+import dev.wystore.updates.InstalledAppRegistrar
 import dev.wystore.updates.InstallModePolicy
 import dev.wystore.updates.AutoInstallStore
 import dev.wystore.updates.BackgroundInstaller
@@ -327,6 +328,11 @@ class UpdateDownloadWorker(
                 )
                 queueRepository.transition(queueId, QueueAction.Verified)
 
+                // The verified files have been copied into durable storage by now, so the working
+                // directory and any partial files in it are no longer needed. Removed before the
+                // install paths below, two of which return early and used to leave it behind.
+                tempDir.deleteRecursively()
+
                 // Silent root install, when the user enabled it and root is actually granted.
                 // The policy and the installer existed but had no production caller, so the
                 // setting did nothing and every update still needed the Android dialog.
@@ -350,10 +356,6 @@ class UpdateDownloadWorker(
                 // One entry for the whole set. A bulk update used to post a notification per app
                 // plus a group summary, so twenty updates meant twenty-one notifications.
                 coordinator.publishReady(queueRepository.readyToInstallSnapshots())
-
-                // The verified files have been copied into durable storage by now, so the
-                // working directory and any partial files in it are no longer needed.
-                tempDir.deleteRecursively()
 
                 // Each finished download adds to private storage, so this is where the retention
                 // and quota settings are applied. Failing to prune must not fail the download.
@@ -439,8 +441,22 @@ class UpdateDownloadWorker(
                 return false
             }
 
-            val result = rootInstaller.install(plan, update = isUpdate)
+            val result = rootInstaller.install(plan, update = isUpdate, installerPackageName = context.packageName)
             return if (result.success) {
+                // What makes the app eligible for later update checks. The dialog path does this
+                // when Android reports the result; this path gets no such report, so root installs
+                // landed on the device and were never offered an update. Registered before
+                // reconciling, while the row still carries the verified identity and source.
+                runCatching { InstalledAppRegistrar.register(context, entity) }
+                    .onFailure { error ->
+                        runCatching {
+                            EventLog(context).record(
+                                packageName = entity.packageName,
+                                code = "REGISTER_FAILED",
+                                detail = error.message ?: error::class.java.simpleName
+                            )
+                        }
+                    }
                 queueRepository.reconcileInstallResult(queueId, success = true)
                 invalidateInstalledApps()
                 coordinator.publishReady(queueRepository.readyToInstallSnapshots())

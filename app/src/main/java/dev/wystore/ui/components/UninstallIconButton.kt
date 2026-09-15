@@ -8,6 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
@@ -30,10 +31,17 @@ fun launchUninstall(context: Context, packageName: String) {
     runCatching { context.startActivity(removal) }
 }
 
+/**
+ * How the screens under it remove an app. Provided where the store's settings are known, so the
+ * silent root removal can be chosen there; without a provider the button opens Android's dialog.
+ */
+val LocalAppUninstaller = staticCompositionLocalOf<((String) -> Unit)?> { null }
+
 @Composable
 fun UninstallIconButton(packageName: String) {
     val context = LocalContext.current
-    IconButton(onClick = { launchUninstall(context, packageName) }) {
+    val uninstaller = LocalAppUninstaller.current
+    IconButton(onClick = { uninstaller?.invoke(packageName) ?: launchUninstall(context, packageName) }) {
         Icon(
             imageVector = Icons.Outlined.Delete,
             contentDescription = stringResource(R.string.details_uninstall),

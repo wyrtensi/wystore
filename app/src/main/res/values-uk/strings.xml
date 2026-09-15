@@ -260,6 +260,7 @@
     <string name="settings_network_any">Будь-яка</string>
     <string name="settings_charging_only">Лише під час заряджання</string>
     <string name="settings_silent_root_install">Тихе root-встановлення</string>
+    <string name="settings_silent_root_uninstall">Тихе root-видалення</string>
     <string name="settings_interval">Інтервал</string>
     <string name="settings_interval_hours">%1$d год</string>
 

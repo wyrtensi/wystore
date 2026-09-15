@@ -68,7 +68,6 @@ import dev.wystore.data.GitHubCatalog
 import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.PackageUiStateReducer
-import dev.wystore.ui.components.launchUninstall
 import dev.wystore.ui.navigation.SharedRootDialogs
 import dev.wystore.ui.settings.SettingsScreen
 import dev.wystore.ui.theme.ThemePolicy
@@ -311,7 +310,7 @@ fun TvApp(
                                 },
                                 onInstallAsset = { githubInstallDialog = it },
                                 onOpenInstalled = viewModel::launchInstalledApp,
-                                onUninstall = { launchUninstall(context, it) },
+                                onUninstall = viewModel::uninstall,
                                 onRetry = viewModel::retryGitHubApp
                             )
                         } else if (selected != null) {
@@ -330,7 +329,7 @@ fun TvApp(
                                 // Marked the way its card was: a phone app opened from among TV apps.
                                 forPhone = catalogMode == TvCatalog.BOTH && catalog.apps.none { it.packageName == selected.packageName },
                                 actions = actions,
-                                onUninstall = { launchUninstall(context, it) },
+                                onUninstall = viewModel::uninstall,
                                 onFullScreenChange = { fullScreen = it }
                             )
                         } else when (destination) {

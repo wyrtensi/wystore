@@ -260,6 +260,7 @@
     <string name="settings_network_any">Кез келген</string>
     <string name="settings_charging_only">Тек зарядталу кезінде</string>
     <string name="settings_silent_root_install">Үнсіз root орнату</string>
+    <string name="settings_silent_root_uninstall">Үнсіз root жою</string>
     <string name="settings_interval">Аралық</string>
     <string name="settings_interval_hours">%1$d сағ</string>
 

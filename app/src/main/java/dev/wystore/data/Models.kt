@@ -168,6 +168,7 @@ data class StoreSettings(
     val queueMode: QueueMode = QueueMode.SMART_PROMPTS,
     val rootBackgroundDownloadsEnabled: Boolean = false,
     val rootSilentInstallEnabled: Boolean = false,
+    val rootSilentUninstallEnabled: Boolean = false,
     val themeMode: dev.wystore.settings.ThemeMode = dev.wystore.settings.ThemeMode.SYSTEM,
     val deviceType: dev.wystore.settings.DeviceType = dev.wystore.settings.DeviceType.AUTO,
     val tvCatalog: dev.wystore.settings.TvCatalog = dev.wystore.settings.TvCatalog.TV,

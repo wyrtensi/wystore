@@ -260,6 +260,7 @@
     <string name="settings_network_any">Любая</string>
     <string name="settings_charging_only">Только на зарядке</string>
     <string name="settings_silent_root_install">Тихая root-установка</string>
+    <string name="settings_silent_root_uninstall">Тихое root-удаление</string>
     <string name="settings_interval">Интервал</string>
     <string name="settings_interval_hours">%1$d ч</string>
 

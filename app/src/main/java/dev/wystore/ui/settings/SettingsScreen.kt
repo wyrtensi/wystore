@@ -335,6 +335,17 @@ fun SettingsScreen(
                     onSave(editedSettings)
                 }
 
+                // Asks nothing before removing, so it is off until chosen. Left reachable while on,
+                // so it can be switched off before su has answered after a restart.
+                CompactSettingSwitch(
+                    stringResource(R.string.settings_silent_root_uninstall),
+                    editedSettings.rootSilentUninstallEnabled,
+                    enabled = rootAvailable == true || editedSettings.rootSilentUninstallEnabled
+                ) {
+                    editedSettings = editedSettings.copy(rootSilentUninstallEnabled = it)
+                    onSave(editedSettings)
+                }
+
                 // Was persisted and readable by the scheduler but had no control anywhere.
                 CompactSettingSwitch(
                     stringResource(R.string.settings_root_background_downloads),

@@ -47,7 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import dev.wystore.ui.catalog.CategoryScreen
 import dev.wystore.ui.catalog.CategoryViewModel
 import dev.wystore.ui.components.LocalBottomBarInset
-import dev.wystore.ui.components.launchUninstall
+import dev.wystore.ui.components.LocalAppUninstaller
 import dev.wystore.ui.library.GoogleAdoptionDialog
 import dev.wystore.ui.components.WySnackbarHost
 import dev.wystore.ui.details.AppDetailsScreen
@@ -194,7 +194,10 @@ fun WyStoreRoot(
             // padding: reserving it made the bar a band the list stopped above, with an empty
             // strip of background underneath.
             val screenModifier = Modifier.fillMaxSize()
-            CompositionLocalProvider(LocalBottomBarInset provides padding.calculateBottomPadding()) {
+            CompositionLocalProvider(
+                LocalBottomBarInset provides padding.calculateBottomPadding(),
+                LocalAppUninstaller provides viewModel::uninstall
+            ) {
                 if (githubApp.entry != null && githubSelectedRelease == null) {
                     GitHubAppScreen(
                         state = githubApp,
@@ -419,7 +422,7 @@ fun WyStoreRoot(
                         onUpdateManaged = viewModel::updateManaged,
                         onRequestForce = { forceDialog = it },
                         onRemoveManaged = { viewModel.setManaged(it, false) },
-                        onUninstall = { launchUninstall(context, it.packageName) },
+                        onUninstall = { viewModel.uninstall(it.packageName) },
                         onCheck = viewModel::checkManagedApp,
                         queue = state.installQueue,
                         onDownloadUpdate = viewModel::queueDownload,
@@ -488,7 +491,7 @@ fun WyStoreRoot(
                 // Recorded first: the uninstall dialog takes the screen and may outlive this
                 // process, and the install has to survive that trip.
                 viewModel.confirmGoogleAdoption(candidate)
-                launchUninstall(context, prompt.app.packageName)
+                viewModel.uninstall(prompt.app.packageName)
             },
             onDismiss = viewModel::dismissGoogleAdoption
         )
@@ -514,7 +517,7 @@ fun WyStoreRoot(
                     // process, and the install has to survive that trip.
                     viewModel.confirmReplaceInstall(installedApp.packageName, catalogApp.name)
                     replaceDialog = null
-                    launchUninstall(context, installedApp.packageName)
+                    viewModel.uninstall(installedApp.packageName)
                 }) { Text(stringResource(R.string.dialog_replace_confirm)) }
             },
             dismissButton = {
@@ -542,7 +545,7 @@ fun WyStoreRoot(
                 TextButton(onClick = {
                     viewModel.confirmReplaceFromQueue(item)
                     queueReplaceDialog = null
-                    launchUninstall(context, item.packageName)
+                    viewModel.uninstall(item.packageName)
                 }) { Text(stringResource(R.string.dialog_replace_confirm)) }
             },
             dismissButton = {

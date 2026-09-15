@@ -260,6 +260,7 @@
     <string name="settings_network_any">Any</string>
     <string name="settings_charging_only">Only while charging</string>
     <string name="settings_silent_root_install">Silent root install</string>
+    <string name="settings_silent_root_uninstall">Silent root uninstall</string>
     <string name="settings_interval">Interval</string>
     <string name="settings_interval_hours">%1$d h</string>
 

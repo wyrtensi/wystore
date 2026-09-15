@@ -47,6 +47,19 @@ class SettingsCodecTest {
         assertEquals(TvCatalog.BOTH, SettingsCodec.read(prefs).tvCatalog)
     }
 
+    @Test
+    fun silentRootUninstallIsOffUntilSwitchedOnAndThenKept() {
+        val prefs = mutablePreferencesOf()
+        val current = SettingsCodec.read(prefs)
+        assertEquals(false, current.rootSilentUninstallEnabled)
+
+        SettingsCodec.write(prefs, current, current.copy(rootSilentUninstallEnabled = true))
+
+        assertEquals(setOf(SettingsCodec.KEY_ROOT_SILENT_UNINSTALL), prefs.asMap().keys)
+        assertEquals(true, SettingsCodec.read(prefs).rootSilentUninstallEnabled)
+        assertEquals(true, SettingsCodec.read(prefs).toStoreSettings().toAppSettings().rootSilentUninstallEnabled)
+    }
+
     /**
      * An untouched switch has no opinion stored, so a default changed in a later version reaches a
      * phone that already has the app - without anything overwriting settings on its owner's behalf.

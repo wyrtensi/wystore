@@ -260,6 +260,7 @@
     <string name="settings_network_any">Любая</string>
     <string name="settings_charging_only">Толькі на зарадцы</string>
     <string name="settings_silent_root_install">Ціхае root-усталяванне</string>
+    <string name="settings_silent_root_uninstall">Ціхае root-выдаленне</string>
     <string name="settings_interval">Інтэрвал</string>
     <string name="settings_interval_hours">%1$d гадз</string>
 

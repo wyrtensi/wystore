@@ -1,5 +1,6 @@
 package dev.wystore.root
 
+import android.os.Build
 import dev.wystore.data.VerifiedInstallPlan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -46,7 +47,15 @@ class RootInstaller {
         return result.success && RootShellPolicy.grantsRoot(result.output)
     }
 
-    suspend fun install(plan: VerifiedInstallPlan, update: Boolean): RootResult = withContext(Dispatchers.IO) {
+    /**
+     * Installs [plan] through `pm` as root, recording [installerPackageName] - Wy Store itself - as
+     * the installer of record.
+     */
+    suspend fun install(
+        plan: VerifiedInstallPlan,
+        update: Boolean,
+        installerPackageName: String
+    ): RootResult = withContext(Dispatchers.IO) {
         val files = plan.files
         if (files.isEmpty()) {
             return@withContext RootResult(false, "No APK files in the plan", RootFailure.NO_ARTIFACTS)
@@ -54,7 +63,7 @@ class RootInstaller {
         if (files.any { !it.isFile || it.length() <= 0L }) {
             return@withContext RootResult(false, "A verified APK is no longer on disk", RootFailure.ARTIFACT_MISSING)
         }
-        val create = execute("pm install-create --user 0 ${if (update) "-r" else ""}".trim())
+        val create = execute(createSessionCommand(update, installerPackageName, Build.VERSION.SDK_INT))
         val session = Regex("\\[(\\d+)]").find(create.output)?.groupValues?.getOrNull(1)
             ?: return@withContext RootResult(false, create.output, RootFailure.SESSION_NOT_CREATED)
         var committed = false
@@ -76,7 +85,7 @@ class RootInstaller {
     }
 
     suspend fun uninstall(packageName: String): RootResult = withContext(Dispatchers.IO) {
-        if (!packageName.matches(Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+"))) {
+        if (!packageName.matches(PACKAGE_NAME)) {
             return@withContext RootResult(false, "Rejected package name: $packageName", RootFailure.INVALID_PACKAGE_NAME)
         }
         val result = execute("pm uninstall --user 0 ${shellQuote(packageName)}")
@@ -133,6 +142,26 @@ class RootInstaller {
         ProcessBuilder(path, "-c", command).redirectErrorStream(true).start()
 
     companion object {
+        /**
+         * The `pm install-create` line for one install.
+         *
+         * Without `-i` a root install has no installer of record: Android then lets no store update
+         * the app quietly, and Wy Store's own pages call an app it has just installed "installed
+         * manually" and offer to take its updates over. `--update-ownership` claims those updates
+         * the way the dialog path does with `setRequestUpdateOwnership`; `pm` before Android 14
+         * does not know the flag and refuses to create the session if it is given.
+         */
+        fun createSessionCommand(update: Boolean, installerPackageName: String, sdkInt: Int): String {
+            require(installerPackageName.matches(PACKAGE_NAME)) { "Rejected installer package name: $installerPackageName" }
+            return buildList {
+                add("pm install-create --user 0 -i $installerPackageName")
+                if (update) add("-r")
+                if (sdkInt >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) add("--update-ownership")
+            }.joinToString(" ")
+        }
+
+        private val PACKAGE_NAME = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+")
+
         /** Where an su binary is actually found, in the order worth trying. */
         val CANDIDATES = listOf(
             "su",
