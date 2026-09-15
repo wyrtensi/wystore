@@ -87,6 +87,21 @@ class DiagnosticsReportTest {
     }
 
     @Test
+    fun theReportSaysWhichInterfaceTheDeviceGotAndWhy() {
+        val text = DiagnosticsReport.render(
+            diagnostics().copy(
+                deviceProfile = "TV",
+                deviceTypeSetting = "AUTO",
+                televisionUiMode = true,
+                hasLeanback = true
+            ),
+            now = 0L
+        )
+
+        assertTrue(text.contains("Интерфейс: TV (выбор: AUTO, режим ТВ: да, leanback: да)"))
+    }
+
+    @Test
     fun anUncheckedRootStateIsNotReportedAsAbsent() {
         val text = DiagnosticsReport.render(diagnostics(rootAvailable = null), now = 0L)
 

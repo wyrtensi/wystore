@@ -112,6 +112,52 @@ class GitHubReleasePolicyTest {
         assertNull(GitHubReleasePolicy.preferredAsset(emptyList()))
     }
 
+    /** A 32-bit TV box: the arm64 build cannot install there, an ABI-neutral one can. */
+    @Test
+    fun aThirtyTwoBitDeviceNeverGetsTheArm64BuildWhenANeutralOneExists() {
+        val assets = listOf(
+            asset("SmartTube-arm64-v8a.apk", size = 20_000_000),
+            asset("SmartTube-release.apk", size = 40_000_000)
+        )
+
+        val chosen = GitHubReleasePolicy.preferredAsset(assets, listOf("armeabi-v7a", "armeabi"))
+
+        assertEquals("SmartTube-release.apk", chosen?.name)
+    }
+
+    @Test
+    fun aThirtyTwoBitDeviceTakesItsOwnBuildUnderAnotherSpelling() {
+        val assets = listOf(
+            asset("app-arm64.apk", size = 20_000_000),
+            asset("app-armv7.apk", size = 18_000_000),
+            asset("app-universal.apk", size = 60_000_000)
+        )
+
+        assertEquals("app-armv7.apk", GitHubReleasePolicy.preferredAsset(assets, listOf("armeabi-v7a"))?.name)
+    }
+
+    @Test
+    fun aSixtyFourBitPhoneTakesArm64UnderAnySpellingBeforeThirtyTwoBit() {
+        val assets = listOf(
+            asset("app-armeabi-v7a.apk", size = 18_000_000),
+            asset("app-aarch64.apk", size = 20_000_000)
+        )
+
+        val chosen = GitHubReleasePolicy.preferredAsset(assets, listOf("arm64-v8a", "armeabi-v7a", "armeabi"))
+
+        assertEquals("app-aarch64.apk", chosen?.name)
+    }
+
+    @Test
+    fun x86IsNotMistakenForX8664() {
+        val assets = listOf(
+            asset("app-x86_64.apk", size = 10_000_000),
+            asset("app-x86.apk", size = 12_000_000)
+        )
+
+        assertEquals("app-x86.apk", GitHubReleasePolicy.preferredAsset(assets, listOf("x86"))?.name)
+    }
+
     @Test
     fun aSingleAssetIsUsedWhateverItIsNamed() {
         val only = listOf(asset("ByeByeDPI-v1.7.8-universal-release.apk"))

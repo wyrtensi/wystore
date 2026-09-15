@@ -54,6 +54,21 @@ class RustoreCatalogParserTest {
         assertTrue("last page should come from the pager", (page.lastPage ?: 0) > 1)
     }
 
+    /** The TV catalogue is a section like any other, only without the category nav. */
+    @Test
+    fun tvCatalogPageYieldsAFullPageAndTheLastPage() {
+        val page = RustoreHtmlParser.parseCatalogPage(fixture("rustore_catalog_tv.html"), "tv", 1)
+
+        assertEquals(36, page.apps.size)
+        assertEquals(10, page.lastPage)
+        assertTrue(page.hasMore)
+        assertTrue(page.apps.all { it.name.isNotBlank() })
+        assertTrue(
+            "icons must come from a trusted host",
+            page.apps.mapNotNull { it.iconUrl }.all { RustoreUrlPolicy.isTrustedMedia(it) }
+        )
+    }
+
     @Test
     fun landingPageHasNoPagerAndThereforeNoNextPage() {
         val page = RustoreHtmlParser.parseCatalogPage(fixture("rustore_catalog_landing.html"), "", 1)

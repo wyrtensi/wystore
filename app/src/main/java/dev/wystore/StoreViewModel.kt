@@ -1633,7 +1633,18 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun launchInstalledApp(packageName: String) {
-        val intent = getApplication<Application>().packageManager.getLaunchIntentForPackage(packageName)
+        val app = getApplication<Application>()
+        val packageManager = app.packageManager
+        // A TV app often has only a leanback entry point, and a phone app only a regular one. Each
+        // device asks for its own kind first and takes the other one only when there is nothing
+        // else, so a phone opens exactly what it opened before.
+        val onTv = dev.wystore.device.DeviceProfilePolicy.resolve(
+            _state.value.settings.deviceType,
+            dev.wystore.device.DeviceTraits.read(app)
+        ) == dev.wystore.device.DeviceProfile.TV
+        val regular = { packageManager.getLaunchIntentForPackage(packageName) }
+        val leanback = { packageManager.getLeanbackLaunchIntentForPackage(packageName) }
+        val intent = if (onTv) leanback() ?: regular() else regular() ?: leanback()
         if (intent == null) {
             _state.update { it.copy(message = string(R.string.vm_no_launch_activity)) }
             return

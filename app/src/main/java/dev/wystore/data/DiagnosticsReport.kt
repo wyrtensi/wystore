@@ -47,6 +47,11 @@ data class Diagnostics(
     val smallestWidthDp: Int,
     val fontScale: Float,
     val locale: String,
+    /** The interface the device got, the setting behind it and the two signals Auto reads. */
+    val deviceProfile: String = "",
+    val deviceTypeSetting: String = "",
+    val televisionUiMode: Boolean = false,
+    val hasLeanback: Boolean = false,
     val rootAvailable: Boolean?,
     val rootSilentInstall: Boolean,
     val rootBackgroundDownloads: Boolean,
@@ -127,6 +132,12 @@ object DiagnosticsReport {
                 "шрифт ×${diagnostics.fontScale}"
         )
         appendLine("Язык: ${diagnostics.locale}")
+        if (diagnostics.deviceProfile.isNotBlank()) {
+            appendLine(
+                "Интерфейс: ${diagnostics.deviceProfile} (выбор: ${diagnostics.deviceTypeSetting}, " +
+                    "режим ТВ: ${yesNo(diagnostics.televisionUiMode)}, leanback: ${yesNo(diagnostics.hasLeanback)})"
+            )
+        }
         appendLine()
 
         appendLine(

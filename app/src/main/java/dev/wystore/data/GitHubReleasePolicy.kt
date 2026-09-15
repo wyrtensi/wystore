@@ -16,8 +16,15 @@ object GitHubReleasePolicy {
         "(?i)(^|[^a-z0-9])(nightly|canary|snapshot|preview|dev|alpha|beta|rc)([^a-z0-9]|\\d|$)"
     )
 
-    /** ABI directory names, most specific first, as they appear in asset file names. */
-    private val ABI_PREFERENCE = listOf("arm64-v8a", "arm64", "aarch64", "armeabi-v7a", "universal")
+    /** How release assets spell each Android ABI in their file names. */
+    private val ABI_ALIASES = mapOf(
+        "arm64-v8a" to listOf("arm64-v8a", "arm64", "aarch64", "armv8"),
+        "armeabi-v7a" to listOf("armeabi-v7a", "armeabi", "armv7", "arm32"),
+        "armeabi" to listOf("armeabi"),
+        "x86_64" to listOf("x86_64", "x86-64", "x64", "amd64"),
+        "x86" to listOf("x86", "i686", "i386")
+    )
+    private val UNIVERSAL_ALIASES = listOf("universal", "all", "fat")
 
     fun isStable(release: GitHubRelease): Boolean =
         !release.prerelease && !UNSTABLE_TAG.containsMatchIn(release.tagName)
@@ -49,13 +56,43 @@ object GitHubReleasePolicy {
     ): GitHubAsset? {
         if (assets.isEmpty()) return null
         if (assets.size == 1) return assets.single()
-        val order = (supportedAbis.map { it.lowercase() } + ABI_PREFERENCE).distinct()
-        for (abi in order) {
-            assets.filter { it.name.lowercase().contains(abi) }
+        // The device's own ABIs, in the device's order of preference.
+        for (abi in supportedAbis.map { it.lowercase() }) {
+            val aliases = ABI_ALIASES[abi] ?: listOf(abi)
+            assets.filter { asset -> aliases.any { nameHasToken(asset.name, it) } }
                 .minByOrNull { it.sizeBytes }
                 ?.let { return it }
         }
-        // Nothing identifies an ABI, so take the smallest rather than the first listed.
+        UNIVERSAL_ALIASES.forEach { alias ->
+            assets.filter { nameHasToken(it.name, alias) }.minByOrNull { it.sizeBytes }?.let { return it }
+        }
+        // A build that names no ABI at all is presumably for every ABI. One that names another
+        // ABI is not: a 32-bit TV box handed the arm64 build fails with NO_MATCHING_ABIS.
+        val allAliases = ABI_ALIASES.values.flatten()
+        assets.filter { asset -> allAliases.none { nameHasToken(asset.name, it) } }
+            .minByOrNull { it.sizeBytes }
+            ?.let { return it }
+        // Every build is for some other ABI. The smallest still fails, but with the installer's
+        // own explanation rather than a silent "nothing to install".
         return assets.minByOrNull { it.sizeBytes }
     }
+
+    /**
+     * Whether [alias] appears in [name] as a whole token: "x86" must not match "x86_64", and
+     * "arm64" must not match inside an unrelated word.
+     */
+    private fun nameHasToken(name: String, alias: String): Boolean {
+        val lower = name.lowercase()
+        var from = 0
+        while (true) {
+            val index = lower.indexOf(alias, from)
+            if (index < 0) return false
+            val before = lower.getOrNull(index - 1)
+            val after = lower.getOrNull(index + alias.length)
+            if (!before.isTokenChar() && !after.isTokenChar()) return true
+            from = index + 1
+        }
+    }
+
+    private fun Char?.isTokenChar(): Boolean = this != null && (isLetterOrDigit() || this == '_')
 }

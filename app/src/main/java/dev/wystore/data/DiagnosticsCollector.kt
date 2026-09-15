@@ -46,6 +46,7 @@ class DiagnosticsCollector(context: Context) {
     suspend fun collect(): Diagnostics = withContext(Dispatchers.IO) {
         val storeRepository = StoreRepository(appContext)
         val settings = storeRepository.settings()
+        val traits = dev.wystore.device.DeviceTraits.read(appContext)
         val permissions = PermissionRepository(appContext).snapshot()
         val metrics = appContext.resources.displayMetrics
         val configuration = appContext.resources.configuration
@@ -91,6 +92,10 @@ class DiagnosticsCollector(context: Context) {
             fontScale = configuration.fontScale,
             locale = runCatching { configuration.locales[0].toString() }
                 .getOrDefault(Locale.getDefault().toString()),
+            deviceProfile = dev.wystore.device.DeviceProfilePolicy.resolve(settings.deviceType, traits).name,
+            deviceTypeSetting = settings.deviceType.name,
+            televisionUiMode = traits.televisionUiMode,
+            hasLeanback = traits.hasLeanback,
             rootAvailable = runCatching { RootInstaller().isAvailable() }.getOrNull(),
             rootSilentInstall = settings.rootSilentInstallEnabled,
             rootBackgroundDownloads = settings.rootBackgroundDownloadsEnabled,
