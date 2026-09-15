@@ -28,6 +28,7 @@ object DiagnosticsSettingsDump {
         "rootSilentInstallEnabled" to settings.rootSilentInstallEnabled.toString(),
         "themeMode" to settings.themeMode.name,
         "deviceType" to settings.deviceType.name,
+        "tvCatalog" to settings.tvCatalog.name,
         "language" to settings.language.name,
         "dynamicColorEnabled" to settings.dynamicColorEnabled.toString(),
         "githubEnabled" to settings.githubEnabled.toString(),

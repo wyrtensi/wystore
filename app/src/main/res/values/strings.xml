@@ -287,6 +287,12 @@
     <string name="appearance_device_detected_tv">Detected automatically: TV</string>
     <string name="appearance_device_detected_phone">Detected automatically: phone</string>
     <string name="appearance_device_text">Switches the interface: for touch on a phone, for a remote on a TV. Choose by hand if a TV box was detected as a phone.</string>
+    <string name="appearance_tv_catalog_title">Catalogue on the TV</string>
+    <string name="appearance_tv_catalog_tv">TV apps</string>
+    <string name="appearance_tv_catalog_phone">Phone apps</string>
+    <string name="appearance_tv_catalog_both">Both</string>
+    <string name="appearance_tv_catalog_text">Which RuStore catalogue Home and Search show. Apps installed from either one keep getting updates.</string>
+    <string name="appearance_tv_catalog_warning">Many phone apps are not made for a remote and may not work on a TV. In the list they are marked “For phone”, but it is easy to mix them up.</string>
 
     <string name="language_pick">Choose a language</string>
     <string name="language_hint">The language changes immediately, no device restart needed.</string>
@@ -714,13 +720,16 @@
     <string name="tv_row_ready">Ready to install and updates</string>
     <string name="tv_row_popular">Popular on TV</string>
     <string name="tv_row_all">All TV apps</string>
-    <string name="tv_search_hint">Type a name: the TV catalogue is filtered as you type</string>
-    <string name="tv_search_everywhere">Search all of RuStore</string>
+    <string name="tv_search_hint">Type or say a name: results appear as you type</string>
     <string name="tv_search_in_tv">In the TV catalogue</string>
     <string name="tv_search_in_rustore">In all of RuStore</string>
     <string name="tv_my_apps_managed">Apps Wy Store keeps up to date</string>
     <string name="tv_my_apps_empty">Nothing here yet. Apps you install through Wy Store will appear here.</string>
     <string name="tv_catalog_empty">The TV catalogue is empty or could not be loaded</string>
     <string name="tv_search_voice">Voice search</string>
+    <string name="tv_badge_phone">For phone</string>
+    <string name="tv_brand_badge">TV</string>
+    <string name="tv_row_phone">Phone apps</string>
+    <string name="tv_row_popular_phone">Popular in RuStore</string>
     <string name="tv_details_installed">Installed</string>
 </resources>

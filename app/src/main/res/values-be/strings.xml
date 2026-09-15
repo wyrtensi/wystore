@@ -287,6 +287,12 @@
     <string name="appearance_device_detected_tv">Вызначана аўтаматычна: тэлевізар</string>
     <string name="appearance_device_detected_phone">Вызначана аўтаматычна: тэлефон</string>
     <string name="appearance_device_text">Мяняе інтэрфейс: для дотыкаў на тэлефоне, для пульта на тэлевізары. Выберыце ўручную, калі ТВ-прыстаўка вызначылася як тэлефон.</string>
+    <string name="appearance_tv_catalog_title">Каталог на тэлевізары</string>
+    <string name="appearance_tv_catalog_tv">Для тэлевізара</string>
+    <string name="appearance_tv_catalog_phone">Для тэлефона</string>
+    <string name="appearance_tv_catalog_both">Абодва</string>
+    <string name="appearance_tv_catalog_text">Які каталог RuStore паказваць на галоўнай і ў пошуку. Праграмы, усталяваныя з любога з іх, працягнуць абнаўляцца.</string>
+    <string name="appearance_tv_catalog_warning">Шмат праграм для тэлефона не разлічаны на пульт і могуць не працаваць на тэлевізары. У спісе яны пазначаны «Для тэлефона», але іх лёгка пераблытаць.</string>
 
     <string name="language_pick">Выберыце мову</string>
     <string name="language_hint">Мова зменіцца адразу, перазапускаць прыладу не трэба.</string>
@@ -714,13 +720,16 @@
     <string name="tv_row_ready">Гатова да ўсталёўкі і абнаўленні</string>
     <string name="tv_row_popular">Папулярнае на ТБ</string>
     <string name="tv_row_all">Усе праграмы для ТБ</string>
-    <string name="tv_search_hint">Пачніце ўводзіць назву: ТБ-каталог фільтруецца адразу</string>
-    <string name="tv_search_everywhere">Шукаць па ўсім RuStore</string>
+    <string name="tv_search_hint">Увядзіце або прамоўце назву — вынікі з’явяцца адразу</string>
     <string name="tv_search_in_tv">У ТБ-каталогу</string>
     <string name="tv_search_in_rustore">Ва ўсім RuStore</string>
     <string name="tv_my_apps_managed">Праграмы, якія абнаўляе Wy Store</string>
     <string name="tv_my_apps_empty">Пакуль пуста. Тут з’явяцца праграмы, усталяваныя праз Wy Store.</string>
     <string name="tv_catalog_empty">ТБ-каталог пусты або не загрузіўся</string>
     <string name="tv_search_voice">Галасавы пошук</string>
+    <string name="tv_badge_phone">Для тэлефона</string>
+    <string name="tv_brand_badge">ТБ</string>
+    <string name="tv_row_phone">Праграмы для тэлефона</string>
+    <string name="tv_row_popular_phone">Папулярнае ў RuStore</string>
     <string name="tv_details_installed">Усталявана</string>
 </resources>

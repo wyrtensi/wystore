@@ -287,6 +287,12 @@
     <string name="appearance_device_detected_tv">Avtomatik aniqlandi: televizor</string>
     <string name="appearance_device_detected_phone">Avtomatik aniqlandi: telefon</string>
     <string name="appearance_device_text">Interfeysni almashtiradi: telefonda teginish uchun, televizorda pult uchun. TV pristavka telefon deb aniqlangan boʻlsa, qoʻlda tanlang.</string>
+    <string name="appearance_tv_catalog_title">Televizordagi katalog</string>
+    <string name="appearance_tv_catalog_tv">Televizor uchun</string>
+    <string name="appearance_tv_catalog_phone">Telefon uchun</string>
+    <string name="appearance_tv_catalog_both">Ikkalasi</string>
+    <string name="appearance_tv_catalog_text">Bosh sahifa va qidiruvda RuStore’ning qaysi katalogi koʻrsatiladi. Istalganidan oʻrnatilgan ilovalar yangilanishda davom etadi.</string>
+    <string name="appearance_tv_catalog_warning">Telefon uchun koʻp ilovalar pultga moslanmagan va televizorda ishlamasligi mumkin. Roʻyxatda ular «Telefon uchun» deb belgilangan, lekin adashtirish oson.</string>
 
     <string name="language_pick">Tilni tanlang</string>
     <string name="language_hint">Til darhol oʻzgaradi, qurilmani qayta ishga tushirish shart emas.</string>
@@ -714,13 +720,16 @@
     <string name="tv_row_ready">Oʻrnatishga tayyor va yangilanishlar</string>
     <string name="tv_row_popular">Televizorda mashhur</string>
     <string name="tv_row_all">Televizor uchun barcha ilovalar</string>
-    <string name="tv_search_hint">Nomini yoza boshlang: TV katalog darhol saralanadi</string>
-    <string name="tv_search_everywhere">Butun RuStore boʻyicha qidirish</string>
+    <string name="tv_search_hint">Nomini yozing yoki ayting — natijalar darhol chiqadi</string>
     <string name="tv_search_in_tv">TV katalogda</string>
     <string name="tv_search_in_rustore">Butun RuStore’da</string>
     <string name="tv_my_apps_managed">Wy Store yangilab turadigan ilovalar</string>
     <string name="tv_my_apps_empty">Hozircha boʻsh. Wy Store orqali oʻrnatilgan ilovalar shu yerda chiqadi.</string>
     <string name="tv_catalog_empty">TV katalog boʻsh yoki yuklanmadi</string>
     <string name="tv_search_voice">Ovozli qidiruv</string>
+    <string name="tv_badge_phone">Telefon uchun</string>
+    <string name="tv_brand_badge">TV</string>
+    <string name="tv_row_phone">Telefon uchun ilovalar</string>
+    <string name="tv_row_popular_phone">RuStore’da mashhur</string>
     <string name="tv_details_installed">Oʻrnatilgan</string>
 </resources>

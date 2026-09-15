@@ -287,6 +287,12 @@
     <string name="appearance_device_detected_tv">自动识别：电视</string>
     <string name="appearance_device_detected_phone">自动识别：手机</string>
     <string name="appearance_device_text">切换界面：手机上用触摸，电视上用遥控器。如果电视盒子被识别为手机，请手动选择。</string>
+    <string name="appearance_tv_catalog_title">电视上的目录</string>
+    <string name="appearance_tv_catalog_tv">电视应用</string>
+    <string name="appearance_tv_catalog_phone">手机应用</string>
+    <string name="appearance_tv_catalog_both">两者</string>
+    <string name="appearance_tv_catalog_text">首页和搜索显示 RuStore 的哪个目录。从任一目录安装的应用都会继续更新。</string>
+    <string name="appearance_tv_catalog_warning">许多手机应用并非为遥控器设计，在电视上可能无法使用。列表中会标注“手机应用”，但仍容易混淆。</string>
 
     <string name="language_pick">选择语言</string>
     <string name="language_hint">语言立即生效，无需重启设备。</string>
@@ -714,13 +720,16 @@
     <string name="tv_row_ready">可安装与更新</string>
     <string name="tv_row_popular">电视热门</string>
     <string name="tv_row_all">全部电视应用</string>
-    <string name="tv_search_hint">输入名称：电视目录会实时筛选</string>
-    <string name="tv_search_everywhere">在整个 RuStore 中搜索</string>
+    <string name="tv_search_hint">输入或说出名称：结果即时显示</string>
     <string name="tv_search_in_tv">在电视目录中</string>
     <string name="tv_search_in_rustore">在整个 RuStore 中</string>
     <string name="tv_my_apps_managed">由 Wy Store 保持更新的应用</string>
     <string name="tv_my_apps_empty">这里还没有内容。通过 Wy Store 安装的应用会显示在这里。</string>
     <string name="tv_catalog_empty">电视目录为空或加载失败</string>
     <string name="tv_search_voice">语音搜索</string>
+    <string name="tv_badge_phone">手机应用</string>
+    <string name="tv_brand_badge">电视</string>
+    <string name="tv_row_phone">手机应用</string>
+    <string name="tv_row_popular_phone">RuStore 热门</string>
     <string name="tv_details_installed">已安装</string>
 </resources>

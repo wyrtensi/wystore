@@ -35,6 +35,18 @@ class SettingsCodecTest {
         assertEquals(DeviceType.TV, SettingsCodec.read(prefs).deviceType)
     }
 
+    @Test
+    fun tvCatalogRoundTripsAndDefaultsToTheTvCatalogue() {
+        val prefs = mutablePreferencesOf()
+        val current = SettingsCodec.read(prefs)
+        assertEquals(TvCatalog.TV, current.tvCatalog)
+
+        SettingsCodec.write(prefs, current, current.copy(tvCatalog = TvCatalog.BOTH))
+
+        assertEquals(setOf(SettingsCodec.KEY_TV_CATALOG), prefs.asMap().keys)
+        assertEquals(TvCatalog.BOTH, SettingsCodec.read(prefs).tvCatalog)
+    }
+
     /**
      * An untouched switch has no opinion stored, so a default changed in a later version reaches a
      * phone that already has the app - without anything overwriting settings on its owner's behalf.

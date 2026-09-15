@@ -19,7 +19,13 @@ data class TvCatalogUiState(
     val apps: List<StoreApp> = emptyList(),
     val loading: Boolean = false,
     val stale: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    /**
+     * The first pages of RuStore's phone catalogue, loaded only once a TV is set to browse it.
+     * Empty until then, and whenever it could not be loaded - the TV list stands on its own.
+     */
+    val phoneApps: List<StoreApp> = emptyList(),
+    val phoneLoading: Boolean = false
 )
 
 /**
@@ -47,7 +53,35 @@ class TvCatalogViewModel(
         load(forceRefresh = false)
     }
 
-    fun retry() = load(forceRefresh = true)
+    fun retry() {
+        load(forceRefresh = true)
+        if (phoneRequested) loadPhone(forceRefresh = true)
+    }
+
+    private var phoneRequested = false
+    private var phoneJob: Job? = null
+
+    /** Starts loading the phone catalogue the first time a TV is set to show it. */
+    fun requirePhoneCatalog() {
+        if (phoneRequested) return
+        phoneRequested = true
+        loadPhone(forceRefresh = false)
+    }
+
+    private fun loadPhone(forceRefresh: Boolean) {
+        phoneJob?.cancel()
+        phoneJob = viewModelScope.launch {
+            _uiState.update { it.copy(phoneLoading = true) }
+            val collected = LinkedHashMap<String, StoreApp>()
+            for (page in 1..PHONE_PAGES) {
+                val value = runCatching { catalogRepository.catalog(PHONE_SLUG, page, forceRefresh) }.getOrNull() ?: break
+                value.value.apps.forEach { app -> collected.putIfAbsent(app.packageName, app) }
+                _uiState.update { it.copy(phoneApps = collected.values.toList()) }
+                if ((value.value.lastPage ?: page) <= page) break
+            }
+            _uiState.update { it.copy(phoneApps = collected.values.toList(), phoneLoading = false) }
+        }
+    }
 
     private fun load(forceRefresh: Boolean) {
         loadJob?.cancel()
@@ -89,6 +123,12 @@ class TvCatalogViewModel(
 
     companion object {
         const val SLUG = "tv"
+
+        /** The catalogue's front section, the one the phone's Home opens with. */
+        private const val PHONE_SLUG = ""
+
+        /** Enough for a few rows; the rest of the phone catalogue is a search away. */
+        private const val PHONE_PAGES = 3
 
         /** A guard against a pager that never ends, far above the catalogue's real size. */
         private const val MAX_PAGES = 30

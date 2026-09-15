@@ -9,6 +9,14 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 enum class DeviceType { AUTO, PHONE, TV }
 
 /**
+ * What a TV browses: RuStore's TV catalogue, its phone catalogue, or both side by side.
+ *
+ * Browsing only. Whatever the choice, a TV keeps updating every app Wy Store installed from either
+ * catalogue - an app does not stop being looked after because the list it came from is hidden.
+ */
+enum class TvCatalog { TV, PHONE, BOTH }
+
+/**
  * The languages the interface ships in.
  *
  * Every entry carries the tag its resources live under and its own name in its own language: a
@@ -40,6 +48,7 @@ data class AppSettings(
     val queueMode: QueueMode = QueueMode.SMART_PROMPTS,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val deviceType: DeviceType = DeviceType.AUTO,
+    val tvCatalog: TvCatalog = TvCatalog.TV,
     val language: AppLanguage = AppLanguage.SYSTEM,
     val dynamicColorEnabled: Boolean = true,
     val githubEnabled: Boolean = true,
@@ -91,6 +100,7 @@ fun AppSettings.toStoreSettings(): StoreSettings = StoreSettings(
     rootSilentInstallEnabled = rootSilentInstallEnabled,
     themeMode = themeMode,
     deviceType = deviceType,
+    tvCatalog = tvCatalog,
     language = language,
     dynamicColorEnabled = dynamicColorEnabled,
     githubEnabled = githubEnabled,
@@ -123,6 +133,7 @@ fun StoreSettings.toAppSettings(): AppSettings = AppSettings(
     queueMode = queueMode,
     themeMode = themeMode,
     deviceType = deviceType,
+    tvCatalog = tvCatalog,
     language = language,
     dynamicColorEnabled = dynamicColorEnabled,
     githubEnabled = githubEnabled,

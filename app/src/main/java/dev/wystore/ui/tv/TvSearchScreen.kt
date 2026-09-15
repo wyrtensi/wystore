@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
@@ -24,7 +24,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import kotlinx.coroutines.delay
+import dev.wystore.settings.TvCatalog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -46,22 +50,28 @@ import dev.wystore.R
 import dev.wystore.data.StoreApp
 
 /**
- * Search on a TV filters the TV catalogue as the user types.
+ * Search on a TV shows results as the user types or speaks.
  *
- * Every letter costs several presses on a remote, so results have to appear after two or three of
- * them, without waiting for a request - and the source's own search does not find TV-only apps at
- * all. Searching the whole of RuStore is one more button, for the phone apps the TV list lacks.
+ * Every letter costs several presses on a remote, so the TV catalogue, held whole, is filtered on
+ * the spot. The source's own search - the only way into the phone catalogue, and blind to TV-only
+ * apps - runs by itself once typing pauses, when the catalogue setting includes phone apps; there
+ * is no separate button to find and press for it.
  */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvSearchScreen(
     query: String,
     onQueryChange: (String) -> Unit,
+    catalogMode: TvCatalog,
     catalogApps: List<StoreApp>,
+    /** The query the source results below belong to, so results for an older one are not shown. */
+    rustoreQuery: String,
     rustoreResults: List<StoreApp>,
     rustoreSearching: Boolean,
     packages: TvPackageContext,
     fieldFocus: FocusRequester,
+    /** False while the focus is up in the menu: arriving here must not pull it down. */
+    takeFocus: Boolean,
     onSearchRustore: (String) -> Unit,
     onOpenApp: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -71,13 +81,30 @@ fun TvSearchScreen(
 ) {
     val focusManager = LocalFocusManager.current
     val trimmed = query.trim()
-    val tvMatches = remember(trimmed, catalogApps) {
-        if (trimmed.isEmpty()) emptyList()
+    val showsTv = catalogMode != TvCatalog.PHONE
+    val showsRustore = catalogMode != TvCatalog.TV
+    val tvPackages = remember(catalogApps) { catalogApps.map { it.packageName }.toSet() }
+    val tvMatches = remember(trimmed, catalogApps, showsTv) {
+        if (trimmed.isEmpty() || !showsTv) emptyList()
         else catalogApps.filter { app ->
             app.name.contains(trimmed, ignoreCase = true) || app.packageName.contains(trimmed, ignoreCase = true)
         }
     }
-    LaunchedEffect(Unit) { runCatching { fieldFocus.requestFocus() } }
+    val rustoreMatches = remember(trimmed, rustoreQuery, rustoreResults, tvMatches, showsRustore) {
+        if (!showsRustore || trimmed.isEmpty() || !rustoreQuery.equals(trimmed, ignoreCase = true)) emptyList()
+        else rustoreResults.filter { result -> tvMatches.none { it.packageName == result.packageName } }
+    }
+    val shouldTakeFocus by rememberUpdatedState(takeFocus || startVoice)
+    LaunchedEffect(Unit) { if (shouldTakeFocus) runCatching { fieldFocus.requestFocus() } }
+
+    // The source is asked once typing pauses, not on every letter.
+    LaunchedEffect(trimmed, showsRustore) {
+        if (!showsRustore || trimmed.length < MIN_SOURCE_QUERY || rustoreQuery.equals(trimmed, ignoreCase = true)) {
+            return@LaunchedEffect
+        }
+        delay(SOURCE_SEARCH_DELAY_MILLIS)
+        onSearchRustore(trimmed)
+    }
 
     // Voice is how a TV is searched; typing with a remote is the fallback. The button exists only
     // where something on the device can recognise speech - plenty of boxes ship without it.
@@ -104,12 +131,18 @@ fun TvSearchScreen(
         }
     }
 
+    val listState = rememberLazyListState()
+    // Back from inside the screen sends the focus up to the menu; the screen goes back to its top
+    // with it, so the menu is not left above a list scrolled halfway down.
+    LaunchedEffect(takeFocus) { if (!takeFocus) listState.animateScrollToItem(0) }
+
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = TvOverscanHorizontal,
             end = TvOverscanHorizontal,
-            top = TvOverscanVertical,
+            top = 8.dp,
             bottom = TvOverscanVertical + 48.dp
         ),
         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -118,22 +151,36 @@ fun TvSearchScreen(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                if (voiceIntent != null) {
+                    // Before the field, where TV launchers put it, and the same height, so the two
+                    // read as one control.
+                    TvIconButton(
+                        icon = painterResource(R.drawable.ic_mic),
+                        label = stringResource(R.string.tv_search_voice),
+                        onClick = { runCatching { voiceLauncher.launch(voiceIntent) } }
+                    )
+                }
                 OutlinedTextField(
                     value = query,
                     onValueChange = onQueryChange,
                     singleLine = true,
-                    label = { androidx.compose.material3.Text(stringResource(R.string.search_field_placeholder)) },
+                    // A placeholder, not a floating label: the label adds a strip on top of the
+                    // field that pushed it out of line with the microphone beside it.
+                    placeholder = { androidx.compose.material3.Text(stringResource(R.string.search_field_placeholder)) },
                     leadingIcon = { androidx.compose.material3.Icon(Icons.Outlined.Search, contentDescription = null) },
                     shape = androidx.compose.material3.MaterialTheme.shapes.extraLarge,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     // The keyboard's own "search" moves on to the results instead of leaving the
                     // focus in a field the user has finished with.
-                    keyboardActions = KeyboardActions(onSearch = { focusManager.moveFocus(FocusDirection.Down) }),
-                    // Takes what the buttons leave: their labels run longer in Russian than here.
+                    keyboardActions = KeyboardActions(onSearch = {
+                        if (showsRustore && trimmed.isNotEmpty()) onSearchRustore(trimmed)
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }),
                     modifier = Modifier
                         .weight(1f)
+                        .height(56.dp)
                         .focusRequester(fieldFocus)
                         // On a remote the arrows are the only way out of the field: inside it they
                         // would move the cursor and trap the focus. Text comes from the on-screen
@@ -150,19 +197,6 @@ fun TvSearchScreen(
                             true
                         }
                 )
-                if (voiceIntent != null) {
-                    TvIconButton(
-                        icon = painterResource(R.drawable.ic_mic),
-                        label = stringResource(R.string.tv_search_voice),
-                        onClick = { runCatching { voiceLauncher.launch(voiceIntent) } }
-                    )
-                }
-                TvSecondaryButton(
-                    text = stringResource(R.string.tv_search_everywhere),
-                    onClick = { onSearchRustore(trimmed) },
-                    enabled = trimmed.isNotEmpty(),
-                    icon = rememberIconPainter(Icons.Outlined.Search)
-                )
             }
             Text(
                 stringResource(R.string.tv_search_hint),
@@ -172,23 +206,31 @@ fun TvSearchScreen(
             )
         }
 
-        if (trimmed.isNotEmpty()) {
+        if (trimmed.isNotEmpty() && showsTv) {
             item(key = "tv") {
                 TvSectionTitle(stringResource(R.string.tv_search_in_tv))
                 if (tvMatches.isEmpty()) {
                     Text(stringResource(R.string.search_empty_title), style = MaterialTheme.typography.bodyLarge)
                 } else {
-                    TvResultRow(tvMatches, packages, onOpenApp)
+                    TvResultRow(tvMatches, packages, onOpenApp, markPhone = { false })
                 }
             }
         }
-        if (rustoreSearching || rustoreResults.isNotEmpty()) {
+        if (trimmed.isNotEmpty() && showsRustore) {
             item(key = "rustore") {
                 TvSectionTitle(stringResource(R.string.tv_search_in_rustore))
-                if (rustoreSearching && rustoreResults.isEmpty()) {
-                    Text(stringResource(R.string.vm_searching), style = MaterialTheme.typography.bodyLarge)
-                } else {
-                    TvResultRow(rustoreResults, packages, onOpenApp)
+                when {
+                    rustoreMatches.isNotEmpty() -> TvResultRow(
+                        rustoreMatches,
+                        packages,
+                        onOpenApp,
+                        // Among TV results a phone app is marked; with the phone catalogue alone
+                        // there is nothing to tell apart.
+                        markPhone = { app -> catalogMode == TvCatalog.BOTH && app.packageName !in tvPackages }
+                    )
+                    rustoreSearching || trimmed.length >= MIN_SOURCE_QUERY && !rustoreQuery.equals(trimmed, ignoreCase = true) ->
+                        Text(stringResource(R.string.vm_searching), style = MaterialTheme.typography.bodyLarge)
+                    else -> Text(stringResource(R.string.search_empty_title), style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }
@@ -196,14 +238,27 @@ fun TvSearchScreen(
 }
 
 @Composable
-private fun TvResultRow(apps: List<StoreApp>, packages: TvPackageContext, onOpenApp: (String) -> Unit) {
+private fun TvResultRow(
+    apps: List<StoreApp>,
+    packages: TvPackageContext,
+    onOpenApp: (String) -> Unit,
+    markPhone: (StoreApp) -> Boolean
+) {
     LazyRow(
         modifier = Modifier.fillMaxWidth().height(TvRowHeight),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         contentPadding = PaddingValues(12.dp)
     ) {
         items(apps, key = { it.packageName }) { app ->
-            TvAppCard(app = app, state = rememberPackageState(app, packages), onClick = { onOpenApp(app.packageName) })
+            TvAppCard(
+                app = app,
+                state = rememberPackageState(app, packages),
+                onClick = { onOpenApp(app.packageName) },
+                forPhone = markPhone(app)
+            )
         }
     }
 }
+
+private const val MIN_SOURCE_QUERY = 2
+private const val SOURCE_SEARCH_DELAY_MILLIS = 700L

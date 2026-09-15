@@ -5,20 +5,24 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.tv.material3.Tab
+import androidx.tv.material3.TabRow
+import dev.wystore.settings.TvCatalog
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.unit.dp
 import dev.wystore.settings.ThemeMode
 import dev.wystore.settings.toAppSettings
@@ -54,8 +58,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.NavigationDrawer
-import androidx.tv.material3.NavigationDrawerItem
 import androidx.tv.material3.Text
 import dev.wystore.R
 import dev.wystore.StoreViewModel
@@ -76,13 +78,18 @@ private enum class TvDestination(val labelRes: Int, val icon: ImageVector) {
 }
 
 /**
- * The TV interface: a side menu and four screens, driven by the same ViewModel as the phone.
+ * The TV interface: a menu along the top and four screens, driven by the same ViewModel as the
+ * phone.
  *
  * Nothing here decides what installing, updating or checking means - it calls exactly what the
  * phone screens call. What differs is how it is reached: by a remote, from a sofa.
  *
- * Back closes whatever is on top (an app page), then returns to Home, then leaves the app, which
- * is what system TV apps do.
+ * The menu is a row of tabs, as on the TV's own home screen: moving along it switches the screen
+ * below, and OK or down goes into that screen.
+ *
+ * Back walks outwards one step at a time, the way system TV apps do: from a screenshot to the app
+ * page, from the app page to the card it was opened from, from anywhere in a screen up to its tab,
+ * from a tab to Home, and from Home out of the app.
  */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -94,18 +101,25 @@ fun TvApp(
     val catalogViewModel: TvCatalogViewModel = viewModel()
     val catalog by catalogViewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     var destination by rememberSaveable { mutableStateOf(TvDestination.HOME) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var voiceRequested by remember { mutableStateOf(false) }
     var sourceFailureHelp by rememberSaveable { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     val contentFocus = remember { FocusRequester() }
-    val selectedItemFocus = remember { FocusRequester() }
+    val selectedTabFocus = remember { FocusRequester() }
+    var tabsFocused by remember { mutableStateOf(false) }
+    var focusTabPending by remember { mutableStateOf(false) }
     // The app whose page was last opened, so Back lands on its card rather than on the first one.
     var lastOpened by rememberSaveable { mutableStateOf<String?>(null) }
     val openApp: (String) -> Unit = { packageName ->
         lastOpened = packageName
         viewModel.openDetails(packageName)
+    }
+    val catalogMode = state.settings.tvCatalog
+    LaunchedEffect(catalogMode) {
+        if (catalogMode != TvCatalog.TV) catalogViewModel.requirePhoneCatalog()
     }
 
     val packages = remember(state.installed, state.managed, state.installQueue, state.pendingUpdates) {
@@ -153,8 +167,22 @@ fun TvApp(
             }
         }
 
-        BackHandler(enabled = selected != null || destination != TvDestination.HOME) {
-            if (selected != null) viewModel.clearDetails() else destination = TvDestination.HOME
+        BackHandler(enabled = selected != null) { viewModel.clearDetails() }
+        // Registered after the app page's handler would be, but that page replaces the menu, so
+        // the two are never enabled together. A settings page keeps its own, registered later.
+        BackHandler(enabled = selected == null && (!tabsFocused || destination != TvDestination.HOME)) {
+            if (!tabsFocused) {
+                runCatching { selectedTabFocus.requestFocus() }
+            } else {
+                destination = TvDestination.HOME
+                focusTabPending = true
+            }
+        }
+        LaunchedEffect(destination, focusTabPending) {
+            if (focusTabPending) {
+                runCatching { selectedTabFocus.requestFocus() }
+                focusTabPending = false
+            }
         }
 
         // A TV Surface rather than a plain background: it is what gives every Text below the
@@ -192,95 +220,129 @@ fun TvApp(
                     ),
                     installed = state.installed.firstOrNull { it.packageName == selected.packageName },
                     loading = state.detailsLoading,
+                    // Marked the way its card was: a phone app opened from among TV apps.
+                    forPhone = catalogMode == TvCatalog.BOTH && catalog.apps.none { it.packageName == selected.packageName },
                     actions = actions,
                     onUninstall = { launchUninstall(context, it) }
                 )
             } else {
-                NavigationDrawer(
-                    drawerContent = { drawerValue ->
-                        Column(
+                Column(Modifier.fillMaxSize()) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = TvOverscanHorizontal,
+                                end = TvOverscanHorizontal,
+                                top = TvOverscanVertical,
+                                bottom = 12.dp
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TvBrand()
+                        Spacer(Modifier.width(40.dp))
+                        Box(
                             Modifier
-                                .fillMaxHeight()
-                                .padding(vertical = TvOverscanVertical, horizontal = 12.dp)
-                                // Entering the menu lands on the section that is open, so one
-                                // press of up or down is always relative to where the user is.
-                                .focusProperties { onEnter = { selectedItemFocus.requestFocus() } }
+                                // Coming up from a screen lands on that screen's own tab; landing
+                                // on whichever tab is nearest would switch to another screen.
+                                .focusProperties { onEnter = { selectedTabFocus.requestFocus() } }
                                 .focusGroup()
-                                .selectableGroup(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
+                                .onFocusChanged { tabsFocused = it.hasFocus }
                         ) {
-                            TvBrand(expanded = drawerValue == androidx.tv.material3.DrawerValue.Open)
-                            Spacer(Modifier.height(24.dp))
-                            TvDestination.entries.forEach { item ->
-                                NavigationDrawerItem(
-                                    selected = destination == item,
-                                    onClick = { destination = item },
-                                    modifier = Modifier
-                                        .then(if (destination == item) Modifier.focusRequester(selectedItemFocus) else Modifier)
-                                        .tvPointerClick { destination = item },
-                                    leadingContent = { Icon(item.icon, contentDescription = null) }
-                                ) {
-                                    Text(stringResource(item.labelRes))
+                            TabRow(
+                                selectedTabIndex = destination.ordinal,
+                                containerColor = Color.Transparent
+                            ) {
+                                TvDestination.entries.forEach { item ->
+                                    Tab(
+                                        selected = destination == item,
+                                        onFocus = { destination = item },
+                                        onClick = { focusManager.moveFocus(FocusDirection.Down) },
+                                        modifier = Modifier
+                                            .then(if (destination == item) Modifier.focusRequester(selectedTabFocus) else Modifier)
+                                            .tvPointerClick {
+                                                destination = item
+                                                focusManager.moveFocus(FocusDirection.Down)
+                                            }
+                                    ) {
+                                        Row(
+                                            Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(item.icon, contentDescription = null, modifier = Modifier.size(22.dp))
+                                            Spacer(Modifier.width(10.dp))
+                                            Text(stringResource(item.labelRes), style = MaterialTheme.typography.titleSmall)
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                ) {
-                    when (destination) {
-                        TvDestination.HOME -> TvHomeScreen(
-                            catalog = catalog,
-                            packages = packages,
-                            firstCardFocus = contentFocus,
-                            restoreFocusTo = lastOpened,
-                            onOpenApp = openApp,
-                            onRetry = catalogViewModel::retry,
-                            onOpenMyApps = { destination = TvDestination.MY_APPS }
-                        )
-                        TvDestination.SEARCH -> TvSearchScreen(
-                            query = searchQuery,
-                            onQueryChange = { searchQuery = it },
-                            catalogApps = catalog.apps,
-                            rustoreResults = state.search?.apps.orEmpty(),
-                            rustoreSearching = state.searching,
-                            packages = packages,
-                            fieldFocus = contentFocus,
-                            onSearchRustore = viewModel::search,
-                            onOpenApp = openApp,
-                            startVoice = voiceRequested,
-                            onVoiceStarted = { voiceRequested = false }
-                        )
-                        TvDestination.MY_APPS -> TvMyAppsScreen(
-                            packages = packages,
-                            packageIcons = state.packageIcons,
-                            checking = state.updateCheckTask?.active == true,
-                            firstFocus = contentFocus,
-                            actions = actions,
-                            onCheckUpdates = { viewModel.checkForUpdates() },
-                            onUpdateAll = viewModel::updateAll,
-                            onCancel = viewModel::queueCancel,
-                            onOpenManaged = { app ->
-                                if (app.source == ManagedSource.GITHUB) viewModel.openManagedGitHubRepository(app)
-                                else viewModel.openDetails(app.packageName)
-                            }
-                        )
-                        // The phone's settings, as they are: every option stays reachable on a TV,
-                        // including the device type for anyone the detection got wrong.
-                        TvDestination.SETTINGS -> CompositionLocalProvider(LocalBottomBarInset provides TvOverscanVertical) {
-                            SettingsScreen(
-                                settings = state.settings,
-                                rootAvailable = state.rootAvailable,
-                                managedCount = state.managed.size,
-                                githubCount = state.githubRepositories.size,
-                                onSave = viewModel::saveSettings,
-                                onCheckRoot = viewModel::checkRoot,
-                                onExportUri = viewModel::exportBackupToUri,
-                                onImportUri = { uri, merge -> viewModel.importBackupFromUri(uri, merge) },
-                                onExportJson = viewModel::exportBackupJson,
-                                onRestoreJson = viewModel::restoreBackupJson,
-                                selfUpdate = state.selfUpdate,
-                                onCheckSelfUpdate = viewModel::checkSelfUpdate,
-                                onInstallSelfUpdate = viewModel::installSelfUpdate
+
+                    val takeFocus = !tabsFocused
+                    Box(Modifier.weight(1f)) {
+                        when (destination) {
+                            TvDestination.HOME -> TvHomeScreen(
+                                catalog = catalog,
+                                catalogMode = catalogMode,
+                                packages = packages,
+                                firstFocus = contentFocus,
+                                takeFocus = takeFocus,
+                                restoreFocusTo = lastOpened,
+                                onOpenApp = openApp,
+                                onRetry = catalogViewModel::retry,
+                                onOpenMyApps = { destination = TvDestination.MY_APPS }
                             )
+                            TvDestination.SEARCH -> TvSearchScreen(
+                                query = searchQuery,
+                                onQueryChange = { searchQuery = it },
+                                catalogMode = catalogMode,
+                                catalogApps = catalog.apps,
+                                rustoreQuery = state.query,
+                                rustoreResults = state.search?.apps.orEmpty(),
+                                rustoreSearching = state.searching,
+                                packages = packages,
+                                fieldFocus = contentFocus,
+                                takeFocus = takeFocus,
+                                onSearchRustore = viewModel::search,
+                                onOpenApp = openApp,
+                                startVoice = voiceRequested,
+                                onVoiceStarted = { voiceRequested = false }
+                            )
+                            TvDestination.MY_APPS -> TvMyAppsScreen(
+                                packages = packages,
+                                packageIcons = state.packageIcons,
+                                checking = state.updateCheckTask?.active == true,
+                                firstFocus = contentFocus,
+                                takeFocus = takeFocus,
+                                actions = actions,
+                                onCheckUpdates = { viewModel.checkForUpdates() },
+                                onUpdateAll = viewModel::updateAll,
+                                onCancel = viewModel::queueCancel,
+                                onOpenManaged = { app ->
+                                    lastOpened = app.packageName
+                                    if (app.source == ManagedSource.GITHUB) viewModel.openManagedGitHubRepository(app)
+                                    else viewModel.openDetails(app.packageName)
+                                }
+                            )
+                            // The phone's settings, as they are: every option stays reachable on a
+                            // TV, including the device type for anyone the detection got wrong.
+                            TvDestination.SETTINGS -> CompositionLocalProvider(LocalBottomBarInset provides TvOverscanVertical) {
+                                SettingsScreen(
+                                    settings = state.settings,
+                                    rootAvailable = state.rootAvailable,
+                                    managedCount = state.managed.size,
+                                    githubCount = state.githubRepositories.size,
+                                    onSave = viewModel::saveSettings,
+                                    onCheckRoot = viewModel::checkRoot,
+                                    onExportUri = viewModel::exportBackupToUri,
+                                    onImportUri = { uri, merge -> viewModel.importBackupFromUri(uri, merge) },
+                                    onExportJson = viewModel::exportBackupJson,
+                                    onRestoreJson = viewModel::restoreBackupJson,
+                                    selfUpdate = state.selfUpdate,
+                                    onCheckSelfUpdate = viewModel::checkSelfUpdate,
+                                    onInstallSelfUpdate = viewModel::installSelfUpdate
+                                )
+                            }
                         }
                     }
                 }
@@ -297,15 +359,14 @@ fun TvApp(
 
 private const val MESSAGE_MILLIS = 4_000L
 
-/** The app's mark at the top of the menu, with its name when the menu is open. */
+/** The app's mark, its name and a "TV" label, so a screenshot says which version this is. */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-private fun TvBrand(expanded: Boolean) {
-    Row(Modifier.padding(start = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun TvBrand() {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             Modifier
-                .padding(end = 16.dp)
-                .size(44.dp)
+                .size(40.dp)
                 .clip(androidx.compose.material3.MaterialTheme.shapes.medium)
                 // The launcher icon's own background, so the mark looks like the app's icon.
                 .background(Color(0xFF0E141F)),
@@ -314,11 +375,16 @@ private fun TvBrand(expanded: Boolean) {
             Image(
                 painter = painterResource(R.drawable.ic_wy_store_foreground),
                 contentDescription = null,
-                modifier = Modifier.size(72.dp)
+                modifier = Modifier.size(66.dp)
             )
         }
-        if (expanded) {
-            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
-        }
+        Spacer(Modifier.width(14.dp))
+        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.width(10.dp))
+        TvBadge(
+            stringResource(R.string.tv_brand_badge),
+            container = MaterialTheme.colorScheme.primary,
+            content = MaterialTheme.colorScheme.onPrimary
+        )
     }
 }

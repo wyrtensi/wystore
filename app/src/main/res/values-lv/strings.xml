@@ -287,6 +287,12 @@
     <string name="appearance_device_detected_tv">Noteikts automātiski: televizors</string>
     <string name="appearance_device_detected_phone">Noteikts automātiski: tālrunis</string>
     <string name="appearance_device_text">Maina saskarni: skārienam tālrunī, pultij televizorā. Izvēlieties manuāli, ja TV priedēklis noteikts kā tālrunis.</string>
+    <string name="appearance_tv_catalog_title">Katalogs televizorā</string>
+    <string name="appearance_tv_catalog_tv">Televizoram</string>
+    <string name="appearance_tv_catalog_phone">Tālrunim</string>
+    <string name="appearance_tv_catalog_both">Abi</string>
+    <string name="appearance_tv_catalog_text">Kuru RuStore katalogu rādīt sākumlapā un meklēšanā. Lietotnes, kas instalētas no jebkura no tiem, turpinās atjaunināties.</string>
+    <string name="appearance_tv_catalog_warning">Daudzas tālruņa lietotnes nav paredzētas pultij un televizorā var nedarboties. Sarakstā tās ir atzīmētas “Tālrunim”, taču tās viegli sajaukt.</string>
 
     <string name="language_pick">Izvēlies valodu</string>
     <string name="language_hint">Valoda mainās uzreiz, ierīce nav jārestartē.</string>
@@ -714,13 +720,16 @@
     <string name="tv_row_ready">Gatavs instalēšanai un atjauninājumi</string>
     <string name="tv_row_popular">Populāri TV</string>
     <string name="tv_row_all">Visas TV lietotnes</string>
-    <string name="tv_search_hint">Sāciet rakstīt nosaukumu: TV katalogs tiek filtrēts uzreiz</string>
-    <string name="tv_search_everywhere">Meklēt visā RuStore</string>
+    <string name="tv_search_hint">Ierakstiet vai pasakiet nosaukumu — rezultāti parādīsies uzreiz</string>
     <string name="tv_search_in_tv">TV katalogā</string>
     <string name="tv_search_in_rustore">Visā RuStore</string>
     <string name="tv_my_apps_managed">Lietotnes, kuras atjaunina Wy Store</string>
     <string name="tv_my_apps_empty">Pagaidām tukšs. Šeit parādīsies lietotnes, kas instalētas ar Wy Store.</string>
     <string name="tv_catalog_empty">TV katalogs ir tukšs vai netika ielādēts</string>
     <string name="tv_search_voice">Balss meklēšana</string>
+    <string name="tv_badge_phone">Tālrunim</string>
+    <string name="tv_brand_badge">TV</string>
+    <string name="tv_row_phone">Tālruņa lietotnes</string>
+    <string name="tv_row_popular_phone">Populāri RuStore</string>
     <string name="tv_details_installed">Instalēts</string>
 </resources>

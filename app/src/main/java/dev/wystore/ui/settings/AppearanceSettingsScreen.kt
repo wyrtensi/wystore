@@ -37,6 +37,9 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import dev.wystore.settings.ThemeMode
 import dev.wystore.settings.DeviceType
 import dev.wystore.device.DeviceTraits
+import dev.wystore.device.DeviceProfile
+import dev.wystore.device.DeviceProfilePolicy
+import dev.wystore.settings.TvCatalog
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.runtime.remember
@@ -50,6 +53,8 @@ fun AppearanceSettingsScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val deviceTraits = remember(context) { DeviceTraits.read(context) }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -103,6 +108,14 @@ fun AppearanceSettingsScreen(
                 selected = settings.deviceType,
                 onSelect = { onUpdateSettings(settings.copy(deviceType = it)) }
             )
+
+            // Only where the TV interface is the one showing: a phone has no use for it.
+            if (DeviceProfilePolicy.resolve(settings.deviceType, deviceTraits) == DeviceProfile.TV) {
+                TvCatalogSection(
+                    selected = settings.tvCatalog,
+                    onSelect = { onUpdateSettings(settings.copy(tvCatalog = it)) }
+                )
+            }
 
             HorizontalDivider()
 
@@ -175,5 +188,51 @@ fun DeviceTypeSection(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+/**
+ * Which catalogue a TV browses. The warning is shown while phone apps are part of the list, since
+ * that is when an app that cannot be used with a remote gets installed by mistake.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun TvCatalogSection(
+    selected: TvCatalog,
+    onSelect: (TvCatalog) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        HorizontalDivider()
+        Spacer(Modifier.height(8.dp))
+        Text(stringResource(R.string.appearance_tv_catalog_title), style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(R.string.appearance_tv_catalog_text),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf(
+                TvCatalog.TV to R.string.appearance_tv_catalog_tv,
+                TvCatalog.PHONE to R.string.appearance_tv_catalog_phone,
+                TvCatalog.BOTH to R.string.appearance_tv_catalog_both
+            ).forEach { (catalog, label) ->
+                FilterChip(
+                    selected = selected == catalog,
+                    onClick = { onSelect(catalog) },
+                    label = { Text(stringResource(label)) }
+                )
+            }
+        }
+        if (selected != TvCatalog.TV) {
+            Text(
+                stringResource(R.string.appearance_tv_catalog_warning),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
     }
 }

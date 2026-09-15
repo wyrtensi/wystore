@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -162,7 +163,9 @@ fun TvAppCard(
     app: StoreApp,
     state: PackageUiState?,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Marks an app from the phone catalogue shown among TV apps, so the two are not confused. */
+    forPhone: Boolean = false
 ) {
     val context = LocalContext.current
     val status = state?.status?.takeIf { it.code in CARD_STATES }
@@ -206,6 +209,12 @@ fun TvAppCard(
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
+                )
+            } else if (forPhone) {
+                TvBadge(
+                    stringResource(R.string.tv_badge_phone),
+                    container = MaterialTheme.colorScheme.tertiary,
+                    content = MaterialTheme.colorScheme.onTertiary
                 )
             } else {
                 TvBadge(app.categories.firstOrNull() ?: stringResource(R.string.source_rustore))
@@ -375,6 +384,9 @@ fun TvSecondaryButton(
 /**
  * A round button that is only an icon, for an action every TV user recognises by its picture -
  * the microphone. [label] is still read out by TalkBack.
+ *
+ * A clickable surface rather than a Button: a Button lays its content out in a row with its own
+ * minimum size and padding, which pushed the icon off the centre of the circle.
  */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -385,23 +397,23 @@ fun TvIconButton(
     modifier: Modifier = Modifier
 ) {
     val shape = androidx.compose.foundation.shape.CircleShape
-    Button(
+    Surface(
         onClick = onClick,
         modifier = modifier
             .size(56.dp)
             .tvPointerClick(onClick = onClick)
             .semantics { contentDescription = label },
-        shape = ButtonDefaults.shape(shape),
-        colors = ButtonDefaults.colors(
+        shape = ClickableSurfaceDefaults.shape(shape),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
+        border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
+        colors = ClickableSurfaceDefaults.colors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             focusedContainerColor = MaterialTheme.colorScheme.primary,
             focusedContentColor = MaterialTheme.colorScheme.onPrimary
-        ),
-        border = ButtonDefaults.border(focusedBorder = tvFocusBorder(shape)),
-        contentPadding = PaddingValues(0.dp)
+        )
     ) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(26.dp))
         }
     }

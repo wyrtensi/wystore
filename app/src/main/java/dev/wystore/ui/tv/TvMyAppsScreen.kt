@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -50,6 +51,8 @@ fun TvMyAppsScreen(
     packageIcons: Map<String, String>,
     checking: Boolean,
     firstFocus: FocusRequester,
+    /** False while the focus is up in the menu: arriving here must not pull it down. */
+    takeFocus: Boolean,
     actions: TvPackageActions,
     onCheckUpdates: () -> Unit,
     onUpdateAll: () -> Unit,
@@ -64,22 +67,27 @@ fun TvMyAppsScreen(
     val pendingOnly = remember(packages, active) {
         packages.pendingUpdates.filter { pending -> active.none { it.packageName == pending.packageName } }
     }
-    LaunchedEffect(Unit) { runCatching { firstFocus.requestFocus() } }
+    LaunchedEffect(Unit) { if (takeFocus) runCatching { firstFocus.requestFocus() } }
+
+    val listState = rememberLazyListState()
+    // Back from inside the screen sends the focus up to the menu; the screen goes back to its top
+    // with it, so the menu is not left above a list scrolled halfway down.
+    LaunchedEffect(takeFocus) { if (!takeFocus) listState.animateScrollToItem(0) }
 
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = TvOverscanHorizontal,
             end = TvOverscanHorizontal,
-            top = TvOverscanVertical,
+            top = 8.dp,
             bottom = TvOverscanVertical + 48.dp
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item(key = "header") {
-            Text(stringResource(R.string.tv_nav_my_apps), style = MaterialTheme.typography.headlineMedium)
             Row(
-                Modifier.padding(top = 20.dp, bottom = 8.dp),
+                Modifier.padding(top = 4.dp, bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 TvPrimaryButton(

@@ -69,6 +69,8 @@ fun TvDetailsScreen(
     state: PackageUiState,
     installed: InstalledApp?,
     loading: Boolean,
+    /** An app from the phone catalogue shown among TV apps, marked as its card was. */
+    forPhone: Boolean,
     actions: TvPackageActions,
     onUninstall: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -121,6 +123,13 @@ fun TvDetailsScreen(
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 TvBadge(stringResource(R.string.source_rustore))
+                                if (forPhone) {
+                                    TvBadge(
+                                        stringResource(R.string.tv_badge_phone),
+                                        container = MaterialTheme.colorScheme.tertiary,
+                                        content = MaterialTheme.colorScheme.onTertiary
+                                    )
+                                }
                             }
                         }
                     }

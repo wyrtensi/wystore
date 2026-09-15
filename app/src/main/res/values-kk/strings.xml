@@ -287,6 +287,12 @@
     <string name="appearance_device_detected_tv">Автоматты түрде анықталды: теледидар</string>
     <string name="appearance_device_detected_phone">Автоматты түрде анықталды: телефон</string>
     <string name="appearance_device_text">Интерфейсті ауыстырады: телефонда жанасуға, теледидарда пультке арналған. ТВ-приставка телефон ретінде анықталса, қолмен таңдаңыз.</string>
+    <string name="appearance_tv_catalog_title">Теледидардағы каталог</string>
+    <string name="appearance_tv_catalog_tv">Теледидарға</string>
+    <string name="appearance_tv_catalog_phone">Телефонға</string>
+    <string name="appearance_tv_catalog_both">Екеуі де</string>
+    <string name="appearance_tv_catalog_text">Басты бетте және іздеуде RuStore-дың қай каталогы көрсетіледі. Кез келгенінен орнатылған қолданбалар жаңартыла береді.</string>
+    <string name="appearance_tv_catalog_warning">Телефонға арналған көп қолданба пультке бейімделмеген және теледидарда жұмыс істемеуі мүмкін. Тізімде олар «Телефонға» деп белгіленген, бірақ шатастыру оңай.</string>
 
     <string name="language_pick">Тілді таңдаңыз</string>
     <string name="language_hint">Тіл бірден өзгереді, құрылғыны қайта қосудың қажеті жоқ.</string>
@@ -714,13 +720,16 @@
     <string name="tv_row_ready">Орнатуға дайын және жаңартулар</string>
     <string name="tv_row_popular">Теледидарда танымал</string>
     <string name="tv_row_all">Теледидарға арналған барлық қолданбалар</string>
-    <string name="tv_search_hint">Атауын тере бастаңыз: ТВ-каталог бірден сүзіледі</string>
-    <string name="tv_search_everywhere">Бүкіл RuStore бойынша іздеу</string>
+    <string name="tv_search_hint">Атауын теріңіз не айтыңыз — нәтижелер бірден шығады</string>
     <string name="tv_search_in_tv">ТВ-каталогта</string>
     <string name="tv_search_in_rustore">Бүкіл RuStore-да</string>
     <string name="tv_my_apps_managed">Wy Store жаңартатын қолданбалар</string>
     <string name="tv_my_apps_empty">Әзірге бос. Wy Store арқылы орнатылған қолданбалар осында шығады.</string>
     <string name="tv_catalog_empty">ТВ-каталог бос немесе жүктелмеді</string>
     <string name="tv_search_voice">Дауыспен іздеу</string>
+    <string name="tv_badge_phone">Телефонға</string>
+    <string name="tv_brand_badge">ТВ</string>
+    <string name="tv_row_phone">Телефонға арналған қолданбалар</string>
+    <string name="tv_row_popular_phone">RuStore-да танымал</string>
     <string name="tv_details_installed">Орнатылған</string>
 </resources>
