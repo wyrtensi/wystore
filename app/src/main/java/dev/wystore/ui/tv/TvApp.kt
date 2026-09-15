@@ -143,6 +143,7 @@ fun TvApp(
     }
     val githubPage = state.githubApp.entry
     val homeListState = rememberLazyListState()
+    val homeRowStates = remember { mutableMapOf<String, androidx.compose.foundation.lazy.LazyListState>() }
     var fullScreen by remember { mutableStateOf(false) }
     val closePages = {
         viewModel.clearDetails()
@@ -351,7 +352,8 @@ fun TvApp(
                                 onOpenMyApps = { destination = TvDestination.MY_APPS },
                                 githubEntries = githubEntries,
                                 onOpenGitHub = openGitHub,
-                                listState = homeListState
+                                listState = homeListState,
+                                rowStates = homeRowStates
                             )
                             TvDestination.SEARCH -> TvSearchScreen(
                                 restoreFocusTo = lastOpened,

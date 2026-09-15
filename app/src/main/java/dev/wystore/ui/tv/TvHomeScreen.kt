@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -109,6 +110,12 @@ fun TvHomeScreen(
      * own would come back scrolled to the top - with the card to return to not even composed.
      */
     listState: LazyListState,
+    /**
+     * The same for every row across, by row key. Without them a row came back scrolled to its
+     * start, a card further along was not composed, and Back from its page lost the focus to the
+     * menu - which then scrolled Home to the top.
+     */
+    rowStates: MutableMap<String, LazyListState>,
     modifier: Modifier = Modifier
 ) {
     val popularTitle = stringResource(R.string.tv_row_popular)
@@ -130,9 +137,16 @@ fun TvHomeScreen(
     val scope = rememberCoroutineScope()
     LaunchedEffect(hasContent) {
         if (!hasContent || !shouldTakeFocus) return@LaunchedEffect
-        // Back from an app page returns to that app's card when it is still on screen.
-        val restored = restoreFocusTo != null && runCatching { restoreFocus.requestFocus() }.isSuccess
-        if (!restored) runCatching { firstFocus.requestFocus() }
+        // Back from an app page returns to that app's card. The rows are composed but may not be
+        // laid out on the first frame, so the request is repeated for a few; a request to a card
+        // that is not there fails rather than throws, and only then does Home start at the top.
+        repeat(FOCUS_ATTEMPTS) {
+            if (restoreFocusTo != null && runCatching { restoreFocus.requestFocus() }.getOrDefault(false)) {
+                return@LaunchedEffect
+            }
+            withFrameNanos { }
+        }
+        runCatching { firstFocus.requestFocus() }
     }
 
     // Back from inside the screen sends the focus up to the menu; the screen goes back to its top
@@ -193,6 +207,7 @@ fun TvHomeScreen(
             item(key = "categories") {
                 TvSectionTitle(stringResource(R.string.home_categories_title))
                 LazyRow(
+                    state = rowStates.getOrPut("categories") { LazyListState() },
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(12.dp)
                 ) {
@@ -216,18 +231,21 @@ fun TvHomeScreen(
             }
         }
 
-        // One card carries the restore requester: the first place the reopened app appears.
-        val restoreRow = rows.indexOfFirst { row -> row.apps.any { it.packageName == restoreFocusTo } }
+        // Every card of the reopened app carries the restore requester: an app is often in more
+        // than one row, and only the cards actually composed can take the focus. With one requester
+        // on the first row the app appeared in, Back from a card further down aimed at a row
+        // scrolled away and lost the focus.
         rows.forEachIndexed { index, row ->
             item(key = row.key) {
                 row.title?.let { TvSectionTitle(it) }
                 TvAppRow(
+                    state = rowStates.getOrPut(row.key) { LazyListState() },
                     apps = row.apps,
                     packages = packages,
                     onOpenApp = onOpenApp,
                     forPhone = row.forPhone,
                     firstCardFocus = rowFocus.getValue(row.key),
-                    restore = if (index == restoreRow) restoreFocusTo to restoreFocus else null
+                    restore = restoreFocusTo to restoreFocus
                 )
             }
             if (index == githubAfter) {
@@ -237,6 +255,7 @@ fun TvHomeScreen(
                         subtitle = stringResource(R.string.home_github_hint)
                     )
                     LazyRow(
+                        state = rowStates.getOrPut("github") { LazyListState() },
                         modifier = Modifier.fillMaxWidth().height(TvGitHubRowHeight),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(12.dp)
@@ -319,6 +338,7 @@ private fun buildHomeRows(
 
 @Composable
 private fun TvAppRow(
+    state: LazyListState,
     apps: List<StoreApp>,
     packages: TvPackageContext,
     onOpenApp: (String) -> Unit,
@@ -327,6 +347,7 @@ private fun TvAppRow(
     restore: Pair<String?, FocusRequester>? = null
 ) {
     LazyRow(
+        state = state,
         modifier = Modifier
             .fillMaxWidth()
             .height(TvRowHeight),
@@ -350,6 +371,7 @@ private fun TvAppRow(
 }
 
 private const val ROW_SIZE = 12
+private const val FOCUS_ATTEMPTS = 5
 
 /** A GitHub card has no status line, so its row is a little shorter than an app row. */
 private val TvGitHubRowHeight = 196.dp
