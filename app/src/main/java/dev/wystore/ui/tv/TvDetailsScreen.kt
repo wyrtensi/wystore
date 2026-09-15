@@ -52,7 +52,6 @@ import coil.compose.AsyncImage
 import dev.wystore.R
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.StoreApp
-import dev.wystore.localization.StatusTextResolver
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.PackageUiState
 import dev.wystore.ui.components.PrimaryAction
@@ -148,7 +147,7 @@ fun TvDetailsScreen(
                             }
                         }
                         Text(
-                            StatusTextResolver.resolve(context, state.status),
+                            tvStatusText(context, state.status),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary
                         )

@@ -106,6 +106,15 @@ fun Modifier.tvRowEdges(): Modifier = focusProperties {
     }
 }.focusGroup()
 
+/**
+ * A package's status as the TV words it. The shared text for an installed app, "Installed
+ * successfully", reports an install that has just finished; on a TV card or page it describes any
+ * app on the device, and on a card it was cut off mid-word.
+ */
+fun tvStatusText(context: android.content.Context, status: dev.wystore.ui.components.StatusMessage): String =
+    if (status.code == StatusCode.INSTALLED) context.getString(R.string.tv_details_installed)
+    else StatusTextResolver.resolve(context, status)
+
 /** What a TV screen can do with a package; the same handlers the phone rows call. */
 data class TvPackageActions(
     val onEnqueue: (String) -> Unit,
@@ -211,8 +220,7 @@ fun TvAppCard(
     forPhone: Boolean = false
 ) {
     val context = LocalContext.current
-    val status = state?.status?.takeIf { it.code in CARD_STATES }
-        ?.let { StatusTextResolver.resolve(context, it) }
+    val status = state?.status?.takeIf { it.code in CARD_STATES }?.let { tvStatusText(context, it) }
     val shape = M3Theme.shapes.large
     Card(
         onClick = onClick,
