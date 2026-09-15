@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.wystore.R
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.background.NotificationCoordinator
 import dev.wystore.data.StoreSettings
 import dev.wystore.ui.components.ScreenPadding
@@ -73,9 +74,9 @@ fun NotificationSettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding)
+                .padding(top = contentPadding.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
-                .padding(start = ScreenPadding, end = ScreenPadding, top = 4.dp, bottom = 28.dp),
+                .padding(start = ScreenPadding, end = ScreenPadding, top = 4.dp, bottom = 28.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(SectionSpacing)
         ) {
             Text(

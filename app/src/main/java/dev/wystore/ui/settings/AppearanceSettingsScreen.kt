@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.wystore.data.StoreSettings
 import dev.wystore.R
+import dev.wystore.ui.components.LocalBottomBarInset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import dev.wystore.settings.ThemeMode
@@ -63,9 +64,9 @@ fun AppearanceSettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding)
+                .padding(top = contentPadding.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(stringResource(R.string.appearance_theme_title), style = MaterialTheme.typography.titleMedium)

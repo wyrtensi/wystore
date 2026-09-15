@@ -28,8 +28,23 @@ data class RootResult(
     val failure: RootFailure? = null
 )
 
+object RootShellPolicy {
+    /** An `id` run through su that did not print uid=0 ran as the app, whatever it exited with. */
+    fun grantsRoot(idOutput: String): Boolean =
+        Regex("""(^|\s)uid=0\(""").containsMatchIn(idOutput)
+}
+
 class RootInstaller {
-    suspend fun isAvailable(): Boolean = execute("id").success
+    /**
+     * Whether su both starts and actually grants uid 0.
+     *
+     * A root manager asks the user on the first su call, so this is also what makes Wy Store show
+     * up in its list at all.
+     */
+    suspend fun isAvailable(): Boolean {
+        val result = execute("id")
+        return result.success && RootShellPolicy.grantsRoot(result.output)
+    }
 
     suspend fun install(plan: VerifiedInstallPlan, update: Boolean): RootResult = withContext(Dispatchers.IO) {
         val files = plan.files
@@ -70,7 +85,8 @@ class RootInstaller {
 
     private suspend fun execute(command: String): RootResult = withContext(Dispatchers.IO) {
         runCatching {
-            val process = ProcessBuilder("/system/bin/su", "-c", command).redirectErrorStream(true).start()
+            val process = startSu(command)
+                ?: return@runCatching RootResult(false, "su not found", RootFailure.ROOT_UNAVAILABLE)
             val finished = process.waitFor(90, TimeUnit.SECONDS)
             if (!finished) {
                 process.destroy()

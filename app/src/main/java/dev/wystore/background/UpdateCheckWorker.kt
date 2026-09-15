@@ -435,14 +435,14 @@ class UpdateCheckWorker(
      * numbers, not for a hundred megabytes over mobile data; a tap on Update or Download is the
      * explicit request, and that one still starts immediately through [TransferDispatcher.dispatch].
      *
-     * Checking for root runs a shell command, so it only happens when auto-download is off and the
-     * root path is the only thing that could still start a transfer.
+     * Checking for root runs su, which a root manager answers with a prompt, so it only happens
+     * when auto-download is off and the user turned root background downloads on.
      */
     private suspend fun startDownloads(
         settings: StoreSettings,
         queued: List<QueuedRow>
     ) {
-        val rootAvailable = if (settings.autoDownloadUpdates) {
+        val rootAvailable = if (settings.autoDownloadUpdates || !settings.rootBackgroundDownloadsEnabled) {
             false
         } else {
             runCatching { RootInstaller().isAvailable() }.getOrDefault(false)

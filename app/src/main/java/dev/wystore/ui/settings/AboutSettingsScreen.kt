@@ -46,6 +46,7 @@ import dev.wystore.data.DiagnosticsCollector
 import dev.wystore.data.DiagnosticsReport
 import kotlinx.coroutines.launch
 import dev.wystore.R
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreSettings
 import dev.wystore.localization.StatusTextResolver
@@ -115,9 +116,9 @@ fun AboutSettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding)
+                .padding(top = contentPadding.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
-                .padding(start = ScreenPadding, end = ScreenPadding, top = 4.dp, bottom = 28.dp),
+                .padding(start = ScreenPadding, end = ScreenPadding, top = 4.dp, bottom = 28.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(SectionSpacing)
         ) {
             WyCard(modifier = Modifier.fillMaxWidth()) {

@@ -51,6 +51,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationManagerCompat
 import dev.wystore.ui.components.StateBadge
 import dev.wystore.R
+import dev.wystore.ui.components.LocalBottomBarInset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import dev.wystore.ui.components.WyCard
@@ -119,9 +120,9 @@ fun PermissionCenterScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding)
+                .padding(top = contentPadding.calculateTopPadding())
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(

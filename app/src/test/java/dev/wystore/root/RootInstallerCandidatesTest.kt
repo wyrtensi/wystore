@@ -1,6 +1,7 @@
 package dev.wystore.root
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -25,6 +26,14 @@ class RootInstallerCandidatesTest {
         assertTrue(RootInstaller.CANDIDATES.contains("/sbin/su"))
         assertTrue(RootInstaller.CANDIDATES.contains("/su/bin/su"))
         assertTrue(RootInstaller.CANDIDATES.contains("/debug_ramdisk/su"))
+    }
+
+    @Test
+    fun `root is granted only when id reports uid 0`() {
+        assertTrue(RootShellPolicy.grantsRoot("uid=0(root) gid=0(root) groups=0(root) context=u:r:magisk:s0"))
+        assertFalse(RootShellPolicy.grantsRoot("uid=10234(u0_a234) gid=10234(u0_a234)"))
+        assertFalse(RootShellPolicy.grantsRoot("Permission denied"))
+        assertFalse(RootShellPolicy.grantsRoot(""))
     }
 
     @Test
