@@ -112,7 +112,7 @@
         <button class="link" type="button" data-go="next">它是怎么工作的</button>
         <img class="badge" fetchpriority="low" decoding="async" alt="GitHub 下载次数" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
       </p>
-      <p class="small" style="--i:4">Android 9.0 及以上 · 约 9 MB · 开源，MIT 许可</p>
+      <p class="small" style="--i:4">Android 9.0 及以上 · 手机和 Android&nbsp;TV · 约 9 MB · 开源，MIT 许可</p>
     </section>
 
     <section class="scene" id="github" tabindex="-1" aria-hidden="true">
@@ -159,8 +159,9 @@
         <tbody>
           <tr><th scope="row">Android 12 及以上</th><td>一般不问 —— 对 Wy&nbsp;Store 自己装的应用而言</td></tr>
           <tr><th scope="row">Android 9、10、11</th><td>系统会请你确认，任何商店都一样</td></tr>
-          <tr><th scope="row">首次安装</th><td>总是要确认</td></tr>
-          <tr><th scope="row">有 root</th><td>支持：一切在后台静默安装，没有通知 —— 在设置里开启</td></tr>
+          <tr><th scope="row">首次安装</th><td>总是要确认，root 模式除外</td></tr>
+          <tr><th scope="row">有 root</th><td>可选：安装和更新不出现 Android 的窗口，在后台也一样，卸载不经确认。在设置里开启，默认关闭</td></tr>
+          <tr><th scope="row">Android&nbsp;TV</th><td>同一个 APK，适合遥控器的界面和 RuStore 电视目录；没有通知 —— 可以安装的内容显示在首页上</td></tr>
         </tbody>
       </table>
       <p class="nav-links" style="--i:3">
@@ -215,6 +216,7 @@
         <li>打开下载好的 <code>wystore.apk</code>。</li>
         <li>Android 会就“允许从此来源安装”问一次。</li>
         <li>此后 Wy&nbsp;Store 自己更新自己 —— 它盯着仓库里的发布版。</li>
+        <li>装到电视上 —— 用文件管理器下载 APK，或者从电脑安装：<code>adb install wystore.apk</code>。</li>
       </ol>
       <figure class="warn" style="--i:3">
         <img decoding="async" data-src="../assets/img/play-protect-en.webp" width="520" height="677" alt="Google Play Protect 弹窗：“已拦截应用以保护你的设备”，底部是“仍要安装”链接">

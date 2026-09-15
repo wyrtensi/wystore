@@ -48,10 +48,11 @@ Wy Store — магазин приложений для Android, который 
 • Отзывы и оценки из RuStore с разбором по звёздам и фильтром: плохие отзывы можно прочитать, не листая все хорошие.
 • Библиотека установленного с фильтрами по источнику — обновление, запуск и удаление из одного списка.
 • Резервная копия: настройки и списки приложений экспортируются в один файл и переносятся на новый телефон.
+• Android TV и Google TV: тот же APK, свой интерфейс под пульт и каталог RuStore для телевизоров.
 
 ОБНОВЛЕНИЯ, КОТОРЫЕ ПРИХОДЯТ САМИ
 
-Wy Store проверяет обновления в фоне по расписанию и скачивает найденное сам. Установка без окна подтверждения возможна на Android 12 и новее для приложений, которые Wy Store установил сам, — но не гарантирована: на телефонах с сервисами Google окно может показать Play Protect, если он видит этот файл впервые. На Android 9, 10 и 11 такой возможности нет ни у одного магазина. Первая установка подтверждается всегда. С root установка проходит без подтверждений во всех случаях.
+Wy Store проверяет обновления в фоне по расписанию и скачивает найденное сам. Установка без окна подтверждения возможна на Android 12 и новее для приложений, которые Wy Store установил сам, — но не гарантирована: на телефонах с сервисами Google окно может показать Play Protect, если он видит этот файл впервые. На Android 9, 10 и 11 такой возможности нет ни у одного магазина. Без root первая установка подтверждается всегда. С root первая установка и обновления проходят без окон Android, а удаление по желанию — без подтверждения.
 
 Приложения, установленные другим магазином, можно передать под управление Wy Store одной кнопкой на карточке. Приложения из Google Play не трогаются, пока это не разрешено для конкретного приложения.
 
@@ -146,10 +147,11 @@ WHAT IS INSIDE
 • RuStore reviews and ratings with a breakdown by star count and a filter, so the bad reviews can be read without scrolling past the good ones.
 • A library of installed apps with filters by source — update, open and uninstall from one list.
 • Backup: settings and app lists export to a single file and move to a new phone.
+• Android TV and Google TV: the same APK, with its own remote-friendly interface and the RuStore TV catalogue.
 
 UPDATES THAT ARRIVE ON THEIR OWN
 
-Wy Store checks for updates in the background on a schedule and downloads what it finds on its own. Installing without a confirmation dialog is possible on Android 12 and newer for apps Wy Store installed itself — but it is not guaranteed: on phones with Google services, Play Protect may raise a dialog of its own for a file it has not seen before. On Android 9, 10 and 11 no store has that option. A first install is always confirmed. With root, installs go through without any confirmation.
+Wy Store checks for updates in the background on a schedule and downloads what it finds on its own. Installing without a confirmation dialog is possible on Android 12 and newer for apps Wy Store installed itself — but it is not guaranteed: on phones with Google services, Play Protect may raise a dialog of its own for a file it has not seen before. On Android 9, 10 and 11 no store has that option. Without root, a first install is always confirmed. With root, first installs and updates go through with no Android dialogs, and uninstalling can skip confirmation if you choose.
 
 Apps installed by another store can be handed over to Wy Store with one button on the app page. Apps from Google Play are left alone until that is enabled for a specific app.
 

@@ -113,7 +113,7 @@
         <button class="link" type="button" data-go="next">How it works</button>
         <img class="badge" fetchpriority="low" decoding="async" alt="GitHub download count" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
       </p>
-      <p class="small" style="--i:4">Android 9.0 and newer · about 9 MB · open source, MIT licence</p>
+      <p class="small" style="--i:4">Android 9.0 and newer · phones and Android&nbsp;TV · about 9 MB · open source, MIT licence</p>
     </section>
 
     <section class="scene" id="github" tabindex="-1" aria-hidden="true">
@@ -165,8 +165,9 @@
         <tbody>
           <tr><th scope="row">Android 12 and newer</th><td>usually without asking — for apps Wy&nbsp;Store installed</td></tr>
           <tr><th scope="row">Android 9, 10, 11</th><td>the system asks you to confirm, as with any store</td></tr>
-          <tr><th scope="row">First install</th><td>always confirmed</td></tr>
-          <tr><th scope="row">With root</th><td>supported: everything installs silently in the background, with no notifications — a settings toggle</td></tr>
+          <tr><th scope="row">First install</th><td>always confirmed, except in root mode</td></tr>
+          <tr><th scope="row">With root</th><td>optional: installs and updates with no Android dialogs, in the background too; uninstalling without confirmation. Turned on in settings, off by default</td></tr>
+          <tr><th scope="row">Android&nbsp;TV</th><td>the same APK, a remote-friendly interface and the RuStore TV catalogue; no notifications — what is ready to install is shown on Home</td></tr>
         </tbody>
       </table>
       <p class="nav-links" style="--i:3">
@@ -222,6 +223,7 @@
         <li>Open the downloaded <code>wystore.apk</code>.</li>
         <li>Android asks once for permission to install from this source.</li>
         <li>From then on Wy&nbsp;Store updates itself — it watches the releases in its repository.</li>
+        <li>For a TV — download the APK with a file manager, or install it from a computer: <code>adb install wystore.apk</code>.</li>
       </ol>
       <figure class="warn" style="--i:3">
         <img decoding="async" data-src="../assets/img/play-protect-en.webp" width="520" height="677" alt="Google Play Protect dialog: “App blocked to protect your device”, with an “Install anyway” link at the bottom">

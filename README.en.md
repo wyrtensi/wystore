@@ -63,8 +63,38 @@ here. See [DISCLAIMER.md](DISCLAIMER.md).
   file.
 - **Traffic control.** A Wi-Fi-only mode for background downloads; a manual download over mobile data
   asks for confirmation first.
+- **Android TV.** The same APK runs on Android TV and Google TV, with its own remote-friendly
+  interface and the RuStore catalogue for TVs. See [Android TV](#android-tv).
+- **Root, if you want it.** With root granted, first installs, updates and uninstalls go through with
+  no Android dialogs, in the background too. Off by default; see [Root](#root).
 - **Interface.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文 —
   light and dark themes, Material You.
+
+## Android TV
+
+| Home | App page | My apps |
+|---|---|---|
+| ![Home on a TV](docs/screenshots/tv/en/home.png) | ![App page on a TV](docs/screenshots/tv/en/app-page.png) | ![My apps on a TV](docs/screenshots/tv/en/my-apps.png) |
+
+There is no separate build: the same APK installs on Android TV and Google TV running Android 9 or
+newer and shows up in the TV launcher. The device type is detected automatically; if a set-top box
+is detected as a phone, pick the type by hand in **Settings → Appearance → Device type** (Auto,
+Phone, TV).
+
+- **Remote control.** A tab menu along the top — Home, Search, My apps, Settings — with a "TV" badge
+  next to the Wy Store name. Back leads outwards: from the content to the menu, from the menu to
+  Home, and from Home out of the app. On return, focus sits on the card you opened.
+- **Home.** The updates card, section tiles, rows by section and a "From GitHub" row. A TV has no
+  notifications, so apps ready to install or update are gathered in a row at the top of Home.
+- **App page.** TV screenshots and reviews.
+- **Search.** By text or by voice. Results come from the TV catalogue — and, if the phone catalogue
+  is enabled, from all of RuStore — plus GitHub.
+- **Catalogue.** RuStore has a separate catalogue for TVs. The **"Catalogue on the TV"** setting:
+  "TV apps" (the default), "Phone apps" or "Both". In "Both" mode phone apps get rows of their own
+  and are labelled "For phone": many of them are not made for a remote. Apps installed from either
+  catalogue keep updating whatever you choose.
+- **GitHub.** The GitHub catalogue is there on both the phone and the TV; it is switched off in
+  **Settings → App sources**.
 
 ## Install
 
@@ -83,6 +113,16 @@ file you downloaded:
 ```bash
 apksigner verify --print-certs wystore-<version>.apk
 ```
+
+### On a TV
+
+Download the APK on the TV with a file manager, or install it from a computer:
+
+```bash
+adb install wystore.apk
+```
+
+When you install from the TV itself, Android asks once for permission to install unknown apps.
 
 ### Moving to 0.2.0 from an earlier version
 
@@ -137,9 +177,9 @@ had already checked.
 
 ### The honest summary
 
-- **With root** — everything installs silently, always, first installs included: the install goes
-  around the system installer, and neither Android nor Play Protect shows anything. Root is off by
-  default.
+- **With root** — everything installs with no Android dialogs, first installs included: the install
+  goes through `pm` as root, around the system installer's dialog. On devices with Google services
+  Play Protect may still check a file it has not seen before. Root is off by default.
 - **Without root** — it depends. It usually works, but there is no guarantee: the last word belongs
   to Play Protect, and it turns on whether Google has seen that particular file.
 
@@ -152,9 +192,43 @@ All three are on by default:
 
 | Setting | What it does |
 |---|---|
-| Download updates immediately | A found update starts downloading on its own. Background checks respect the Wi-Fi-only mode. |
+| Download updates as they are found | A found update starts downloading on its own. Background checks respect the Wi-Fi-only mode. |
 | Install right after downloading | A downloaded update goes to the installer without another tap. |
 | Update without asking | Ask the system to skip its dialog where the system allows it. |
+
+### Root
+
+Root is optional and off by default. To turn it on: **Settings → Permission center → "Check
+Root"**. The root manager (Magisk, KernelSU and others) shows its own prompt — grant access to
+Wy Store (`app.wystore`). The card then reads "Available", or "Not granted" if you refuse. `su` is
+looked for wherever the device keeps it: in `PATH`, `/system/bin`, `/system/xbin`, `/sbin`,
+`/su/bin`, `/debug_ramdisk`; root counts as granted only if `id` reports uid 0. KernelSU has a
+separate guide — [KERNELSU_ROOT_RU.md](KERNELSU_ROOT_RU.md) (in Russian).
+
+The switches are in settings, in the "Background updates" group, and work only while root is
+granted:
+
+| Setting | What it does |
+|---|---|
+| Silent root install | First installs and updates, from RuStore and from GitHub, go through `pm` as root with no Android dialog. Wy Store is recorded as the app's installer and, on Android 14 and newer, as its update owner too, just as with an install through the dialog. The app counts as installed by Wy Store and gets updates as usual. |
+| Silent root uninstall | Off by default. The "Uninstall" button removes the app through root at once, with no confirmation, its data included. If root is not granted at that moment, Android's usual uninstall dialog opens. |
+| Download updates in background (root) | The scheduled background check downloads updates even when "Download updates as they are found" is off. |
+
+With root, the background check finds an update, downloads it and installs it through root on its
+own while Wy Store is closed, without a single tap.
+
+If root is revoked, "Check Root" shows "Not granted", silent install turns off, and installing goes
+back to the Android dialog.
+
+When `su` is called — the root manager may ask every time if access was not granted permanently:
+
+- when you press "Check Root";
+- at launch, if silent install or silent uninstall is on;
+- in the background check — only when "Download updates as they are found" is off and "Download
+  updates in background (root)" is on;
+- on install and uninstall, if the matching switch is on.
+
+The catalogue, search and app pages never ask for root.
 
 ### Further limits
 
@@ -229,7 +303,10 @@ The endpoints, the reason behind HTTP 419 and the fallback behaviour are describ
 - Permission to install unknown apps: Android asks for it on the first install.
 - Root is optional. Without it, installing without a confirmation is possible for updates only, on
   Android 12 and newer only, and only for as long as Play Protect does not stop it. With root
-  everything installs silently, first installs included. See "How updates work" for the detail.
+  everything installs with no Android dialogs, first installs included, and uninstalling can skip
+  confirmation if you choose. See "How updates work" for the detail.
+- **Android TV and Google TV** on Android 9 and newer — with the same APK. A TV has no notifications,
+  so what is ready to install is shown on Home.
 - ABI and screen density are detected automatically, and the matching APK set is chosen.
 
 ## Questions

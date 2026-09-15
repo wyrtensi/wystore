@@ -64,8 +64,40 @@ Wy Store nav saistīts ar RuStore un nedarbojas tā vārdā: RuStore šeit ir da
   imports vienā JSON failā.
 - **Trafika kontrole.** Tikai Wi-Fi režīms fona lejupielādēm; manuāla lejupielāde pa mobilo
   internetu vispirms prasa apstiprinājumu.
+- **Android TV.** Tas pats APK darbojas Android TV un Google TV ar savu interfeisu, kas pielāgots
+  pultij, un RuStore katalogu televizoriem. Sīkāk sadaļā [Android TV](#android-tv).
+- **Root pēc izvēles.** Ar piešķirtu root pirmā instalēšana, atjaunināšana un atinstalēšana notiek
+  bez Android logiem, arī fonā. Pēc noklusējuma izslēgts; sīkāk sadaļā [Root](#root).
 - **Interfeiss.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文 —
   gaišā un tumšā tēma, Material You.
+
+## Android TV
+
+| Sākums | Lietotnes lapa | Manas lietotnes |
+|---|---|---|
+| ![Sākums televizorā](docs/screenshots/tv/en/home.png) | ![Lietotnes lapa televizorā](docs/screenshots/tv/en/app-page.png) | ![Manas lietotnes televizorā](docs/screenshots/tv/en/my-apps.png) |
+
+Atsevišķa būvējuma nav: tas pats APK instalējas Android TV un Google TV ar Android 9 un jaunāku
+versiju un parādās televizora palaidējā. Ierīces veids tiek noteikts automātiski; ja televizora
+pierīce ir noteikta kā tālrunis, to var izvēlēties ar roku sadaļā **Iestatījumi → Izskats → Ierīces
+veids** (Automātiski, Tālrunis, Televizors).
+
+- **Vadība ar pulti.** Izvēlne ar cilnēm augšā — Sākums, Meklēt, Manas lietotnes, Iestatījumi;
+  blakus Wy Store nosaukumam ir atzīme „TV“. Poga „Atpakaļ“ ved uz āru: no satura uz izvēlni, no
+  izvēlnes uz Sākumu, no Sākuma — iziešana. Pēc atgriešanās fokuss ir uz tās kartītes, kas tika
+  atvērta.
+- **Sākums.** Atjauninājumu kartīte, sadaļu elementi, rindas pa sadaļām un rinda „No GitHub“.
+  Paziņojumu televizorā nav, tāpēc lietotnes, kas gatavas instalēšanai vai atjaunināšanai, ir
+  savāktas rindā Sākuma augšā.
+- **Lietotnes lapa.** Ekrānuzņēmumi televizoram un atsauksmes.
+- **Meklēšana.** Ar tekstu vai balsi. Rezultāti nāk no TV kataloga, bet, ja ieslēgts tālruņa
+  katalogs, arī no visa RuStore, plus GitHub.
+- **Katalogs.** RuStore ir atsevišķs katalogs televizoriem. Iestatījums **„Katalogs televizorā“**:
+  „Televizoram“ (pēc noklusējuma), „Tālrunim“ vai „Abi“. Režīmā „Abi“ tālruņa lietotnes ir savās
+  rindās un atzīmētas ar „Tālrunim“: daudzas no tām nav paredzētas pultij. No jebkura kataloga
+  instalētās lietotnes turpina atjaunināties pie jebkuras izvēles.
+- **GitHub.** GitHub katalogs ir gan tālrunī, gan televizorā; to izslēdz sadaļā
+  **Iestatījumi → Lietotņu avoti**.
 
 ## Instalēšana
 
@@ -84,6 +116,16 @@ pārbaudītu lejupielādēto failu:
 ```bash
 apksigner verify --print-certs wystore-<version>.apk
 ```
+
+### Televizorā
+
+Lejupielādējiet APK televizorā ar failu pārvaldnieku vai instalējiet no datora:
+
+```bash
+adb install wystore.apk
+```
+
+Instalējot no televizora, Android vienu reizi prasīs atļauju instalēt nezināmas lietotnes.
 
 ### Pāreja uz 0.2.0 no agrākas versijas
 
@@ -141,9 +183,9 @@ nevienam jau pārbaudītam.
 
 ### Godīgs kopsavilkums
 
-- **Ar root** — viss instalējas klusi, vienmēr, arī pirmās instalēšanas: instalēšana iet garām
-  sistēmas instalētājam, un neko nerāda ne Android, ne Play Protect. Pēc noklusējuma root ir
-  izslēgts.
+- **Ar root** — viss instalējas bez Android logiem, arī pirmās instalēšanas: instalēšana iet caur
+  `pm` ar root tiesībām, garām sistēmas instalētāja dialogam. Ierīcēs ar Google servisiem Play
+  Protect joprojām var pārbaudīt failu, ko iepriekš nav redzējis. Pēc noklusējuma root ir izslēgts.
 - **Bez root** — kā nu kuro reizi. Parasti tas strādā, bet garantijas nav: pēdējais vārds pieder
   Play Protect, un tas ieslēdzas atkarībā no tā, vai Google ir redzējis tieši šo failu.
 
@@ -159,6 +201,42 @@ Visi trīs pēc noklusējuma ir ieslēgti:
 | Lejupielādēt atjauninājumus uzreiz | Atrasts atjauninājums sāk lejupielādēties pats. Fona pārbaudes ievēro tikai Wi-Fi režīmu. |
 | Instalēt uzreiz pēc lejupielādes | Lejupielādēts atjauninājums nonāk instalētājā bez vēl viena pieskāriena. |
 | Atjaunināt bez jautājumiem | Lūgt sistēmai izlaist savu dialogu tur, kur sistēma to atļauj. |
+
+### Root
+
+Root nav obligāts un pēc noklusējuma ir izslēgts. Lai to ieslēgtu: **Iestatījumi → Atļauju centrs →
+„Pārbaudīt Root“**. Root pārvaldnieks (Magisk, KernelSU un citi) parādīs savu pieprasījumu —
+piešķiriet piekļuvi Wy Store (`app.wystore`). Kartīte rādīs „Pieejama“, atteikuma gadījumā — „Nav
+piešķirta“. `su` tiek meklēts tur, kur to glabā ierīce: `PATH`, `/system/bin`, `/system/xbin`,
+`/sbin`, `/su/bin`, `/debug_ramdisk`; root tiek uzskatīts par piešķirtu tikai tad, ja `id` ziņo
+uid 0. KernelSU ir atsevišķa instrukcija — [KERNELSU_ROOT_RU.md](KERNELSU_ROOT_RU.md) (krievu
+valodā).
+
+Slēdži atrodas iestatījumos, grupā „Fona atjauninājumi“, un darbojas tikai tik ilgi, kamēr root ir
+piešķirts:
+
+| Iestatījums | Ko tas dara |
+|---|---|
+| Klusā root instalēšana | Pirmās instalēšanas un atjauninājumi no RuStore un GitHub iet caur `pm` ar root tiesībām bez Android loga. Wy Store tiek ierakstīts kā lietotnes instalētājs, bet Android 14 un jaunākās versijās — arī kā atjauninājumu īpašnieks, tāpat kā instalējot caur dialogu. Lietotne skaitās Wy Store instalēta un saņem atjauninājumus kā parasti. |
+| Klusā root atinstalēšana | Pēc noklusējuma izslēgts. Poga „Atinstalēt“ atinstalē lietotni caur root uzreiz, bez jebkāda apstiprinājuma — kopā ar tās datiem un bez jautājuma. Ja tajā brīdī root nav piešķirts, atveras parastais Android atinstalēšanas logs. |
+| Lejupielādēt atjauninājumus fonā (root) | Plānotā fona pārbaude lejupielādē atjauninājumus arī tad, kad „Lejupielādēt atjauninājumus, tiklīdz tie ir atrasti“ ir izslēgts. |
+
+Ar root fona pārbaude pati atrod atjauninājumu, lejupielādē to un instalē caur root, kamēr Wy Store
+ir aizvērts, bez neviena pieskāriena.
+
+Ja root tiek atsaukts, „Pārbaudīt Root“ rādīs „Nav piešķirta“, klusā instalēšana izslēgsies, un
+instalēšana atgriezīsies pie Android loga.
+
+Kad tiek izsaukts `su` — root pārvaldnieks var jautāt katru reizi, ja piekļuve nav piešķirta uz
+visiem laikiem:
+
+- nospiežot „Pārbaudīt Root“;
+- palaišanas brīdī, ja ieslēgta klusā instalēšana vai klusā atinstalēšana;
+- fona pārbaudē — tikai tad, kad „Lejupielādēt atjauninājumus, tiklīdz tie ir atrasti“ ir izslēgts,
+  bet „Lejupielādēt atjauninājumus fonā (root)“ ir ieslēgts;
+- instalējot un atinstalējot, ja ieslēgts attiecīgais slēdzis.
+
+Katalogs, meklēšana un lietotņu lapas root nepieprasa nekad.
 
 ### Vēl ierobežojumi
 
@@ -234,7 +312,10 @@ Galapunkti, HTTP 419 iemesls un rezerves varianta uzvedība ir aprakstīti fail�
 - Atļauja instalēt nezināmas lietotnes: Android to prasa pirmajā instalēšanā.
 - Root nav obligāts. Bez tā instalēšana bez apstiprinājuma ir iespējama tikai atjauninājumiem,
   tikai Android 12 un jaunākās versijās un tikai tik ilgi, kamēr to neaptur Play Protect. Ar root
-  viss instalējas klusi, arī pirmās instalēšanas. Sīkāk sadaļā „Kā darbojas atjauninājumi“.
+  viss instalējas bez Android logiem, arī pirmās instalēšanas, un atinstalēšana pēc izvēles notiek
+  bez apstiprinājuma. Sīkāk sadaļā „Kā darbojas atjauninājumi“.
+- **Android TV un Google TV** ar Android 9 un jaunāku versiju — ar to pašu APK. Paziņojumu
+  televizorā nav, gatavais instalēšanai tiek rādīts Sākumā.
 - ABI un ekrāna blīvums tiek noteikti automātiski, un tiek izvēlēts atbilstošais APK komplekts.
 
 ## Jautājumi

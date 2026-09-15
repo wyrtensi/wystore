@@ -112,7 +112,7 @@
         <button class="link" type="button" data-go="next">Як це працює</button>
         <img class="badge" fetchpriority="low" decoding="async" alt="Кількість завантажень з GitHub" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=%D0%B7%D0%B0%D0%B2%D0%B0%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D0%BD%D1%8C&amp;labelColor=1b1b1b&amp;color=8aacff">
       </p>
-      <p class="small" style="--i:4">Android 9.0 і новіші · близько 9 МБ · відкритий код, ліцензія MIT</p>
+      <p class="small" style="--i:4">Android 9.0 і новіші · телефони та Android&nbsp;TV · близько 9 МБ · відкритий код, ліцензія MIT</p>
     </section>
 
     <section class="scene" id="search" tabindex="-1" data-screen="search" aria-hidden="true">
@@ -180,8 +180,9 @@
         <tbody>
           <tr><th scope="row">Android 12 і новіші</th><td>як правило, без запитань — для застосунків, які ставив Wy&nbsp;Store</td></tr>
           <tr><th scope="row">Android 9, 10, 11</th><td>система попросить підтвердити — так у будь-якого магазину</td></tr>
-          <tr><th scope="row">Перше встановлення</th><td>завжди з підтвердженням</td></tr>
-          <tr><th scope="row">З root</th><td>підтримується: усе ставиться тихо, у фоні, без сповіщень — вмикається в налаштуваннях</td></tr>
+          <tr><th scope="row">Перше встановлення</th><td>завжди з підтвердженням, крім режиму з root</td></tr>
+          <tr><th scope="row">З root</th><td>за бажанням: встановлення та оновлення без вікон Android, зокрема у фоні, видалення — без підтвердження. Вмикається в налаштуваннях, за замовчуванням вимкнено</td></tr>
+          <tr><th scope="row">Android&nbsp;TV</th><td>той самий APK, інтерфейс під пульт і ТБ-каталог RuStore; сповіщень немає — готове до встановлення показано на головній</td></tr>
         </tbody>
       </table>
       <p class="nav-links" style="--i:3">
@@ -238,6 +239,7 @@
         <li>Відкрийте завантажений <code>wystore.apk</code>.</li>
         <li>Android один раз запитає дозвіл на встановлення з цього джерела.</li>
         <li>Далі Wy&nbsp;Store оновлює себе сам — він стежить за релізами в репозиторії.</li>
+        <li>На телевізор — завантажте APK файловим менеджером або поставте з комп'ютера: <code>adb install wystore.apk</code>.</li>
       </ol>
       <figure class="warn" style="--i:3">
         <img decoding="async" data-src="../assets/img/play-protect-ru.webp" width="520" height="891" alt="Вікно Google Play Захисту: «Підозрілий застосунок заблоковано», внизу посилання «Усе одно встановити»">

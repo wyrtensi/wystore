@@ -61,8 +61,42 @@ manbai. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
   fayl bilan eksport va import qilish.
 - **Trafikni tejash.** Fondagi yuklamalar uchun «faqat Wi-Fi» rejimi; mobil internet orqali qoʻlda
   yuklashda ilova tasdiqlashni soʻraydi.
+- **Android TV.** Aynan shu APK Android TV va Google TV da ham ishlaydi — pult uchun oʻz interfeysi
+  va televizorlar uchun RuStore katalogi bilan. Tafsilotlar — [Android TV](#android-tv) boʻlimida.
+- **Root — xohishga koʻra.** Root berilgan boʻlsa, birinchi oʻrnatish, yangilash va oʻchirish Android
+  oynalarisiz, jumladan fonda ham oʻtadi. Sukut boʻyicha oʻchirilgan; tafsilotlar — [Root](#root)
+  boʻlimida.
 - **Interfeys.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文.
   Yorugʻ va qorongʻi mavzu, Material You.
+
+## Android TV
+
+| Bosh sahifa | Ilova sahifasi | Mening ilovalarim |
+|---|---|---|
+| ![Televizordagi bosh sahifa](docs/screenshots/tv/home.png) | ![Televizordagi ilova sahifasi](docs/screenshots/tv/app-page.png) | ![Televizordagi «Mening ilovalarim»](docs/screenshots/tv/my-apps.png) |
+
+Alohida yigʻma yoʻq: aynan shu APK Android 9 va undan yangi Android TV va Google TV ga oʻrnatiladi
+va televizor lancherida paydo boʻladi. Qurilma turi oʻzi aniqlanadi; agar pristavka telefon deb
+aniqlangan boʻlsa, turni **Sozlamalar → Tashqi koʻrinish → Qurilma turi** da qoʻlda tanlash mumkin
+(Avto, Telefon, Televizor).
+
+- **Pult bilan boshqarish.** Menyu yuqorida yorliqlar koʻrinishida — Asosiy, Qidiruv, Mening
+  ilovalarim, Sozlamalar; Wy Store nomi yonida «TV» belgisi turadi. «Orqaga» tugmasi tashqariga
+  olib chiqadi: kontentdan menyuga, menyudan Asosiy sahifaga, Asosiy sahifadan — chiqish. Qaytgandan
+  keyin fokus ochilgan kartochkada turadi.
+- **Asosiy sahifa.** Yangilanishlar kartochkasi, boʻlim plitkalari, boʻlimlar boʻyicha qatorlar va
+  «GitHub manbasidan» qatori. Televizorda bildirishnomalar yoʻq, shuning uchun oʻrnatish yoki
+  yangilashga tayyor ilovalar Asosiy sahifaning yuqorisidagi qatorga yigʻilgan.
+- **Ilova sahifasi.** Televizor uchun skrinshotlar va sharhlar.
+- **Qidiruv.** Matn yoki ovoz bilan. Natijalar — TV katalogidan, telefon katalogi yoqilgan boʻlsa,
+  butun RuStore dan ham, shuningdek GitHub dan.
+- **Katalog.** RuStore da televizorlar uchun alohida katalog bor. **«Televizordagi katalog»**
+  sozlamasi: «Televizor uchun» (sukut boʻyicha), «Telefon uchun» yoki «Ikkalasi». «Ikkalasi»
+  rejimida telefon ilovalari oʻz qatorlarida boradi va «Telefon uchun» deb belgilanadi: ularning
+  koʻpchiligi pultga moʻljallanmagan. Istalgan katalogdan oʻrnatilgan ilovalar har qanday tanlovda
+  yangilanishda davom etadi.
+- **GitHub.** GitHub katalogi telefonda ham, televizorda ham bor; **Sozlamalar → Ilova manbalari**
+  da oʻchiriladi.
 
 ## Oʻrnatish
 
@@ -80,6 +114,16 @@ faylni tekshirish:
 ```bash
 apksigner verify --print-certs wystore-<versiya>.apk
 ```
+
+### Televizorga
+
+APK ni televizorga fayl menejeri bilan yuklab oling yoki kompyuterdan oʻrnating:
+
+```bash
+adb install wystore.apk
+```
+
+Televizorning oʻzidan oʻrnatilganda Android bir marta nomaʼlum ilovalarni oʻrnatishga ruxsat soʻraydi.
 
 ### Avvalgi versiyalardan 0.2.0 ga oʻtish
 
@@ -135,9 +179,10 @@ tekshirilganida chiqmadi.
 
 ### Bezaksiz xulosa
 
-- **Root bilan** — hammasi va har doim sokin oʻrnatiladi, birinchi oʻrnatish ham: oʻrnatish tizim
-  oʻrnatgichini chetlab oʻtadi, na Android, na Play Protect tomonidan oyna chiqadi. Sukut boʻyicha
-  root oʻchirilgan.
+- **Root bilan** — hammasi Android oynalarisiz oʻrnatiladi, birinchi oʻrnatish ham: oʻrnatish root
+  huquqi bilan `pm` orqali, tizim oʻrnatgichi dialogini chetlab oʻtadi. Google xizmatlari bor
+  qurilmalarda Play Protect ilgari koʻrmagan faylni baribir tekshirishi mumkin. Sukut boʻyicha root
+  oʻchirilgan.
 - **Rootsiz** — omadga qarab. Koʻpincha ishlaydi, lekin kafolat yoʻq: soʻnggi soʻz Play Protect da,
   u esa Google shu aniq faylni koʻrgan-koʻrmaganiga bogʻliq.
 
@@ -153,6 +198,41 @@ Uchalasi ham sukut boʻyicha yoqilgan:
 | Yangilanishlarni darhol yuklab olish | Topilgan yangilanish oʻzi yuklana boshlaydi. Fondagi tekshiruv bunda «faqat Wi-Fi» rejimini hurmat qiladi. |
 | Yuklab olingandan keyin darhol oʻrnatish | Yuklab olingani qoʻshimcha bosishsiz oʻrnatishga ketadi. |
 | Soʻroqsiz yangilash | Tizim ruxsat bergan joyda undan oʻz dialogini oʻtkazib yuborishni soʻrash. |
+
+### Root
+
+Root shart emas va sukut boʻyicha oʻchirilgan. Yoqish uchun: **Sozlamalar → Ruxsatlar markazi →
+«Root tekshirish»**. Root menejeri (Magisk, KernelSU va boshqalar) oʻz soʻrovini koʻrsatadi — Wy Store
+(`app.wystore`) ga ruxsat bering. Kartochkada «Mavjud», rad etilganda — «Berilmagan» koʻrinadi. `su`
+qurilma uni saqlaydigan joylardan qidiriladi: `PATH`, `/system/bin`, `/system/xbin`, `/sbin`,
+`/su/bin`, `/debug_ramdisk`; root faqat `id` uid 0 ni xabar qilgandagina berilgan hisoblanadi.
+KernelSU uchun alohida yoʻriqnoma bor — [KERNELSU_ROOT_RU.md](KERNELSU_ROOT_RU.md) (rus tilida).
+
+Almashtirgichlar sozlamalarda, «Fondagi yangilanishlar» guruhida joylashgan va faqat root berilgan
+paytda ishlaydi:
+
+| Sozlama | Nima qiladi |
+|---|---|
+| Jimgina root orqali oʻrnatish | RuStore va GitHub dan birinchi oʻrnatishlar va yangilanishlar root huquqi bilan `pm` orqali, Android oynasisiz oʻtadi. Wy Store ilovaning oʻrnatgichi sifatida, Android 14 va undan yangisida esa yangilanishlar egasi sifatida ham qayd etiladi — xuddi dialog orqali oʻrnatilgandagidek. Ilova Wy Store oʻrnatgan deb hisoblanadi va yangilanishlarni odatdagidek oladi. |
+| Jimgina root orqali oʻchirish | Sukut boʻyicha oʻchirilgan. «Oʻchirib tashlash» tugmasi ilovani root orqali darhol, hech qanday tasdiqsiz oʻchiradi — maʼlumotlari bilan birga va soʻramasdan. Agar shu paytda root berilmagan boʻlsa, Android ning odatdagi oʻchirish oynasi ochiladi. |
+| Yangilanishlarni fonda yuklab olish (root) | Jadval boʻyicha fondagi tekshiruv «Topilgan yangilanishlarni darhol yuklab olish» oʻchirilgan boʻlsa ham yangilanishlarni yuklab oladi. |
+
+Root bilan fondagi tekshiruv Wy Store yopiq paytda yangilanishni oʻzi topadi, yuklab oladi va root
+orqali oʻrnatadi — bitta ham bosishsiz.
+
+Agar root qaytarib olinsa, «Root tekshirish» «Berilmagan» ni koʻrsatadi, jimgina oʻrnatish oʻchadi va
+oʻrnatish yana Android oynasiga qaytadi.
+
+`su` qachon chaqiriladi — agar ruxsat doimiy berilmagan boʻlsa, root menejeri har safar soʻrashi
+mumkin:
+
+- «Root tekshirish» tugmasi bosilganda;
+- ishga tushganda, agar jimgina oʻrnatish yoki jimgina oʻchirish yoqilgan boʻlsa;
+- fondagi tekshiruvda — faqat «Topilgan yangilanishlarni darhol yuklab olish» oʻchirilgan, «Yangilanishlarni
+  fonda yuklab olish (root)» esa yoqilgan boʻlsa;
+- oʻrnatish va oʻchirishda, agar tegishli almashtirgich yoqilgan boʻlsa.
+
+Katalog, qidiruv va ilova sahifalari hech qachon root soʻramaydi.
 
 ### Yana chegaralar
 
@@ -227,8 +307,11 @@ Endpointlar tahlili, HTTP 419 ning sababi va zaxira variantning xatti-harakati �
   olishdan oldin, keyin emas.
 - Nomaʼlum ilovalarni oʻrnatishga ruxsat: Android uni birinchi oʻrnatishda soʻraydi.
 - Root shart emas. Usiz tasdiqsiz oʻrnatish faqat yangilanishlar uchun, faqat Android 12 va undan
-  yangisida va faqat uni Play Protect toʻxtatmaguncha mumkin. Root bilan hammasi sokin oʻrnatiladi,
-  birinchi oʻrnatish ham. Tafsilotlar — «Yangilanishlar qanday ishlaydi» boʻlimida.
+  yangisida va faqat uni Play Protect toʻxtatmaguncha mumkin. Root bilan hammasi Android oynalarisiz
+  oʻrnatiladi, birinchi oʻrnatish ham, oʻchirish esa xohishga koʻra tasdiqsiz oʻtadi. Tafsilotlar —
+  «Yangilanishlar qanday ishlaydi» boʻlimida.
+- **Android TV va Google TV** — Android 9 va undan yangisida, aynan shu APK bilan. Televizorda
+  bildirishnomalar yoʻq, oʻrnatishga tayyor narsa Asosiy sahifada koʻrsatiladi.
 - Arxitektura va ekran zichligi avtomatik aniqlanadi: mos APK toʻplami tanlanadi.
 
 ## Savollar

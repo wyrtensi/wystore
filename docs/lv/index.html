@@ -113,7 +113,7 @@
         <button class="link" type="button" data-go="next">Kā tas darbojas</button>
         <img class="badge" fetchpriority="low" decoding="async" alt="GitHub lejupielāžu skaits" width="120" height="20" src="https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=flat-square&amp;label=downloads&amp;labelColor=1b1b1b&amp;color=8aacff">
       </p>
-      <p class="small" style="--i:4">Android 9.0 un jaunāks · aptuveni 9 MB · atvērtais pirmkods, MIT licence</p>
+      <p class="small" style="--i:4">Android 9.0 un jaunāks · tālruņi un Android&nbsp;TV · aptuveni 9 MB · atvērtais pirmkods, MIT licence</p>
     </section>
 
     <section class="scene" id="github" tabindex="-1" aria-hidden="true">
@@ -166,8 +166,9 @@
         <tbody>
           <tr><th scope="row">Android 12 un jaunāks</th><td>parasti bez jautājumiem — lietotnēm, ko instalējis Wy&nbsp;Store</td></tr>
           <tr><th scope="row">Android 9, 10, 11</th><td>sistēma lūgs apstiprināt — tāpat kā jebkuram veikalam</td></tr>
-          <tr><th scope="row">Pirmā instalēšana</th><td>vienmēr ar apstiprinājumu</td></tr>
-          <tr><th scope="row">Ar root</th><td>atbalstīts: viss tiek instalēts klusi, fonā, bez paziņojumiem — ieslēdzams iestatījumos</td></tr>
+          <tr><th scope="row">Pirmā instalēšana</th><td>vienmēr ar apstiprinājumu, izņemot root režīmu</td></tr>
+          <tr><th scope="row">Ar root</th><td>pēc izvēles: instalēšana un atjauninājumi bez Android logiem, arī fonā, atinstalēšana — bez apstiprinājuma. Ieslēdzams iestatījumos, pēc noklusējuma izslēgts</td></tr>
+          <tr><th scope="row">Android&nbsp;TV</th><td>tas pats APK, interfeiss pultij un RuStore TV katalogs; paziņojumu nav — gatavais instalēšanai redzams sākuma ekrānā</td></tr>
         </tbody>
       </table>
       <p class="nav-links" style="--i:3">
@@ -223,6 +224,7 @@
         <li>Atveriet lejupielādēto <code>wystore.apk</code>.</li>
         <li>Android vienu reizi palūgs atļauju instalēt no šī avota.</li>
         <li>Turpmāk Wy&nbsp;Store atjaunina sevi pats — tas seko laidieniem savā repozitorijā.</li>
+        <li>Televizorā — lejupielādējiet APK ar failu pārvaldnieku vai instalējiet no datora: <code>adb install wystore.apk</code>.</li>
       </ol>
       <figure class="warn" style="--i:3">
         <img decoding="async" data-src="../assets/img/play-protect-en.webp" width="520" height="677" alt="Google Play Protect logs: „Lietotne bloķēta, lai aizsargātu jūsu ierīci“, apakšā saite „Tomēr instalēt“">
