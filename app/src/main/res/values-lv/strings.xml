@@ -719,7 +719,7 @@
     <string name="tv_nav_my_apps">Manas lietotnes</string>
     <string name="tv_row_ready">Gatavs instalēšanai un atjauninājumi</string>
     <string name="tv_row_popular">Populāri TV</string>
-    <string name="tv_row_all">Visas TV lietotnes</string>
+    <string name="tv_row_other">Citas</string>
     <string name="tv_search_hint">Ierakstiet vai pasakiet nosaukumu — rezultāti parādīsies uzreiz</string>
     <string name="tv_search_in_tv">TV katalogā</string>
     <string name="tv_search_in_rustore">Visā RuStore</string>

@@ -719,7 +719,7 @@
     <string name="tv_nav_my_apps">My apps</string>
     <string name="tv_row_ready">Ready to install and updates</string>
     <string name="tv_row_popular">Popular on TV</string>
-    <string name="tv_row_all">All TV apps</string>
+    <string name="tv_row_other">Other</string>
     <string name="tv_search_hint">Type or say a name: results appear as you type</string>
     <string name="tv_search_in_tv">In the TV catalogue</string>
     <string name="tv_search_in_rustore">In all of RuStore</string>

@@ -171,6 +171,13 @@ fun TvSearchScreen(
                     placeholder = { androidx.compose.material3.Text(stringResource(R.string.search_field_placeholder)) },
                     leadingIcon = { androidx.compose.material3.Icon(Icons.Outlined.Search, contentDescription = null) },
                     shape = androidx.compose.material3.MaterialTheme.shapes.extraLarge,
+                    // Filled like the phone's search bar, with no outline until it has the focus.
+                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerHigh,
+                        focusedContainerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerHigh,
+                        unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+                        focusedBorderColor = MaterialTheme.colorScheme.border
+                    ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     // The keyboard's own "search" moves on to the results instead of leaving the
                     // focus in a field the user has finished with.

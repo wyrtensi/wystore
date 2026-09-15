@@ -719,7 +719,7 @@
     <string name="tv_nav_my_apps">Менің қолданбаларым</string>
     <string name="tv_row_ready">Орнатуға дайын және жаңартулар</string>
     <string name="tv_row_popular">Теледидарда танымал</string>
-    <string name="tv_row_all">Теледидарға арналған барлық қолданбалар</string>
+    <string name="tv_row_other">Басқалары</string>
     <string name="tv_search_hint">Атауын теріңіз не айтыңыз — нәтижелер бірден шығады</string>
     <string name="tv_search_in_tv">ТВ-каталогта</string>
     <string name="tv_search_in_rustore">Бүкіл RuStore-да</string>

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -117,7 +118,9 @@ fun TvSectionTitle(text: String, modifier: Modifier = Modifier, subtitle: String
         Text(
             text = text,
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onBackground,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         subtitle?.let {
             Text(
@@ -178,7 +181,7 @@ fun TvAppCard(
             .tvPointerClick(onClick = onClick)
             .semantics { contentDescription = listOfNotNull(app.name, status).joinToString(", ") },
         shape = CardDefaults.shape(shape),
-        scale = CardDefaults.scale(focusedScale = 1.06f),
+        scale = CardDefaults.scale(focusedScale = 1.08f),
         border = CardDefaults.border(focusedBorder = tvFocusBorder(shape)),
         glow = CardDefaults.glow(focusedGlow = tvFocusGlow()),
         colors = CardDefaults.colors(
@@ -188,11 +191,11 @@ fun TvAppCard(
             focusedContentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             AppIcon(
                 model = app.iconUrl,
                 contentDescription = null,
-                size = 64.dp,
+                size = 52.dp,
                 fallbackPackageName = app.packageName
             )
             Text(
@@ -217,16 +220,24 @@ fun TvAppCard(
                     content = MaterialTheme.colorScheme.onTertiary
                 )
             } else {
-                TvBadge(app.categories.firstOrNull() ?: stringResource(R.string.source_rustore))
+                TvBadge(app.primaryCategory() ?: stringResource(R.string.source_rustore))
             }
         }
     }
 }
 
-val TvCardWidth = 208.dp
+/**
+ * The first category an app is filed under. The source joins several into one string with a
+ * middle dot ("Развлечения·Полезные инструменты"), which as a label or a row title reads as one
+ * long, cut-off name.
+ */
+fun StoreApp.primaryCategory(): String? =
+    categories.firstOrNull()?.substringBefore('·')?.trim()?.takeIf { it.isNotEmpty() }
+
+val TvCardWidth = 148.dp
 
 /** Height a row of [TvAppCard]s needs so a grown, focused card is not clipped. */
-val TvRowHeight = 244.dp
+val TvRowHeight = 204.dp
 
 private val CARD_STATES = setOf(
     StatusCode.QUEUED,
@@ -273,10 +284,10 @@ fun TvUpdateHero(
             focusedContentColor = onContainer
         )
     ) {
-        Row(Modifier.padding(horizontal = 24.dp, vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier
-                    .size(52.dp)
+                    .size(44.dp)
                     .clip(M3Theme.shapes.medium)
                     .background(onContainer.copy(alpha = 0.10f)),
                 contentAlignment = Alignment.Center
@@ -284,11 +295,11 @@ fun TvUpdateHero(
                 Icon(
                     imageVector = if (hasUpdates) Icons.Outlined.Refresh else Icons.Outlined.CheckCircle,
                     contentDescription = null,
-                    modifier = Modifier.size(26.dp),
+                    modifier = Modifier.size(22.dp),
                     tint = onContainer
                 )
             }
-            Spacer(Modifier.width(18.dp))
+            Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(
                     stringResource(if (hasUpdates) R.string.home_updates_available else R.string.home_all_up_to_date),
@@ -334,6 +345,8 @@ fun TvPrimaryButton(
     val shape = M3Theme.shapes.extraLarge
     Button(
         onClick = onClick,
+        // As wide as the phone's main button reads: a short word like "Install" made a small pill
+        // that was easy to miss on a wide screen.
         modifier = modifier.tvPointerClick(enabled, onClick),
         enabled = enabled,
         shape = ButtonDefaults.shape(shape),
@@ -346,9 +359,15 @@ fun TvPrimaryButton(
         border = ButtonDefaults.border(focusedBorder = tvFocusBorder(shape).copy(
             border = BorderStroke(3.dp, MaterialTheme.colorScheme.onBackground)
         )),
-        contentPadding = PaddingValues(horizontal = 28.dp, vertical = 12.dp)
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
     ) {
-        ButtonContent(text, icon)
+        Row(
+            Modifier.widthIn(min = 112.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ButtonContent(text, icon)
+        }
     }
 }
 
@@ -375,7 +394,7 @@ fun TvSecondaryButton(
             focusedContentColor = MaterialTheme.colorScheme.onSecondaryContainer
         ),
         border = ButtonDefaults.border(focusedBorder = tvFocusBorder(shape)),
-        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
     ) {
         ButtonContent(text, icon)
     }
@@ -414,7 +433,7 @@ fun TvIconButton(
         )
     ) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(26.dp))
+            Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
         }
     }
 }
@@ -422,8 +441,8 @@ fun TvIconButton(
 @Composable
 private fun ButtonContent(text: String, icon: Painter?) {
     if (icon != null) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(22.dp))
-        Spacer(Modifier.width(10.dp))
+        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(8.dp))
     }
     Text(text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
 }

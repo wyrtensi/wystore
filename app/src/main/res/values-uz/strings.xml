@@ -719,7 +719,7 @@
     <string name="tv_nav_my_apps">Mening ilovalarim</string>
     <string name="tv_row_ready">Oʻrnatishga tayyor va yangilanishlar</string>
     <string name="tv_row_popular">Televizorda mashhur</string>
-    <string name="tv_row_all">Televizor uchun barcha ilovalar</string>
+    <string name="tv_row_other">Boshqalar</string>
     <string name="tv_search_hint">Nomini yozing yoki ayting — natijalar darhol chiqadi</string>
     <string name="tv_search_in_tv">TV katalogda</string>
     <string name="tv_search_in_rustore">Butun RuStore’da</string>

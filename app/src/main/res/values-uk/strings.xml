@@ -719,7 +719,7 @@
     <string name="tv_nav_my_apps">Мої застосунки</string>
     <string name="tv_row_ready">Готово до встановлення та оновлення</string>
     <string name="tv_row_popular">Популярне на ТБ</string>
-    <string name="tv_row_all">Усі застосунки для ТБ</string>
+    <string name="tv_row_other">Інше</string>
     <string name="tv_search_hint">Введіть або промовте назву — результати з’являться одразу</string>
     <string name="tv_search_in_tv">У ТБ-каталозі</string>
     <string name="tv_search_in_rustore">У всьому RuStore</string>

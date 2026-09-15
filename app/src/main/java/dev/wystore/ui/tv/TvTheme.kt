@@ -2,11 +2,7 @@ package dev.wystore.ui.tv
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.TextStyle
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme as TvMaterialTheme
 import androidx.tv.material3.Typography as TvTypography
@@ -54,33 +50,25 @@ fun TvTheme(dark: Boolean, content: @Composable () -> Unit) {
         borderVariant = m3.outlineVariant
     )
     val type = MaterialTheme.typography
-    // The phone's scale, a step larger: read from a sofa, the same roles need more size, but the
-    // weights and tracking that make the app look like itself stay what they are.
+    // The phone's scale as it is. A TV is laid out at 960dp across, so the same sizes already read
+    // from a sofa; enlarging them on top fitted four cards to a row and made every screen look like
+    // a zoomed-in phone.
     val typography = TvTypography(
-        displayLarge = type.displayLarge.larger(),
-        displayMedium = type.displayMedium.larger(),
-        displaySmall = type.displaySmall.larger(),
-        headlineLarge = type.headlineLarge.larger(),
-        headlineMedium = type.headlineMedium.larger(),
-        headlineSmall = type.headlineSmall.larger(),
-        titleLarge = type.titleLarge.larger(),
-        titleMedium = type.titleMedium.larger(),
-        titleSmall = type.titleSmall.larger(),
-        bodyLarge = type.bodyLarge.larger(),
-        bodyMedium = type.bodyMedium.larger(),
-        bodySmall = type.bodySmall.larger(),
-        labelLarge = type.labelLarge.larger(),
-        labelMedium = type.labelMedium.larger(),
-        labelSmall = type.labelSmall.larger()
+        displayLarge = type.displayLarge,
+        displayMedium = type.displayMedium,
+        displaySmall = type.displaySmall,
+        headlineLarge = type.headlineLarge,
+        headlineMedium = type.headlineMedium,
+        headlineSmall = type.headlineSmall,
+        titleLarge = type.titleLarge,
+        titleMedium = type.titleMedium,
+        titleSmall = type.titleSmall,
+        bodyLarge = type.bodyLarge,
+        bodyMedium = type.bodyMedium,
+        bodySmall = type.bodySmall,
+        labelLarge = type.labelLarge,
+        labelMedium = type.labelMedium,
+        labelSmall = type.labelSmall
     )
     TvMaterialTheme(colorScheme = colors, typography = typography, content = content)
 }
-
-private fun TextStyle.larger(): TextStyle = copy(
-    fontSize = fontSize.scaled(),
-    lineHeight = lineHeight.scaled()
-)
-
-private fun TextUnit.scaled(): TextUnit = if (isSp) (value * TV_TYPE_SCALE).sp else if (isEm) value.em else this
-
-private const val TV_TYPE_SCALE = 1.15f

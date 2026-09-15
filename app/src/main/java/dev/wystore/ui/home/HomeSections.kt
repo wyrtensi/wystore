@@ -429,7 +429,7 @@ internal fun CategoryTile(
  * whatever the theme turns out to be.
  */
 @Composable
-private fun categoryTone(index: Int): Pair<Color, Color> {
+internal fun categoryTone(index: Int): Pair<Color, Color> {
     val base = MaterialTheme.colorScheme.primaryContainer
     return remember(base, index) {
         val hsl = FloatArray(3)
@@ -471,7 +471,7 @@ private val LIGHTNESS_STEPS = floatArrayOf(1.0f, 0.88f, 1.06f, 0.94f)
  * that they are recognised.
  */
 @Composable
-private fun CategoryPreviewRow(icons: List<String>, ring: Color) {
+internal fun CategoryPreviewRow(icons: List<String>, ring: Color) {
     Row(
         modifier = Modifier.height(30.dp),
         horizontalArrangement = Arrangement.spacedBy((-8).dp),

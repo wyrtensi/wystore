@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,17 +63,21 @@ fun rememberPackageState(app: StoreApp, packages: TvPackageContext): PackageUiSt
 /** One row of Home: its title when it starts a group, and whether its apps are phone apps. */
 private data class TvHomeRow(
     val key: String,
-    val title: Int?,
+    val title: String?,
     val apps: List<StoreApp>,
-    val forPhone: Boolean
+    val forPhone: Boolean,
+    /** Set on a category's row, which a category tile scrolls to. */
+    val category: String? = null
 )
 
 /**
- * Home on a TV: rows of cards, one screen of choices at a time.
+ * Home on a TV: the update card, the categories as coloured tiles, and rows of cards.
  *
  * Up and down move between rows, left and right within one. Which rows there are follows the
  * catalogue setting: the TV catalogue, the phone one, or the TV one with the phone apps in rows of
- * their own, each card marked so a phone app is not taken for a TV one.
+ * their own, each card marked so a phone app is not taken for a TV one. The TV catalogue is laid
+ * out by category, the way the phone's Home is entered by category, rather than as one long list
+ * cut into rows of twelve.
  */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -87,14 +94,23 @@ fun TvHomeScreen(
     onOpenMyApps: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val rows = remember(catalog.apps, catalog.phoneApps, catalogMode, packages) {
-        buildHomeRows(catalog, catalogMode, packages)
+    val popularTitle = stringResource(R.string.tv_row_popular)
+    val popularPhoneTitle = stringResource(R.string.tv_row_popular_phone)
+    val phoneTitle = stringResource(R.string.tv_row_phone)
+    val readyTitle = stringResource(R.string.tv_row_ready)
+    val otherTitle = stringResource(R.string.tv_row_other)
+    val titles = HomeRowTitles(readyTitle, popularTitle, popularPhoneTitle, phoneTitle, otherTitle)
+    val rows = remember(catalog.apps, catalog.phoneApps, catalogMode, packages, titles) {
+        buildHomeRows(catalog, catalogMode, packages, titles)
     }
+    val categoryRows = remember(rows) { rows.filter { it.category != null } }
     val loading = if (catalogMode == TvCatalog.PHONE) catalog.phoneLoading else catalog.loading
     val empty = rows.isEmpty()
     val hasContent = !empty || !loading
     val restoreFocus = remember { FocusRequester() }
+    val rowFocus = remember(rows) { rows.associate { it.key to FocusRequester() } }
     val shouldTakeFocus by rememberUpdatedState(takeFocus)
+    val scope = rememberCoroutineScope()
     LaunchedEffect(hasContent) {
         if (!hasContent || !shouldTakeFocus) return@LaunchedEffect
         // Back from an app page returns to that app's card when it is still on screen.
@@ -106,6 +122,10 @@ fun TvHomeScreen(
     // Back from inside the screen sends the focus up to the menu; the screen goes back to its top
     // with it, so the menu is not left above a list scrolled halfway down.
     LaunchedEffect(takeFocus) { if (!takeFocus) listState.animateScrollToItem(0) }
+
+    val showCategories = categoryRows.size >= MIN_CATEGORY_TILES
+    // Items before the first row: the update card, and the category rail when it is there.
+    val rowsStart = 1 + if (showCategories) 1 else 0
 
     LazyColumn(
         state = listState,
@@ -122,7 +142,7 @@ fun TvHomeScreen(
             if (catalog.stale) {
                 Text(
                     stringResource(R.string.home_catalog_stale),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
@@ -134,7 +154,7 @@ fun TvHomeScreen(
                 // Home starts here, at the top, and when updates are waiting OK opens them.
                 modifier = Modifier.focusRequester(firstFocus)
             )
-            TvVerticalGap()
+            Spacer(Modifier.height(16.dp))
         }
 
         if (empty) {
@@ -149,16 +169,43 @@ fun TvHomeScreen(
             return@LazyColumn
         }
 
+        if (showCategories) {
+            item(key = "categories") {
+                TvSectionTitle(stringResource(R.string.home_categories_title))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(12.dp)
+                ) {
+                    itemsIndexed(categoryRows, key = { _, row -> row.key }) { index, row ->
+                        TvCategoryTile(
+                            title = row.title.orEmpty(),
+                            accent = index,
+                            previewIcons = row.apps.mapNotNull { it.iconUrl?.takeIf(String::isNotBlank) },
+                            onClick = {
+                                val target = rowsStart + rows.indexOf(row)
+                                scope.launch {
+                                    listState.animateScrollToItem(target)
+                                    runCatching { rowFocus.getValue(row.key).requestFocus() }
+                                }
+                            }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+
         // One card carries the restore requester: the first place the reopened app appears.
         val restoreRow = rows.indexOfFirst { row -> row.apps.any { it.packageName == restoreFocusTo } }
         rows.forEachIndexed { index, row ->
             item(key = row.key) {
-                row.title?.let { TvSectionTitle(stringResource(it)) }
+                row.title?.let { TvSectionTitle(it) }
                 TvAppRow(
                     apps = row.apps,
                     packages = packages,
                     onOpenApp = onOpenApp,
                     forPhone = row.forPhone,
+                    firstCardFocus = rowFocus.getValue(row.key),
                     restore = if (index == restoreRow) restoreFocusTo to restoreFocus else null
                 )
             }
@@ -166,10 +213,19 @@ fun TvHomeScreen(
     }
 }
 
+private data class HomeRowTitles(
+    val ready: String,
+    val popular: String,
+    val popularPhone: String,
+    val phone: String,
+    val other: String
+)
+
 private fun buildHomeRows(
     catalog: TvCatalogUiState,
     mode: TvCatalog,
-    packages: TvPackageContext
+    packages: TvPackageContext,
+    titles: HomeRowTitles
 ): List<TvHomeRow> {
     val tvApps = if (mode == TvCatalog.PHONE) emptyList() else catalog.apps
     val tvPackages = catalog.apps.map { it.packageName }.toSet()
@@ -190,21 +246,29 @@ private fun buildHomeRows(
 
     return buildList {
         if (actionable.isNotEmpty()) {
-            add(TvHomeRow("ready", R.string.tv_row_ready, actionable, forPhone = false))
+            add(TvHomeRow("ready", titles.ready, actionable, forPhone = false))
         }
         if (tvApps.isNotEmpty()) {
-            add(TvHomeRow("tv-popular", R.string.tv_row_popular, tvApps.take(ROW_SIZE), forPhone = false))
+            add(TvHomeRow("tv-popular", titles.popular, tvApps.take(ROW_SIZE), forPhone = false))
         }
         phoneApps.chunked(ROW_SIZE).forEachIndexed { index, chunk ->
             val title = when {
                 index > 0 -> null
-                mode == TvCatalog.PHONE -> R.string.tv_row_popular_phone
-                else -> R.string.tv_row_phone
+                mode == TvCatalog.PHONE -> titles.popularPhone
+                else -> titles.phone
             }
             add(TvHomeRow("phone-$index", title, chunk, forPhone = markPhone))
         }
-        tvApps.drop(ROW_SIZE).chunked(ROW_SIZE).forEachIndexed { index, chunk ->
-            add(TvHomeRow("tv-all-$index", if (index == 0) R.string.tv_row_all else null, chunk, forPhone = false))
+        // The catalogue by category, the largest first. A category of one or two apps is not a
+        // row worth scrolling past; those are gathered at the end.
+        val byCategory = tvApps.groupBy { it.primaryCategory() }
+        val (large, small) = byCategory.entries.partition { (name, apps) -> name != null && apps.size >= MIN_CATEGORY_SIZE }
+        large.sortedByDescending { it.value.size }.forEach { (name, apps) ->
+            add(TvHomeRow("category-$name", name, apps, forPhone = false, category = name))
+        }
+        val rest = small.flatMap { it.value }
+        if (rest.isNotEmpty()) {
+            add(TvHomeRow("category-other", titles.other, rest, forPhone = false, category = OTHER_CATEGORY))
         }
     }
 }
@@ -215,22 +279,21 @@ private fun TvAppRow(
     packages: TvPackageContext,
     onOpenApp: (String) -> Unit,
     forPhone: Boolean,
+    firstCardFocus: FocusRequester,
     restore: Pair<String?, FocusRequester>? = null
 ) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(TvRowHeight),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         // Room for the focused card to grow without being clipped at either end.
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
     ) {
-        items(apps, key = { it.packageName }) { app ->
-            val cardModifier = if (restore != null && restore.first == app.packageName) {
-                Modifier.focusRequester(restore.second)
-            } else {
-                Modifier
-            }
+        itemsIndexed(apps, key = { _, app -> app.packageName }) { index, app ->
+            var cardModifier: Modifier = Modifier
+            if (index == 0) cardModifier = cardModifier.focusRequester(firstCardFocus)
+            if (restore != null && restore.first == app.packageName) cardModifier = cardModifier.focusRequester(restore.second)
             TvAppCard(
                 app = app,
                 state = rememberPackageState(app, packages),
@@ -243,3 +306,6 @@ private fun TvAppRow(
 }
 
 private const val ROW_SIZE = 12
+private const val MIN_CATEGORY_SIZE = 3
+private const val MIN_CATEGORY_TILES = 2
+private const val OTHER_CATEGORY = " other"
