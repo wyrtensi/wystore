@@ -710,4 +710,16 @@
     <string name="wy_category_travel">Подорожі</string>
     <string name="wy_category_health">Здоров\'я та аптеки</string>
     <string name="wy_category_telecom">Зв\'язок</string>
+    <string name="tv_nav_my_apps">Мої застосунки</string>
+    <string name="tv_row_ready">Готово до встановлення та оновлення</string>
+    <string name="tv_row_popular">Популярне на ТБ</string>
+    <string name="tv_row_all">Усі застосунки для ТБ</string>
+    <string name="tv_search_hint">Почніть вводити назву: ТБ-каталог фільтрується на льоту</string>
+    <string name="tv_search_everywhere">Шукати по всьому RuStore</string>
+    <string name="tv_search_in_tv">У ТБ-каталозі</string>
+    <string name="tv_search_in_rustore">У всьому RuStore</string>
+    <string name="tv_my_apps_managed">Застосунки, які оновлює Wy Store</string>
+    <string name="tv_my_apps_empty">Поки порожньо. Тут з’являться застосунки, встановлені через Wy Store.</string>
+    <string name="tv_catalog_empty">ТБ-каталог порожній або не завантажився</string>
+    <string name="tv_search_voice">Голосовий пошук</string>
 </resources>

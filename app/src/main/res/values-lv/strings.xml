@@ -710,4 +710,16 @@
     <string name="wy_category_travel">Ceļojumi</string>
     <string name="wy_category_health">Veselība un aptiekas</string>
     <string name="wy_category_telecom">Mobilie operatori</string>
+    <string name="tv_nav_my_apps">Manas lietotnes</string>
+    <string name="tv_row_ready">Gatavs instalēšanai un atjauninājumi</string>
+    <string name="tv_row_popular">Populāri TV</string>
+    <string name="tv_row_all">Visas TV lietotnes</string>
+    <string name="tv_search_hint">Sāciet rakstīt nosaukumu: TV katalogs tiek filtrēts uzreiz</string>
+    <string name="tv_search_everywhere">Meklēt visā RuStore</string>
+    <string name="tv_search_in_tv">TV katalogā</string>
+    <string name="tv_search_in_rustore">Visā RuStore</string>
+    <string name="tv_my_apps_managed">Lietotnes, kuras atjaunina Wy Store</string>
+    <string name="tv_my_apps_empty">Pagaidām tukšs. Šeit parādīsies lietotnes, kas instalētas ar Wy Store.</string>
+    <string name="tv_catalog_empty">TV katalogs ir tukšs vai netika ielādēts</string>
+    <string name="tv_search_voice">Balss meklēšana</string>
 </resources>

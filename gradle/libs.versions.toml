@@ -24,6 +24,8 @@ okhttp = "4.12.0"
 jsoup = "1.21.2"
 gson = "2.13.2"
 coil = "2.7.0"
+# Deliberately 1.0.x: 1.1.0 requires Compose 1.10 and would upgrade Compose under the phone UI too.
+tvMaterial = "1.0.1"
 junit = "4.13.2"
 
 [libraries]
@@ -59,6 +61,7 @@ mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", versio
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+androidx-tv-material = { group = "androidx.tv", name = "tv-material", version.ref = "tvMaterial" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

@@ -710,4 +710,16 @@
     <string name="wy_category_travel">Travel</string>
     <string name="wy_category_health">Health and pharmacies</string>
     <string name="wy_category_telecom">Mobile operators</string>
+    <string name="tv_nav_my_apps">My apps</string>
+    <string name="tv_row_ready">Ready to install and updates</string>
+    <string name="tv_row_popular">Popular on TV</string>
+    <string name="tv_row_all">All TV apps</string>
+    <string name="tv_search_hint">Type a name: the TV catalogue is filtered as you type</string>
+    <string name="tv_search_everywhere">Search all of RuStore</string>
+    <string name="tv_search_in_tv">In the TV catalogue</string>
+    <string name="tv_search_in_rustore">In all of RuStore</string>
+    <string name="tv_my_apps_managed">Apps Wy Store keeps up to date</string>
+    <string name="tv_my_apps_empty">Nothing here yet. Apps you install through Wy Store will appear here.</string>
+    <string name="tv_catalog_empty">The TV catalogue is empty or could not be loaded</string>
+    <string name="tv_search_voice">Voice search</string>
 </resources>

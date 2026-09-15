@@ -710,4 +710,16 @@
     <string name="wy_category_travel">Путешествия</string>
     <string name="wy_category_health">Здоровье и аптеки</string>
     <string name="wy_category_telecom">Связь</string>
+    <string name="tv_nav_my_apps">Мои приложения</string>
+    <string name="tv_row_ready">Готово к установке и обновления</string>
+    <string name="tv_row_popular">Популярное на ТВ</string>
+    <string name="tv_row_all">Все приложения для ТВ</string>
+    <string name="tv_search_hint">Начните вводить название: ТВ-каталог фильтруется на лету</string>
+    <string name="tv_search_everywhere">Искать по всему RuStore</string>
+    <string name="tv_search_in_tv">В ТВ-каталоге</string>
+    <string name="tv_search_in_rustore">Во всём RuStore</string>
+    <string name="tv_my_apps_managed">Приложения, которые обновляет Wy Store</string>
+    <string name="tv_my_apps_empty">Пока пусто. Здесь появятся приложения, установленные через Wy Store.</string>
+    <string name="tv_catalog_empty">ТВ-каталог пуст или не загрузился</string>
+    <string name="tv_search_voice">Голосовой поиск</string>
 </resources>

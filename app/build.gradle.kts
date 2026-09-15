@@ -90,6 +90,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.tv.material)
     // Navigation and action icons; Material 3 does not bring the icon set transitively.
     implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.navigation.compose)

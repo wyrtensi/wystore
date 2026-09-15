@@ -710,4 +710,16 @@
     <string name="wy_category_travel">Саяхат</string>
     <string name="wy_category_health">Денсаулық және дәріханалар</string>
     <string name="wy_category_telecom">Мобильді операторлар</string>
+    <string name="tv_nav_my_apps">Менің қолданбаларым</string>
+    <string name="tv_row_ready">Орнатуға дайын және жаңартулар</string>
+    <string name="tv_row_popular">Теледидарда танымал</string>
+    <string name="tv_row_all">Теледидарға арналған барлық қолданбалар</string>
+    <string name="tv_search_hint">Атауын тере бастаңыз: ТВ-каталог бірден сүзіледі</string>
+    <string name="tv_search_everywhere">Бүкіл RuStore бойынша іздеу</string>
+    <string name="tv_search_in_tv">ТВ-каталогта</string>
+    <string name="tv_search_in_rustore">Бүкіл RuStore-да</string>
+    <string name="tv_my_apps_managed">Wy Store жаңартатын қолданбалар</string>
+    <string name="tv_my_apps_empty">Әзірге бос. Wy Store арқылы орнатылған қолданбалар осында шығады.</string>
+    <string name="tv_catalog_empty">ТВ-каталог бос немесе жүктелмеді</string>
+    <string name="tv_search_voice">Дауыспен іздеу</string>
 </resources>

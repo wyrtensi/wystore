@@ -710,4 +710,16 @@
     <string name="wy_category_travel">旅行</string>
     <string name="wy_category_health">健康和药品</string>
     <string name="wy_category_telecom">移动运营商</string>
+    <string name="tv_nav_my_apps">我的应用</string>
+    <string name="tv_row_ready">可安装与更新</string>
+    <string name="tv_row_popular">电视热门</string>
+    <string name="tv_row_all">全部电视应用</string>
+    <string name="tv_search_hint">输入名称：电视目录会实时筛选</string>
+    <string name="tv_search_everywhere">在整个 RuStore 中搜索</string>
+    <string name="tv_search_in_tv">在电视目录中</string>
+    <string name="tv_search_in_rustore">在整个 RuStore 中</string>
+    <string name="tv_my_apps_managed">由 Wy Store 保持更新的应用</string>
+    <string name="tv_my_apps_empty">这里还没有内容。通过 Wy Store 安装的应用会显示在这里。</string>
+    <string name="tv_catalog_empty">电视目录为空或加载失败</string>
+    <string name="tv_search_voice">语音搜索</string>
 </resources>

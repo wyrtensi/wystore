@@ -710,4 +710,16 @@
     <string name="wy_category_travel">Sayohat</string>
     <string name="wy_category_health">Sogʻliq va dorixonalar</string>
     <string name="wy_category_telecom">Aloqa operatorlari</string>
+    <string name="tv_nav_my_apps">Mening ilovalarim</string>
+    <string name="tv_row_ready">Oʻrnatishga tayyor va yangilanishlar</string>
+    <string name="tv_row_popular">Televizorda mashhur</string>
+    <string name="tv_row_all">Televizor uchun barcha ilovalar</string>
+    <string name="tv_search_hint">Nomini yoza boshlang: TV katalog darhol saralanadi</string>
+    <string name="tv_search_everywhere">Butun RuStore boʻyicha qidirish</string>
+    <string name="tv_search_in_tv">TV katalogda</string>
+    <string name="tv_search_in_rustore">Butun RuStore’da</string>
+    <string name="tv_my_apps_managed">Wy Store yangilab turadigan ilovalar</string>
+    <string name="tv_my_apps_empty">Hozircha boʻsh. Wy Store orqali oʻrnatilgan ilovalar shu yerda chiqadi.</string>
+    <string name="tv_catalog_empty">TV katalog boʻsh yoki yuklanmadi</string>
+    <string name="tv_search_voice">Ovozli qidiruv</string>
 </resources>
