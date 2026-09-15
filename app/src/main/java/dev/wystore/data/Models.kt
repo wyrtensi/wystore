@@ -169,6 +169,7 @@ data class StoreSettings(
     val rootBackgroundDownloadsEnabled: Boolean = false,
     val rootSilentInstallEnabled: Boolean = false,
     val themeMode: dev.wystore.settings.ThemeMode = dev.wystore.settings.ThemeMode.SYSTEM,
+    val deviceType: dev.wystore.settings.DeviceType = dev.wystore.settings.DeviceType.AUTO,
     val language: dev.wystore.settings.AppLanguage = dev.wystore.settings.AppLanguage.SYSTEM,
     val dynamicColorEnabled: Boolean = true,
     val githubEnabled: Boolean = true,

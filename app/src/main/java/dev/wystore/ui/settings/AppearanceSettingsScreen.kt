@@ -35,6 +35,12 @@ import dev.wystore.ui.components.LocalBottomBarInset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import dev.wystore.settings.ThemeMode
+import dev.wystore.settings.DeviceType
+import dev.wystore.device.DeviceTraits
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,6 +99,13 @@ fun AppearanceSettingsScreen(
 
             HorizontalDivider()
 
+            DeviceTypeSection(
+                selected = settings.deviceType,
+                onSelect = { onUpdateSettings(settings.copy(deviceType = it)) }
+            )
+
+            HorizontalDivider()
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -115,5 +128,52 @@ fun AppearanceSettingsScreen(
                 )
             }
         }
+    }
+}
+
+/**
+ * Auto, phone or TV, with what Auto would pick on this device spelled out: whoever is here because
+ * the detection got their box wrong needs to see that it did.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun DeviceTypeSection(
+    selected: DeviceType,
+    onSelect: (DeviceType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val detectedTv = remember(context) { DeviceTraits.read(context).looksLikeTv }
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.appearance_device_title), style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(R.string.appearance_device_text),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf(
+                DeviceType.AUTO to R.string.appearance_device_auto,
+                DeviceType.PHONE to R.string.appearance_device_phone,
+                DeviceType.TV to R.string.appearance_device_tv
+            ).forEach { (type, label) ->
+                FilterChip(
+                    selected = selected == type,
+                    onClick = { onSelect(type) },
+                    label = { Text(stringResource(label)) }
+                )
+            }
+        }
+        Text(
+            stringResource(
+                if (detectedTv) R.string.appearance_device_detected_tv
+                else R.string.appearance_device_detected_phone
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

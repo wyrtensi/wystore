@@ -28,6 +28,15 @@
          like it rather than on the schedule the settings say. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Android TV: the same APK runs on a TV, so neither a touchscreen nor leanback is required.
+         Both are only declarations; a phone has a touchscreen either way and ignores leanback. -->
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
     <application
         android:name=".WyStoreApplication"
         android:allowBackup="false"
@@ -36,6 +45,7 @@
         android:icon="@mipmap/ic_wy_store"
         android:roundIcon="@mipmap/ic_wy_store"
         android:label="@string/app_name"
+        android:banner="@drawable/tv_banner"
         android:localeConfig="@xml/locales_config"
         android:theme="@style/Theme.WyStore">
         <activity
@@ -44,6 +54,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <!-- Without it a TV launcher does not list the app at all. -->
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
         <provider

@@ -244,7 +244,7 @@
     <string name="settings_hub_permissions_title">Рұқсаттар орталығы</string>
     <string name="settings_hub_permissions_subtitle">Хабарландырулар, APK орнату, фондық белсенділік, Root</string>
     <string name="settings_hub_appearance_title">Сыртқы түрі</string>
-    <string name="settings_hub_appearance_subtitle">Тақырып, Material You динамикалық түстері</string>
+    <string name="settings_hub_appearance_subtitle">Тақырып, құрылғы түрі, Material You динамикалық түстері</string>
     <string name="settings_hub_language_title">Қолданба тілі</string>
     <string name="settings_hub_language_subtitle">Өзіңіз таңдағаны немесе құрылғы сұраған тіл</string>
     <string name="settings_hub_notifications_title">Хабарландырулар</string>
@@ -280,6 +280,13 @@
     <string name="appearance_dynamic_color">Динамикалық түстер (Material You)</string>
     <string name="appearance_dynamic_color_on">Тұсқағаз түстерін пайдалану</string>
     <string name="appearance_dynamic_color_unavailable">Android 12 және жаңасында қолжетімді</string>
+    <string name="appearance_device_title">Құрылғы түрі</string>
+    <string name="appearance_device_auto">Авто</string>
+    <string name="appearance_device_phone">Телефон</string>
+    <string name="appearance_device_tv">Теледидар</string>
+    <string name="appearance_device_detected_tv">Автоматты түрде анықталды: теледидар</string>
+    <string name="appearance_device_detected_phone">Автоматты түрде анықталды: телефон</string>
+    <string name="appearance_device_text">Интерфейсті ауыстырады: телефонда жанасуға, теледидарда пультке арналған. ТВ-приставка телефон ретінде анықталса, қолмен таңдаңыз.</string>
 
     <string name="language_pick">Тілді таңдаңыз</string>
     <string name="language_hint">Тіл бірден өзгереді, құрылғыны қайта қосудың қажеті жоқ.</string>

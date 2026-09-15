@@ -244,7 +244,7 @@
     <string name="settings_hub_permissions_title">Atļauju centrs</string>
     <string name="settings_hub_permissions_subtitle">Paziņojumi, APK instalēšana, fona aktivitāte, Root</string>
     <string name="settings_hub_appearance_title">Izskats</string>
-    <string name="settings_hub_appearance_subtitle">Motīvs, Material You dinamiskās krāsas</string>
+    <string name="settings_hub_appearance_subtitle">Motīvs, ierīces veids, Material You dinamiskās krāsas</string>
     <string name="settings_hub_language_title">Lietotnes valoda</string>
     <string name="settings_hub_language_subtitle">Tā, ko izvēlies, vai tā, ko prasa ierīce</string>
     <string name="settings_hub_notifications_title">Paziņojumi</string>
@@ -280,6 +280,13 @@
     <string name="appearance_dynamic_color">Dinamiskās krāsas (Material You)</string>
     <string name="appearance_dynamic_color_on">Izmantot fona tapetes krāsas</string>
     <string name="appearance_dynamic_color_unavailable">Pieejams Android 12 un jaunākās versijās</string>
+    <string name="appearance_device_title">Ierīces veids</string>
+    <string name="appearance_device_auto">Automātiski</string>
+    <string name="appearance_device_phone">Tālrunis</string>
+    <string name="appearance_device_tv">Televizors</string>
+    <string name="appearance_device_detected_tv">Noteikts automātiski: televizors</string>
+    <string name="appearance_device_detected_phone">Noteikts automātiski: tālrunis</string>
+    <string name="appearance_device_text">Maina saskarni: skārienam tālrunī, pultij televizorā. Izvēlieties manuāli, ja TV priedēklis noteikts kā tālrunis.</string>
 
     <string name="language_pick">Izvēlies valodu</string>
     <string name="language_hint">Valoda mainās uzreiz, ierīce nav jārestartē.</string>

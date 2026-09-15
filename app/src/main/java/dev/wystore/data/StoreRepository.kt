@@ -294,7 +294,9 @@ class StoreRepository(private val context: Context) {
         com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(createBackup())
 
     fun restoreBackup(backup: WyStoreBackup, merge: Boolean = false): BackupRestoreSummary {
-        saveSettings(backup.settings)
+        // The interface choice describes this device, not the one the backup came from: a phone
+        // restoring a TV's backup must not come up in the TV interface.
+        saveSettings(backup.settings.copy(deviceType = settings().deviceType))
         if (backup.ruStoreCompatibility.apiVersionCode > 0L) {
             saveRuStoreCompatibility(
                 backup.ruStoreCompatibility.copy(

@@ -27,6 +27,7 @@ object DiagnosticsSettingsDump {
         "rootBackgroundDownloadsEnabled" to settings.rootBackgroundDownloadsEnabled.toString(),
         "rootSilentInstallEnabled" to settings.rootSilentInstallEnabled.toString(),
         "themeMode" to settings.themeMode.name,
+        "deviceType" to settings.deviceType.name,
         "language" to settings.language.name,
         "dynamicColorEnabled" to settings.dynamicColorEnabled.toString(),
         "githubEnabled" to settings.githubEnabled.toString(),

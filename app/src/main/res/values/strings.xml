@@ -244,7 +244,7 @@
     <string name="settings_hub_permissions_title">Permission center</string>
     <string name="settings_hub_permissions_subtitle">Notifications, APK installation, background activity, Root</string>
     <string name="settings_hub_appearance_title">Appearance</string>
-    <string name="settings_hub_appearance_subtitle">Theme, Material You dynamic colors</string>
+    <string name="settings_hub_appearance_subtitle">Theme, device type, Material You dynamic colors</string>
     <string name="settings_hub_language_title">App language</string>
     <string name="settings_hub_language_subtitle">The one you pick, or the one the device asks for</string>
     <string name="settings_hub_notifications_title">Notifications</string>
@@ -280,6 +280,13 @@
     <string name="appearance_dynamic_color">Dynamic colors (Material You)</string>
     <string name="appearance_dynamic_color_on">Use the colors of your wallpaper</string>
     <string name="appearance_dynamic_color_unavailable">Available on Android 12 and newer</string>
+    <string name="appearance_device_title">Device type</string>
+    <string name="appearance_device_auto">Auto</string>
+    <string name="appearance_device_phone">Phone</string>
+    <string name="appearance_device_tv">TV</string>
+    <string name="appearance_device_detected_tv">Detected automatically: TV</string>
+    <string name="appearance_device_detected_phone">Detected automatically: phone</string>
+    <string name="appearance_device_text">Switches the interface: for touch on a phone, for a remote on a TV. Choose by hand if a TV box was detected as a phone.</string>
 
     <string name="language_pick">Choose a language</string>
     <string name="language_hint">The language changes immediately, no device restart needed.</string>

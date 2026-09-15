@@ -244,7 +244,7 @@
     <string name="settings_hub_permissions_title">Цэнтр дазволаў</string>
     <string name="settings_hub_permissions_subtitle">Апавяшчэнні, усталяванне APK, фонавая актыўнасць, Root</string>
     <string name="settings_hub_appearance_title">Выгляд</string>
-    <string name="settings_hub_appearance_subtitle">Тэма афармлення, дынамічныя колеры Material You</string>
+    <string name="settings_hub_appearance_subtitle">Тэма афармлення, тып прылады, дынамічныя колеры Material You</string>
     <string name="settings_hub_language_title">Мова праграмы</string>
     <string name="settings_hub_language_subtitle">Выбраная або тая, што просіць прылада</string>
     <string name="settings_hub_notifications_title">Апавяшчэнні</string>
@@ -280,6 +280,13 @@
     <string name="appearance_dynamic_color">Дынамічныя колеры (Material You)</string>
     <string name="appearance_dynamic_color_on">Выкарыстоўваць колеры шпалер</string>
     <string name="appearance_dynamic_color_unavailable">Даступна на Android 12 і навейшых</string>
+    <string name="appearance_device_title">Тып прылады</string>
+    <string name="appearance_device_auto">Аўта</string>
+    <string name="appearance_device_phone">Тэлефон</string>
+    <string name="appearance_device_tv">Тэлевізар</string>
+    <string name="appearance_device_detected_tv">Вызначана аўтаматычна: тэлевізар</string>
+    <string name="appearance_device_detected_phone">Вызначана аўтаматычна: тэлефон</string>
+    <string name="appearance_device_text">Мяняе інтэрфейс: для дотыкаў на тэлефоне, для пульта на тэлевізары. Выберыце ўручную, калі ТВ-прыстаўка вызначылася як тэлефон.</string>
 
     <string name="language_pick">Выберыце мову</string>
     <string name="language_hint">Мова зменіцца адразу, перазапускаць прыладу не трэба.</string>

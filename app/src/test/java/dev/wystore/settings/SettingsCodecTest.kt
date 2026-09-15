@@ -23,6 +23,18 @@ class SettingsCodecTest {
         assertEquals(ThemeMode.DARK, SettingsCodec.read(prefs).themeMode)
     }
 
+    @Test
+    fun deviceTypeRoundTripsAndDefaultsToAuto() {
+        val prefs = mutablePreferencesOf()
+        val current = SettingsCodec.read(prefs)
+        assertEquals(DeviceType.AUTO, current.deviceType)
+
+        SettingsCodec.write(prefs, current, current.copy(deviceType = DeviceType.TV))
+
+        assertEquals(setOf(SettingsCodec.KEY_DEVICE_TYPE), prefs.asMap().keys)
+        assertEquals(DeviceType.TV, SettingsCodec.read(prefs).deviceType)
+    }
+
     /**
      * An untouched switch has no opinion stored, so a default changed in a later version reaches a
      * phone that already has the app - without anything overwriting settings on its owner's behalf.

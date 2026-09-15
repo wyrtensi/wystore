@@ -34,6 +34,7 @@ internal object SettingsCodec {
     val KEY_QUEUE_MODE = stringPreferencesKey("queue_mode")
     val KEY_SEARCH_SOURCES = stringPreferencesKey("search_sources")
     val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
+    val KEY_DEVICE_TYPE = stringPreferencesKey("device_type")
     val KEY_LANGUAGE = stringPreferencesKey("language")
     val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
     val KEY_GITHUB_ENABLED = booleanPreferencesKey("github_enabled")
@@ -77,6 +78,9 @@ internal object SettingsCodec {
             themeMode = prefs[KEY_THEME_MODE]?.let { raw ->
                 runCatching { ThemeMode.valueOf(raw) }.getOrNull()
             } ?: defaults.themeMode,
+            deviceType = prefs[KEY_DEVICE_TYPE]?.let { raw ->
+                runCatching { DeviceType.valueOf(raw) }.getOrNull()
+            } ?: defaults.deviceType,
             language = prefs[KEY_LANGUAGE]?.let { raw ->
                 runCatching { AppLanguage.valueOf(raw) }.getOrNull()
             } ?: defaults.language,
@@ -130,6 +134,7 @@ internal object SettingsCodec {
         prefs.put(KEY_UPDATE_INTERVAL_HOURS, updated.updateIntervalHours, current.updateIntervalHours)
         prefs.put(KEY_QUEUE_MODE, updated.queueMode.name, current.queueMode.name)
         prefs.put(KEY_THEME_MODE, updated.themeMode.name, current.themeMode.name)
+        prefs.put(KEY_DEVICE_TYPE, updated.deviceType.name, current.deviceType.name)
         prefs.put(KEY_LANGUAGE, updated.language.name, current.language.name)
         prefs.put(KEY_DYNAMIC_COLOR, updated.dynamicColorEnabled, current.dynamicColorEnabled)
         prefs.put(KEY_GITHUB_ENABLED, updated.githubEnabled, current.githubEnabled)

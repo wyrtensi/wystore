@@ -5,6 +5,9 @@ import dev.wystore.updates.model.QueueMode
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+/** Which interface to show: decided from the device, or forced either way by the user. */
+enum class DeviceType { AUTO, PHONE, TV }
+
 /**
  * The languages the interface ships in.
  *
@@ -36,6 +39,7 @@ data class AppSettings(
     val updateIntervalHours: Long = 24,
     val queueMode: QueueMode = QueueMode.SMART_PROMPTS,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val deviceType: DeviceType = DeviceType.AUTO,
     val language: AppLanguage = AppLanguage.SYSTEM,
     val dynamicColorEnabled: Boolean = true,
     val githubEnabled: Boolean = true,
@@ -86,6 +90,7 @@ fun AppSettings.toStoreSettings(): StoreSettings = StoreSettings(
     rootBackgroundDownloadsEnabled = rootBackgroundDownloadsEnabled,
     rootSilentInstallEnabled = rootSilentInstallEnabled,
     themeMode = themeMode,
+    deviceType = deviceType,
     language = language,
     dynamicColorEnabled = dynamicColorEnabled,
     githubEnabled = githubEnabled,
@@ -117,6 +122,7 @@ fun StoreSettings.toAppSettings(): AppSettings = AppSettings(
     updateIntervalHours = updateIntervalHours,
     queueMode = queueMode,
     themeMode = themeMode,
+    deviceType = deviceType,
     language = language,
     dynamicColorEnabled = dynamicColorEnabled,
     githubEnabled = githubEnabled,

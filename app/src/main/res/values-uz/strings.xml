@@ -244,7 +244,7 @@
     <string name="settings_hub_permissions_title">Ruxsatlar markazi</string>
     <string name="settings_hub_permissions_subtitle">Bildirishnomalar, APK oʻrnatish, fon faoliyati, Root</string>
     <string name="settings_hub_appearance_title">Tashqi koʻrinish</string>
-    <string name="settings_hub_appearance_subtitle">Mavzu, Material You dinamik ranglari</string>
+    <string name="settings_hub_appearance_subtitle">Mavzu, qurilma turi, Material You dinamik ranglari</string>
     <string name="settings_hub_language_title">Ilova tili</string>
     <string name="settings_hub_language_subtitle">Siz tanlagani yoki qurilma soʻragani</string>
     <string name="settings_hub_notifications_title">Bildirishnomalar</string>
@@ -280,6 +280,13 @@
     <string name="appearance_dynamic_color">Dinamik ranglar (Material You)</string>
     <string name="appearance_dynamic_color_on">Fon rasmingiz ranglaridan foydalanish</string>
     <string name="appearance_dynamic_color_unavailable">Android 12 va undan yangi versiyalarda mavjud</string>
+    <string name="appearance_device_title">Qurilma turi</string>
+    <string name="appearance_device_auto">Avto</string>
+    <string name="appearance_device_phone">Telefon</string>
+    <string name="appearance_device_tv">Televizor</string>
+    <string name="appearance_device_detected_tv">Avtomatik aniqlandi: televizor</string>
+    <string name="appearance_device_detected_phone">Avtomatik aniqlandi: telefon</string>
+    <string name="appearance_device_text">Interfeysni almashtiradi: telefonda teginish uchun, televizorda pult uchun. TV pristavka telefon deb aniqlangan boʻlsa, qoʻlda tanlang.</string>
 
     <string name="language_pick">Tilni tanlang</string>
     <string name="language_hint">Til darhol oʻzgaradi, qurilmani qayta ishga tushirish shart emas.</string>

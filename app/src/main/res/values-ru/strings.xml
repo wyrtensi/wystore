@@ -244,7 +244,7 @@
     <string name="settings_hub_permissions_title">Центр разрешений</string>
     <string name="settings_hub_permissions_subtitle">Уведомления, установка APK, фоновая активность, Root</string>
     <string name="settings_hub_appearance_title">Внешний вид</string>
-    <string name="settings_hub_appearance_subtitle">Тема оформления, динамические цвета Material You</string>
+    <string name="settings_hub_appearance_subtitle">Тема оформления, тип устройства, динамические цвета Material You</string>
     <string name="settings_hub_language_title">Язык приложения</string>
     <string name="settings_hub_language_subtitle">Выбранный или тот, что просит устройство</string>
     <string name="settings_hub_notifications_title">Уведомления</string>
@@ -280,6 +280,13 @@
     <string name="appearance_dynamic_color">Динамические цвета (Material You)</string>
     <string name="appearance_dynamic_color_on">Использовать цвета обоев рабочего стола</string>
     <string name="appearance_dynamic_color_unavailable">Доступно на Android 12 и новее</string>
+    <string name="appearance_device_title">Тип устройства</string>
+    <string name="appearance_device_auto">Авто</string>
+    <string name="appearance_device_phone">Телефон</string>
+    <string name="appearance_device_tv">Телевизор</string>
+    <string name="appearance_device_detected_tv">Определено автоматически: телевизор</string>
+    <string name="appearance_device_detected_phone">Определено автоматически: телефон</string>
+    <string name="appearance_device_text">Меняет интерфейс: для касаний на телефоне, для пульта на телевизоре. Выберите вручную, если ТВ-приставка определилась как телефон.</string>
 
     <string name="language_pick">Выберите язык</string>
     <string name="language_hint">Язык изменится сразу без перезапуска устройства.</string>

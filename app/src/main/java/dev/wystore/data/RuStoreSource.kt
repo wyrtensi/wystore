@@ -24,6 +24,15 @@ class RuStoreSource(context: Context) : StoreSource {
     // session per ViewModel and per worker that happens to construct a source.
     private val client = HttpClients.ruStore(context)
     private val apiClient = RuStoreApiClient(client)
+    private val deviceTraits by lazy { dev.wystore.device.DeviceTraits.read(appContext) }
+
+    /**
+     * Read per request rather than once: the source is a process-wide singleton, and a change of
+     * the device type in Settings has to reach the next request, not the next launch.
+     */
+    private fun catalogues(): List<RuStoreCatalogPolicy.Catalog> = RuStoreCatalogPolicy.catalogues(
+        dev.wystore.device.DeviceProfilePolicy.resolve(repository.settings().deviceType, deviceTraits)
+    )
 
     companion object {
         @Volatile
@@ -82,7 +91,7 @@ class RuStoreSource(context: Context) : StoreSource {
                 Build.SUPPORTED_ABIS.forEach { add(it) }
             })
         }
-        val root = apiClient.execute { versionCode ->
+        val root = apiClient.execute(catalogues()) { versionCode ->
             Request.Builder()
                 .url("https://backapi.rustore.ru/applicationData/v2/download-link")
                 .header("Content-Type", "application/json; charset=utf-8")
@@ -90,7 +99,6 @@ class RuStoreSource(context: Context) : StoreSource {
                 .header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}")
                 .header("ruStoreVerCode", versionCode.toString())
                 .post(payload.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
-                .build()
         }.use { response ->
             if (!response.isSuccessful) throw SourceFormatException(SourceError.RUSTORE_NO_DOWNLOAD_LINK, "download-link HTTP ${response.code}")
             parseObject(response.body?.string() ?: throw SourceFormatException(SourceError.RUSTORE_EMPTY_RESPONSE, "Empty response body"))
@@ -137,13 +145,12 @@ class RuStoreSource(context: Context) : StoreSource {
     private fun getText(url: String): String {
         val isApi = java.net.URI(url).host == "backapi.rustore.ru"
         val response = if (isApi) {
-            apiClient.execute { versionCode ->
+            apiClient.execute(catalogues()) { versionCode ->
                 Request.Builder()
                     .url(url)
                     .header("Accept", "application/json")
                     .header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}")
                     .header("ruStoreVerCode", versionCode.toString())
-                    .build()
             }
         } else {
             client.newCall(Request.Builder().url(url).header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}").build()).execute()

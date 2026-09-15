@@ -244,7 +244,7 @@
     <string name="settings_hub_permissions_title">权限中心</string>
     <string name="settings_hub_permissions_subtitle">通知、APK 安装、后台活动、Root</string>
     <string name="settings_hub_appearance_title">外观</string>
-    <string name="settings_hub_appearance_subtitle">主题、Material You 动态取色</string>
+    <string name="settings_hub_appearance_subtitle">主题、设备类型、Material You 动态取色</string>
     <string name="settings_hub_language_title">应用语言</string>
     <string name="settings_hub_language_subtitle">您选择的，或设备要求的那一种</string>
     <string name="settings_hub_notifications_title">通知</string>
@@ -280,6 +280,13 @@
     <string name="appearance_dynamic_color">动态取色（Material You）</string>
     <string name="appearance_dynamic_color_on">使用壁纸的配色</string>
     <string name="appearance_dynamic_color_unavailable">需要 Android 12 及以上</string>
+    <string name="appearance_device_title">设备类型</string>
+    <string name="appearance_device_auto">自动</string>
+    <string name="appearance_device_phone">手机</string>
+    <string name="appearance_device_tv">电视</string>
+    <string name="appearance_device_detected_tv">自动识别：电视</string>
+    <string name="appearance_device_detected_phone">自动识别：手机</string>
+    <string name="appearance_device_text">切换界面：手机上用触摸，电视上用遥控器。如果电视盒子被识别为手机，请手动选择。</string>
 
     <string name="language_pick">选择语言</string>
     <string name="language_hint">语言立即生效，无需重启设备。</string>

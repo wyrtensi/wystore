@@ -244,7 +244,7 @@
     <string name="settings_hub_permissions_title">Центр дозволів</string>
     <string name="settings_hub_permissions_subtitle">Сповіщення, встановлення APK, фонова активність, Root</string>
     <string name="settings_hub_appearance_title">Зовнішній вигляд</string>
-    <string name="settings_hub_appearance_subtitle">Тема оформлення, динамічні кольори Material You</string>
+    <string name="settings_hub_appearance_subtitle">Тема оформлення, тип пристрою, динамічні кольори Material You</string>
     <string name="settings_hub_language_title">Мова застосунку</string>
     <string name="settings_hub_language_subtitle">Обрана або та, яку просить пристрій</string>
     <string name="settings_hub_notifications_title">Сповіщення</string>
@@ -280,6 +280,13 @@
     <string name="appearance_dynamic_color">Динамічні кольори (Material You)</string>
     <string name="appearance_dynamic_color_on">Використовувати кольори шпалер</string>
     <string name="appearance_dynamic_color_unavailable">Доступно на Android 12 і новіших</string>
+    <string name="appearance_device_title">Тип пристрою</string>
+    <string name="appearance_device_auto">Авто</string>
+    <string name="appearance_device_phone">Телефон</string>
+    <string name="appearance_device_tv">Телевізор</string>
+    <string name="appearance_device_detected_tv">Визначено автоматично: телевізор</string>
+    <string name="appearance_device_detected_phone">Визначено автоматично: телефон</string>
+    <string name="appearance_device_text">Змінює інтерфейс: для дотиків на телефоні, для пульта на телевізорі. Оберіть вручну, якщо ТВ-приставку визначено як телефон.</string>
 
     <string name="language_pick">Виберіть мову</string>
     <string name="language_hint">Мова зміниться одразу, без перезапуску пристрою.</string>

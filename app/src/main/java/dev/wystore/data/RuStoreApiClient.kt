@@ -14,11 +14,27 @@ import okhttp3.Response
  */
 class RuStoreApiClient(private val client: OkHttpClient) {
 
-    fun execute(request: (Long) -> Request): Response =
-        RuStoreApiCompatibilityPolicy.execute(
-            candidates = RuStoreApiCompatibilityPolicy.candidates(),
-            request = { versionCode -> client.newCall(request(versionCode)).execute() },
-            statusCode = { it.code },
-            discard = Response::close
-        ).value
+    /**
+     * [request] builds the call for one version code; the catalogue header is added here, per
+     * [RuStoreCatalogPolicy], so no call site can forget it or send it from a phone.
+     */
+    fun execute(
+        catalogues: List<RuStoreCatalogPolicy.Catalog> = listOf(RuStoreCatalogPolicy.Catalog.PHONE),
+        request: (Long) -> Request.Builder
+    ): Response = RuStoreCatalogPolicy.execute(
+        catalogues = catalogues,
+        request = { catalog ->
+            RuStoreApiCompatibilityPolicy.execute(
+                candidates = RuStoreApiCompatibilityPolicy.candidates(),
+                request = { versionCode ->
+                    val call = with(RuStoreCatalogPolicy) { request(versionCode).forCatalog(catalog) }
+                    client.newCall(call.build()).execute()
+                },
+                statusCode = { it.code },
+                discard = Response::close
+            ).value
+        },
+        statusCode = { it.code },
+        discard = Response::close
+    )
 }
