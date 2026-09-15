@@ -107,3 +107,65 @@ val DarkColorScheme = darkColorScheme(
     outlineVariant = Color(0xFF3F484A),
     scrim = Color(0xFF000000)
 )
+
+/**
+ * The palette a TV falls back to: the brand's cyan kept for what it marks - the focus, the main
+ * button - over a neutral grey ramp instead of the teal-tinted one.
+ *
+ * A phone rarely sees its fallback: from Android 12 it takes its colours from the system, which are
+ * neutral. A TV almost always does, and on a whole screen of surfaces the teal tint of the fallback
+ * ramp stops being a hint of colour and reads as a sickly green cast over everything.
+ */
+val TvDarkColorScheme = DarkColorScheme.copy(
+    secondary = Color(0xFFC0C7CC),
+    onSecondary = Color(0xFF2A3136),
+    secondaryContainer = Color(0xFF353A3F),
+    onSecondaryContainer = Color(0xFFDDE3E8),
+
+    background = Color(0xFF111315),
+    onBackground = Color(0xFFE2E2E5),
+    surface = Color(0xFF111315),
+    onSurface = Color(0xFFE2E2E5),
+    surfaceVariant = Color(0xFF44474A),
+    onSurfaceVariant = Color(0xFFC4C6C9),
+
+    surfaceDim = Color(0xFF111315),
+    surfaceBright = Color(0xFF37393C),
+    surfaceContainerLowest = Color(0xFF0B0C0E),
+    surfaceContainerLow = Color(0xFF1A1C1F),
+    surfaceContainer = Color(0xFF1E2124),
+    surfaceContainerHigh = Color(0xFF282B2E),
+    surfaceContainerHighest = Color(0xFF333539),
+
+    inverseSurface = Color(0xFFE2E2E5),
+    inverseOnSurface = Color(0xFF2E3033),
+    outline = Color(0xFF8E9194),
+    outlineVariant = Color(0xFF44474A)
+)
+
+val TvLightColorScheme = LightColorScheme.copy(
+    secondary = Color(0xFF50585E),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFDDE3E8),
+    onSecondaryContainer = Color(0xFF151D22),
+
+    background = Color(0xFFF8F9FA),
+    onBackground = Color(0xFF1A1C1E),
+    surface = Color(0xFFF8F9FA),
+    onSurface = Color(0xFF1A1C1E),
+    surfaceVariant = Color(0xFFDFE2E5),
+    onSurfaceVariant = Color(0xFF43474A),
+
+    surfaceDim = Color(0xFFD8DADC),
+    surfaceBright = Color(0xFFF8F9FA),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFEFF1F3),
+    surfaceContainer = Color(0xFFE9EBED),
+    surfaceContainerHigh = Color(0xFFE2E4E6),
+    surfaceContainerHighest = Color(0xFFDBDDE0),
+
+    inverseSurface = Color(0xFF2E3033),
+    inverseOnSurface = Color(0xFFF0F0F3),
+    outline = Color(0xFF73777A),
+    outlineVariant = Color(0xFFC3C7CA)
+)

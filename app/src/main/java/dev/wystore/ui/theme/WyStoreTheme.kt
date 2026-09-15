@@ -12,6 +12,8 @@ import dev.wystore.settings.AppSettings
 @Composable
 fun WyStoreTheme(
     settings: AppSettings,
+    /** The TV interface: its fallback palette is the neutral one, see [TvDarkColorScheme]. */
+    tv: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
@@ -25,6 +27,8 @@ fun WyStoreTheme(
     val colorScheme = when {
         useDynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isDark -> dynamicDarkColorScheme(context)
         useDynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isDark -> dynamicLightColorScheme(context)
+        tv && isDark -> TvDarkColorScheme
+        tv -> TvLightColorScheme
         isDark -> DarkColorScheme
         else -> LightColorScheme
     }.withSeparatedSurfaces()

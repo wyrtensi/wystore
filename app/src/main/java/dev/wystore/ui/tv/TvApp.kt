@@ -165,7 +165,7 @@ fun TvApp(
     val tvSettings = state.settings.toAppSettings().let { settings ->
         if (settings.themeMode == ThemeMode.SYSTEM) settings.copy(themeMode = ThemeMode.DARK) else settings
     }
-    WyStoreTheme(settings = tvSettings) {
+    WyStoreTheme(settings = tvSettings, tv = true) {
     TvTheme(dark = ThemePolicy.isDark(tvSettings.themeMode, isSystemInDarkTheme())) {
         SharedRootDialogs(
             viewModel = viewModel,
