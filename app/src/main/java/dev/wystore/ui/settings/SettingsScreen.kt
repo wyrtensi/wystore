@@ -365,17 +365,18 @@ fun SettingsScreen(
                     onSave(editedSettings)
                 }
 
+                // The root switches turn on only with root, but one already on stays reachable, so
+                // it can be switched off before su has answered or after root is gone.
                 CompactSettingSwitch(
                     stringResource(R.string.settings_silent_root_install),
                     editedSettings.backgroundRootUpdates,
-                    enabled = rootAvailable == true
+                    enabled = rootAvailable == true || editedSettings.backgroundRootUpdates
                 ) {
                     editedSettings = editedSettings.copy(backgroundRootUpdates = it, rootSilentInstallEnabled = it)
                     onSave(editedSettings)
                 }
 
-                // Asks nothing before removing, so it is off until chosen. Left reachable while on,
-                // so it can be switched off before su has answered after a restart.
+                // Asks nothing before removing, so it is off until chosen.
                 CompactSettingSwitch(
                     stringResource(R.string.settings_silent_root_uninstall),
                     editedSettings.rootSilentUninstallEnabled,
@@ -389,7 +390,7 @@ fun SettingsScreen(
                 CompactSettingSwitch(
                     stringResource(R.string.settings_root_background_downloads),
                     editedSettings.rootBackgroundDownloadsEnabled,
-                    enabled = rootAvailable == true
+                    enabled = rootAvailable == true || editedSettings.rootBackgroundDownloadsEnabled
                 ) {
                     editedSettings = editedSettings.copy(rootBackgroundDownloadsEnabled = it)
                     onSave(editedSettings)

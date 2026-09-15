@@ -33,6 +33,7 @@ import dev.wystore.data.MeteredDownloadPolicy
 import dev.wystore.data.isActiveNetworkMetered
 import dev.wystore.data.PendingUpdate
 import dev.wystore.root.RootInstaller
+import dev.wystore.root.RootSettingsGuard
 import dev.wystore.updates.UpdateScheduler
 import dev.wystore.updates.ManualInstallScheduler
 import dev.wystore.updates.GitHubInstallScheduler
@@ -628,15 +629,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun checkRoot() = viewModelScope.launch {
-        val available = installer.isAvailable()
-        if (!available && repository.settings().backgroundRootUpdates) {
-            val settings = repository.settings().copy(backgroundRootUpdates = false)
-            repository.saveSettings(settings)
-            UpdateScheduler.schedule(getApplication(), settings)
-            _state.value = _state.value.copy(rootAvailable = false, settings = settings)
-        } else {
-            _state.value = _state.value.copy(rootAvailable = available)
-        }
+        // Only reports. The root switches are left as the user set them: every root path asks su
+        // again before acting and falls back to Android's dialog, see [RootSettingsGuard].
+        _state.value = _state.value.copy(rootAvailable = installer.isAvailable())
     }
 
     /**
@@ -757,10 +752,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun saveSettings(settings: StoreSettings) {
-        val effective = settings.copy(
-            backgroundRootUpdates = settings.backgroundRootUpdates && _state.value.rootAvailable == true,
-            rootSilentInstallEnabled = settings.rootSilentInstallEnabled && _state.value.rootAvailable == true
-        )
+        val effective = RootSettingsGuard.apply(settings, repository.settings(), _state.value.rootAvailable)
         repository.saveSettings(effective)
         // The yes was given about one setting; changing it makes the yes meaningless either way.
         MeteredDownloadConsent.forget()
