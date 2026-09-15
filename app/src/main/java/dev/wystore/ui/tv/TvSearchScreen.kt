@@ -48,6 +48,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import dev.wystore.R
 import dev.wystore.data.StoreApp
+import dev.wystore.data.GitHubCatalogEntry
 
 /**
  * Search on a TV shows results as the user types or speaks.
@@ -74,6 +75,9 @@ fun TvSearchScreen(
     takeFocus: Boolean,
     onSearchRustore: (String) -> Unit,
     onOpenApp: (String) -> Unit,
+    /** GitHub projects matching the query, found locally; empty when GitHub is switched off. */
+    githubResults: List<GitHubCatalogEntry>,
+    onOpenGitHub: (GitHubCatalogEntry) -> Unit,
     modifier: Modifier = Modifier,
     /** Set when the remote's search or voice key brought the user here: listen straight away. */
     startVoice: Boolean = false,
@@ -240,6 +244,25 @@ fun TvSearchScreen(
                     else -> Text(stringResource(R.string.search_empty_title), style = MaterialTheme.typography.bodyLarge)
                 }
             }
+        }
+        if (trimmed.isNotEmpty() && githubResults.isNotEmpty()) {
+            item(key = "github") {
+                TvSectionTitle(stringResource(R.string.search_sources_github))
+                TvGitHubResultRow(githubResults, onOpenGitHub)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TvGitHubResultRow(entries: List<GitHubCatalogEntry>, onOpenGitHub: (GitHubCatalogEntry) -> Unit) {
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().height(TvRowHeight),
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        contentPadding = PaddingValues(12.dp)
+    ) {
+        items(entries, key = { it.slug }) { entry ->
+            TvGitHubCard(entry = entry, onClick = { onOpenGitHub(entry) })
         }
     }
 }

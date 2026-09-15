@@ -437,9 +437,16 @@ private fun JsonObject.int(name: String): Int? = get(name)?.takeUnless { it.isJs
     runCatching { value.asInt }.getOrNull()
 }
 
+/**
+ * The file types that are screenshots. Asked for the TV catalogue, the source labels them
+ * `TV_SCREENSHOT` and sends no `SCREENSHOT` at all, so every TV app page came without them; the
+ * phone catalogue never sends the TV type, so a phone page is unchanged.
+ */
+private val SCREENSHOT_TYPES = setOf("SCREENSHOT", "TV_SCREENSHOT")
+
 internal fun JsonObject.toStoreApp(): StoreApp {
     val files = getAsJsonArray("fileUrls")?.mapNotNull { element ->
-        element.asJsonObject.takeIf { it.string("type") == "SCREENSHOT" }?.string("fileUrl")?.takeIf { RustoreUrlPolicy.isTrustedMedia(it) }
+        element.asJsonObject.takeIf { it.string("type") in SCREENSHOT_TYPES }?.string("fileUrl")?.takeIf { RustoreUrlPolicy.isTrustedMedia(it) }
     }.orEmpty()
     val ratingObject = getAsJsonObject("rating")
     val minSdkVersion = int("minSdkVersion")

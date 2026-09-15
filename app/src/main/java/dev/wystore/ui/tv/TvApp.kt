@@ -62,6 +62,10 @@ import androidx.tv.material3.Text
 import dev.wystore.R
 import dev.wystore.StoreViewModel
 import dev.wystore.data.ManagedSource
+import dev.wystore.data.GitHubAsset
+import androidx.compose.foundation.lazy.rememberLazyListState
+import dev.wystore.data.GitHubCatalog
+import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.PackageUiStateReducer
 import dev.wystore.ui.components.launchUninstall
@@ -118,6 +122,22 @@ fun TvApp(
         viewModel.openDetails(packageName)
     }
     val catalogMode = state.settings.tvCatalog
+    // The GitHub catalogue on a TV as on a phone, and gone from both when switched off in the
+    // source settings.
+    val githubEnabled = state.settings.githubEnabled
+    val githubEntries = remember(githubEnabled, state.githubRepositories) {
+        if (githubEnabled) GitHubCatalog.entries(state.githubRepositories) else emptyList()
+    }
+    val githubResults = remember(githubEnabled, searchQuery, state.githubRepositories) {
+        if (githubEnabled) GitHubCatalog.search(searchQuery, state.githubRepositories) else emptyList()
+    }
+    var githubInstallDialog by remember { mutableStateOf<GitHubAsset?>(null) }
+    val openGitHub: (GitHubCatalogEntry) -> Unit = { entry ->
+        lastOpened = entry.tvKey()
+        viewModel.openGitHubApp(entry)
+    }
+    val githubPage = state.githubApp.entry
+    val homeListState = rememberLazyListState()
     LaunchedEffect(catalogMode) {
         if (catalogMode != TvCatalog.TV) catalogViewModel.requirePhoneCatalog()
     }
@@ -167,10 +187,12 @@ fun TvApp(
             }
         }
 
-        BackHandler(enabled = selected != null) { viewModel.clearDetails() }
+        BackHandler(enabled = selected != null || githubPage != null) {
+            if (githubPage != null) viewModel.closeGitHubApp() else viewModel.clearDetails()
+        }
         // Registered after the app page's handler would be, but that page replaces the menu, so
         // the two are never enabled together. A settings page keeps its own, registered later.
-        BackHandler(enabled = selected == null && (!tabsFocused || destination != TvDestination.HOME)) {
+        BackHandler(enabled = selected == null && githubPage == null && (!tabsFocused || destination != TvDestination.HOME)) {
             if (!tabsFocused) {
                 runCatching { selectedTabFocus.requestFocus() }
             } else {
@@ -202,12 +224,28 @@ fun TvApp(
                     val isSearchKey = event.key == Key.Search || event.key == Key.VoiceAssist
                     if (!isSearchKey || event.type != KeyEventType.KeyUp) return@onPreviewKeyEvent isSearchKey
                     viewModel.clearDetails()
+                    viewModel.closeGitHubApp()
                     destination = TvDestination.SEARCH
                     voiceRequested = true
                     true
                 }
         ) {
-            if (selected != null) {
+            if (githubPage != null) {
+                TvGitHubAppScreen(
+                    state = state.githubApp,
+                    // Recognised as the phone page recognises it: through the record of what Wy Store
+                    // installed, or by the package a curated entry states.
+                    installedApp = state.installed.firstOrNull { installed ->
+                        state.managed.any { managed ->
+                            managed.githubRepository == githubPage.repository && managed.packageName == installed.packageName
+                        } || githubPage.packageName == installed.packageName
+                    },
+                    onInstallAsset = { githubInstallDialog = it },
+                    onOpenInstalled = viewModel::launchInstalledApp,
+                    onUninstall = { launchUninstall(context, it) },
+                    onRetry = viewModel::retryGitHubApp
+                )
+            } else if (selected != null) {
                 TvDetailsScreen(
                     app = selected,
                     state = PackageUiStateReducer.reduce(
@@ -290,7 +328,10 @@ fun TvApp(
                                 restoreFocusTo = lastOpened,
                                 onOpenApp = openApp,
                                 onRetry = catalogViewModel::retry,
-                                onOpenMyApps = { destination = TvDestination.MY_APPS }
+                                onOpenMyApps = { destination = TvDestination.MY_APPS },
+                                githubEntries = githubEntries,
+                                onOpenGitHub = openGitHub,
+                                listState = homeListState
                             )
                             TvDestination.SEARCH -> TvSearchScreen(
                                 query = searchQuery,
@@ -305,6 +346,8 @@ fun TvApp(
                                 takeFocus = takeFocus,
                                 onSearchRustore = viewModel::search,
                                 onOpenApp = openApp,
+                                githubResults = githubResults,
+                                onOpenGitHub = openGitHub,
                                 startVoice = voiceRequested,
                                 onVoiceStarted = { voiceRequested = false }
                             )
@@ -320,8 +363,22 @@ fun TvApp(
                                 onCancel = viewModel::queueCancel,
                                 onOpenManaged = { app ->
                                     lastOpened = app.packageName
-                                    if (app.source == ManagedSource.GITHUB) viewModel.openManagedGitHubRepository(app)
-                                    else viewModel.openDetails(app.packageName)
+                                    val repository = app.githubRepository
+                                    if (app.source == ManagedSource.GITHUB && repository != null) {
+                                        // The GitHub page, as from Home: a repository added by hand
+                                        // has no catalogue entry, so one is made from the record.
+                                        viewModel.openGitHubApp(
+                                            GitHubCatalog.entries(state.githubRepositories).firstOrNull { it.repository == repository }
+                                                ?: GitHubCatalogEntry(
+                                                    repository = repository,
+                                                    title = app.label.ifBlank { repository.name },
+                                                    publisher = repository.owner,
+                                                    summary = ""
+                                                )
+                                        )
+                                    } else {
+                                        viewModel.openDetails(app.packageName)
+                                    }
                                 }
                             )
                             // The phone's settings, as they are: every option stays reachable on a
@@ -350,6 +407,25 @@ fun TvApp(
 
             message?.let {
                 TvMessageBanner(it, Modifier.align(Alignment.BottomCenter))
+            }
+
+            githubInstallDialog?.let { asset ->
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { githubInstallDialog = null },
+                    title = { androidx.compose.material3.Text(stringResource(R.string.dialog_github_install_title)) },
+                    text = { androidx.compose.material3.Text(stringResource(R.string.dialog_github_install_text, asset.name)) },
+                    confirmButton = {
+                        androidx.compose.material3.TextButton(onClick = {
+                            githubInstallDialog = null
+                            viewModel.installGitHubAsset(asset)
+                        }) { androidx.compose.material3.Text(stringResource(R.string.common_install)) }
+                    },
+                    dismissButton = {
+                        androidx.compose.material3.TextButton(onClick = { githubInstallDialog = null }) {
+                            androidx.compose.material3.Text(stringResource(R.string.common_cancel))
+                        }
+                    }
+                )
             }
         }
         }

@@ -28,6 +28,30 @@ class RuStoreAppCompatibilityTest {
     }
 
     @Test
+    fun keepsTheScreenshotsTheTvCatalogueSends() {
+        val body = JsonParser.parseString(
+            """
+            {
+              "appId": 1,
+              "packageName": "com.finetv.app",
+              "fileUrls": [
+                { "type": "TV_SCREENSHOT", "fileUrl": "https://static.rustore.ru/tv1.jpg" },
+                { "type": "SCREENSHOT", "fileUrl": "https://static.rustore.ru/phone1.jpg" },
+                { "type": "TABLET_SCREENSHOT", "fileUrl": "https://static.rustore.ru/tablet1.jpg" }
+              ]
+            }
+            """.trimIndent()
+        ).asJsonObject
+
+        val app = body.toStoreApp()
+
+        assertEquals(
+            listOf("https://static.rustore.ru/tv1.jpg", "https://static.rustore.ru/phone1.jpg"),
+            app.screenshots
+        )
+    }
+
+    @Test
     fun rejectsLatestVersionWhenDeviceSdkIsBelowMinimum() {
         try {
             AndroidSdkCompatibility.requireSupported(minSdkVersion = 28, deviceSdkVersion = 27)

@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +33,7 @@ import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
+import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.settings.TvCatalog
 import dev.wystore.ui.components.PackageUiState
 import dev.wystore.ui.components.PackageUiStateReducer
@@ -92,6 +93,14 @@ fun TvHomeScreen(
     onOpenApp: (String) -> Unit,
     onRetry: () -> Unit,
     onOpenMyApps: () -> Unit,
+    /** The GitHub catalogue, empty when GitHub is switched off in the source settings. */
+    githubEntries: List<GitHubCatalogEntry>,
+    onOpenGitHub: (GitHubCatalogEntry) -> Unit,
+    /**
+     * Held by the caller: an app page replaces Home while it is open, and a list state of Home's
+     * own would come back scrolled to the top - with the card to return to not even composed.
+     */
+    listState: LazyListState,
     modifier: Modifier = Modifier
 ) {
     val popularTitle = stringResource(R.string.tv_row_popular)
@@ -118,12 +127,15 @@ fun TvHomeScreen(
         if (!restored) runCatching { firstFocus.requestFocus() }
     }
 
-    val listState = rememberLazyListState()
     // Back from inside the screen sends the focus up to the menu; the screen goes back to its top
     // with it, so the menu is not left above a list scrolled halfway down.
     LaunchedEffect(takeFocus) { if (!takeFocus) listState.animateScrollToItem(0) }
 
     val showCategories = categoryRows.size >= MIN_CATEGORY_TILES
+    // GitHub follows the first row of the chosen catalogue, as it follows the categories on the
+    // phone: close enough to the top to be found, after what the device is mostly for.
+    val githubAfter = if (githubEntries.isEmpty()) -1 else rows.indexOfFirst { it.key == "tv-popular" || it.key == "phone-popular" || it.key == "phone-0" }
+    val githubFocus = remember { FocusRequester() }
     // Items before the first row: the update card, and the category rail when it is there.
     val rowsStart = 1 + if (showCategories) 1 else 0
 
@@ -182,7 +194,8 @@ fun TvHomeScreen(
                             accent = index,
                             previewIcons = row.apps.mapNotNull { it.iconUrl?.takeIf(String::isNotBlank) },
                             onClick = {
-                                val target = rowsStart + rows.indexOf(row)
+                                val rowIndex = rows.indexOf(row)
+                                val target = rowsStart + rowIndex + if (githubAfter in 0 until rowIndex) 1 else 0
                                 scope.launch {
                                     listState.animateScrollToItem(target)
                                     runCatching { rowFocus.getValue(row.key).requestFocus() }
@@ -208,6 +221,27 @@ fun TvHomeScreen(
                     firstCardFocus = rowFocus.getValue(row.key),
                     restore = if (index == restoreRow) restoreFocusTo to restoreFocus else null
                 )
+            }
+            if (index == githubAfter) {
+                item(key = "github") {
+                    TvSectionTitle(
+                        stringResource(R.string.home_github_title),
+                        subtitle = stringResource(R.string.home_github_hint)
+                    )
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth().height(TvGitHubRowHeight),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(12.dp)
+                    ) {
+                        itemsIndexed(githubEntries, key = { _, entry -> entry.slug }) { _, entry ->
+                            TvGitHubCard(
+                                entry = entry,
+                                onClick = { onOpenGitHub(entry) },
+                                modifier = if (restoreFocusTo == entry.tvKey()) Modifier.focusRequester(restoreFocus) else Modifier
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -251,17 +285,19 @@ private fun buildHomeRows(
         if (tvApps.isNotEmpty()) {
             add(TvHomeRow("tv-popular", titles.popular, tvApps.take(ROW_SIZE), forPhone = false))
         }
-        phoneApps.chunked(ROW_SIZE).forEachIndexed { index, chunk ->
-            val title = when {
-                index > 0 -> null
-                mode == TvCatalog.PHONE -> titles.popularPhone
-                else -> titles.phone
+        if (mode == TvCatalog.PHONE) {
+            add(TvHomeRow("phone-popular", titles.popularPhone, phoneApps.take(ROW_SIZE), forPhone = false))
+        } else {
+            phoneApps.chunked(ROW_SIZE).forEachIndexed { index, chunk ->
+                add(TvHomeRow("phone-$index", if (index == 0) titles.phone else null, chunk, forPhone = markPhone))
             }
-            add(TvHomeRow("phone-$index", title, chunk, forPhone = markPhone))
         }
-        // The catalogue by category, the largest first. A category of one or two apps is not a
-        // row worth scrolling past; those are gathered at the end.
-        val byCategory = tvApps.groupBy { it.primaryCategory() }
+        // The chosen catalogue by category, the largest first: the TV one, or the phone one when it
+        // is browsed alone. Mixed in with TV apps the phone apps keep rows of their own above, so a
+        // category never holds both. A category of one or two apps is not a row worth scrolling
+        // past; those are gathered at the end.
+        val categorised = if (mode == TvCatalog.PHONE) phoneApps else tvApps
+        val byCategory = categorised.groupBy { it.primaryCategory() }
         val (large, small) = byCategory.entries.partition { (name, apps) -> name != null && apps.size >= MIN_CATEGORY_SIZE }
         large.sortedByDescending { it.value.size }.forEach { (name, apps) ->
             add(TvHomeRow("category-$name", name, apps, forPhone = false, category = name))
@@ -306,6 +342,9 @@ private fun TvAppRow(
 }
 
 private const val ROW_SIZE = 12
+
+/** A GitHub card has no status line, so its row is a little shorter than an app row. */
+private val TvGitHubRowHeight = 196.dp
 private const val MIN_CATEGORY_SIZE = 3
 private const val MIN_CATEGORY_TILES = 2
 private const val OTHER_CATEGORY = " other"

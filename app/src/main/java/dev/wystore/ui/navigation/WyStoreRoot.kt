@@ -312,7 +312,9 @@ fun WyStoreRoot(
                         queue = state.installQueue,
                         pendingUpdates = state.pendingUpdates,
                         onInstallPending = onInstallPending,
-                        githubResults = state.githubSearchResults,
+                        // Switched off in the source settings means gone from search too, not only
+                        // from Home: the results used to keep appearing.
+                        githubResults = if (state.settings.githubEnabled) state.githubSearchResults else emptyList(),
                         onOpenGitHubApp = viewModel::openGitHubApp,
                         sources = state.settings.searchSources,
                         onSourcesChange = { chosen ->

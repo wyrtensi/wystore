@@ -44,6 +44,8 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.SurfaceDefaults
+import androidx.tv.material3.ClickableSurfaceDefaults
+import dev.wystore.ui.components.ReviewCard
 import androidx.tv.material3.Text
 import coil.compose.AsyncImage
 import dev.wystore.R
@@ -228,8 +230,40 @@ fun TvDetailsScreen(
                 }
             }
         }
+
+        // The reviews the page came with, in a row: each focusable, so the remote can move along
+        // them and a long one is brought fully into view.
+        if (app.reviews.isNotEmpty()) {
+            item(key = "reviews") {
+                TvSectionTitle(stringResource(R.string.details_reviews))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    contentPadding = PaddingValues(12.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    itemsIndexed(app.reviews, key = { index, review -> "$index-${review.author}" }) { _, review ->
+                        val shape = androidx.compose.material3.MaterialTheme.shapes.large
+                        Surface(
+                            onClick = {},
+                            modifier = Modifier.width(TvReviewWidth),
+                            shape = ClickableSurfaceDefaults.shape(shape),
+                            scale = ClickableSurfaceDefaults.scale(focusedScale = 1.03f),
+                            border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
+                            colors = ClickableSurfaceDefaults.colors(
+                                containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                                focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent
+                            )
+                        ) {
+                            ReviewCard(review)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
+
+private val TvReviewWidth = 420.dp
 
 /** Full screen, left and right to page, Back to return to the screenshot that was opened. */
 @OptIn(ExperimentalTvMaterial3Api::class)
