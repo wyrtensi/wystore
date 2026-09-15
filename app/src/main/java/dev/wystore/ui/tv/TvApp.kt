@@ -67,6 +67,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import dev.wystore.data.GitHubCatalog
 import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.ui.components.LocalBottomBarInset
+import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.PackageUiStateReducer
 import dev.wystore.ui.navigation.SharedRootDialogs
 import dev.wystore.ui.settings.SettingsScreen
@@ -111,7 +112,12 @@ fun TvApp(
     var sourceFailureHelp by rememberSaveable { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     val contentFocus = remember { FocusRequester() }
-    val selectedTabFocus = remember { FocusRequester() }
+    // One requester per tab, looked up by the current destination when it is used. A single
+    // requester moved onto the selected tab lags a frame behind a change of destination: when the
+    // focused item vanished with the old screen, Android put the focus back into the menu, the
+    // requester still sat on the old screen's tab, that tab switched the screen back, and the two
+    // screens swapped places every frame.
+    val tabFocus = remember { TvDestination.entries.associateWith { FocusRequester() } }
     var tabsFocused by remember { mutableStateOf(false) }
     var focusTabPending by remember { mutableStateOf(false) }
     // The app whose page was last opened, so Back lands on its card rather than on the first one.
@@ -198,7 +204,7 @@ fun TvApp(
         // the two are never enabled together. A settings page keeps its own, registered later.
         BackHandler(enabled = selected == null && githubPage == null && (!tabsFocused || destination != TvDestination.HOME)) {
             if (!tabsFocused) {
-                runCatching { selectedTabFocus.requestFocus() }
+                runCatching { tabFocus.getValue(destination).requestFocus() }
             } else {
                 destination = TvDestination.HOME
                 focusTabPending = true
@@ -206,7 +212,7 @@ fun TvApp(
         }
         LaunchedEffect(destination, focusTabPending) {
             if (focusTabPending) {
-                runCatching { selectedTabFocus.requestFocus() }
+                runCatching { tabFocus.getValue(destination).requestFocus() }
                 focusTabPending = false
             }
         }
@@ -254,7 +260,7 @@ fun TvApp(
                             Modifier
                                 // Coming up from a screen lands on that screen's own tab; landing
                                 // on whichever tab is nearest would switch to another screen.
-                                .focusProperties { onEnter = { selectedTabFocus.requestFocus() } }
+                                .focusProperties { onEnter = { tabFocus.getValue(destination).requestFocus() } }
                                 .focusGroup()
                                 .onFocusChanged { tabsFocused = it.hasFocus }
                         ) {
@@ -275,7 +281,7 @@ fun TvApp(
                                         },
                                         onClick = { focusManager.moveFocus(FocusDirection.Down) },
                                         modifier = Modifier
-                                            .then(if (destination == item) Modifier.focusRequester(selectedTabFocus) else Modifier)
+                                            .focusRequester(tabFocus.getValue(item))
                                             .tvPointerClick {
                                                 closePages()
                                                 destination = item
@@ -348,6 +354,7 @@ fun TvApp(
                                 listState = homeListState
                             )
                             TvDestination.SEARCH -> TvSearchScreen(
+                                restoreFocusTo = lastOpened,
                                 query = searchQuery,
                                 onQueryChange = { searchQuery = it },
                                 catalogMode = catalogMode,
@@ -398,7 +405,10 @@ fun TvApp(
                             // The phone's settings, as they are: every option stays reachable on a
                             // TV, including the device type for anyone the detection got wrong.
                             TvDestination.SETTINGS -> CompositionLocalProvider(LocalBottomBarInset provides TvOverscanVertical) {
+                                // The phone's settings keep a phone's margin; a TV crops its edges,
+                                // so the rest of the overscan margin is added around them.
                                 SettingsScreen(
+                                    modifier = Modifier.padding(horizontal = TvOverscanHorizontal - ScreenPadding),
                                     settings = state.settings,
                                     rootAvailable = state.rootAvailable,
                                     managedCount = state.managed.size,

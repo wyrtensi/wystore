@@ -29,6 +29,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,18 +102,46 @@ fun SettingsScreen(
     // state rather than destinations, so the root handler saw only "not Home" and went there -
     // opening Permissions and pressing back dropped the user on the home screen.
     BackHandler(enabled = subScreen != null) { subScreen = null }
+
+    // With a remote or a keyboard the focus has to be put somewhere when the screen under it is
+    // swapped: left alone it fell into the menu above, one press away from where the user was.
+    // Opening a sub-screen moves it into that screen, and coming back returns it to the row that
+    // opened it. Touch has no focus to move, so nothing happens there.
+    val inputModeManager = LocalInputModeManager.current
+    val subScreenFocus = remember { FocusRequester() }
+    val hubFocus = remember { SettingsSubScreen.entries.associateWith { FocusRequester() } }
+    var lastSubScreen by rememberSaveable { mutableStateOf<SettingsSubScreen?>(null) }
+    LaunchedEffect(subScreen) {
+        val opened = subScreen
+        if (opened != null) lastSubScreen = opened
+        if (inputModeManager.inputMode != InputMode.Keyboard) return@LaunchedEffect
+        val target = if (opened != null) subScreenFocus else lastSubScreen?.let(hubFocus::getValue)
+        target ?: return@LaunchedEffect
+        // The screen being focused is composed but may not be laid out yet on the first frame.
+        repeat(FOCUS_ATTEMPTS) {
+            if (runCatching { target.requestFocus() }.getOrDefault(false)) return@LaunchedEffect
+            withFrameNanos { }
+        }
+    }
     var editedSettings by remember(settings) { mutableStateOf(settings) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
 
-    when (subScreen) {
+    val current = subScreen
+    if (current != null) {
+        Box(
+            modifier
+                .fillMaxSize()
+                .focusRequester(subScreenFocus)
+                .focusGroup()
+        ) {
+        when (current) {
         SettingsSubScreen.PERMISSIONS -> {
             PermissionCenterScreen(
                 onBack = { subScreen = null },
                 rootAvailable = rootAvailable,
                 onCheckRoot = onCheckRoot
             )
-            return
         }
         SettingsSubScreen.APPEARANCE -> {
             AppearanceSettingsScreen(
@@ -116,7 +152,6 @@ fun SettingsScreen(
                 },
                 onBack = { subScreen = null }
             )
-            return
         }
         SettingsSubScreen.LANGUAGE -> {
             LanguageSettingsScreen(
@@ -127,7 +162,6 @@ fun SettingsScreen(
                 },
                 onBack = { subScreen = null }
             )
-            return
         }
         SettingsSubScreen.NOTIFICATIONS -> {
             NotificationSettingsScreen(
@@ -138,7 +172,6 @@ fun SettingsScreen(
                 },
                 onBack = { subScreen = null }
             )
-            return
         }
         SettingsSubScreen.SOURCES -> {
             SourceSettingsScreen(
@@ -150,7 +183,6 @@ fun SettingsScreen(
                 },
                 onBack = { subScreen = null }
             )
-            return
         }
         SettingsSubScreen.ABOUT -> {
             AboutSettingsScreen(
@@ -170,9 +202,10 @@ fun SettingsScreen(
                 onInstallDownloaded = onInstallDownloadedSelfUpdate,
                 onCancelDownload = onCancelSelfUpdateDownload
             )
-            return
         }
-        null -> Unit
+        }
+        }
+        return
     }
 
     Scaffold(
@@ -204,31 +237,36 @@ fun SettingsScreen(
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_permissions_title),
                         subtitle = stringResource(R.string.settings_hub_permissions_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.PERMISSIONS }
+                        onClick = { subScreen = SettingsSubScreen.PERMISSIONS },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.PERMISSIONS))
                     )
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_appearance_title),
                         subtitle = stringResource(R.string.settings_hub_appearance_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.APPEARANCE }
+                        onClick = { subScreen = SettingsSubScreen.APPEARANCE },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.APPEARANCE))
                     )
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_language_title),
                         subtitle = stringResource(R.string.settings_hub_language_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.LANGUAGE }
+                        onClick = { subScreen = SettingsSubScreen.LANGUAGE },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.LANGUAGE))
                     )
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_notifications_title),
                         subtitle = stringResource(R.string.settings_hub_notifications_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.NOTIFICATIONS }
+                        onClick = { subScreen = SettingsSubScreen.NOTIFICATIONS },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.NOTIFICATIONS))
                     )
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_sources_title),
                         subtitle = stringResource(R.string.settings_hub_sources_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.SOURCES }
+                        onClick = { subScreen = SettingsSubScreen.SOURCES },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.SOURCES))
                     )
                     // The GitHub Releases screen had no reachable entry point anywhere in the app.
                     if (editedSettings.githubEnabled) {
@@ -247,7 +285,8 @@ fun SettingsScreen(
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_about_title),
                         subtitle = stringResource(R.string.settings_hub_about_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.ABOUT }
+                        onClick = { subScreen = SettingsSubScreen.ABOUT },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.ABOUT))
                     )
                 }
             }
@@ -532,6 +571,8 @@ fun SettingsScreen(
     }
 
 }
+
+private const val FOCUS_ATTEMPTS = 5
 
 /** One destination inside the settings menu card. */
 @Composable

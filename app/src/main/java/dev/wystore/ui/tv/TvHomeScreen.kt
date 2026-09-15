@@ -28,6 +28,7 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import dev.wystore.InstallQueueItem
+import dev.wystore.InstallQueueStatus
 import dev.wystore.R
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
@@ -44,7 +45,14 @@ data class TvPackageContext(
     val managed: List<ManagedApp>,
     val queue: List<InstallQueueItem>,
     val pendingUpdates: List<PendingUpdate>
-)
+) {
+    /**
+     * Queue rows still on their way somewhere. A finished or cancelled row stays in the queue for a
+     * while as history; counted as waiting, it kept an installed app under "ready to install".
+     */
+    val activeQueue: List<InstallQueueItem>
+        get() = queue.filter { it.status != InstallQueueStatus.COMPLETE && it.status != InstallQueueStatus.CANCELED }
+}
 
 @Composable
 fun rememberPackageState(app: StoreApp, packages: TvPackageContext): PackageUiState {
@@ -161,7 +169,7 @@ fun TvHomeScreen(
             }
             TvUpdateHero(
                 readyCount = (packages.pendingUpdates.map { it.packageName } +
-                    packages.queue.map { it.packageName }).distinct().size,
+                    packages.activeQueue.map { it.packageName }).distinct().size,
                 onClick = onOpenMyApps,
                 // Home starts here, at the top, and when updates are waiting OK opens them.
                 modifier = Modifier.focusRequester(firstFocus)
@@ -275,7 +283,7 @@ private fun buildHomeRows(
 
     // Apps with something to act on come first, because on a TV nothing else says they are there:
     // notifications are not shown.
-    val attention = packages.pendingUpdates.map { it.packageName }.toSet() + packages.queue.map { it.packageName }
+    val attention = packages.pendingUpdates.map { it.packageName }.toSet() + packages.activeQueue.map { it.packageName }
     val actionable = (tvApps + phoneApps).distinctBy { it.packageName }.filter { it.packageName in attention }
 
     return buildList {
@@ -347,4 +355,4 @@ private const val ROW_SIZE = 12
 private val TvGitHubRowHeight = 196.dp
 private const val MIN_CATEGORY_SIZE = 3
 private const val MIN_CATEGORY_TILES = 2
-private const val OTHER_CATEGORY = " other"
+private const val OTHER_CATEGORY = "\u0000other"

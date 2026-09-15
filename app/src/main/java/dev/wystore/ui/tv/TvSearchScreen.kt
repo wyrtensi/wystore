@@ -25,6 +25,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.tv.material3.ClickableSurfaceDefaults
+import androidx.tv.material3.Surface
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import kotlinx.coroutines.delay
@@ -81,7 +88,9 @@ fun TvSearchScreen(
     modifier: Modifier = Modifier,
     /** Set when the remote's search or voice key brought the user here: listen straight away. */
     startVoice: Boolean = false,
-    onVoiceStarted: () -> Unit = {}
+    onVoiceStarted: () -> Unit = {},
+    /** The result last opened - a package name or a GitHub key - to return the focus to after Back. */
+    restoreFocusTo: String? = null
 ) {
     val focusManager = LocalFocusManager.current
     val trimmed = query.trim()
@@ -98,8 +107,22 @@ fun TvSearchScreen(
         if (!showsRustore || trimmed.isEmpty() || !rustoreQuery.equals(trimmed, ignoreCase = true)) emptyList()
         else rustoreResults.filter { result -> tvMatches.none { it.packageName == result.packageName } }
     }
+    var editing by remember { mutableStateOf(false) }
+    val editFocus = remember { FocusRequester() }
+    val startEditing = {
+        editing = true
+        runCatching { editFocus.requestFocus() }
+        Unit
+    }
     val shouldTakeFocus by rememberUpdatedState(takeFocus || startVoice)
-    LaunchedEffect(Unit) { if (shouldTakeFocus) runCatching { fieldFocus.requestFocus() } }
+    val restoreFocus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        if (!shouldTakeFocus) return@LaunchedEffect
+        // Back from a result's page lands on that result, as it does on Home, when it is still
+        // among the results; otherwise on the field.
+        val restored = restoreFocusTo != null && runCatching { restoreFocus.requestFocus() }.getOrDefault(false)
+        if (!restored) runCatching { fieldFocus.requestFocus() }
+    }
 
     // The source is asked once typing pauses, not on every letter.
     LaunchedEffect(trimmed, showsRustore) {
@@ -166,6 +189,14 @@ fun TvSearchScreen(
                         onClick = { runCatching { voiceLauncher.launch(voiceIntent) } }
                     )
                 }
+                // On a TV a text field that takes the focus also takes the remote: the keyboard
+                // comes up the moment the focus passes over it and swallows the arrows. So the remote
+                // stops on a stand-in with the field's look, and OK - or a tap - starts typing.
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                ) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = onQueryChange,
@@ -190,9 +221,10 @@ fun TvSearchScreen(
                         focusManager.moveFocus(FocusDirection.Down)
                     }),
                     modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp)
-                        .focusRequester(fieldFocus)
+                        .fillMaxSize()
+                        .focusRequester(editFocus)
+                        .focusProperties { canFocus = editing }
+                        .onFocusChanged { if (!it.hasFocus) editing = false }
                         // On a remote the arrows are the only way out of the field: inside it they
                         // would move the cursor and trap the focus. Text comes from the on-screen
                         // keyboard or the voice button, neither of which needs the cursor keys.
@@ -208,6 +240,25 @@ fun TvSearchScreen(
                             true
                         }
                 )
+                if (!editing) {
+                    val fieldShape = androidx.compose.material3.MaterialTheme.shapes.extraLarge
+                    Surface(
+                        onClick = startEditing,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .focusRequester(fieldFocus)
+                            .tvPointerClick(onClick = startEditing),
+                        shape = ClickableSurfaceDefaults.shape(fieldShape),
+                        scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
+                        border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(fieldShape)),
+                        colors = ClickableSurfaceDefaults.colors(
+                            containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                            focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                            pressedContainerColor = androidx.compose.ui.graphics.Color.Transparent
+                        )
+                    ) {}
+                }
+                }
             }
             Text(
                 stringResource(R.string.tv_search_hint),
@@ -223,7 +274,7 @@ fun TvSearchScreen(
                 if (tvMatches.isEmpty()) {
                     Text(stringResource(R.string.search_empty_title), style = MaterialTheme.typography.bodyLarge)
                 } else {
-                    TvResultRow(tvMatches, packages, onOpenApp, markPhone = { false })
+                    TvResultRow(tvMatches, packages, onOpenApp, markPhone = { false }, restore = restoreFocusTo to restoreFocus)
                 }
             }
         }
@@ -237,7 +288,8 @@ fun TvSearchScreen(
                         onOpenApp,
                         // Among TV results a phone app is marked; with the phone catalogue alone
                         // there is nothing to tell apart.
-                        markPhone = { app -> catalogMode == TvCatalog.BOTH && app.packageName !in tvPackages }
+                        markPhone = { app -> catalogMode == TvCatalog.BOTH && app.packageName !in tvPackages },
+                        restore = restoreFocusTo to restoreFocus
                     )
                     rustoreSearching || trimmed.length >= MIN_SOURCE_QUERY && !rustoreQuery.equals(trimmed, ignoreCase = true) ->
                         Text(stringResource(R.string.vm_searching), style = MaterialTheme.typography.bodyLarge)
@@ -248,21 +300,29 @@ fun TvSearchScreen(
         if (trimmed.isNotEmpty() && githubResults.isNotEmpty()) {
             item(key = "github") {
                 TvSectionTitle(stringResource(R.string.search_sources_github))
-                TvGitHubResultRow(githubResults, onOpenGitHub)
+                TvGitHubResultRow(githubResults, onOpenGitHub, restore = restoreFocusTo to restoreFocus)
             }
         }
     }
 }
 
 @Composable
-private fun TvGitHubResultRow(entries: List<GitHubCatalogEntry>, onOpenGitHub: (GitHubCatalogEntry) -> Unit) {
+private fun TvGitHubResultRow(
+    entries: List<GitHubCatalogEntry>,
+    onOpenGitHub: (GitHubCatalogEntry) -> Unit,
+    restore: Pair<String?, FocusRequester>
+) {
     LazyRow(
         modifier = Modifier.fillMaxWidth().height(TvRowHeight),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         contentPadding = PaddingValues(12.dp)
     ) {
         items(entries, key = { it.slug }) { entry ->
-            TvGitHubCard(entry = entry, onClick = { onOpenGitHub(entry) })
+            TvGitHubCard(
+                entry = entry,
+                onClick = { onOpenGitHub(entry) },
+                modifier = if (entry.tvKey() == restore.first) Modifier.focusRequester(restore.second) else Modifier
+            )
         }
     }
 }
@@ -272,7 +332,8 @@ private fun TvResultRow(
     apps: List<StoreApp>,
     packages: TvPackageContext,
     onOpenApp: (String) -> Unit,
-    markPhone: (StoreApp) -> Boolean
+    markPhone: (StoreApp) -> Boolean,
+    restore: Pair<String?, FocusRequester>
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth().height(TvRowHeight),
@@ -284,6 +345,7 @@ private fun TvResultRow(
                 app = app,
                 state = rememberPackageState(app, packages),
                 onClick = { onOpenApp(app.packageName) },
+                modifier = if (app.packageName == restore.first) Modifier.focusRequester(restore.second) else Modifier,
                 forPhone = markPhone(app)
             )
         }

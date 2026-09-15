@@ -61,9 +61,7 @@ fun TvMyAppsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val active = remember(packages) {
-        packages.queue.filter { it.status != InstallQueueStatus.COMPLETE && it.status != InstallQueueStatus.CANCELED }
-    }
+    val active = remember(packages) { packages.activeQueue }
     val pendingOnly = remember(packages, active) {
         packages.pendingUpdates.filter { pending -> active.none { it.packageName == pending.packageName } }
     }
