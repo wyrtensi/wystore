@@ -722,4 +722,5 @@
     <string name="tv_my_apps_empty">Поки порожньо. Тут з’являться застосунки, встановлені через Wy Store.</string>
     <string name="tv_catalog_empty">ТБ-каталог порожній або не завантажився</string>
     <string name="tv_search_voice">Голосовий пошук</string>
+    <string name="tv_details_installed">Встановлено</string>
 </resources>

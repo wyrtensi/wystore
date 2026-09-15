@@ -722,4 +722,5 @@
     <string name="tv_my_apps_empty">Nothing here yet. Apps you install through Wy Store will appear here.</string>
     <string name="tv_catalog_empty">The TV catalogue is empty or could not be loaded</string>
     <string name="tv_search_voice">Voice search</string>
+    <string name="tv_details_installed">Installed</string>
 </resources>

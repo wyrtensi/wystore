@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -68,6 +69,7 @@ fun TvHomeScreen(
     restoreFocusTo: String?,
     onOpenApp: (String) -> Unit,
     onRetry: () -> Unit,
+    onOpenMyApps: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Apps with something to act on - a download that finished, an update found - come first,
@@ -83,6 +85,7 @@ fun TvHomeScreen(
     // instead of the first press having to find something to focus.
     val hasContent = catalog.apps.isNotEmpty() || !catalog.loading
     val restoreFocus = remember { FocusRequester() }
+    val listState = rememberLazyListState()
     LaunchedEffect(hasContent) {
         if (!hasContent) return@LaunchedEffect
         // Back from an app page returns to that app's card when it is still on screen.
@@ -91,6 +94,7 @@ fun TvHomeScreen(
     }
 
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = TvOverscanHorizontal,
@@ -100,16 +104,25 @@ fun TvHomeScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        item {
+        item(key = "header") {
             Text(
                 stringResource(R.string.app_name),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
                 stringResource(if (catalog.stale) R.string.home_catalog_stale else R.string.home_tagline),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            TvVerticalGap()
+            TvUpdateHero(
+                readyCount = (packages.pendingUpdates.map { it.packageName } +
+                    packages.queue.map { it.packageName }).distinct().size,
+                onClick = onOpenMyApps,
+                // Home starts here, at the top: the screen does not scroll away from its title,
+                // and when updates are waiting OK opens them straight away.
+                modifier = Modifier.focusRequester(firstCardFocus)
             )
             TvVerticalGap()
         }
@@ -120,8 +133,7 @@ fun TvHomeScreen(
                     message = if (catalog.loading) stringResource(R.string.home_catalog_loading)
                     else catalog.error ?: stringResource(R.string.tv_catalog_empty),
                     actionLabel = if (catalog.loading) null else stringResource(R.string.common_retry),
-                    onAction = if (catalog.loading) null else onRetry,
-                    modifier = Modifier.focusRequester(firstCardFocus)
+                    onAction = if (catalog.loading) null else onRetry
                 )
             }
             return@LazyColumn
@@ -141,7 +153,7 @@ fun TvHomeScreen(
                     apps = apps,
                     packages = packages,
                     onOpenApp = onOpenApp,
-                    firstCardFocus = if (rowIndex == 0) firstCardFocus else null,
+                    firstCardFocus = null,
                     restore = if (rowIndex == restoreRow) restoreFocusTo to restoreFocus else null
                 )
             }

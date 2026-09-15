@@ -722,4 +722,5 @@
     <string name="tv_my_apps_empty">Пакуль пуста. Тут з’явяцца праграмы, усталяваныя праз Wy Store.</string>
     <string name="tv_catalog_empty">ТБ-каталог пусты або не загрузіўся</string>
     <string name="tv_search_voice">Галасавы пошук</string>
+    <string name="tv_details_installed">Усталявана</string>
 </resources>

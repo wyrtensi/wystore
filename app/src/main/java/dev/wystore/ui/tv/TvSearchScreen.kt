@@ -6,6 +6,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -111,18 +115,25 @@ fun TvSearchScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         item(key = "field") {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = onQueryChange,
                     singleLine = true,
                     label = { androidx.compose.material3.Text(stringResource(R.string.search_field_placeholder)) },
+                    leadingIcon = { androidx.compose.material3.Icon(Icons.Outlined.Search, contentDescription = null) },
+                    shape = androidx.compose.material3.MaterialTheme.shapes.extraLarge,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     // The keyboard's own "search" moves on to the results instead of leaving the
                     // focus in a field the user has finished with.
                     keyboardActions = KeyboardActions(onSearch = { focusManager.moveFocus(FocusDirection.Down) }),
+                    // Takes what the buttons leave: their labels run longer in Russian than here.
                     modifier = Modifier
-                        .width(420.dp)
+                        .weight(1f)
                         .focusRequester(fieldFocus)
                         // On a remote the arrows are the only way out of the field: inside it they
                         // would move the cursor and trap the focus. Text comes from the on-screen
@@ -140,19 +151,22 @@ fun TvSearchScreen(
                         }
                 )
                 if (voiceIntent != null) {
-                    TvSecondaryButton(
-                        text = stringResource(R.string.tv_search_voice),
+                    TvIconButton(
+                        icon = painterResource(R.drawable.ic_mic),
+                        label = stringResource(R.string.tv_search_voice),
                         onClick = { runCatching { voiceLauncher.launch(voiceIntent) } }
                     )
                 }
                 TvSecondaryButton(
                     text = stringResource(R.string.tv_search_everywhere),
                     onClick = { onSearchRustore(trimmed) },
-                    enabled = trimmed.isNotEmpty()
+                    enabled = trimmed.isNotEmpty(),
+                    icon = rememberIconPainter(Icons.Outlined.Search)
                 )
             }
             Text(
                 stringResource(R.string.tv_search_hint),
+                modifier = Modifier.padding(top = 8.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

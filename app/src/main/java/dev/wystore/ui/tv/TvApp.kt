@@ -1,7 +1,15 @@
 package dev.wystore.ui.tv
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -189,7 +197,7 @@ fun TvApp(
                 )
             } else {
                 NavigationDrawer(
-                    drawerContent = {
+                    drawerContent = { drawerValue ->
                         Column(
                             Modifier
                                 .fillMaxHeight()
@@ -201,6 +209,8 @@ fun TvApp(
                                 .selectableGroup(),
                             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
                         ) {
+                            TvBrand(expanded = drawerValue == androidx.tv.material3.DrawerValue.Open)
+                            Spacer(Modifier.height(24.dp))
                             TvDestination.entries.forEach { item ->
                                 NavigationDrawerItem(
                                     selected = destination == item,
@@ -223,7 +233,8 @@ fun TvApp(
                             firstCardFocus = contentFocus,
                             restoreFocusTo = lastOpened,
                             onOpenApp = openApp,
-                            onRetry = catalogViewModel::retry
+                            onRetry = catalogViewModel::retry,
+                            onOpenMyApps = { destination = TvDestination.MY_APPS }
                         )
                         TvDestination.SEARCH -> TvSearchScreen(
                             query = searchQuery,
@@ -285,3 +296,29 @@ fun TvApp(
 }
 
 private const val MESSAGE_MILLIS = 4_000L
+
+/** The app's mark at the top of the menu, with its name when the menu is open. */
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun TvBrand(expanded: Boolean) {
+    Row(Modifier.padding(start = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            Modifier
+                .padding(end = 16.dp)
+                .size(44.dp)
+                .clip(androidx.compose.material3.MaterialTheme.shapes.medium)
+                // The launcher icon's own background, so the mark looks like the app's icon.
+                .background(Color(0xFF0E141F)),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_wy_store_foreground),
+                contentDescription = null,
+                modifier = Modifier.size(72.dp)
+            )
+        }
+        if (expanded) {
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+        }
+    }
+}

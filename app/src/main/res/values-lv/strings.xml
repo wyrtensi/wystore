@@ -722,4 +722,5 @@
     <string name="tv_my_apps_empty">Pagaidām tukšs. Šeit parādīsies lietotnes, kas instalētas ar Wy Store.</string>
     <string name="tv_catalog_empty">TV katalogs ir tukšs vai netika ielādēts</string>
     <string name="tv_search_voice">Balss meklēšana</string>
+    <string name="tv_details_installed">Instalēts</string>
 </resources>

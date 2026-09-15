@@ -722,4 +722,5 @@
     <string name="tv_my_apps_empty">Hozircha boʻsh. Wy Store orqali oʻrnatilgan ilovalar shu yerda chiqadi.</string>
     <string name="tv_catalog_empty">TV katalog boʻsh yoki yuklanmadi</string>
     <string name="tv_search_voice">Ovozli qidiruv</string>
+    <string name="tv_details_installed">Oʻrnatilgan</string>
 </resources>

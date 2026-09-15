@@ -722,4 +722,5 @@
     <string name="tv_my_apps_empty">Әзірге бос. Wy Store арқылы орнатылған қолданбалар осында шығады.</string>
     <string name="tv_catalog_empty">ТВ-каталог бос немесе жүктелмеді</string>
     <string name="tv_search_voice">Дауыспен іздеу</string>
+    <string name="tv_details_installed">Орнатылған</string>
 </resources>

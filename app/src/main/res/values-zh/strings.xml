@@ -722,4 +722,5 @@
     <string name="tv_my_apps_empty">这里还没有内容。通过 Wy Store 安装的应用会显示在这里。</string>
     <string name="tv_catalog_empty">电视目录为空或加载失败</string>
     <string name="tv_search_voice">语音搜索</string>
+    <string name="tv_details_installed">已安装</string>
 </resources>

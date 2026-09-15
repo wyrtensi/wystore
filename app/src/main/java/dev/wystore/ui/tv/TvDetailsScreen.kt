@@ -103,52 +103,71 @@ fun TvDetailsScreen(
         verticalArrangement = Arrangement.spacedBy(28.dp)
     ) {
         item(key = "header") {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                AppIcon(model = app.iconUrl, contentDescription = null, size = 112.dp, fallbackPackageName = app.packageName)
-                Column(Modifier.padding(start = 28.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(app.name.ifBlank { app.packageName }, style = MaterialTheme.typography.headlineMedium)
-                    if (app.publisher.isNotBlank()) {
-                        Text(app.publisher, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // The phone page's parts, side by side for a wide screen: who and what on the left with
+            // the one button, the facts in a card on the right.
+            Row(horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.Top) {
+                Column(Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AppIcon(model = app.iconUrl, contentDescription = null, size = 112.dp, fallbackPackageName = app.packageName)
+                        Column(Modifier.padding(start = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                app.name.ifBlank { app.packageName },
+                                style = MaterialTheme.typography.headlineMedium,
+                                maxLines = 2,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                            if (app.publisher.isNotBlank()) {
+                                Text(app.publisher, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TvBadge(stringResource(R.string.source_rustore))
+                            }
+                        }
                     }
                     Text(
-                        listOfNotNull(
-                            app.versionName.takeIf { it.isNotBlank() }?.let {
-                                stringResource(R.string.details_label_version) + " " + it
-                            },
-                            app.sizeBytes.takeIf { it > 0 }?.let { formatSize(context.resources, it) },
-                            app.rating?.let { rating ->
-                                "★ " + String.format(java.util.Locale.getDefault(), "%.1f", rating)
-                            },
-                            installed?.versionName?.let { stringResource(R.string.search_installed_version, it) }
-                        ).joinToString("  ·  "),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
                         StatusTextResolver.resolve(context, state.status),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (primaryLabel != null) {
+                            TvPrimaryButton(
+                                text = primaryLabel,
+                                onClick = { actions.perform(state) },
+                                enabled = state.primaryAction != PrimaryAction.Installing && !loading,
+                                modifier = Modifier.focusRequester(primaryFocus)
+                            )
+                        }
+                        if (installed != null) {
+                            TvSecondaryButton(
+                                text = stringResource(R.string.details_uninstall),
+                                onClick = { onUninstall(app.packageName) },
+                                modifier = if (primaryLabel == null) Modifier.focusRequester(primaryFocus) else Modifier
+                            )
+                        }
+                    }
                 }
-            }
-        }
-
-        item(key = "actions") {
-            Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (primaryLabel != null) {
-                    TvPrimaryButton(
-                        text = primaryLabel,
-                        onClick = { actions.perform(state) },
-                        enabled = state.primaryAction != PrimaryAction.Installing && !loading,
-                        modifier = Modifier.focusRequester(primaryFocus)
-                    )
-                }
-                if (installed != null) {
-                    TvSecondaryButton(
-                        text = stringResource(R.string.details_uninstall),
-                        onClick = { onUninstall(app.packageName) },
-                        modifier = if (primaryLabel == null) Modifier.focusRequester(primaryFocus) else Modifier
-                    )
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = androidx.compose.material3.MaterialTheme.shapes.large,
+                    colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        TvFact(stringResource(R.string.details_label_version), app.versionName)
+                        installed?.versionName?.let { TvFact(stringResource(R.string.tv_details_installed), it) }
+                        app.sizeBytes.takeIf { it > 0 }?.let { TvFact(stringResource(R.string.details_label_size), formatSize(context.resources, it)) }
+                        app.rating?.let { rating ->
+                            TvFact(
+                                stringResource(R.string.details_label_rating),
+                                String.format(java.util.Locale.getDefault(), "%.1f", rating) +
+                                    (app.ratingCount?.let { " ($it)" } ?: "")
+                            )
+                        }
+                        app.downloadsText?.let { TvFact(stringResource(R.string.details_label_downloads), it) }
+                        app.minAndroidVersion?.let {
+                            TvFact(stringResource(R.string.details_label_min_android), stringResource(R.string.details_min_android_value, it))
+                        }
+                    }
                 }
             }
         }
@@ -161,8 +180,8 @@ fun TvDetailsScreen(
                 // is otherwise out of reach of a remote.
                 Surface(
                     modifier = Modifier.fillMaxWidth().focusable(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    shape = androidx.compose.material3.MaterialTheme.shapes.large,
+                    colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
                     Text(
                         description,
@@ -244,5 +263,20 @@ private fun TvScreenshotViewer(
             color = androidx.compose.ui.graphics.Color.White,
             modifier = Modifier.align(Alignment.BottomCenter).padding(TvOverscanVertical).width(120.dp)
         )
+    }
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun TvFact(label: String, value: String) {
+    if (value.isBlank()) return
+    Row {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(180.dp)
+        )
+        Text(value, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
     }
 }

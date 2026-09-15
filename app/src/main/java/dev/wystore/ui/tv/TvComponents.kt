@@ -1,5 +1,8 @@
 package dev.wystore.ui.tv
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,10 +14,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -26,13 +36,14 @@ import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.Card
 import androidx.tv.material3.CardDefaults
+import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.Glow
+import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.OutlinedButton
+import androidx.tv.material3.Surface
+import androidx.tv.material3.SurfaceDefaults
 import androidx.tv.material3.Text
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
 import dev.wystore.R
 import dev.wystore.data.StoreApp
 import dev.wystore.localization.StatusTextResolver
@@ -42,6 +53,7 @@ import dev.wystore.ui.components.PrimaryAction
 import dev.wystore.ui.components.RowAction
 import dev.wystore.ui.components.RowActionPolicy
 import dev.wystore.ui.components.StatusCode
+import androidx.compose.material3.MaterialTheme as M3Theme
 
 /**
  * Lets a pointer press what a remote presses.
@@ -78,28 +90,72 @@ data class TvPackageActions(
 }
 
 /**
- * The focus look every TV control shares: grown, outlined in the primary colour. Material's own
- * phone highlight is a faint tint that cannot be seen from a sofa.
+ * The focus look every TV control shares: outlined in the primary colour, over the shape the
+ * phone uses for the same element. Material's phone highlight is a faint tint nobody sees from a
+ * sofa; this is the one signal on the screen that says where the remote is.
  */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun tvFocusBorder(): Border = Border(
+fun tvFocusBorder(shape: androidx.compose.ui.graphics.Shape = M3Theme.shapes.large): Border = Border(
     border = BorderStroke(3.dp, MaterialTheme.colorScheme.border),
-    shape = RoundedCornerShape(16.dp)
+    inset = 0.dp,
+    shape = shape
 )
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-fun TvSectionTitle(text: String, modifier: Modifier = Modifier) {
+private fun tvFocusGlow(): Glow = Glow(
+    elevationColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+    elevation = 12.dp
+)
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+fun TvSectionTitle(text: String, modifier: Modifier = Modifier, subtitle: String? = null) {
+    Column(modifier.padding(bottom = 8.dp)) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        subtitle?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/** The phone's source badge: a small tonal label that says where an app comes from. */
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+fun TvBadge(
+    text: String,
+    modifier: Modifier = Modifier,
+    container: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.secondaryContainer,
+    content: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSecondaryContainer
+) {
     Text(
         text = text,
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.onBackground,
-        modifier = modifier.padding(bottom = 12.dp)
+        color = content,
+        style = MaterialTheme.typography.labelMedium,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier
+            .clip(M3Theme.shapes.extraSmall)
+            .background(container)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
     )
 }
 
-/** One app in a row or a grid: icon, name and, when there is one, what is happening to it. */
+/**
+ * One app in a row: icon, name, and either what is happening to it or where it comes from.
+ *
+ * The same parts as the phone's app row, stacked for a rail instead of laid out for a list, in the
+ * same container tone on the same page, so the two interfaces read as one app.
+ */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvAppCard(
@@ -111,21 +167,25 @@ fun TvAppCard(
     val context = LocalContext.current
     val status = state?.status?.takeIf { it.code in CARD_STATES }
         ?.let { StatusTextResolver.resolve(context, it) }
+    val shape = M3Theme.shapes.large
     Card(
         onClick = onClick,
         modifier = modifier
             .width(TvCardWidth)
             .tvPointerClick(onClick = onClick)
             .semantics { contentDescription = listOfNotNull(app.name, status).joinToString(", ") },
-        shape = CardDefaults.shape(RoundedCornerShape(16.dp)),
-        scale = CardDefaults.scale(focusedScale = 1.08f),
-        border = CardDefaults.border(focusedBorder = tvFocusBorder()),
+        shape = CardDefaults.shape(shape),
+        scale = CardDefaults.scale(focusedScale = 1.06f),
+        border = CardDefaults.border(focusedBorder = tvFocusBorder(shape)),
+        glow = CardDefaults.glow(focusedGlow = tvFocusGlow()),
         colors = CardDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedContentColor = MaterialTheme.colorScheme.onSurface
         )
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             AppIcon(
                 model = app.iconUrl,
                 contentDescription = null,
@@ -139,19 +199,25 @@ fun TvAppCard(
                 minLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Text(
-                text = status ?: app.categories.firstOrNull().orEmpty(),
-                style = MaterialTheme.typography.bodySmall,
-                color = if (status != null) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            if (status != null) {
+                Text(
+                    text = status,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            } else {
+                TvBadge(app.categories.firstOrNull() ?: stringResource(R.string.source_rustore))
+            }
         }
     }
 }
 
-val TvCardWidth = 196.dp
+val TvCardWidth = 208.dp
+
+/** Height a row of [TvAppCard]s needs so a grown, focused card is not clipped. */
+val TvRowHeight = 244.dp
 
 private val CARD_STATES = setOf(
     StatusCode.QUEUED,
@@ -170,6 +236,67 @@ private val CARD_STATES = setOf(
     StatusCode.FAILED_GENERIC
 )
 
+/**
+ * Home's first card, as on the phone: is anything waiting. Primary-toned when there is, quiet when
+ * there is not, and the same shape either way so the screen does not jump. It opens My apps.
+ */
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+fun TvUpdateHero(
+    readyCount: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val hasUpdates = readyCount > 0
+    val container = if (hasUpdates) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    val onContainer = if (hasUpdates) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+    val shape = M3Theme.shapes.large
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth().tvPointerClick(onClick = onClick),
+        shape = ClickableSurfaceDefaults.shape(shape),
+        scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
+        border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
+        colors = ClickableSurfaceDefaults.colors(
+            containerColor = container,
+            contentColor = onContainer,
+            focusedContainerColor = container,
+            focusedContentColor = onContainer
+        )
+    ) {
+        Row(Modifier.padding(horizontal = 24.dp, vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(52.dp)
+                    .clip(M3Theme.shapes.medium)
+                    .background(onContainer.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (hasUpdates) Icons.Outlined.Refresh else Icons.Outlined.CheckCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(26.dp),
+                    tint = onContainer
+                )
+            }
+            Spacer(Modifier.width(18.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(if (hasUpdates) R.string.home_updates_available else R.string.home_all_up_to_date),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = onContainer
+                )
+                Text(
+                    if (hasUpdates) stringResource(R.string.home_ready_to_install_count, readyCount)
+                    else stringResource(R.string.home_background_checks),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = onContainer.copy(alpha = 0.75f)
+                )
+            }
+        }
+    }
+}
+
 /** The label of the one button that moves a package forward, or null when there is none. */
 @Composable
 fun tvPrimaryLabel(action: PrimaryAction): String? = when (action) {
@@ -185,44 +312,114 @@ fun tvPrimaryLabel(action: PrimaryAction): String? = when (action) {
     PrimaryAction.None -> null
 }
 
+/** The filled button for the step the user is expected to take. */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvPrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    icon: Painter? = null
 ) {
+    val shape = M3Theme.shapes.extraLarge
     Button(
         onClick = onClick,
         modifier = modifier.tvPointerClick(enabled, onClick),
         enabled = enabled,
-        border = ButtonDefaults.border(focusedBorder = tvFocusBorder()),
+        shape = ButtonDefaults.shape(shape),
+        colors = ButtonDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            focusedContainerColor = MaterialTheme.colorScheme.primary,
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary
+        ),
+        border = ButtonDefaults.border(focusedBorder = tvFocusBorder(shape).copy(
+            border = BorderStroke(3.dp, MaterialTheme.colorScheme.onBackground)
+        )),
         contentPadding = PaddingValues(horizontal = 28.dp, vertical = 12.dp)
     ) {
-        Text(text, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+        ButtonContent(text, icon)
     }
 }
 
+/** The tonal button for everything beside the main step, as on the phone. */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvSecondaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    icon: Painter? = null
 ) {
-    OutlinedButton(
+    val shape = M3Theme.shapes.extraLarge
+    Button(
         onClick = onClick,
         modifier = modifier.tvPointerClick(enabled, onClick),
         enabled = enabled,
+        shape = ButtonDefaults.shape(shape),
+        colors = ButtonDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            focusedContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
+        border = ButtonDefaults.border(focusedBorder = tvFocusBorder(shape)),
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
     ) {
-        Text(text, style = MaterialTheme.typography.titleSmall, maxLines = 1)
+        ButtonContent(text, icon)
     }
 }
 
-/** A line that says the screen has nothing, and why, with the way out when there is one. */
+/**
+ * A round button that is only an icon, for an action every TV user recognises by its picture -
+ * the microphone. [label] is still read out by TalkBack.
+ */
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+fun TvIconButton(
+    icon: Painter,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = androidx.compose.foundation.shape.CircleShape
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .size(56.dp)
+            .tvPointerClick(onClick = onClick)
+            .semantics { contentDescription = label },
+        shape = ButtonDefaults.shape(shape),
+        colors = ButtonDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            focusedContainerColor = MaterialTheme.colorScheme.primary,
+            focusedContentColor = MaterialTheme.colorScheme.onPrimary
+        ),
+        border = ButtonDefaults.border(focusedBorder = tvFocusBorder(shape)),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(26.dp))
+        }
+    }
+}
+
+@Composable
+private fun ButtonContent(text: String, icon: Painter?) {
+    if (icon != null) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(22.dp))
+        Spacer(Modifier.width(10.dp))
+    }
+    Text(text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+}
+
+@Composable
+fun rememberIconPainter(vector: ImageVector): Painter = rememberVectorPainter(vector)
+
+/** What a screen shows instead of an empty list, laid out like the phone's empty state. */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvEmptyState(
@@ -231,16 +428,22 @@ fun TvEmptyState(
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null
 ) {
-    Row(modifier.fillMaxWidth().padding(vertical = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            message,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f, fill = false)
-        )
-        if (actionLabel != null && onAction != null) {
-            Spacer(Modifier.width(24.dp))
-            TvSecondaryButton(actionLabel, onAction)
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = M3Theme.shapes.large,
+        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            if (actionLabel != null && onAction != null) {
+                Spacer(Modifier.width(24.dp))
+                TvSecondaryButton(actionLabel, onAction)
+            }
         }
     }
 }
@@ -248,27 +451,18 @@ fun TvEmptyState(
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvMessageBanner(text: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier
-            .padding(24.dp)
-    ) {
-        androidx.tv.material3.Surface(
-            shape = RoundedCornerShape(12.dp),
-            colors = androidx.tv.material3.SurfaceDefaults.colors(
-                containerColor = MaterialTheme.colorScheme.inverseSurface,
-                contentColor = MaterialTheme.colorScheme.inverseOnSurface
+    Box(modifier.padding(32.dp)) {
+        Surface(
+            shape = M3Theme.shapes.large,
+            colors = SurfaceDefaults.colors(
+                containerColor = M3Theme.colorScheme.surfaceContainerHighest,
+                contentColor = MaterialTheme.colorScheme.onSurface
             )
         ) {
-            Text(text, modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp), style = MaterialTheme.typography.bodyLarge)
+            Text(text, modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp), style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
 
-/** Height a row of [TvAppCard]s needs so a grown, focused card is not clipped. */
-val TvRowHeight = 230.dp
-
 @Composable
-fun TvVerticalGap() = Spacer(Modifier.height(32.dp))
-
-@Composable
-fun TvIconSpacer() = Spacer(Modifier.size(16.dp))
+fun TvVerticalGap() = Spacer(Modifier.height(28.dp))
