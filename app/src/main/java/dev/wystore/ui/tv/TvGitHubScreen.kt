@@ -124,147 +124,153 @@ fun TvGitHubAppScreen(
         runCatching { primaryFocus.requestFocus() }
     }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = TvOverscanHorizontal,
-            end = TvOverscanHorizontal,
-            top = TvOverscanVertical + 8.dp,
-            bottom = TvOverscanVertical + 48.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+    // Pages keep their header in place; see TvMinimalBringIntoViewSpec.
+    @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+    androidx.compose.runtime.CompositionLocalProvider(
+        androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides TvMinimalBringIntoViewSpec
     ) {
-        item(key = "header") {
-            Row(horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.Top) {
-                Column(Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        AppIcon(model = state.info?.avatarUrl ?: entry.iconUrl, contentDescription = null, size = 112.dp)
-                        Column(Modifier.padding(start = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(
-                                entry.title,
-                                style = MaterialTheme.typography.headlineMedium,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
+        LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = TvOverscanHorizontal,
+                end = TvOverscanHorizontal,
+                top = 8.dp,
+                bottom = TvOverscanVertical + 48.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            item(key = "header") {
+                Row(horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.Top) {
+                    Column(Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            AppIcon(model = state.info?.avatarUrl ?: entry.iconUrl, contentDescription = null, size = 112.dp)
+                            Column(Modifier.padding(start = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    entry.title,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    entry.repository.displayName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TvBadge(GITHUB_LABEL)
+                                    state.info?.license?.let { TvBadge(it) }
+                                }
+                            }
+                        }
+                        when {
+                            state.loading -> Text(
+                                stringResource(R.string.github_loading),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.primary
                             )
-                            Text(
-                                entry.repository.displayName,
-                                style = MaterialTheme.typography.bodyLarge,
+                            state.error != null -> Text(
+                                stringResource(R.string.github_load_failed),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                            recommended == null && installedApp == null -> Text(
+                                stringResource(R.string.github_no_apk),
+                                style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                TvBadge(GITHUB_LABEL)
-                                state.info?.license?.let { TvBadge(it) }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            GitHubActions(
+                                installState = installState,
+                                recommended = recommended,
+                                installedApp = installedApp,
+                                ownedByUs = ownedByUs,
+                                primaryFocus = primaryFocus,
+                                onInstallAsset = onInstallAsset,
+                                onOpenInstalled = onOpenInstalled,
+                                onUninstall = onUninstall,
+                                onRetry = onRetry.takeIf { state.error != null }
+                            )
+                        }
+                        if (installState == GitHubInstallState.InstalledNewer) {
+                            Text(
+                                stringResource(R.string.github_installed_newer, installedApp?.versionName.orEmpty()),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape = M3Theme.shapes.large,
+                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            val unknown = stringResource(R.string.github_fact_unknown)
+                            TvGitHubFact(stringResource(R.string.github_fact_version), state.latestRelease?.tagName ?: unknown)
+                            TvGitHubFact(stringResource(R.string.github_fact_published), state.latestRelease?.publishedAt?.take(10) ?: unknown)
+                            // The size of the build the button will actually fetch.
+                            TvGitHubFact(stringResource(R.string.github_fact_size), recommended?.let { formatSize(it.sizeBytes) } ?: unknown)
+                            state.info?.stars?.let { TvGitHubFact(stringResource(R.string.github_fact_stars), it.toString()) }
+                            installedApp?.let { TvGitHubFact(stringResource(R.string.github_fact_installed), it.versionName) }
+                        }
+                    }
+                }
+            }
+
+            val description = state.info?.description?.takeIf { it.isNotBlank() } ?: entry.summary.takeIf { it.isNotBlank() }
+            if (description != null) {
+                item(key = "description") {
+                    TvSectionTitle(stringResource(R.string.github_about_section))
+                    TvTextCard(description, maxLines = 10)
+                }
+            }
+
+            val screenshots = state.info?.screenshots.orEmpty()
+            if (screenshots.isNotEmpty()) {
+                item(key = "screenshots") {
+                    TvSectionTitle(stringResource(R.string.github_screenshots))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
+                        contentPadding = PaddingValues(12.dp),
+                        modifier = Modifier.height(300.dp)
+                    ) {
+                        items(screenshots, key = { it }) { url ->
+                            val shape = M3Theme.shapes.large
+                            // Focusable only so pressing right scrolls the row; there is nothing to open.
+                            Card(
+                                onClick = {},
+                                modifier = Modifier.height(260.dp),
+                                shape = CardDefaults.shape(shape),
+                                scale = CardDefaults.scale(focusedScale = 1.05f),
+                                border = CardDefaults.border(focusedBorder = tvFocusBorder(shape))
+                            ) {
+                                AsyncImage(
+                                    model = url,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.height(260.dp).clip(shape)
+                                )
                             }
                         }
                     }
-                    when {
-                        state.loading -> Text(
-                            stringResource(R.string.github_loading),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        state.error != null -> Text(
-                            stringResource(R.string.github_load_failed),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        recommended == null && installedApp == null -> Text(
-                            stringResource(R.string.github_no_apk),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        GitHubActions(
-                            installState = installState,
-                            recommended = recommended,
-                            installedApp = installedApp,
-                            ownedByUs = ownedByUs,
-                            primaryFocus = primaryFocus,
-                            onInstallAsset = onInstallAsset,
-                            onOpenInstalled = onOpenInstalled,
-                            onUninstall = onUninstall,
-                            onRetry = onRetry.takeIf { state.error != null }
-                        )
-                    }
-                    if (installState == GitHubInstallState.InstalledNewer) {
-                        Text(
-                            stringResource(R.string.github_installed_newer, installedApp?.versionName.orEmpty()),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = M3Theme.shapes.large,
-                    colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        val unknown = stringResource(R.string.github_fact_unknown)
-                        TvGitHubFact(stringResource(R.string.github_fact_version), state.latestRelease?.tagName ?: unknown)
-                        TvGitHubFact(stringResource(R.string.github_fact_published), state.latestRelease?.publishedAt?.take(10) ?: unknown)
-                        // The size of the build the button will actually fetch.
-                        TvGitHubFact(stringResource(R.string.github_fact_size), recommended?.let { formatSize(it.sizeBytes) } ?: unknown)
-                        state.info?.stars?.let { TvGitHubFact(stringResource(R.string.github_fact_stars), it.toString()) }
-                        installedApp?.let { TvGitHubFact(stringResource(R.string.github_fact_installed), it.versionName) }
-                    }
                 }
             }
-        }
 
-        val description = state.info?.description?.takeIf { it.isNotBlank() } ?: entry.summary.takeIf { it.isNotBlank() }
-        if (description != null) {
-            item(key = "description") {
-                TvSectionTitle(stringResource(R.string.github_about_section))
-                TvTextCard(description, maxLines = 10)
-            }
-        }
-
-        val screenshots = state.info?.screenshots.orEmpty()
-        if (screenshots.isNotEmpty()) {
-            item(key = "screenshots") {
-                TvSectionTitle(stringResource(R.string.github_screenshots))
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    contentPadding = PaddingValues(12.dp),
-                    modifier = Modifier.height(300.dp)
-                ) {
-                    items(screenshots, key = { it }) { url ->
-                        val shape = M3Theme.shapes.large
-                        // Focusable only so pressing right scrolls the row; there is nothing to open.
-                        Card(
-                            onClick = {},
-                            modifier = Modifier.height(260.dp),
-                            shape = CardDefaults.shape(shape),
-                            scale = CardDefaults.scale(focusedScale = 1.05f),
-                            border = CardDefaults.border(focusedBorder = tvFocusBorder(shape))
-                        ) {
-                            AsyncImage(
-                                model = url,
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.height(260.dp).clip(shape)
-                            )
-                        }
-                    }
+            state.latestRelease?.description?.takeIf { it.isNotBlank() }?.let { notes ->
+                item(key = "notes") {
+                    TvSectionTitle(stringResource(R.string.github_changelog_section))
+                    TvTextCard(notes.take(MAX_NOTES), maxLines = 14)
                 }
             }
-        }
 
-        state.latestRelease?.description?.takeIf { it.isNotBlank() }?.let { notes ->
-            item(key = "notes") {
-                TvSectionTitle(stringResource(R.string.github_changelog_section))
-                TvTextCard(notes.take(MAX_NOTES), maxLines = 14)
+            item(key = "disclaimer") {
+                Text(
+                    stringResource(R.string.disclaimer_source_github),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-        }
-
-        item(key = "disclaimer") {
-            Text(
-                stringResource(R.string.disclaimer_source_github),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

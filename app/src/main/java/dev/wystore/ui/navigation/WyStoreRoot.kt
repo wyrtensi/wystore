@@ -7,7 +7,6 @@ import dev.wystore.ui.components.UnverifiedSourceDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -154,63 +153,10 @@ fun WyStoreRoot(
     val githubSelectedRelease = state.githubSelectedRelease
 
     val githubApp = state.githubApp
-    // A detail screen replaces the Scaffold below rather than sitting inside it, and that Scaffold
-    // is what hosts the snackbar. So everything the app had to say while an app page, a release
-    // page or a GitHub page was open - queued, failed, permission needed - was shown into a host
-    // that was not on screen, and the button that raised it looked like it had done nothing.
-    val detailScreenShown = githubApp.entry != null || githubSelectedRelease != null || selected != null
+    // App, release and GitHub pages open inside the Scaffold, in place of the tab's screen: the
+    // navigation bar stays on them, and so does the snackbar host - which, when the pages replaced
+    // the Scaffold, was not on screen for anything said while one was open.
     Box(Modifier.fillMaxSize()) {
-    if (githubApp.entry != null && githubSelectedRelease == null) {
-        GitHubAppScreen(
-            state = githubApp,
-            installedApp = state.installed.firstOrNull { installed ->
-                // What Wy Store installed itself carries the link in its managed record; a curated
-                // entry that states its package is recognised however the app got onto the phone.
-                state.managed.any { managed ->
-                    managed.githubRepository == githubApp.entry.repository &&
-                        managed.packageName == installed.packageName
-                } || githubApp.entry.packageName == installed.packageName
-            },
-            onBack = viewModel::closeGitHubApp,
-            onInstallAsset = { githubInstallDialog = it },
-            onOpenInstalled = viewModel::launchInstalledApp,
-            onRetry = viewModel::retryGitHubApp,
-            onOpenRelease = viewModel::openGitHubRelease
-        )
-    } else if (githubSelectedRelease != null) {
-        GitHubReleaseDetailsScreen(
-            release = githubSelectedRelease,
-            install = state.githubInstall,
-            onBack = viewModel::closeGitHubRelease,
-            onInstall = { githubInstallDialog = it }
-        )
-    } else if (selected != null) {
-        val selectedInstalled = state.installed.firstOrNull { it.packageName == selected.packageName }
-        val selectedManaged = state.managed.firstOrNull { it.packageName == selected.packageName }
-        AppDetailsScreen(
-            app = selected,
-            installed = selectedInstalled,
-            pendingUpdate = state.pendingUpdates.firstOrNull { it.packageName == selected.packageName },
-            rootAvailable = state.rootAvailable,
-            busy = state.detailsLoading,
-            queueItem = state.installQueue.firstOrNull { it.packageName == selected.packageName },
-            reviewsLoading = state.reviewsLoading,
-            canLoadMoreReviews = selected.packageName !in state.fullReviewsLoaded,
-            onLoadMoreReviews = viewModel::loadAllReviews,
-            onBack = {
-                openedPackage = null
-                viewModel.clearDetails()
-            },
-            onLaunch = viewModel::launchInstalledApp,
-            onInstallPending = onInstallPending,
-            onInstall = {
-                if (selectedInstalled != null && selectedManaged == null) installDialog = true
-                else viewModel.installSelected()
-            },
-            onConfirmUnverifiedSource = viewModel::askAboutUnverifiedInstalled,
-            onReplace = { selectedInstalled?.let { replaceDialog = it to selected } }
-        )
-    } else {
         Scaffold(
             // Every screen carries its own Scaffold and top bar, and those already stand clear of
             // the status bar. Letting this one reserve the system bars too pushed each title down
@@ -231,7 +177,16 @@ fun WyStoreRoot(
             bottomBar = {
                 FloatingNavigationBar(
                     currentDestination = destination,
-                    onNavigate = { destination = it }
+                    onNavigate = {
+                        // A tab leaves whatever page is open on top of the current one.
+                        viewModel.closeGitHubRelease()
+                        viewModel.closeGitHubApp()
+                        if (state.selected != null) {
+                            openedPackage = null
+                            viewModel.clearDetails()
+                        }
+                        destination = it
+                    }
                 )
             }
         ) { padding ->
@@ -240,7 +195,57 @@ fun WyStoreRoot(
             // strip of background underneath.
             val screenModifier = Modifier.fillMaxSize()
             CompositionLocalProvider(LocalBottomBarInset provides padding.calculateBottomPadding()) {
-                when (destination) {
+                if (githubApp.entry != null && githubSelectedRelease == null) {
+                    GitHubAppScreen(
+                        state = githubApp,
+                        installedApp = state.installed.firstOrNull { installed ->
+                            // What Wy Store installed itself carries the link in its managed record; a curated
+                            // entry that states its package is recognised however the app got onto the phone.
+                            state.managed.any { managed ->
+                                managed.githubRepository == githubApp.entry.repository &&
+                                    managed.packageName == installed.packageName
+                            } || githubApp.entry.packageName == installed.packageName
+                        },
+                        onBack = viewModel::closeGitHubApp,
+                        onInstallAsset = { githubInstallDialog = it },
+                        onOpenInstalled = viewModel::launchInstalledApp,
+                        onRetry = viewModel::retryGitHubApp,
+                        onOpenRelease = viewModel::openGitHubRelease
+                    )
+                } else if (githubSelectedRelease != null) {
+                    GitHubReleaseDetailsScreen(
+                        release = githubSelectedRelease,
+                        install = state.githubInstall,
+                        onBack = viewModel::closeGitHubRelease,
+                        onInstall = { githubInstallDialog = it }
+                    )
+                } else if (selected != null) {
+                    val selectedInstalled = state.installed.firstOrNull { it.packageName == selected.packageName }
+                    val selectedManaged = state.managed.firstOrNull { it.packageName == selected.packageName }
+                    AppDetailsScreen(
+                        app = selected,
+                        installed = selectedInstalled,
+                        pendingUpdate = state.pendingUpdates.firstOrNull { it.packageName == selected.packageName },
+                        rootAvailable = state.rootAvailable,
+                        busy = state.detailsLoading,
+                        queueItem = state.installQueue.firstOrNull { it.packageName == selected.packageName },
+                        reviewsLoading = state.reviewsLoading,
+                        canLoadMoreReviews = selected.packageName !in state.fullReviewsLoaded,
+                        onLoadMoreReviews = viewModel::loadAllReviews,
+                        onBack = {
+                            openedPackage = null
+                            viewModel.clearDetails()
+                        },
+                        onLaunch = viewModel::launchInstalledApp,
+                        onInstallPending = onInstallPending,
+                        onInstall = {
+                            if (selectedInstalled != null && selectedManaged == null) installDialog = true
+                            else viewModel.installSelected()
+                        },
+                        onConfirmUnverifiedSource = viewModel::askAboutUnverifiedInstalled,
+                        onReplace = { selectedInstalled?.let { replaceDialog = it to selected } }
+                    )
+                } else when (destination) {
                     WyStoreDestination.Home -> dev.wystore.ui.home.HomeScreen(
                         modifier = screenModifier,
                         searchQuery = state.query,
@@ -459,16 +464,6 @@ fun WyStoreRoot(
                 }
             }
         }
-    }
-    if (detailScreenShown) {
-        WySnackbarHost(
-            snackbars,
-            Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 16.dp)
-        )
-    }
     }
 
     if (installDialog) {

@@ -63,6 +63,7 @@ import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
 import dev.wystore.isInFlight
 import dev.wystore.R
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.data.AndroidSdkCompatibility
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.PendingUpdate
@@ -174,12 +175,12 @@ fun AppDetailsScreen(
         )
     }) { contentPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
                 top = 4.dp,
-                bottom = 28.dp
+                bottom = 28.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {

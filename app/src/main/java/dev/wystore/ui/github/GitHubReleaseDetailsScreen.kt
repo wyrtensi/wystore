@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.wystore.InstallQueueItem
 import dev.wystore.R
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.data.GitHubAsset
 import dev.wystore.data.GitHubRelease
 import dev.wystore.ui.components.EmptyState
@@ -59,12 +60,12 @@ fun GitHubReleaseDetailsScreen(
         )
     }) { contentPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
                 top = 4.dp,
-                bottom = 24.dp
+                bottom = 24.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

@@ -497,3 +497,28 @@ fun TvMessageBanner(text: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun TvVerticalGap() = Spacer(Modifier.height(28.dp))
+
+/**
+ * Scrolls only as far as it takes to show what got the focus, and not at all when it is already
+ * on screen.
+ *
+ * On a TV, Compose brings the focused element to about a third of the way down the list. That
+ * suits Home's rows; on an app page it scrolled the page as soon as its first button took the
+ * focus, and the name and icon slid up under the menu.
+ */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+object TvMinimalBringIntoViewSpec : androidx.compose.foundation.gestures.BringIntoViewSpec {
+    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
+        val trailing = offset + size
+        // A little room past the element, so it does not end flush against the screen edge where a
+        // TV may cut it off - never so much that an element taller than the rest would not fit.
+        val margin = minOf(containerSize * 0.08f, ((containerSize - size) / 2f).coerceAtLeast(0f))
+        return when {
+            offset >= 0f && trailing <= containerSize -> 0f
+            // Larger than the viewport and already covering it: leave it where it is.
+            offset < 0f && trailing > containerSize -> 0f
+            kotlin.math.abs(offset) < kotlin.math.abs(trailing - containerSize) -> offset - margin
+            else -> trailing - containerSize + margin
+        }
+    }
+}

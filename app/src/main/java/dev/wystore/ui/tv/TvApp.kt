@@ -138,6 +138,11 @@ fun TvApp(
     }
     val githubPage = state.githubApp.entry
     val homeListState = rememberLazyListState()
+    var fullScreen by remember { mutableStateOf(false) }
+    val closePages = {
+        viewModel.clearDetails()
+        viewModel.closeGitHubApp()
+    }
     LaunchedEffect(catalogMode) {
         if (catalogMode != TvCatalog.TV) catalogViewModel.requirePhoneCatalog()
     }
@@ -230,42 +235,10 @@ fun TvApp(
                     true
                 }
         ) {
-            if (githubPage != null) {
-                TvGitHubAppScreen(
-                    state = state.githubApp,
-                    // Recognised as the phone page recognises it: through the record of what Wy Store
-                    // installed, or by the package a curated entry states.
-                    installedApp = state.installed.firstOrNull { installed ->
-                        state.managed.any { managed ->
-                            managed.githubRepository == githubPage.repository && managed.packageName == installed.packageName
-                        } || githubPage.packageName == installed.packageName
-                    },
-                    onInstallAsset = { githubInstallDialog = it },
-                    onOpenInstalled = viewModel::launchInstalledApp,
-                    onUninstall = { launchUninstall(context, it) },
-                    onRetry = viewModel::retryGitHubApp
-                )
-            } else if (selected != null) {
-                TvDetailsScreen(
-                    app = selected,
-                    state = PackageUiStateReducer.reduce(
-                        app = selected,
-                        installed = state.installed.firstOrNull { it.packageName == selected.packageName },
-                        managed = state.managed.firstOrNull { it.packageName == selected.packageName },
-                        queueItem = state.installQueue.firstOrNull { it.packageName == selected.packageName },
-                        pendingUpdate = state.pendingUpdates.firstOrNull { it.packageName == selected.packageName },
-                        resources = context.resources
-                    ),
-                    installed = state.installed.firstOrNull { it.packageName == selected.packageName },
-                    loading = state.detailsLoading,
-                    // Marked the way its card was: a phone app opened from among TV apps.
-                    forPhone = catalogMode == TvCatalog.BOTH && catalog.apps.none { it.packageName == selected.packageName },
-                    actions = actions,
-                    onUninstall = { launchUninstall(context, it) }
-                )
-            } else {
                 Column(Modifier.fillMaxSize()) {
-                    Row(
+                    // The menu stays on an app page too, as the phone's bar does; only a screenshot
+                    // opened full screen covers it.
+                    if (!(fullScreen && selected != null)) Row(
                         Modifier
                             .fillMaxWidth()
                             .padding(
@@ -293,11 +266,19 @@ fun TvApp(
                                 TvDestination.entries.forEach { item ->
                                     Tab(
                                         selected = destination == item,
-                                        onFocus = { destination = item },
+                                        onFocus = {
+                                            // Moving onto another tab leaves an open page for that
+                                            // tab's screen; coming up onto this one keeps it.
+                                            if (destination != item) {
+                                                closePages()
+                                                destination = item
+                                            }
+                                        },
                                         onClick = { focusManager.moveFocus(FocusDirection.Down) },
                                         modifier = Modifier
                                             .then(if (destination == item) Modifier.focusRequester(selectedTabFocus) else Modifier)
                                             .tvPointerClick {
+                                                closePages()
                                                 destination = item
                                                 focusManager.moveFocus(FocusDirection.Down)
                                             }
@@ -318,7 +299,41 @@ fun TvApp(
 
                     val takeFocus = !tabsFocused
                     Box(Modifier.weight(1f)) {
-                        when (destination) {
+                        if (githubPage != null) {
+                            TvGitHubAppScreen(
+                                state = state.githubApp,
+                                // Recognised as the phone page recognises it: through the record of what Wy Store
+                                // installed, or by the package a curated entry states.
+                                installedApp = state.installed.firstOrNull { installed ->
+                                    state.managed.any { managed ->
+                                        managed.githubRepository == githubPage.repository && managed.packageName == installed.packageName
+                                    } || githubPage.packageName == installed.packageName
+                                },
+                                onInstallAsset = { githubInstallDialog = it },
+                                onOpenInstalled = viewModel::launchInstalledApp,
+                                onUninstall = { launchUninstall(context, it) },
+                                onRetry = viewModel::retryGitHubApp
+                            )
+                        } else if (selected != null) {
+                            TvDetailsScreen(
+                                app = selected,
+                                state = PackageUiStateReducer.reduce(
+                                    app = selected,
+                                    installed = state.installed.firstOrNull { it.packageName == selected.packageName },
+                                    managed = state.managed.firstOrNull { it.packageName == selected.packageName },
+                                    queueItem = state.installQueue.firstOrNull { it.packageName == selected.packageName },
+                                    pendingUpdate = state.pendingUpdates.firstOrNull { it.packageName == selected.packageName },
+                                    resources = context.resources
+                                ),
+                                installed = state.installed.firstOrNull { it.packageName == selected.packageName },
+                                loading = state.detailsLoading,
+                                // Marked the way its card was: a phone app opened from among TV apps.
+                                forPhone = catalogMode == TvCatalog.BOTH && catalog.apps.none { it.packageName == selected.packageName },
+                                actions = actions,
+                                onUninstall = { launchUninstall(context, it) },
+                                onFullScreenChange = { fullScreen = it }
+                            )
+                        } else when (destination) {
                             TvDestination.HOME -> TvHomeScreen(
                                 catalog = catalog,
                                 catalogMode = catalogMode,
@@ -403,7 +418,6 @@ fun TvApp(
                         }
                     }
                 }
-            }
 
             message?.let {
                 TvMessageBanner(it, Modifier.align(Alignment.BottomCenter))

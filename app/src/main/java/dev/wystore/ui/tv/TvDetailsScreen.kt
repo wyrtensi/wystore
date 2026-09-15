@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -75,7 +76,9 @@ fun TvDetailsScreen(
     forPhone: Boolean,
     actions: TvPackageActions,
     onUninstall: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Told when a screenshot opens full screen and closes, so the menu can make way for it. */
+    onFullScreenChange: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val primaryFocus = remember { FocusRequester() }
@@ -85,6 +88,10 @@ fun TvDetailsScreen(
     LaunchedEffect(app.packageName, primaryLabel != null) {
         runCatching { primaryFocus.requestFocus() }
     }
+
+    val viewerOpen = viewerIndex != null
+    LaunchedEffect(viewerOpen) { onFullScreenChange(viewerOpen) }
+    DisposableEffect(Unit) { onDispose { onFullScreenChange(false) } }
 
     viewerIndex?.let { index ->
         TvScreenshotViewer(
@@ -96,165 +103,171 @@ fun TvDetailsScreen(
         return
     }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = TvOverscanHorizontal,
-            end = TvOverscanHorizontal,
-            top = TvOverscanVertical + 8.dp,
-            bottom = TvOverscanVertical + 48.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(28.dp)
+    // Pages keep their header in place; see TvMinimalBringIntoViewSpec.
+    @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+    androidx.compose.runtime.CompositionLocalProvider(
+        androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides TvMinimalBringIntoViewSpec
     ) {
-        item(key = "header") {
-            // The phone page's parts, side by side for a wide screen: who and what on the left with
-            // the one button, the facts in a card on the right.
-            Row(horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.Top) {
-                Column(Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        AppIcon(model = app.iconUrl, contentDescription = null, size = 112.dp, fallbackPackageName = app.packageName)
-                        Column(Modifier.padding(start = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(
-                                app.name.ifBlank { app.packageName },
-                                style = MaterialTheme.typography.headlineMedium,
-                                maxLines = 2,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                            )
-                            if (app.publisher.isNotBlank()) {
-                                Text(app.publisher, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                TvBadge(stringResource(R.string.source_rustore))
-                                if (forPhone) {
-                                    TvBadge(
-                                        stringResource(R.string.tv_badge_phone),
-                                        container = MaterialTheme.colorScheme.tertiary,
-                                        content = MaterialTheme.colorScheme.onTertiary
-                                    )
+        LazyColumn(
+            modifier = modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = TvOverscanHorizontal,
+                end = TvOverscanHorizontal,
+                top = 8.dp,
+                bottom = TvOverscanVertical + 48.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(28.dp)
+        ) {
+            item(key = "header") {
+                // The phone page's parts, side by side for a wide screen: who and what on the left with
+                // the one button, the facts in a card on the right.
+                Row(horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.Top) {
+                    Column(Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            AppIcon(model = app.iconUrl, contentDescription = null, size = 112.dp, fallbackPackageName = app.packageName)
+                            Column(Modifier.padding(start = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    app.name.ifBlank { app.packageName },
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    maxLines = 2,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                )
+                                if (app.publisher.isNotBlank()) {
+                                    Text(app.publisher, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TvBadge(stringResource(R.string.source_rustore))
+                                    if (forPhone) {
+                                        TvBadge(
+                                            stringResource(R.string.tv_badge_phone),
+                                            container = MaterialTheme.colorScheme.tertiary,
+                                            content = MaterialTheme.colorScheme.onTertiary
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
-                    Text(
-                        StatusTextResolver.resolve(context, state.status),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        if (primaryLabel != null) {
-                            TvPrimaryButton(
-                                text = primaryLabel,
-                                onClick = { actions.perform(state) },
-                                enabled = state.primaryAction != PrimaryAction.Installing && !loading,
-                                modifier = Modifier.focusRequester(primaryFocus)
-                            )
-                        }
-                        if (installed != null) {
-                            TvSecondaryButton(
-                                text = stringResource(R.string.details_uninstall),
-                                onClick = { onUninstall(app.packageName) },
-                                modifier = if (primaryLabel == null) Modifier.focusRequester(primaryFocus) else Modifier
-                            )
-                        }
-                    }
-                }
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = androidx.compose.material3.MaterialTheme.shapes.large,
-                    colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        TvFact(stringResource(R.string.details_label_version), app.versionName)
-                        installed?.versionName?.let { TvFact(stringResource(R.string.tv_details_installed), it) }
-                        app.sizeBytes.takeIf { it > 0 }?.let { TvFact(stringResource(R.string.details_label_size), formatSize(context.resources, it)) }
-                        app.rating?.let { rating ->
-                            TvFact(
-                                stringResource(R.string.details_label_rating),
-                                String.format(java.util.Locale.getDefault(), "%.1f", rating) +
-                                    (app.ratingCount?.let { " ($it)" } ?: "")
-                            )
-                        }
-                        app.downloadsText?.let { TvFact(stringResource(R.string.details_label_downloads), it) }
-                        app.minAndroidVersion?.let {
-                            TvFact(stringResource(R.string.details_label_min_android), stringResource(R.string.details_min_android_value, it))
+                        Text(
+                            StatusTextResolver.resolve(context, state.status),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            if (primaryLabel != null) {
+                                TvPrimaryButton(
+                                    text = primaryLabel,
+                                    onClick = { actions.perform(state) },
+                                    enabled = state.primaryAction != PrimaryAction.Installing && !loading,
+                                    modifier = Modifier.focusRequester(primaryFocus)
+                                )
+                            }
+                            if (installed != null) {
+                                TvSecondaryButton(
+                                    text = stringResource(R.string.details_uninstall),
+                                    onClick = { onUninstall(app.packageName) },
+                                    modifier = if (primaryLabel == null) Modifier.focusRequester(primaryFocus) else Modifier
+                                )
+                            }
                         }
                     }
-                }
-            }
-        }
-
-        val description = app.fullDescription.ifBlank { app.shortDescription }
-        if (description.isNotBlank()) {
-            item(key = "description") {
-                TvSectionTitle(stringResource(R.string.details_description))
-                // Focusable so pressing down reaches it and brings it into view; long text on a TV
-                // is otherwise out of reach of a remote.
-                Surface(
-                    modifier = Modifier.fillMaxWidth().focusable(),
-                    shape = androidx.compose.material3.MaterialTheme.shapes.large,
-                    colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Text(
-                        description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 12,
-                        modifier = Modifier.padding(24.dp)
-                    )
-                }
-            }
-        }
-
-        if (app.screenshots.isNotEmpty()) {
-            item(key = "screenshots") {
-                TvSectionTitle(stringResource(R.string.details_screenshots))
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    contentPadding = PaddingValues(12.dp),
-                    modifier = Modifier.height(300.dp)
-                ) {
-                    itemsIndexed(app.screenshots, key = { index, url -> "$index-$url" }) { index, url ->
-                        Card(
-                            onClick = { viewerIndex = index },
-                            modifier = Modifier.height(260.dp).tvPointerClick { viewerIndex = index },
-                            scale = CardDefaults.scale(focusedScale = 1.05f),
-                            border = CardDefaults.border(focusedBorder = tvFocusBorder())
-                        ) {
-                            AsyncImage(
-                                model = url,
-                                contentDescription = stringResource(R.string.common_screenshot, app.name),
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.height(260.dp)
-                            )
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape = androidx.compose.material3.MaterialTheme.shapes.large,
+                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            TvFact(stringResource(R.string.details_label_version), app.versionName)
+                            installed?.versionName?.let { TvFact(stringResource(R.string.tv_details_installed), it) }
+                            app.sizeBytes.takeIf { it > 0 }?.let { TvFact(stringResource(R.string.details_label_size), formatSize(context.resources, it)) }
+                            app.rating?.let { rating ->
+                                TvFact(
+                                    stringResource(R.string.details_label_rating),
+                                    String.format(java.util.Locale.getDefault(), "%.1f", rating) +
+                                        (app.ratingCount?.let { " ($it)" } ?: "")
+                                )
+                            }
+                            app.downloadsText?.let { TvFact(stringResource(R.string.details_label_downloads), it) }
+                            app.minAndroidVersion?.let {
+                                TvFact(stringResource(R.string.details_label_min_android), stringResource(R.string.details_min_android_value, it))
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // The reviews the page came with, in a row: each focusable, so the remote can move along
-        // them and a long one is brought fully into view.
-        if (app.reviews.isNotEmpty()) {
-            item(key = "reviews") {
-                TvSectionTitle(stringResource(R.string.details_reviews))
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    contentPadding = PaddingValues(12.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    itemsIndexed(app.reviews, key = { index, review -> "$index-${review.author}" }) { _, review ->
-                        val shape = androidx.compose.material3.MaterialTheme.shapes.large
-                        Surface(
-                            onClick = {},
-                            modifier = Modifier.width(TvReviewWidth),
-                            shape = ClickableSurfaceDefaults.shape(shape),
-                            scale = ClickableSurfaceDefaults.scale(focusedScale = 1.03f),
-                            border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
-                            colors = ClickableSurfaceDefaults.colors(
-                                containerColor = androidx.compose.ui.graphics.Color.Transparent,
-                                focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent
-                            )
-                        ) {
-                            ReviewCard(review)
+            val description = app.fullDescription.ifBlank { app.shortDescription }
+            if (description.isNotBlank()) {
+                item(key = "description") {
+                    TvSectionTitle(stringResource(R.string.details_description))
+                    // Focusable so pressing down reaches it and brings it into view; long text on a TV
+                    // is otherwise out of reach of a remote.
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().focusable(),
+                        shape = androidx.compose.material3.MaterialTheme.shapes.large,
+                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Text(
+                            description,
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 12,
+                            modifier = Modifier.padding(24.dp)
+                        )
+                    }
+                }
+            }
+
+            if (app.screenshots.isNotEmpty()) {
+                item(key = "screenshots") {
+                    TvSectionTitle(stringResource(R.string.details_screenshots))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
+                        contentPadding = PaddingValues(12.dp),
+                        modifier = Modifier.height(300.dp)
+                    ) {
+                        itemsIndexed(app.screenshots, key = { index, url -> "$index-$url" }) { index, url ->
+                            Card(
+                                onClick = { viewerIndex = index },
+                                modifier = Modifier.height(260.dp).tvPointerClick { viewerIndex = index },
+                                scale = CardDefaults.scale(focusedScale = 1.05f),
+                                border = CardDefaults.border(focusedBorder = tvFocusBorder())
+                            ) {
+                                AsyncImage(
+                                    model = url,
+                                    contentDescription = stringResource(R.string.common_screenshot, app.name),
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.height(260.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // The reviews the page came with, in a row: each focusable, so the remote can move along
+            // them and a long one is brought fully into view.
+            if (app.reviews.isNotEmpty()) {
+                item(key = "reviews") {
+                    TvSectionTitle(stringResource(R.string.details_reviews))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
+                        contentPadding = PaddingValues(12.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        itemsIndexed(app.reviews, key = { index, review -> "$index-${review.author}" }) { _, review ->
+                            val shape = androidx.compose.material3.MaterialTheme.shapes.large
+                            Surface(
+                                onClick = {},
+                                modifier = Modifier.width(TvReviewWidth),
+                                shape = ClickableSurfaceDefaults.shape(shape),
+                                scale = ClickableSurfaceDefaults.scale(focusedScale = 1.03f),
+                                border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
+                                colors = ClickableSurfaceDefaults.colors(
+                                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                                    focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent
+                                )
+                            ) {
+                                ReviewCard(review)
+                            }
                         }
                     }
                 }

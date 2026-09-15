@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import dev.wystore.ui.components.WySpinner
 import dev.wystore.R
+import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.data.GitHubInstallStatePolicy
 import dev.wystore.data.GitHubInstallState
 import dev.wystore.data.GitHubAsset
@@ -163,12 +164,12 @@ fun GitHubAppScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(contentPadding),
+                .padding(top = contentPadding.calculateTopPadding()),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
                 top = 4.dp,
-                bottom = 28.dp
+                bottom = 28.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
