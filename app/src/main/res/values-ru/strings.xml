@@ -573,6 +573,7 @@
     <string name="source_error_github_no_location">GitHub не вернул адрес загрузки.</string>
     <string name="source_error_github_redirects">GitHub отправил слишком много перенаправлений.</string>
     <string name="source_error_rustore_not_found">RuStore не знает такого приложения</string>
+    <string name="source_error_rustore_rate_limited">RuStore сейчас ограничивает число запросов. Попробуйте через минуту.</string>
     <string name="source_error_rustore_unavailable">RuStore сейчас недоступен.</string>
     <string name="source_error_rustore_empty">RuStore вернул пустой ответ.</string>
     <string name="source_error_rustore_api">RuStore не принял версию API.</string>

@@ -573,6 +573,7 @@
     <string name="source_error_github_no_location">GitHub yuklab olish manzilini qaytarmadi.</string>
     <string name="source_error_github_redirects">GitHub juda koʻp yoʻnaltirish yubordi.</string>
     <string name="source_error_rustore_not_found">RuStore bunday ilovani bilmaydi</string>
+    <string name="source_error_rustore_rate_limited">RuStore hozir soʻrovlar sonini cheklamoqda. Bir daqiqadan keyin qayta urinib koʻring.</string>
     <string name="source_error_rustore_unavailable">RuStore hozir mavjud emas.</string>
     <string name="source_error_rustore_empty">RuStore boʻsh javob qaytardi.</string>
     <string name="source_error_rustore_api">RuStore API versiyasi kodini qabul qilmadi.</string>

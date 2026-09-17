@@ -573,6 +573,7 @@
     <string name="source_error_github_no_location">GitHub 没有返回下载地址。</string>
     <string name="source_error_github_redirects">GitHub 返回了过多的重定向。</string>
     <string name="source_error_rustore_not_found">RuStore 没有这个应用</string>
+    <string name="source_error_rustore_rate_limited">RuStore 目前正在限制请求次数，请一分钟后再试。</string>
     <string name="source_error_rustore_unavailable">RuStore 当前不可用。</string>
     <string name="source_error_rustore_empty">RuStore 返回了空响应。</string>
     <string name="source_error_rustore_api">RuStore 不接受这个 API 版本号。</string>

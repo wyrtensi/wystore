@@ -573,6 +573,7 @@
     <string name="source_error_github_no_location">GitHub жүктеп алу мекенжайын қайтармады.</string>
     <string name="source_error_github_redirects">GitHub тым көп қайта бағыттау жіберді.</string>
     <string name="source_error_rustore_not_found">RuStore-да мұндай қолданба жоқ</string>
+    <string name="source_error_rustore_rate_limited">RuStore қазір сұраулар санын шектеп тұр. Бір минуттан кейін қайталап көріңіз.</string>
     <string name="source_error_rustore_unavailable">RuStore қазір қолжетімсіз.</string>
     <string name="source_error_rustore_empty">RuStore бос жауап қайтарды.</string>
     <string name="source_error_rustore_api">RuStore API нұсқасының кодын қабылдамады.</string>

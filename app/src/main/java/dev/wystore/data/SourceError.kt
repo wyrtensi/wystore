@@ -25,6 +25,9 @@ enum class SourceError {
      * does not carry - for ever, with the backoff growing each time.
      */
     RUSTORE_NOT_FOUND,
+
+    /** RuStore asked to slow down (HTTP 429). Clears on its own; says nothing about the app. */
+    RUSTORE_RATE_LIMITED,
     RUSTORE_EMPTY_RESPONSE,
     RUSTORE_API_REJECTED,
     RUSTORE_NO_DOWNLOAD_LINK,

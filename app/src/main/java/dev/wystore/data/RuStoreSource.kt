@@ -7,10 +7,12 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.jsoup.Jsoup
 import java.net.URLEncoder
@@ -91,7 +93,7 @@ class RuStoreSource(context: Context) : StoreSource {
                 Build.SUPPORTED_ABIS.forEach { add(it) }
             })
         }
-        val root = apiClient.execute(catalogues()) { versionCode ->
+        val root = withRateLimitRetries { apiClient.execute(catalogues()) { versionCode ->
             Request.Builder()
                 .url("https://backapi.rustore.ru/applicationData/v2/download-link")
                 .header("Content-Type", "application/json; charset=utf-8")
@@ -99,7 +101,7 @@ class RuStoreSource(context: Context) : StoreSource {
                 .header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}")
                 .header("ruStoreVerCode", versionCode.toString())
                 .post(payload.toString().toRequestBody("application/json; charset=utf-8".toMediaType()))
-        }.use { response ->
+        } }.use { response ->
             if (!response.isSuccessful) throw SourceFormatException(SourceError.RUSTORE_NO_DOWNLOAD_LINK, "download-link HTTP ${response.code}")
             parseObject(response.body?.string() ?: throw SourceFormatException(SourceError.RUSTORE_EMPTY_RESPONSE, "Empty response body"))
         }
@@ -142,9 +144,26 @@ class RuStoreSource(context: Context) : StoreSource {
         RustoreHtmlParser.parseCatalogPage(getText("https://www.rustore.ru/$route"), section, page)
     }
 
-    private fun getText(url: String): String {
+    /**
+     * Sends [call] again while RuStore answers 429, waiting as [RuStoreRateLimitPolicy] says, and
+     * returns the last response - still a 429 when the waits ran out.
+     */
+    private suspend fun withRateLimitRetries(call: () -> Response): Response {
+        var retry = 0
+        while (true) {
+            val response = call()
+            if (response.code != RuStoreRateLimitPolicy.TOO_MANY_REQUESTS) return response
+            val wait = RuStoreRateLimitPolicy.delayBeforeRetry(retry, parseRetryAfterHeader(response.header("Retry-After")))
+                ?: return response
+            response.close()
+            delay(wait)
+            retry++
+        }
+    }
+
+    private suspend fun getText(url: String): String {
         val isApi = java.net.URI(url).host == "backapi.rustore.ru"
-        val response = if (isApi) {
+        val response = withRateLimitRetries { if (isApi) {
             apiClient.execute(catalogues()) { versionCode ->
                 Request.Builder()
                     .url(url)
@@ -154,17 +173,13 @@ class RuStoreSource(context: Context) : StoreSource {
             }
         } else {
             client.newCall(Request.Builder().url(url).header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}").build()).execute()
-        }
+        } }
         return response.use {
             if (!it.isSuccessful) {
                 // 4xx is an answer about this request - most often a package the store does not
-                // carry - and waiting changes nothing. Only 5xx and the like are worth retrying.
-                val error = if (it.code in 400..499) {
-                    SourceError.RUSTORE_NOT_FOUND
-                } else {
-                    SourceError.RUSTORE_UNAVAILABLE
-                }
-                throw SourceFormatException(error, "RuStore HTTP ${it.code}")
+                // carry - and waiting changes nothing. 429 is the exception: it is about pace, and
+                // reading it as "not found" reported apps as gone from the store.
+                throw SourceFormatException(RuStoreRateLimitPolicy.errorFor(it.code), "RuStore HTTP ${it.code}")
             }
             it.body?.string() ?: throw SourceFormatException(SourceError.RUSTORE_EMPTY_RESPONSE, "Empty response body")
         }

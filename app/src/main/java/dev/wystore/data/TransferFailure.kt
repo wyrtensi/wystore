@@ -110,7 +110,7 @@ fun classifyThrowable(throwable: Throwable): TransferFailure {
     }
 }
 
-private fun parseRetryAfterHeader(header: String?): Long? {
+internal fun parseRetryAfterHeader(header: String?): Long? {
     if (header.isNullOrBlank()) return null
     header.toLongOrNull()?.let { seconds ->
         return (seconds * 1000L).coerceAtLeast(0L)
@@ -129,7 +129,8 @@ private fun parseRetryAfterHeader(header: String?): Long? {
  */
 val SourceError.queueCode: QueueErrorCode
     get() = when (this) {
-        SourceError.GITHUB_RATE_LIMITED -> QueueErrorCode.RATE_LIMITED
+        SourceError.GITHUB_RATE_LIMITED,
+        SourceError.RUSTORE_RATE_LIMITED -> QueueErrorCode.RATE_LIMITED
         SourceError.GITHUB_UNAVAILABLE,
         SourceError.RUSTORE_UNAVAILABLE,
         SourceError.DOWNLOAD_FAILED -> QueueErrorCode.NETWORK
@@ -148,6 +149,7 @@ val SourceError.retryable: Boolean
         SourceError.GITHUB_RATE_LIMITED,
         SourceError.GITHUB_UNAVAILABLE,
         SourceError.RUSTORE_UNAVAILABLE,
+        SourceError.RUSTORE_RATE_LIMITED,
         SourceError.RUSTORE_EMPTY_RESPONSE,
         SourceError.DOWNLOAD_FAILED -> true
         else -> false

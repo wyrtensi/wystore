@@ -36,7 +36,10 @@ import dev.wystore.updates.UnverifiedSourceStore
 import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import dev.wystore.data.RuStoreRateLimitPolicy
 
 class UpdateCheckWorker(
     appContext: Context,
@@ -50,6 +53,23 @@ class UpdateCheckWorker(
 
     override suspend fun doWork(): Result {
         val isManualCheck = inputData.getBoolean(KEY_MANUAL_CHECK, false)
+        // One check at a time. The scheduled check and the button run as separate work, and when
+        // they overlapped every app was asked about twice at once - which is what made RuStore
+        // start answering 429. A scheduled check that finds one running has nothing to add and
+        // stands down; the button waits for its turn, since the user is watching for its answer.
+        if (!isManualCheck) {
+            if (!CHECK_LOCK.tryLock()) return Result.success()
+        } else {
+            CHECK_LOCK.lock()
+        }
+        return try {
+            runCheck(isManualCheck)
+        } finally {
+            CHECK_LOCK.unlock()
+        }
+    }
+
+    private suspend fun runCheck(isManualCheck: Boolean): Result {
         val requestedPackage = inputData.getString(KEY_PACKAGE) ?: inputData.getString("package")
 
         val installed = repository.installedApps().associateBy { it.packageName }
@@ -139,6 +159,8 @@ class UpdateCheckWorker(
             }
 
             try {
+                // Paced, so forty apps are not forty requests fired back to back.
+                if (attempted > 0) delay(RuStoreRateLimitPolicy.CHECK_PACE_MILLIS)
                 attempted++
                 // A check aimed at this one package is someone asking about it, so the answer is
                 // kept and offered rather than swept away with the rows nobody asked for. Asking
@@ -456,6 +478,11 @@ class UpdateCheckWorker(
             return
         }
         queued.forEach { row ->
+            // A row found again while it is already downloading keeps its runner. Dispatching
+            // replaces the unique work, which stopped the transfer in the middle; the replacement
+            // could not claim a row still marked as downloading, and nothing started it again.
+            val state = runCatching { queueRepository.getById(row.id)?.state }.getOrNull()
+            if (state != QueueState.AVAILABLE) return@forEach
             runCatching { TransferDispatcher.dispatchUnattended(applicationContext, row.id, settings) }
                 .onFailure { error ->
                     // The row is queued and nothing is coming for it. Silent, this looks exactly
@@ -479,6 +506,8 @@ class UpdateCheckWorker(
         error is SourceFormatException && error.error == SourceError.RUSTORE_NOT_FOUND
 
     companion object {
+        private val CHECK_LOCK = Mutex()
+
         const val KEY_MANUAL_CHECK = "manual_check"
         const val KEY_PACKAGE = "package_name"
     }
