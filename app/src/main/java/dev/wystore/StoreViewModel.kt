@@ -137,6 +137,24 @@ val InstallQueueStatus.isInFlight: Boolean
 val InstallQueueStatus.occupiesQueue: Boolean
     get() = isInFlight || this == InstallQueueStatus.READY
 
+/**
+ * The queue row that speaks for [packageName] now.
+ *
+ * A package collects rows: every finished update stays behind as history. The queue is ordered by
+ * priority, so the first match was often an old row a button had created - finished long ago -
+ * standing in front of the row a background check had just found. Cards then showed "Open" for
+ * an app with an update downloading or waiting, and Wy Store's own page showed no download. The
+ * row still being worked on wins, then one that stopped with an error, then whatever is left.
+ */
+fun List<InstallQueueItem>.rowFor(packageName: String): InstallQueueItem? =
+    filter { it.packageName == packageName }.minByOrNull { row ->
+        when {
+            row.status.occupiesQueue || row.status == InstallQueueStatus.PAUSED -> 0
+            row.status == InstallQueueStatus.FAILED -> 1
+            else -> 2
+        }
+    }
+
 data class InstallQueueItem(
     /** Durable queue row id; queue actions are addressed by it, not by package name. */
     val id: String = "",
@@ -791,6 +809,14 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             val pending = withContext(Dispatchers.IO) { queueRepository.getPendingUpdates() }
             _state.update { it.copy(pendingUpdates = pending) }
         }
+    }
+
+    /**
+     * Picks the queue up where background work left it - see [dev.wystore.background.QueueRecovery].
+     * Called when the app comes to the front.
+     */
+    fun resumeQueue() {
+        viewModelScope.launch { runCatching { dev.wystore.background.QueueRecovery.resume(getApplication()) } }
     }
 
     fun refreshPendingUpdates() {
@@ -1541,7 +1567,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * row is found here and the question is answered in one place.
      */
     fun askAboutUnverifiedSource(packageName: String) {
-        val row = _state.value.installQueue.firstOrNull { it.packageName == packageName } ?: return
+        val row = _state.value.installQueue.rowFor(packageName) ?: return
         if (!UnverifiedSourceConsent.isAnswerable(row.errorCode, row.detail)) return
         _state.update {
             it.copy(

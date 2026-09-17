@@ -1,5 +1,6 @@
 package dev.wystore.ui.navigation
 
+import dev.wystore.rowFor
 import androidx.activity.compose.BackHandler
 import dev.wystore.background.UpdateCheckPolicy
 import dev.wystore.ui.components.SourceFailureDialog
@@ -231,7 +232,7 @@ fun WyStoreRoot(
                         pendingUpdate = state.pendingUpdates.firstOrNull { it.packageName == selected.packageName },
                         rootAvailable = state.rootAvailable,
                         busy = state.detailsLoading,
-                        queueItem = state.installQueue.firstOrNull { it.packageName == selected.packageName },
+                        queueItem = state.installQueue.rowFor(selected.packageName),
                         reviewsLoading = state.reviewsLoading,
                         canLoadMoreReviews = selected.packageName !in state.fullReviewsLoaded,
                         onLoadMoreReviews = viewModel::loadAllReviews,
@@ -452,9 +453,7 @@ fun WyStoreRoot(
                         selfUpdate = state.selfUpdate,
                         // Wy Store's own row in the queue, so its page can show the download instead
                         // of sending the user to Updates to watch it.
-                        selfUpdateQueueItem = state.installQueue.firstOrNull {
-                            it.packageName == BuildConfig.APPLICATION_ID
-                        },
+                        selfUpdateQueueItem = state.installQueue.rowFor(BuildConfig.APPLICATION_ID),
                         selfUpdatePending = state.pendingUpdates.firstOrNull {
                             it.packageName == BuildConfig.APPLICATION_ID
                         },

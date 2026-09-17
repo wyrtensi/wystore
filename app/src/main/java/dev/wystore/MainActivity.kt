@@ -161,6 +161,7 @@ class MainActivity : AppCompatActivity(), SystemInstallerHost {
             }
         }
         storeViewModel.refreshLibrary(reportConfirmed = true)
+        storeViewModel.resumeQueue()
         if (!packageManager.canRequestPackageInstalls()) return
         // The in-memory field only survives while this Activity does; the durable queue is what
         // carries the intent to install across the trip to Android Settings and a possible kill.

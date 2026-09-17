@@ -1,5 +1,6 @@
 package dev.wystore.ui.library
 
+import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -103,7 +104,7 @@ fun LibraryScreen(
 ) {
     val managedByPackage = remember(managed) { managed.associateBy { it.packageName } }
     val pendingByPackage = remember(pendingUpdates) { pendingUpdates.associateBy { it.packageName } }
-    val queueByPackage = remember(queue) { queue.associateBy { it.packageName } }
+    val queueByPackage = remember(queue) { queue.map { it.packageName }.distinct().associateWith { queue.rowFor(it) } }
     var query by remember { mutableStateOf("") }
     var sort by rememberSaveable { mutableStateOf(LibrarySort.ALL) }
     // Which rows are open lives here rather than in the rows themselves. A row that is scrolled

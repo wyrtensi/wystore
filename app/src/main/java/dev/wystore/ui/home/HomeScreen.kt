@@ -1,5 +1,6 @@
 package dev.wystore.ui.home
 
+import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -182,7 +183,7 @@ fun HomeScreen(
                         app = app,
                         installed = installed.firstOrNull { it.packageName == app.packageName },
                         managed = managed.firstOrNull { it.packageName == app.packageName },
-                        queueItem = queue.firstOrNull { it.packageName == app.packageName },
+                        queueItem = queue.rowFor(app.packageName),
                         pendingUpdate = pendingUpdates.firstOrNull { it.packageName == app.packageName },
                         resources = LocalContext.current.resources
                     )

@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -68,7 +69,7 @@ fun rememberPackageState(app: StoreApp, packages: TvPackageContext): PackageUiSt
             app = app,
             installed = packages.installed.firstOrNull { it.packageName == app.packageName },
             managed = packages.managed.firstOrNull { it.packageName == app.packageName },
-            queueItem = packages.queue.firstOrNull { it.packageName == app.packageName },
+            queueItem = packages.queue.rowFor(app.packageName),
             pendingUpdate = packages.pendingUpdates.firstOrNull { it.packageName == app.packageName },
             resources = resources
         )

@@ -36,6 +36,8 @@ import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.model.QueueAction
 import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import dev.wystore.updates.QueueRecoveryPolicy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -100,14 +102,22 @@ class UpdateDownloadWorker(
             // whoever finishes; being second in line is not a failure and must not be shown as one.
             Result.success()
         } catch (cancellation: CancellationException) {
-            // A pause arrives as a cancellation too, and is told apart by the row: whoever paused
-            // it marked it PAUSED before stopping the work. Its bytes are the point of pausing, so
-            // neither the state nor the working directory is touched.
-            val paused = runCatching { queueRepository.getById(queueId)?.state }.getOrNull() ==
-                QueueState.PAUSED
-            if (!paused) {
-                runCatching { queueRepository.transition(queueId, QueueAction.Cancel) }
-                runCatching { workingDirectory(queueId).deleteRecursively() }
+            // Pause, cancel and skip all arrive as a cancellation, and are told apart by the row:
+            // whoever decided marks it before stopping the work. A row still marked as in flight
+            // was stopped by nobody's decision - the system ran out of time for a background job,
+            // lost the network it was waiting on, or the work was replaced. That used to be
+            // written down as a cancellation: the download was never started again, and the rows
+            // behind it waited for a pump that runs only when a transfer ends by itself. Such a row goes
+            // back in line with its bytes, and WorkManager runs the stopped work again.
+            withContext(NonCancellable) {
+                val state = runCatching { queueRepository.getById(queueId)?.state }.getOrNull()
+                when {
+                    state in QueueRecoveryPolicy.INTERRUPTIBLE_STATES ->
+                        runCatching { queueRepository.releaseInterrupted(queueId) }
+                    state == QueueState.CANCELED || state == QueueState.SKIPPED ->
+                        runCatching { workingDirectory(queueId).deleteRecursively() }
+                    else -> Unit
+                }
             }
             throw cancellation
         } catch (error: Throwable) {

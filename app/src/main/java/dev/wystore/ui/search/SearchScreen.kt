@@ -1,5 +1,6 @@
 package dev.wystore.ui.search
 
+import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -253,7 +254,7 @@ fun SearchScreen(
                 SearchCard(
                     app = app,
                     installed = installed.firstOrNull { it.packageName == app.packageName },
-                    queueItem = queue.firstOrNull { it.packageName == app.packageName },
+                    queueItem = queue.rowFor(app.packageName),
                     pendingUpdate = pendingUpdates.firstOrNull { it.packageName == app.packageName },
                     onOpen = onOpen,
                     onQuickInstall = onQuickInstall,

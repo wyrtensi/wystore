@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.rowFor
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -330,7 +331,7 @@ fun TvApp(
                                     app = selected,
                                     installed = state.installed.firstOrNull { it.packageName == selected.packageName },
                                     managed = state.managed.firstOrNull { it.packageName == selected.packageName },
-                                    queueItem = state.installQueue.firstOrNull { it.packageName == selected.packageName },
+                                    queueItem = state.installQueue.rowFor(selected.packageName),
                                     pendingUpdate = state.pendingUpdates.firstOrNull { it.packageName == selected.packageName },
                                     resources = context.resources
                                 ),

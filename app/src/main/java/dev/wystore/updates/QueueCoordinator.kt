@@ -71,8 +71,8 @@ class QueueCoordinator(
     /**
      * Stops a transfer and puts its row back in line.
      *
-     * The reset waits for the worker to finish unwinding: cancellation runs in the worker, which
-     * writes CANCELED on its way out, and resetting before that lands would be overwritten by it.
+     * The reset waits for the worker to finish unwinding: a stopped worker puts its row back in line
+     * on its way out, and resetting before that lands would be overwritten by it.
      */
     private suspend fun displace(id: String) {
         TransferDispatcher.cancel(context, id)
@@ -113,9 +113,11 @@ class QueueCoordinator(
     }
 
     suspend fun skip(id: String) {
-        // Skipping an in-flight item has to stop the transfer too, not just relabel the row.
-        TransferDispatcher.cancel(context, id)
+        // Skipping an in-flight item has to stop the transfer too, not just relabel the row. The row
+        // is relabelled first, as pause does: a runner stopped while its row still reads as
+        // downloading takes the stop for the system's and puts the row back in line.
         repository.transition(id, QueueAction.Skip)
+        TransferDispatcher.cancel(context, id)
         advanceSmartPromptIfNeeded(id)
     }
 
@@ -133,8 +135,9 @@ class QueueCoordinator(
     }
 
     suspend fun cancel(id: String) {
-        TransferDispatcher.cancel(context, id)
+        // Row first, then the work - see skip.
         repository.transition(id, QueueAction.Cancel)
+        TransferDispatcher.cancel(context, id)
     }
 
     suspend fun acceptNext(installer: UserConfirmedInstaller) {

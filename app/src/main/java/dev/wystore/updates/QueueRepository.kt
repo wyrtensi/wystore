@@ -108,6 +108,19 @@ class QueueRepository(
     }
 
     /**
+     * Puts a transfer that was stopped without anyone deciding so back in line, keeping the bytes
+     * it had fetched. Does nothing to a row that has already moved on - paused, cancelled, skipped
+     * or finished - so a user's decision made just before the stop stands.
+     */
+    suspend fun releaseInterrupted(id: String): Boolean = withContext(Dispatchers.IO) {
+        dao.claimForTransfer(
+            id = id,
+            allowedFrom = QueueRecoveryPolicy.INTERRUPTIBLE_STATES.mapTo(mutableSetOf()) { it.name },
+            targetState = QueueState.AVAILABLE.name
+        )
+    }
+
+    /**
      * Takes the row for the transfer that is about to run, or answers false when it is not this
      * runner's to take.
      *
