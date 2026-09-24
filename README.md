@@ -1,3 +1,5 @@
+
+
 <div align="center">
 
 <img src="docs/banner.png" alt="Wy Store" width="760">
@@ -337,6 +339,12 @@ APK появится в `app/build/outputs/apk/debug/app-debug.apk`.
 
 ```bash
 ./gradlew :app:testDebugUnitTest
+```
+
+Линтер:
+
+```bash
+./gradlew :app:lintDebug
 ```
 
 Инструментальные тесты, с подключённым устройством или эмулятором:
