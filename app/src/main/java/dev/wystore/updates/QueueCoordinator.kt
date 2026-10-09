@@ -65,6 +65,7 @@ class QueueCoordinator(
         repository.snapshotAll()
             .filter { it.id != id && it.state == QueueState.DOWNLOADING }
             .forEach { active -> displace(active.id) }
+        runCatching { repository.markUserRequested(id) }
         download(id)
     }
 
@@ -116,6 +117,7 @@ class QueueCoordinator(
         // Skipping an in-flight item has to stop the transfer too, not just relabel the row. The row
         // is relabelled first, as pause does: a runner stopped while its row still reads as
         // downloading takes the stop for the system's and puts the row back in line.
+        repository.endHandoff(id)
         repository.transition(id, QueueAction.Skip)
         TransferDispatcher.cancel(context, id)
         advanceSmartPromptIfNeeded(id)
@@ -131,13 +133,26 @@ class QueueCoordinator(
             QueueState.AVAILABLE -> Unit
             else -> return
         }
+        // Retried from inside the app: the install is the app's now, not an agent's.
+        repository.endHandoff(id)
+        runCatching { repository.markUserRequested(id) }
         download(id)
     }
 
     suspend fun cancel(id: String) {
+        val current = repository.getById(id) ?: return
+        // An install belongs to Android by then, and a finished row has nothing left to stop.
+        if (current.state !in QueueReducer.CANCELLABLE_STATES) return
+        repository.endHandoff(id)
         // Row first, then the work - see skip.
         repository.transition(id, QueueAction.Cancel)
         TransferDispatcher.cancel(context, id)
+        // A row with no runner has nobody to clean up after it: a paused row's partial files are
+        // what pausing kept, a waiting or failed row can hold an interrupted attempt's. Cancelling
+        // is the answer that they are no longer wanted.
+        if (current.state in setOf(QueueState.PAUSED, QueueState.AVAILABLE, QueueState.FAILED)) {
+            runCatching { java.io.File(context.cacheDir, "download_$id").deleteRecursively() }
+        }
     }
 
     suspend fun acceptNext(installer: UserConfirmedInstaller) {
@@ -147,6 +162,7 @@ class QueueCoordinator(
         if (next.state == QueueState.READY_TO_INSTALL) {
             install(next.id, installer)
         } else if (next.state == QueueState.AVAILABLE) {
+            runCatching { repository.markUserRequested(next.id) }
             download(next.id)
         }
     }

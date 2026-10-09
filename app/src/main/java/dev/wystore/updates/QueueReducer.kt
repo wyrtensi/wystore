@@ -134,18 +134,24 @@ object QueueReducer {
         return current.copy(state = QueueState.SKIPPED, errorCode = null, errorDetail = null)
     }
 
+    /**
+     * Where Cancel is legal. Waiting, paused and failed rows are offered Cancel too (TV,
+     * self-update), and refusing it threw out of the click and closed the app.
+     */
+    val CANCELLABLE_STATES: Set<QueueState> = setOf(
+        QueueState.AVAILABLE,
+        QueueState.PAUSED,
+        QueueState.FAILED,
+        QueueState.CHECKING,
+        QueueState.DOWNLOADING,
+        QueueState.VERIFYING,
+        QueueState.READY_TO_INSTALL,
+        QueueState.AWAITING_UNKNOWN_SOURCES_PERMISSION,
+        QueueState.AWAITING_USER_CONFIRMATION
+    )
+
     private fun cancel(current: QueueItemSnapshot): QueueItemSnapshot {
-        requireState(
-            current,
-            setOf(
-                QueueState.CHECKING,
-                QueueState.DOWNLOADING,
-                QueueState.VERIFYING,
-                QueueState.READY_TO_INSTALL,
-                QueueState.AWAITING_UNKNOWN_SOURCES_PERMISSION,
-                QueueState.AWAITING_USER_CONFIRMATION
-            )
-        )
+        requireState(current, CANCELLABLE_STATES)
         return current.copy(state = QueueState.CANCELED, errorCode = null, errorDetail = null)
     }
 

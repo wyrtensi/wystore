@@ -97,6 +97,9 @@ abstract class UpdateQueueDao {
     )
     abstract suspend fun raiseWaitingPriority(priority: Int, now: Long)
 
+    @Query("UPDATE update_queue SET priority = :priority, updatedAt = :now WHERE id = :id AND priority < :priority")
+    abstract suspend fun raisePriority(id: String, priority: Int, now: Long)
+
     @Query("DELETE FROM update_queue WHERE id = :id")
     abstract suspend fun deleteById(id: String)
 
@@ -257,6 +260,9 @@ abstract class UpdateQueueDao {
 
     @Query("DELETE FROM install_sessions WHERE queueId = :queueId")
     abstract suspend fun deleteSession(queueId: String)
+
+    @Query("UPDATE install_sessions SET state = :state, updatedAt = :now WHERE queueId = :queueId")
+    abstract suspend fun updateSessionState(queueId: String, state: String, now: Long)
 
     companion object {
         val ACTIVE_STATES = listOf(

@@ -109,16 +109,7 @@ class UpdateDownloadWorker(
             // written down as a cancellation: the download was never started again, and the rows
             // behind it waited for a pump that runs only when a transfer ends by itself. Such a row goes
             // back in line with its bytes, and WorkManager runs the stopped work again.
-            withContext(NonCancellable) {
-                val state = runCatching { queueRepository.getById(queueId)?.state }.getOrNull()
-                when {
-                    state in QueueRecoveryPolicy.INTERRUPTIBLE_STATES ->
-                        runCatching { queueRepository.releaseInterrupted(queueId) }
-                    state == QueueState.CANCELED || state == QueueState.SKIPPED ->
-                        runCatching { workingDirectory(queueId).deleteRecursively() }
-                    else -> Unit
-                }
-            }
+            settleStopped(applicationContext, queueRepository, queueId)
             throw cancellation
         } catch (error: Throwable) {
             val failure = classifyThrowable(error)
@@ -224,15 +215,27 @@ class UpdateDownloadWorker(
                         // newest tag is often a rolling nightly or a notes-only release, so both
                         // paths fall back to the newest release that actually has an installable
                         // asset instead of throwing.
+                        // The file a person picked, when they picked one - see GitHubAssetChoice.
+                        val chosenAsset = dev.wystore.updates.GitHubAssetChoice(context).chosen(queueId)
                         val release = entity.githubReleaseId
                             ?.let { id -> releases.firstOrNull { it.id == id } }
-                            ?.takeIf { GitHubReleasePolicy.apkAssets(it, assetPattern).isNotEmpty() }
+                            ?.takeIf { release ->
+                                GitHubReleasePolicy.apkAssets(release, assetPattern).isNotEmpty() ||
+                                    (chosenAsset != null && release.assets.any { it.id == chosenAsset })
+                            }
                             ?: GitHubReleasePolicy.selectRelease(releases, assetPattern)
                             ?: error("No APK asset in GitHub release")
-                        val asset = GitHubReleasePolicy.preferredAsset(
-                            assets = GitHubReleasePolicy.apkAssets(release, assetPattern),
-                            supportedAbis = Build.SUPPORTED_ABIS.toList()
-                        ) ?: error("No APK asset in GitHub release")
+                        val asset = dev.wystore.updates.GitHubAssetChoice.pick(
+                            // Any APK of the release: "show all files" offers ones the catalogue's
+                            // pattern would have hidden.
+                            candidates = GitHubReleasePolicy.apkAssets(release),
+                            chosenId = chosenAsset
+                        ) {
+                            GitHubReleasePolicy.preferredAsset(
+                                assets = GitHubReleasePolicy.apkAssets(release, assetPattern),
+                                supportedAbis = Build.SUPPORTED_ABIS.toList()
+                            )
+                        } ?: error("No APK asset in GitHub release")
 
                         val file = downloader.downloadGitHubApk(asset, tempDir) { progress ->
                             currentCoroutineContext().ensureActive()
@@ -252,6 +255,13 @@ class UpdateDownloadWorker(
             }
 
             try {
+                // Paused or cancelled after the last progress tick: the row is no longer this
+                // runner's, exactly as reportProgress would have found a moment earlier. Taking the
+                // step anyway threw on the refused transition and recorded Wy Store itself failing,
+                // with the bytes the pause was meant to keep deleted.
+                if (queueRepository.getById(queueId)?.state != QueueState.DOWNLOADING) {
+                    throw CancellationException("Queue item $queueId is no longer downloading")
+                }
                 queueRepository.transition(queueId, QueueAction.StartVerification)
 
                 // A GitHub row is created from a release asset, whose file name says nothing about
@@ -342,6 +352,11 @@ class UpdateDownloadWorker(
                 // directory and any partial files in it are no longer needed. Removed before the
                 // install paths below, two of which return early and used to leave it behind.
                 tempDir.deleteRecursively()
+
+                // An agent asked for this one over adb and installs it itself, naming Wy Store as
+                // the installer. The row waits at READY_TO_INSTALL with its verified files; any
+                // install from here - root, background or a dialog - would race the agent's.
+                if (dev.wystore.agent.AdbHandoff(context).isHandedOff(queueId)) return@withContext
 
                 // Silent root install, when the user enabled it and root is actually granted.
                 // The policy and the installer existed but had no production caller, so the
@@ -492,5 +507,18 @@ class UpdateDownloadWorker(
     companion object {
         const val KEY_QUEUE_ID = "queue_id"
         const val MAX_RUN_ATTEMPTS = 5
+
+        /** Leaves the row of a stopped runner where [RunnerStopPolicy] says. Shared by both runners. */
+        suspend fun settleStopped(context: Context, queueRepository: QueueRepository, queueId: String) =
+            withContext(NonCancellable) {
+                val state = runCatching { queueRepository.getById(queueId)?.state }.getOrNull()
+                when (RunnerStopPolicy.onStopped(state)) {
+                    RunnerStopPolicy.Outcome.RELEASE ->
+                        runCatching { queueRepository.releaseInterrupted(queueId) }
+                    RunnerStopPolicy.Outcome.DELETE_FILES ->
+                        runCatching { File(context.cacheDir, "download_$queueId").deleteRecursively() }
+                    RunnerStopPolicy.Outcome.NOTHING -> Unit
+                }
+            }
     }
 }

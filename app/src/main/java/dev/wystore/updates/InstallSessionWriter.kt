@@ -168,7 +168,7 @@ class InstallSessionWriter(private val context: Context) {
                     packageName = packageName,
                     sessionId = sessionId,
                     callbackToken = callbackToken,
-                    state = "PREPARED"
+                    state = SESSION_PREPARED
                 )
             )
 
@@ -212,5 +212,13 @@ class InstallSessionWriter(private val context: Context) {
         const val EXTRA_QUEUE_ID = "extra_queue_id"
         const val EXTRA_PACKAGE_NAME = "extra_package_name"
         const val EXTRA_SESSION_ID = "extra_session_id"
+
+        const val SESSION_PREPARED = "PREPARED"
+
+        /**
+         * Android asked for the user's answer. The session's updatedAt then says when, which is
+         * what [StuckInstallPolicy] needs to tell an abandoned dialog from a running install.
+         */
+        const val SESSION_AWAITING_USER = "AWAITING_USER"
     }
 }

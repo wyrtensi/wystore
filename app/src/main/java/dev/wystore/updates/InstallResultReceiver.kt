@@ -38,6 +38,9 @@ class InstallResultReceiver : BroadcastReceiver() {
             } catch (error: Throwable) {
                 android.util.Log.w("InstallResultReceiver", "Could not defer install $queueId", error)
             } finally {
+                // The slot is free again. The download that handed this row over already asked for
+                // the next item while the row still held the slot, so nothing else would start it.
+                runCatching { dev.wystore.background.QueuePump.startNext(context) }
                 pendingResult.finish()
             }
         }
@@ -56,6 +59,19 @@ class InstallResultReceiver : BroadcastReceiver() {
             }
             if (confirmation != null && canConfirmNow(context)) {
                 context.startActivity(confirmation)
+                // Written down so a dialog left unanswered can be told apart later - see
+                // StuckInstallPolicy. Nothing else reports that the dialog went away.
+                val pendingResult = goAsync()
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        runCatching {
+                            dev.wystore.data.local.WyStoreDatabase.getInstance(context).updateQueueDao
+                                .updateSessionState(queueId, InstallSessionWriter.SESSION_AWAITING_USER, System.currentTimeMillis())
+                        }
+                    } finally {
+                        pendingResult.finish()
+                    }
+                }
             } else {
                 // Android refuses a background activity start without a word, so this row would
                 // sit in INSTALLING forever with nothing ever coming back for it. Put it back

@@ -412,9 +412,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 resolveIcons(uiQueue.map { row -> row.packageName })
                 advanceBatchIfSettled(uiQueue)
                 // A batch that stood down because the slot was busy picks up again once it frees.
+                // Only rows that hold the slot count. Waiting rows were counted too, and with
+                // auto-download off a check leaves those waiting for good, so the batch never
+                // resumed and every later Install tap was swallowed by the guard in requestInstall.
                 if (installAllCurrent == null &&
                     _state.value.installAllRemaining.isNotEmpty() &&
-                    uiQueue.none { row -> row.status.isInFlight }
+                    uiQueue.none { row -> row.status in SLOT_HOLDING_STATUSES }
                 ) {
                     startNextBatchInstall()
                 }
@@ -616,7 +619,18 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             val pending = _state.value.pendingUpdates
             val confirmedPackages = PendingUpdateCatalog.confirmedPackages(pending, installed)
             val confirmed = pending.filter { it.packageName in confirmedPackages }
-            confirmed.forEach(::finalizePendingUpdate)
+            val handoff = dev.wystore.agent.AdbHandoff(getApplication())
+            confirmed.forEach { update ->
+                // An agent installed this over adb and confirms it itself. Finalising here deleted
+                // the row under it, and the agent's confirmation came back "unknown queue id"; the
+                // agent's own path does the same registration, so it is taken for both.
+                val handedOff = withContext(Dispatchers.IO) { handoff.rowFor(update.packageName) }
+                if (handedOff != null) {
+                    withContext(Dispatchers.IO) { runCatching { handoff.confirm(handedOff) } }
+                } else {
+                    finalizePendingUpdate(update)
+                }
+            }
             _state.value = _state.value.copy(
                 installed = installed,
                 managed = managed,
@@ -790,7 +804,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    fun pendingUpdate(packageName: String): PendingUpdate? = _state.value.pendingUpdates.firstOrNull { it.packageName == packageName }
+    /** The newest downloaded version of [packageName]; two can briefly exist while a newer one lands. */
+    fun pendingUpdate(packageName: String): PendingUpdate? =
+        _state.value.pendingUpdates.filter { it.packageName == packageName }.maxByOrNull { it.versionCode }
 
     fun installedApp(packageName: String): InstalledApp? = repository.installedApps().firstOrNull { it.packageName == packageName }
 
@@ -817,7 +833,24 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun resumeQueue() {
         viewModelScope.launch { runCatching { dev.wystore.background.QueueRecovery.resume(getApplication()) } }
+        // A dialog closed without an answer is released only once its grace has passed, and the
+        // user who closed it is usually still here, looking at "waiting for Android". One more
+        // look after the grace frees it without asking them to leave and come back. Cancelled
+        // when the app leaves the front - a dialog then on top must not be taken away.
+        stuckInstallWatch?.cancel()
+        stuckInstallWatch = viewModelScope.launch {
+            kotlinx.coroutines.delay(dev.wystore.updates.StuckInstallPolicy.GRACE_MILLIS + 1_000)
+            runCatching { dev.wystore.background.QueueRecovery.resume(getApplication()) }
+        }
     }
+
+    /** The app left the front; see [resumeQueue]. */
+    fun pauseQueue() {
+        stuckInstallWatch?.cancel()
+        stuckInstallWatch = null
+    }
+
+    private var stuckInstallWatch: kotlinx.coroutines.Job? = null
 
     fun refreshPendingUpdates() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -1039,7 +1072,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun requestInstall(packageName: String) {
         if (packageName.isBlank()) return
-        if (packageName == installAllCurrent || packageName in _state.value.installAllRemaining) return
+        if (packageName == installAllCurrent) return
+        if (packageName in _state.value.installAllRemaining) {
+            // Already in the batch, which may have stood down; the tap is the push to go on.
+            startNextBatchInstall()
+            return
+        }
         // Only something actually downloaded joins the batch. Taking a package the queue does not
         // have would clear the whole list on the next turn, since a batch with nothing installable
         // in it is a finished batch - one stray tap would throw away every install queued behind.
@@ -1186,12 +1224,19 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         _state.update { it.copy(meteredDownloadPrompt = false) }
     }
 
+    /**
+     * Starts one row the user picked, taking the transfer slot from whatever holds it.
+     *
+     * This used to dispatch the row and nothing more. With another download running, the worker
+     * found the slot taken and left the row waiting, so "Download now" on Updates and "Update" in
+     * the library did nothing at all whenever the queue was busy.
+     */
     fun queueDownload(id: String) {
-        askOnMeteredNetwork { viewModelScope.launch { queueCoordinator.download(id) } }
+        askOnMeteredNetwork { viewModelScope.launch { queueCoordinator.downloadNow(id) } }
     }
 
     fun queueSkip(id: String) {
-        viewModelScope.launch { queueCoordinator.skip(id) }
+        viewModelScope.launch { runCatching { queueCoordinator.skip(id) } }
     }
 
     /** Stops the transfer on this row and keeps its bytes. */
@@ -1236,7 +1281,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     fun queueCancel(id: String) {
         viewModelScope.launch {
-            queueCoordinator.cancel(id)
+            // A row that moved on between the frame and the tap is not a reason to close the app.
+            runCatching { queueCoordinator.cancel(id) }
             refreshErrorNotification()
         }
     }
@@ -1257,7 +1303,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun queueAcceptNext(installer: dev.wystore.updates.UserConfirmedInstaller) {
-        viewModelScope.launch { queueCoordinator.acceptNext(installer) }
+        viewModelScope.launch {
+            // The installer rethrows when the files are gone or no longer verify. The same call
+            // from MainActivity reports that; this one let it out of the coroutine and crashed.
+            runCatching { queueCoordinator.acceptNext(installer) }.onFailure { error ->
+                reportInstallLaunchFailure(error.message ?: string(R.string.msg_install_launch_failed))
+            }
+        }
     }
 
     fun queueDismissOfferedNext() {
@@ -1313,7 +1365,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             )
         )
         viewModelScope.launch(Dispatchers.IO) {
-            queueRepository.remove(confirmed.packageName)
+            // Only what this install settled. Every row of the package went, so a newer version
+            // already downloaded - or still downloading - was deleted under the user.
+            queueRepository.removeSettled(confirmed.packageName, confirmed.versionCode)
             PendingUpdateNotifier(getApplication()).refresh()
         }
     }
@@ -1639,8 +1693,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun withQueueRow(packageName: String, block: suspend (String) -> Unit) {
-        val id = _state.value.installQueue
-            .firstOrNull { it.packageName == packageName }?.id
+        // The row the card shows, not the first row for the package: an earlier, finished row
+        // sorted ahead of the waiting one and took the tap, so the button did nothing.
+        val id = _state.value.installQueue.rowFor(packageName)?.id
             ?.takeIf { it.isNotBlank() } ?: return
         viewModelScope.launch { runCatching { block(id) } }
     }
@@ -1714,6 +1769,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private companion object {
+        /** Statuses whose row holds the queue's single slot. */
+        val SLOT_HOLDING_STATUSES = setOf(
+            InstallQueueStatus.DOWNLOADING,
+            InstallQueueStatus.VERIFYING,
+            InstallQueueStatus.INSTALLING
+        )
+
         /** Long enough for the queue to be read from disk after a cold start, short enough to fail. */
         const val NOTIFICATION_INSTALL_WAIT_MILLIS = 5_000L
     }

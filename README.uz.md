@@ -66,6 +66,10 @@ manbai. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
 - **Root — xohishga koʻra.** Root berilgan boʻlsa, birinchi oʻrnatish, yangilash va oʻchirish Android
   oynalarisiz, jumladan fonda ham oʻtadi. Sukut boʻyicha oʻchirilgan; tafsilotlar — [Root](#root)
   boʻlimida.
+- **Agentlar va skriptlar uchun adb orqali oʻrnatish.** Kompyuter Wy Store’ga paketlar roʻyxatini
+  beradi, doʻkon ularni yuklab olib tekshiradi, ular esa telefonda oynalarsiz va rootsiz
+  oʻrnatiladi; oʻrnatuvchi sifatida Wy Store yoziladi. Tafsilotlar —
+  [adb orqali oʻrnatish](#adb-orqali-oʻrnatish-rootsiz) boʻlimida.
 - **Interfeys.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文.
   Yorugʻ va qorongʻi mavzu, Material You.
 
@@ -234,9 +238,43 @@ mumkin:
 
 Katalog, qidiruv va ilova sahifalari hech qachon root soʻramaydi.
 
+### adb orqali oʻrnatish (rootsiz)
+
+adb bor kompyuter Wy Store ga ilovalar roʻyxatini berishi mumkin: doʻkon ularni RuStore dan yuklab oladi
+va oʻzinikidek tekshiradi, oʻrnatishni esa kompyuterning oʻzi bajaradi — telefonda oynalarsiz va rootsiz.
+Ilovalarning oʻrnatgichi sifatida Wy Store qayd etiladi, ular kutubxonaga tushadi va keyin doʻkondan
+yangilanib boradi. Bu telefonni sozlaydigan agentlar va skriptlar uchun qulay.
+
+```bash
+python tools/wystore_adb_install.py ru.ozon.app.android ru.nspk.mirpay
+```
+
+Skript Wy Store ni old planga chiqaradi, paketlarni navbatga qoʻyadi, yuklab olishni kutadi, har birini
+`pm` sessiyasi orqali (`pm install-create -i app.wystore`) oʻrnatadi va Wy Store dan oʻrnatishni
+tasdiqlashni soʻraydi. Tasdiq faqat telefondagi versiya va imzo yuklab olishda tekshirilgan versiya va
+imzo bilan bir xil boʻlsagina beriladi. Qaytish kodi 0 — hammasi oʻrnatildi.
+
+Skriptsiz xuddi shuni `content://app.wystore.agent` manziliga `content call` buyruqlari bilan qilish
+mumkin:
+
+| Metod | Argument | Javob |
+|---|---|---|
+| `install` | `pkg1,pkg2,...` (50 tagacha) | navbat satrlarining id lari, rad etilgan nomlar |
+| `status` | vergul bilan id lar yoki hech narsa | holat, xato, versiya va tekshirilgan APK larga havolalar |
+| `installed` | id | oʻrnatishni tasdiqlaydi: Wy Store ilovani oʻzinikidek qabul qiladi |
+| `cancel` | id | yuklab olishni bekor qiladi |
+
+Tekshirilgan APK lar `content://app.wystore.agent/artifact/<id>/<n>` sifatida oʻqiladi, masalan
+`content read --uri ... | pm install-write -S <size> <session> <n>.apk -`. Interfeys faqat adb
+qobigʻiga (va root ga) javob beradi: telefondagi boshqa ilovalar uni chaqira olmaydi.
+
+Xiaomi da adb orqali oʻrnatish uchun «Dasturchi parametrlari» ichida «USB orqali nosozliklarni
+tuzatish (xavfsizlik sozlamalari)» bandini yoqish kerak, aks holda Android `INSTALL_FAILED_USER_RESTRICTED`
+deb javob beradi.
+
 ### Yana chegaralar
 
-- Ilovaning birinchi oʻrnatilishi har doim tasdiqlanadi — root rejimidan tashqari.
+- Ilovaning birinchi oʻrnatilishi har doim tasdiqlanadi — root rejimi va adb orqali oʻrnatishdan tashqari.
 - Boshqa doʻkon oʻrnatgan ilova tasdiq bilan yangilanadi. Uning yangilanishlarini kartochkadagi
   tugma orqali Wy Store ga berish mumkin: ilova ustidan qayta oʻrnatiladi, bir marta tasdiq bilan,
   shundan keyin oʻrnatish egasi Wy Store boʻladi.

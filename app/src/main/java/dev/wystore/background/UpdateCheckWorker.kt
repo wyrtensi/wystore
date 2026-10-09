@@ -85,7 +85,8 @@ class UpdateCheckWorker(
                 manual = isManualCheck,
                 powerSaveMode = powerSaveMode,
                 respectBatterySaver = settings.respectBatterySaver,
-                managedAppCount = managedApps.size
+                managedAppCount = managedApps.size,
+                selfUpdateEnabled = settings.selfUpdateEnabled
             )
         ) {
             return Result.success()

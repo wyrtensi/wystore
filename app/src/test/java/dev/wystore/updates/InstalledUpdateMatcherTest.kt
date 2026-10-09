@@ -16,13 +16,21 @@ class InstalledUpdateMatcherTest {
         versionCode = 20,
         filePaths = listOf("artifact.apk"),
         signingDigests = setOf("trusted"),
-        source = ManagedSource.RUSTORE
+        source = ManagedSource.RUSTORE,
+        downloadedAt = 1_000L
     )
 
     @Test
     fun acceptsActuallyInstalledMatchingOrNewerVersion() {
-        assertTrue(InstalledUpdateMatcher.matches(pending, installed(versionCode = 20, digests = setOf("trusted"))))
+        assertTrue(InstalledUpdateMatcher.matches(pending, installed(versionCode = 20, digests = setOf("trusted"), updatedAt = 2_000L)))
         assertTrue(InstalledUpdateMatcher.matches(pending, installed(versionCode = 21, digests = setOf("trusted"))))
+    }
+
+    @Test
+    fun theSameVersionInstalledBeforeTheDownloadIsNotTheInstall() {
+        // "Take over" and "Reinstall" fetch the version already on the phone. Read as installed,
+        // the download was deleted before it was ever installed and the user told it was.
+        assertFalse(InstalledUpdateMatcher.matches(pending, installed(versionCode = 20, digests = setOf("trusted"), updatedAt = 500L)))
     }
 
     @Test
@@ -36,6 +44,7 @@ class InstalledUpdateMatcherTest {
     private fun installed(
         packageName: String = "sample.app",
         versionCode: Long,
-        digests: Set<String>
-    ) = InstalledApp(packageName, "Sample", "2.0", versionCode, 1L, InstallSource.OTHER, digests)
+        digests: Set<String>,
+        updatedAt: Long = 1L
+    ) = InstalledApp(packageName, "Sample", "2.0", versionCode, updatedAt, InstallSource.OTHER, digests)
 }

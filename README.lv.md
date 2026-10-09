@@ -68,6 +68,10 @@ Wy Store nav saistīts ar RuStore un nedarbojas tā vārdā: RuStore šeit ir da
   pultij, un RuStore katalogu televizoriem. Sīkāk sadaļā [Android TV](#android-tv).
 - **Root pēc izvēles.** Ar piešķirtu root pirmā instalēšana, atjaunināšana un atinstalēšana notiek
   bez Android logiem, arī fonā. Pēc noklusējuma izslēgts; sīkāk sadaļā [Root](#root).
+- **Instalēšana caur adb aģentiem un skriptiem.** Dators nodod Wy Store pakotņu sarakstu, veikals
+  tās lejupielādē un pārbauda, un tās tiek instalētas bez logiem tālrunī un bez root; par
+  instalētāju tiek ierakstīts Wy Store. Sīkāk sadaļā
+  [Instalēšana caur adb](#instalēšana-caur-adb-bez-root).
 - **Interfeiss.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文 —
   gaišā un tumšā tēma, Material You.
 
@@ -238,9 +242,41 @@ visiem laikiem:
 
 Katalogs, meklēšana un lietotņu lapas root nepieprasa nekad.
 
+### Instalēšana caur adb (bez root)
+
+Dators ar adb var nodot Wy Store lietotņu sarakstu: veikals lejupielādē tās no RuStore un pārbauda
+tieši tā, kā savas, bet instalē tās pats dators — bez logiem telefonā un bez root. Kā instalētājs
+tiek ierakstīts Wy Store, lietotnes nonāk bibliotēkā, un turpmāk tās atjaunina veikals. Tas ir
+domāts aģentiem un skriptiem, kas iestata telefonu.
+
+```bash
+python tools/wystore_adb_install.py ru.ozon.app.android ru.nspk.mirpay
+```
+
+Skripts izceļ Wy Store priekšplānā, ieliek pakotnes rindā, gaida lejupielādes, instalē katru caur
+`pm` sesiju (`pm install-create -i app.wystore`) un lūdz Wy Store apstiprināt instalēšanu.
+Apstiprinājums tiek dots tikai tad, ja versija un paraksts telefonā ir tie, kas pārbaudīti
+lejupielādes brīdī. Izejas kods 0 nozīmē, ka viss ir instalēts.
+
+Bez skripta to pašu var izdarīt ar `content call` pret `content://app.wystore.agent`:
+
+| Metode | Arguments | Atbilde |
+|---|---|---|
+| `install` | `pkg1,pkg2,...` (līdz 50) | rindas ieraksta id, noraidītie nosaukumi |
+| `status` | id, atdalīti ar komatiem, vai nekas | stāvoklis, kļūda, versija un saites uz pārbaudītajiem APK |
+| `installed` | id | apstiprina instalēšanu: Wy Store pieņem lietotni kā savu |
+| `cancel` | id | atceļ lejupielādi |
+
+Pārbaudītie APK tiek lasīti kā `content://app.wystore.agent/artifact/<id>/<n>`, piemēram,
+`content read --uri ... | pm install-write -S <size> <session> <n>.apk -`. Saskarne atbild tikai
+adb čaulai (un root): citas lietotnes telefonā to izsaukt nevar.
+
+Uz Xiaomi instalēšanai caur adb izstrādātāja opcijās jāieslēdz „USB atkļūdošana (drošības
+iestatījumi)“, citādi Android atbildēs ar `INSTALL_FAILED_USER_RESTRICTED`.
+
 ### Vēl ierobežojumi
 
-- Pirmā instalēšana vienmēr tiek apstiprināta — izņemot root režīmā.
+- Pirmā instalēšana vienmēr tiek apstiprināta — izņemot root režīmā un instalējot caur adb.
 - Lietotne, ko instalējis cits veikals, atjauninās ar apstiprinājumu. Tās atjauninājumus var nodot
   Wy Store no pašas lietotnes lapas: tā vienu reizi tiek instalēta virsū, ar apstiprinājumu, pēc kā
   Wy Store ir reģistrētais instalētājs.

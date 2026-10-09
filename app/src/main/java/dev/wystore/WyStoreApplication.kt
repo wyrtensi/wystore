@@ -106,6 +106,19 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
         val settingsRepository = SettingsRepository(this)
         settingsRepository.warmUp(applicationScope)
 
+        // The receiver above lives only as long as the process. A low-memory phone or TV can kill
+        // Wy Store behind the uninstall dialog, the "removed" broadcast then reaches nobody, and the
+        // replacement was never installed - after the user had already lost the app and its data.
+        // A handover still on disk whose app is gone is finished here instead.
+        applicationScope.launch(Dispatchers.IO) {
+            val pending = runCatching { PendingReinstallStore(this@WyStoreApplication).read() }.getOrNull()
+                ?: return@launch
+            val stillInstalled = runCatching {
+                packageManager.getPackageInfo(pending.removedPackageName, 0)
+            }.isSuccess
+            if (!stillInstalled) finishPendingReinstall(pending.removedPackageName)
+        }
+
         // Android clears the installer of record on every app Wy Store installed the moment Wy
         // Store is uninstalled, so nothing here can be rebuilt from the system afterwards. The
         // user's own backup file is the only thing that survives, and it is only worth having if

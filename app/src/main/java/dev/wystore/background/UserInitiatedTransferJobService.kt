@@ -53,6 +53,7 @@ class UserInitiatedTransferJobService : JobService() {
                 QueuePump.startNext(applicationContext)
                 jobFinished(params, false)
             } catch (cancellation: CancellationException) {
+                UpdateDownloadWorker.settleStopped(applicationContext, repository, queueId)
                 throw cancellation
             } catch (busy: QueueBusyException) {
                 // Another item holds the single transfer slot. This row stays AVAILABLE and is

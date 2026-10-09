@@ -1,5 +1,7 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.permissions.openUnknownSourcesSettings
+
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -193,12 +195,7 @@ fun PermissionCenterScreen(
                     )
                     OutlinedButton(
                         onClick = {
-                            context.startActivity(
-                                Intent(
-                                    Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                                    Uri.parse("package:${context.packageName}")
-                                )
-                            )
+                            context.openUnknownSourcesSettings()
                         },
                         modifier = Modifier.align(Alignment.End)
                     ) {

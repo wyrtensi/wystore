@@ -237,7 +237,19 @@ class SecureArtifactDownloader(context: Context? = null) {
                 }
                 if (!temporary.renameTo(destination)) fail(SourceError.ARTIFACT_WRITE_FAILED, "Rename failed")
                 asset.digest?.removePrefix("sha256:")?.lowercase()?.takeIf { it.matches(Regex("[0-9a-f]{64}")) }?.let { expected ->
-                    val actual = MessageDigest.getInstance("SHA-256").digest(destination.readBytes()).joinToString("") { "%02x".format(it) }
+                    // Streamed: reading the whole file into one array needed as much heap as the APK
+                    // is large, and a 200 MB build ran a TV box out of memory - reported as Wy
+                    // Store itself failing, with the download thrown away.
+                    val digest = MessageDigest.getInstance("SHA-256")
+                    destination.inputStream().use { input ->
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        while (true) {
+                            val count = input.read(buffer)
+                            if (count < 0) break
+                            digest.update(buffer, 0, count)
+                        }
+                    }
+                    val actual = digest.digest().joinToString("") { "%02x".format(it) }
                     if (actual != expected) fail(SourceError.ARTIFACT_INTEGRITY_MISMATCH, "SHA-256 mismatch")
                 }
                 return@withContext destination

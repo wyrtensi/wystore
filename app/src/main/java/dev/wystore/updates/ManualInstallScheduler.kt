@@ -31,6 +31,8 @@ object ManualInstallScheduler {
                 label = label,
                 source = ManagedSource.RUSTORE
             ) ?: return@launch
+            // Asked for from inside the app, so the app installs it - even on a row an agent once had.
+            repository.endHandoff(queueEntity.id)
             TransferDispatcher.dispatch(appContext, queueEntity.id)
         }
     }

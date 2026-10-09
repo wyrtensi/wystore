@@ -67,6 +67,11 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/pending_update_paths" />
         </provider>
+        <!-- Exported so adb's `content call` can reach it; AgentProvider admits only shell and root. -->
+        <provider
+            android:name=".agent.AgentProvider"
+            android:authorities="${applicationId}.agent"
+            android:exported="true" />
         <receiver
             android:name=".updates.BootReceiver"
             android:exported="false">

@@ -57,6 +57,14 @@ class BackgroundPolicyTest {
         )
         assertFalse(BackgroundPolicy.shouldSchedulePeriodicWork(0))
         assertTrue(BackgroundPolicy.shouldSchedulePeriodicWork(1))
+        // Wy Store's own update rides on the same check.
+        assertTrue(BackgroundPolicy.shouldSchedulePeriodicWork(0, selfUpdateEnabled = true))
+        assertTrue(
+            BackgroundPolicy.shouldRunCheck(
+                manual = false, powerSaveMode = false, respectBatterySaver = true,
+                managedAppCount = 0, selfUpdateEnabled = true
+            )
+        )
     }
 
     @Test

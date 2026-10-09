@@ -34,10 +34,11 @@ object BackgroundPolicy {
         manual: Boolean,
         powerSaveMode: Boolean,
         respectBatterySaver: Boolean,
-        managedAppCount: Int
+        managedAppCount: Int,
+        selfUpdateEnabled: Boolean = false
     ): Boolean {
         if (manual) return true
-        if (managedAppCount == 0) return false
+        if (!shouldSchedulePeriodicWork(managedAppCount, selfUpdateEnabled)) return false
         return !(powerSaveMode && respectBatterySaver)
     }
 
@@ -52,7 +53,9 @@ object BackgroundPolicy {
      * Whether the periodic worker is worth having scheduled at all.
      *
      * With nothing adopted there is nothing to check, and an empty periodic job still costs a wake
-     * every interval.
+     * every interval - unless Wy Store is to keep itself up to date, which the same check does.
+     * Someone who only browses was otherwise never offered a new Wy Store unless they asked.
      */
-    fun shouldSchedulePeriodicWork(managedAppCount: Int): Boolean = managedAppCount > 0
+    fun shouldSchedulePeriodicWork(managedAppCount: Int, selfUpdateEnabled: Boolean = false): Boolean =
+        managedAppCount > 0 || selfUpdateEnabled
 }

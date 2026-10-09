@@ -7,6 +7,10 @@ object InstalledUpdateMatcher {
     fun matches(pending: PendingUpdate, installed: InstalledApp?): Boolean =
         installed != null &&
             installed.packageName == pending.packageName &&
-            installed.versionCode >= pending.versionCode &&
-            installed.signingDigests == pending.signingDigests
+            installed.signingDigests == pending.signingDigests &&
+            (installed.versionCode > pending.versionCode ||
+                // The same version counts only when it was installed after this download began.
+                // "Take over" and "Reinstall" fetch the version already on the phone, and reading
+                // that as installed deleted the file before it was installed.
+                (installed.versionCode == pending.versionCode && installed.lastUpdateTime >= pending.downloadedAt))
 }

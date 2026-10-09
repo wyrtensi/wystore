@@ -159,7 +159,7 @@ object UpdateWorkScheduler {
      * still waking the device every interval to iterate an empty list.
      */
     fun schedulePeriodicCheck(context: Context, settings: StoreSettings, managedAppCount: Int = 1) {
-        if (!BackgroundPolicy.shouldSchedulePeriodicWork(managedAppCount)) {
+        if (!BackgroundPolicy.shouldSchedulePeriodicWork(managedAppCount, settings.selfUpdateEnabled)) {
             WorkManager.getInstance(context).cancelUniqueWork(PERIODIC_CHECK_WORK)
             return
         }

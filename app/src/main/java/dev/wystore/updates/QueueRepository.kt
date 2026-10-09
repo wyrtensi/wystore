@@ -208,6 +208,7 @@ class QueueRepository(
         errorDetail: String?
     ): QueueItemSnapshot? = withContext(Dispatchers.IO) {
         val entity = dao.getById(id) ?: return@withContext null
+        endHandoff(id)
         val failed = entity.copy(
             state = QueueState.FAILED.name,
             errorCode = errorCode.name,
@@ -265,6 +266,8 @@ class QueueRepository(
         errorDetail: String? = null
     ): QueueItemSnapshot? = withContext(Dispatchers.IO) {
         val entity = dao.getById(id) ?: return@withContext null
+        // However it ended, an install was attempted for this row here, not by an agent.
+        endHandoff(id)
 
         // Saying "not now" to Android's dialog is not a failed download. The verified APK is still
         // on disk, so the row goes back to waiting rather than to an error whose only offered
@@ -410,8 +413,27 @@ class QueueRepository(
      * applied the unattended constraints to them and a queue started by hand could stop dead
      * waiting for Wi-Fi or a charger the user had not been told about.
      */
+    /**
+     * Drops the agent's claim on a row (see [dev.wystore.agent.AdbHandoff]). A claim left behind
+     * made every later download of the same row - the queue reuses rows per package - stop at
+     * READY_TO_INSTALL waiting for an agent that was long gone.
+     */
+    fun endHandoff(id: String) {
+        runCatching { dev.wystore.agent.AdbHandoff(context).unmark(id) }
+    }
+
     suspend fun markWaitingAsUserRequested() = withContext(Dispatchers.IO) {
         dao.raiseWaitingPriority(QueueOrigin.USER_REQUESTED_PRIORITY, System.currentTimeMillis())
+    }
+
+    /**
+     * The same for one row a button was pressed for. "Download now", "Retry" and "Install next"
+     * left the row at the priority a background check gave it, so a row that found the slot taken
+     * was later started as an unattended download - waiting for Wi-Fi and a charger - or never, for
+     * an app excluded from auto-updates.
+     */
+    suspend fun markUserRequested(id: String) = withContext(Dispatchers.IO) {
+        dao.raisePriority(id, QueueOrigin.USER_REQUESTED_PRIORITY, System.currentTimeMillis())
     }
 
     /**
@@ -650,24 +672,20 @@ class QueueRepository(
         // then it is zero, and looking the row up by version could not find it - so a check that
         // ran while such a row was waiting, or after it had been refused, opened a second row for
         // the same app and fetched the same file all over again.
-        val existing = dao.find(packageName, versionCode, source.name)
-            ?: dao.getByPackage(packageName)
-                .firstOrNull { it.source == source.name && it.versionCode == 0L }
-        val entity = UpdateQueueEntity(
-            id = existing?.id ?: UUID.randomUUID().toString(),
+        val existing = CheckedUpdateRow.existing(dao.getByPackage(packageName), versionCode, source.name, githubReleaseId)
+        val entity = CheckedUpdateRow.merge(
+            existing = existing,
+            newId = UUID.randomUUID().toString(),
             packageName = packageName,
             label = label,
             versionName = versionName,
             versionCode = versionCode,
             source = source.name,
-            state = existing?.state ?: QueueState.AVAILABLE.name,
             priority = priority,
-            position = existing?.position ?: 0,
             githubRepositoryOwner = githubRepository?.owner,
             githubRepositoryName = githubRepository?.name,
             githubReleaseId = githubReleaseId,
-            createdAt = existing?.createdAt ?: System.currentTimeMillis(),
-            updatedAt = System.currentTimeMillis()
+            now = System.currentTimeMillis()
         )
         dao.upsertAtomic(entity)
         entity
@@ -715,6 +733,9 @@ class QueueRepository(
                 totalBytes = 0L,
                 errorCode = null,
                 errorDetail = null,
+                // A new request: the install it leads to is judged against when it was made (see
+                // InstalledUpdateMatcher), not against when this row first appeared.
+                createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )
         }
@@ -744,6 +765,16 @@ class QueueRepository(
             File(artifact.path).delete()
         }
         File(rootDirectory, id).deleteRecursively()
+    }
+
+    /**
+     * Drops the rows of [packageName] that an install of [installedVersionCode] has made pointless:
+     * not newer than it, and not being worked on.
+     */
+    suspend fun removeSettled(packageName: String, installedVersionCode: Long) = withContext(Dispatchers.IO) {
+        dao.getByPackage(packageName)
+            .filter { QueueRowSettlement.isSettled(it.state, it.versionCode, installedVersionCode) }
+            .forEach { discard(it.id) }
     }
 
     suspend fun remove(packageName: String) = withContext(Dispatchers.IO) {

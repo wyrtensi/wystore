@@ -34,7 +34,17 @@ object TransferDispatcher {
         }
     }
 
-    fun jobIdFor(queueId: String): Int = 8000 + (queueId.hashCode() and 0x0fff)
+    /**
+     * The JobScheduler id of a user-initiated transfer, derived from the queue row.
+     *
+     * It used to be 8000 plus twelve bits of the row's hash - 4096 ids - so two rows shared an id
+     * often enough that cancelling or skipping one tore down the other's running download. Thirty
+     * bits make that practically impossible. WorkManager is not in the way: these jobs exist only
+     * on Android 14 and later, where WorkManager schedules in a namespace of its own.
+     */
+    fun jobIdFor(queueId: String): Int = TRANSFER_JOB_ID_BASE + (queueId.hashCode() and 0x3fff_ffff)
+
+    const val TRANSFER_JOB_ID_BASE = 1_000_000_000
 
     /**
      * Stops whichever mechanism is actually carrying this transfer. Cancelling only the queue row

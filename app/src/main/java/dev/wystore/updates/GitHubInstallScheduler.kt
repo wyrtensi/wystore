@@ -39,6 +39,12 @@ object GitHubInstallScheduler {
 
     private const val PLACEHOLDER_PREFIX = "pending.github."
 
+    private val RESTARTABLE_STATES = setOf(
+        dev.wystore.updates.model.QueueState.FAILED.name,
+        dev.wystore.updates.model.QueueState.CANCELED.name,
+        dev.wystore.updates.model.QueueState.SKIPPED.name
+    )
+
     fun enqueue(
         context: Context,
         asset: GitHubAsset,
@@ -66,6 +72,14 @@ object GitHubInstallScheduler {
                 // match it and the same release was offered again forever.
                 githubReleaseId = releaseId
             )
+            // The same release asked for again after it stopped finds its old row, still FAILED or
+            // CANCELED. A transfer cannot start from there, so the tap did nothing; a person asking
+            // again is the retry.
+            // The file that was tapped, not whichever one the worker would prefer.
+            if (!automatic) GitHubAssetChoice(appContext).remember(queueEntity.id, asset.id)
+            if (!automatic && queueEntity.state in RESTARTABLE_STATES) {
+                queueRepo.resetForRetry(queueEntity.id, errorCode = null, errorDetail = null)
+            }
             TransferDispatcher.dispatch(appContext, queueEntity.id)
         }
     }

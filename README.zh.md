@@ -48,6 +48,7 @@ Wy Store 与 RuStore 没有隶属关系，也不代表它行事：RuStore 在这
 - **流量控制。** 后台下载的「仅 Wi-Fi」模式；通过移动数据手动下载时会先请求确认。
 - **Android TV。** 同一个 APK 可以在 Android TV 和 Google TV 上运行，有适合遥控器的专用界面和 RuStore 的电视目录。详见 [Android TV](#android-tv) 一节。
 - **可选的 root。** 授予 root 后，首次安装、更新和卸载都不会出现 Android 的窗口，在后台也一样。默认关闭；详见 [Root](#root) 一节。
+- **面向智能体和脚本的 adb 安装。** 电脑把软件包列表交给 Wy Store，商店下载并校验，随后在手机上无窗口、无需 root 地安装，安装来源记录为 Wy Store。详见 [通过 adb 安装](#通过-adb-安装无需-root) 一节。
 - **界面。** Русский、English、Українська、Беларуская、Қазақша、Oʻzbekcha、Latviešu、简体中文，浅色和深色主题，Material You。
 
 ## Android TV
@@ -166,9 +167,32 @@ root 不是必需的，默认关闭。开启方法：**设置 → 权限中心 �
 
 目录、搜索和应用页面从不请求 root。
 
+### 通过 adb 安装（无需 root）
+
+装有 adb 的电脑可以把一份应用列表交给 Wy Store：商店从 RuStore 下载这些应用，并像校验自己的应用一样校验它们，安装则由电脑完成 —— 手机上不出现任何窗口，也不需要 root。Wy Store 会被记录为这些应用的安装来源，它们会出现在库里，之后由商店负责更新。这是为替手机做初始设置的智能体和脚本准备的。
+
+```bash
+python tools/wystore_adb_install.py ru.ozon.app.android ru.nspk.mirpay
+```
+
+脚本会把 Wy Store 切到前台，把这些包加入队列，等待下载完成，通过 `pm` 会话（`pm install-create -i app.wystore`）逐个安装，并请求 Wy Store 确认安装。只有手机上的版本和签名与下载时校验过的一致，才会给出确认。退出码 0 表示全部安装成功。
+
+不用脚本时，同样的事情可以用针对 `content://app.wystore.agent` 的 `content call` 完成：
+
+| 方法 | 参数 | 返回 |
+|---|---|---|
+| `install` | `pkg1,pkg2,...`（最多 50 个） | 队列行 id、被拒绝的包名 |
+| `status` | 用逗号分隔的 id，或留空 | 状态、错误、版本，以及已校验 APK 的链接 |
+| `installed` | id | 确认安装：Wy Store 把该应用接管为自己的 |
+| `cancel` | id | 取消下载 |
+
+已校验的 APK 以 `content://app.wystore.agent/artifact/<id>/<n>` 的形式读取，例如 `content read --uri ... | pm install-write -S <size> <session> <n>.apk -`。这个接口只响应 adb 的 shell（以及 root）：手机上的其他应用无法调用它。
+
+在 Xiaomi 上，通过 adb 安装需要在「开发者选项」里打开「USB 调试（安全设置）」，否则 Android 会返回 `INSTALL_FAILED_USER_RESTRICTED`。
+
 ### 其他限制
 
-- 首次安装总是要确认的 —— root 模式除外。
+- 首次安装总是要确认的 —— root 模式和通过 adb 安装除外。
 - 由其他商店安装的应用，更新时要确认。可以在应用自己的页面上把它的更新权交给 Wy Store：会覆盖安装一次，需要确认一次，之后 Wy Store 就成为记录在案的安装来源。
 - 如果目录里的版本低于已安装的版本，或者应用用另一个密钥签名，那就根本没有任何东西能覆盖安装上去 —— Android 会拒绝。这时应用会提议先卸载再重新安装；在这个过程中应用的数据通常会丢失。
 - 从 Google Play 安装的应用不会被碰，除非针对某个具体应用启用了这一点。

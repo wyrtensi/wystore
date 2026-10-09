@@ -67,6 +67,9 @@ here. See [DISCLAIMER.md](DISCLAIMER.md).
   interface and the RuStore catalogue for TVs. See [Android TV](#android-tv).
 - **Root, if you want it.** With root granted, first installs, updates and uninstalls go through with
   no Android dialogs, in the background too. Off by default; see [Root](#root).
+- **Installs over adb for agents and scripts.** A computer hands Wy Store a list of packages; the
+  store fetches and verifies them, and they install with no dialog on the phone and no root, with Wy
+  Store as their installer. See [Installing over adb](#installing-over-adb-no-root) below.
 - **Interface.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文 —
   light and dark themes, Material You.
 
@@ -230,9 +233,41 @@ When `su` is called — the root manager may ask every time if access was not gr
 
 The catalogue, search and app pages never ask for root.
 
+### Installing over adb (no root)
+
+A computer with adb can hand Wy Store a list of apps. The store fetches them from RuStore and
+verifies them exactly as it does its own, and the computer installs them - with no dialog on the
+phone and no root. Wy Store is recorded as their installer, they appear in the library, and their
+updates come from the store from then on. It is meant for agents and scripts that set a phone up.
+
+```bash
+python tools/wystore_adb_install.py ru.ozon.app.android ru.nspk.mirpay
+```
+
+The script brings Wy Store to the front, queues the packages, waits for the downloads, installs each
+through a `pm` session (`pm install-create -i app.wystore`) and asks Wy Store to confirm the install.
+Confirmation is given only when the version and signature on the phone are the ones verified at
+download. Exit code 0 means everything was installed.
+
+Without the script the same is done with `content call` against `content://app.wystore.agent`:
+
+| Method | Argument | Answer |
+|---|---|---|
+| `install` | `pkg1,pkg2,...` (up to 50) | queue row ids, rejected names |
+| `status` | comma-separated ids, or nothing | state, error, version and links to the verified APKs |
+| `installed` | id | confirms the install: Wy Store adopts the app as its own |
+| `cancel` | id | cancels the download |
+
+Verified APKs are read as `content://app.wystore.agent/artifact/<id>/<n>`, for example
+`content read --uri ... | pm install-write -S <size> <session> <n>.apk -`. Only adb's shell (and
+root) may use the interface; other apps on the phone cannot call it.
+
+On Xiaomi, installing over adb needs "USB debugging (Security settings)" turned on in Developer
+options, otherwise Android answers `INSTALL_FAILED_USER_RESTRICTED`.
+
 ### Further limits
 
-- A first install is always confirmed — except in root mode.
+- A first install is always confirmed - except in root mode and installs over adb.
 - An app another store installed updates with a confirmation. Its updates can be handed to Wy Store
   from the app's own page: it is installed over the top once, with a confirmation, after which
   Wy Store is the installer of record.

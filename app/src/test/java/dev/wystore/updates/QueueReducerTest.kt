@@ -198,6 +198,14 @@ class QueueReducerTest {
     }
 
     @Test
+    fun cancelReachesRowsThatAreOnlyWaiting() {
+        // Cancel is offered on queued, paused and failed rows; refusing it threw out of the click.
+        for (state in listOf(QueueState.AVAILABLE, QueueState.PAUSED, QueueState.FAILED)) {
+            assertEquals(QueueState.CANCELED, QueueReducer.reduce(item(state), QueueAction.Cancel).state)
+        }
+    }
+
+    @Test
     fun genericSkipAndCancelCannotMutateAnInstallingItem() {
         assertThrows(IllegalStateException::class.java) {
             QueueReducer.reduce(item(QueueState.INSTALLING), QueueAction.Failed(QueueErrorCode.NETWORK))

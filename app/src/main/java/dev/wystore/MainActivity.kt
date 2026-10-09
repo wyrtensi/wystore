@@ -1,5 +1,7 @@
 package dev.wystore
 
+import dev.wystore.permissions.openUnknownSourcesSettings
+
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -151,6 +153,11 @@ class MainActivity : AppCompatActivity(), SystemInstallerHost {
         super.onStop()
     }
 
+    override fun onPause() {
+        storeViewModel.pauseQueue()
+        super.onPause()
+    }
+
     override fun onResume() {
         super.onResume()
         // A handover nobody answered: see LegacyInstallHandover.finish.
@@ -187,7 +194,7 @@ class MainActivity : AppCompatActivity(), SystemInstallerHost {
         if (!packageManager.canRequestPackageInstalls()) {
             packageWaitingForInstallPermission = packageName
             storeViewModel.reportInstallPermissionRequired(packageName)
-            startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${this.packageName}")))
+            openUnknownSourcesSettings()
             return
         }
         lifecycleScope.launch {

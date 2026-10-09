@@ -117,6 +117,9 @@ fun UpdatesScreen(
                 InstallQueueStatus.VERIFYING,
                 InstallQueueStatus.RESOLVING,
                 InstallQueueStatus.QUEUED,
+                // A paused download has Resume and Cancel below; left out here, it could only be
+                // reached from a catalogue card.
+                InstallQueueStatus.PAUSED,
                 InstallQueueStatus.CANCELED,
                 InstallQueueStatus.FAILED -> true
                 else -> false
