@@ -788,6 +788,27 @@ class QueueRepository(
         SupersededDownloads.superseded(dao.getByPackage(packageName), keepId).forEach { discard(it.id) }
     }
 
+    /**
+     * Drops downloads the installed app has caught up with - see [OutdatedDownloadPolicy]. Returns
+     * whether anything went, so the caller knows the ready notification needs redrawing.
+     */
+    suspend fun discardOutdated(
+        packageName: String? = null,
+        installedVersionOf: (String) -> Long?
+    ): Boolean = withContext(Dispatchers.IO) {
+        val rows = if (packageName != null) dao.getByPackage(packageName) else dao.getAll()
+        val outdated = rows.filter { row ->
+            OutdatedDownloadPolicy.isOutdated(
+                state = row.state,
+                rowVersionCode = row.versionCode,
+                installedVersionCode = installedVersionOf(row.packageName),
+                userRequested = QueueOrigin.isUserRequested(row.priority)
+            )
+        }
+        outdated.forEach { discard(it.id) }
+        outdated.isNotEmpty()
+    }
+
     /** The same for every package, for the duplicates written before downloads replaced each other. */
     suspend fun discardAllSuperseded() = withContext(Dispatchers.IO) {
         SupersededDownloads.superseded(dao.getAll()).forEach { discard(it.id) }

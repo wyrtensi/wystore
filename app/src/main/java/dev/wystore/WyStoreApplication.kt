@@ -39,6 +39,9 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
             if (intent?.action == Intent.ACTION_PACKAGE_FULLY_REMOVED) {
                 intent.data?.schemeSpecificPart?.let(::finishPendingReinstall)
             }
+            if (intent?.action == Intent.ACTION_PACKAGE_ADDED || intent?.action == Intent.ACTION_PACKAGE_REPLACED) {
+                intent.data?.schemeSpecificPart?.let(::discardOutdatedDownloads)
+            }
         }
     }
 
@@ -78,6 +81,22 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
                 label = pending.label,
                 settings = SettingsRepository(this@WyStoreApplication).currentSettings().toStoreSettings()
             )
+        }
+    }
+
+    /**
+     * Another store, or adb, may have just installed what Wy Store had downloaded for this app -
+     * see [dev.wystore.updates.OutdatedDownloadPolicy].
+     */
+    private fun discardOutdatedDownloads(changedPackage: String) {
+        applicationScope.launch(Dispatchers.IO) {
+            runCatching {
+                val discarded = dev.wystore.updates.QueueRepository.getInstance(this@WyStoreApplication)
+                    .discardOutdated(changedPackage) { packageName ->
+                        runCatching { packageManager.getPackageInfo(packageName, 0).longVersionCode }.getOrNull()
+                    }
+                if (discarded) dev.wystore.updates.PendingUpdateNotifier(this@WyStoreApplication).refresh()
+            }
         }
     }
 

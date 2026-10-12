@@ -36,6 +36,13 @@ object QueueRecovery {
 
         // Older builds kept every download of an app; the extra ones crashed the Updates tab.
         runCatching { repository.discardAllSuperseded() }
+        // An app another store updated while Wy Store was not running.
+        runCatching {
+            val discarded = repository.discardOutdated { packageName ->
+                runCatching { appContext.packageManager.getPackageInfo(packageName, 0).longVersionCode }.getOrNull()
+            }
+            if (discarded) dev.wystore.updates.PendingUpdateNotifier(appContext).refresh()
+        }
 
         val rows = runCatching { repository.snapshotAll() }.getOrDefault(emptyList())
         rows
