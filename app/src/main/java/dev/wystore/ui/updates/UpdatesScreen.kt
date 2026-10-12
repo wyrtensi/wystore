@@ -220,7 +220,7 @@ fun UpdatesScreen(
                         onActionClick = onUpdateAll
                     )
                 }
-                items(pendingUpdates, key = { "pending:${it.packageName}" }) { pending ->
+                items(pendingUpdates, key = { "pending:${it.listKey}" }) { pending ->
                     PendingUpdateCard(
                         update = pending,
                         iconUrl = packageIcons[pending.packageName],

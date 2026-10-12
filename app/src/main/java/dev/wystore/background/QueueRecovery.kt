@@ -34,6 +34,9 @@ object QueueRecovery {
         val workManager = WorkManager.getInstance(appContext)
         val jobs = if (Build.VERSION.SDK_INT >= 34) appContext.getSystemService(JobScheduler::class.java) else null
 
+        // Older builds kept every download of an app; the extra ones crashed the Updates tab.
+        runCatching { repository.discardAllSuperseded() }
+
         val rows = runCatching { repository.snapshotAll() }.getOrDefault(emptyList())
         rows
             .filter { it.state in QueueRecoveryPolicy.INTERRUPTIBLE_STATES }

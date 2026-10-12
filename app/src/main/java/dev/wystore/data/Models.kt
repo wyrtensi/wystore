@@ -233,7 +233,13 @@ data class PendingUpdate(
      * with "nothing to update".
      */
     val userRequested: Boolean = false
-)
+) {
+    /**
+     * Unique among downloads, as the queue's (package, version, source) index is. The package name
+     * alone is not: two downloaded versions of one app crashed every list keyed on it.
+     */
+    val listKey: String get() = "$packageName:$versionCode:${source.name}"
+}
 
 data class RuStoreCompatibility(
     @SerializedName(value = "apiVersionCode", alternate = ["usedVersionCode"])

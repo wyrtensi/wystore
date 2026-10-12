@@ -347,6 +347,9 @@ class UpdateDownloadWorker(
                     sourceHash = sourceArtifactHash
                 )
                 queueRepository.transition(queueId, QueueAction.Verified)
+                // An older download of the same app left beside this one was a second ready item
+                // for one app, which the screens cannot show.
+                runCatching { queueRepository.discardSuperseded(verification.identity.packageName, keepId = queueId) }
 
                 // The verified files have been copied into durable storage by now, so the working
                 // directory and any partial files in it are no longer needed. Removed before the

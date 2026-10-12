@@ -117,7 +117,7 @@ fun TvMyAppsScreen(
                     onCancel = { onCancel(item.id) }.takeIf { item.status != InstallQueueStatus.INSTALLING }
                 )
             }
-            items(pendingOnly, key = { "p-${it.packageName}" }) { pending ->
+            items(pendingOnly, key = { "p-${it.listKey}" }) { pending ->
                 val state = PackageUiStateReducer.reduce(
                     pendingUpdate = pending,
                     installed = packages.installed.firstOrNull { it.packageName == pending.packageName },

@@ -777,6 +777,19 @@ class QueueRepository(
             .forEach { discard(it.id) }
     }
 
+    /**
+     * Drops the downloads of [packageName] a newer one has made pointless - see
+     * [SupersededDownloads]. [keepId] is the row the caller is still working on.
+     */
+    suspend fun discardSuperseded(packageName: String, keepId: String? = null) = withContext(Dispatchers.IO) {
+        SupersededDownloads.superseded(dao.getByPackage(packageName), keepId).forEach { discard(it.id) }
+    }
+
+    /** The same for every package, for the duplicates written before downloads replaced each other. */
+    suspend fun discardAllSuperseded() = withContext(Dispatchers.IO) {
+        SupersededDownloads.superseded(dao.getAll()).forEach { discard(it.id) }
+    }
+
     suspend fun remove(packageName: String) = withContext(Dispatchers.IO) {
         val items = dao.getByPackage(packageName)
         for (item in items) {
