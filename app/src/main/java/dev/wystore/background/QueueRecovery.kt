@@ -54,6 +54,7 @@ object QueueRecovery {
             }
 
         releaseStuckInstalls(appContext, repository, rows)
+        releaseAbandonedHandovers(appContext, repository)
 
         // With auto-download off a check only lists what it found, and opening the app must not
         // turn that into downloads. A row someone pressed a button for is started either way.
@@ -62,6 +63,18 @@ object QueueRecovery {
         if (autoDownload || requestedWaiting) {
             runCatching { QueuePump.startNext(appContext) }
         }
+    }
+
+    /** See [QueueRecoveryPolicy.isAbandonedHandover]. */
+    private suspend fun releaseAbandonedHandovers(context: Context, repository: QueueRepository) {
+        val now = System.currentTimeMillis()
+        runCatching { WyStoreDatabase.getInstance(context).updateQueueDao.getAll() }
+            .getOrDefault(emptyList())
+            .filter { row ->
+                val state = runCatching { QueueState.valueOf(row.state) }.getOrNull() ?: return@filter false
+                QueueRecoveryPolicy.isAbandonedHandover(state, row.updatedAt, now)
+            }
+            .forEach { row -> runCatching { repository.resetReadyToInstall(row.id) } }
     }
 
     /** Frees an install slot a dialog nobody answered left taken - see [StuckInstallPolicy]. */

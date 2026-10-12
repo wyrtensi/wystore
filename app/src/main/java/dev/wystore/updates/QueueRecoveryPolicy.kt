@@ -23,4 +23,14 @@ object QueueRecoveryPolicy {
     /** A row is orphaned when it says it is being carried and no scheduled work is carrying it. */
     fun isOrphaned(state: QueueState, workScheduled: Boolean, jobScheduled: Boolean): Boolean =
         state in INTERRUPTIBLE_STATES && !workScheduled && !jobScheduled
+
+    /**
+     * Writing the installer session takes seconds, so a row still being handed to Android long
+     * after was left there by a process that died on the way. The cards read that state as an install
+     * in progress and offer nothing, so it goes back to waiting with its files.
+     */
+    const val HANDOVER_TIMEOUT_MILLIS: Long = 10 * 60 * 1000L
+
+    fun isAbandonedHandover(state: QueueState, updatedAt: Long, now: Long): Boolean =
+        state == QueueState.AWAITING_USER_CONFIRMATION && now - updatedAt >= HANDOVER_TIMEOUT_MILLIS
 }

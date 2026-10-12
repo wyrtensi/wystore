@@ -52,6 +52,7 @@ import dev.wystore.updates.PendingReinstallStore
 import dev.wystore.updates.QueueRepository
 import dev.wystore.updates.UnverifiedSourceConsent
 import dev.wystore.updates.UnverifiedSourceStore
+import dev.wystore.updates.model.QueueItemSnapshot
 import dev.wystore.updates.model.QueueState
 import dev.wystore.settings.toStoreSettings
 import dev.wystore.settings.toAppSettings
@@ -104,6 +105,21 @@ fun QueueState.toInstallQueueStatus(): InstallQueueStatus = when (this) {
     QueueState.CANCELED,
     QueueState.SKIPPED -> InstallQueueStatus.CANCELED
     QueueState.FAILED -> InstallQueueStatus.FAILED
+}
+
+/**
+ * How a row reads on the cards, where an install that has started must not offer Install again.
+ *
+ * [toInstallQueueStatus] calls a row READY until Android has the install, and the batch needs it
+ * that way: a READY row after the handover is how it learns the dialog was dismissed. But the
+ * handover takes seconds - the archive is verified again while the row is READY_TO_INSTALL, then the
+ * installer session is written in AWAITING_USER_CONFIRMATION - and every card offered Install the
+ * whole time. [startingInstall] is the package the batch has just asked the Activity to install.
+ */
+fun QueueState.toDisplayedStatus(packageName: String, startingInstall: String?): InstallQueueStatus = when {
+    this == QueueState.AWAITING_USER_CONFIRMATION -> InstallQueueStatus.INSTALLING
+    this == QueueState.READY_TO_INSTALL && packageName == startingInstall -> InstallQueueStatus.INSTALLING
+    else -> toInstallQueueStatus()
 }
 
 /**
@@ -384,33 +400,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             queueRepository.observeAll().collect { items ->
-                val uiQueue = items.map { item ->
-                    InstallQueueItem(
-                        id = item.id,
-                        packageName = item.packageName,
-                        label = item.label,
-                        status = item.state.toInstallQueueStatus(),
-                        versionName = item.versionName,
-                        // Byte counters survive the transfer; showing them past DOWNLOADING leaves a
-                        // full progress bar stuck under a finished item.
-                        progress = if (
-                            item.totalBytes > 0 &&
-                            item.state == QueueState.DOWNLOADING
-                        ) DownloadProgress(
-                            downloadedBytes = item.downloadedBytes,
-                            totalBytes = item.totalBytes,
-                            artifactIndex = 1,
-                            artifactCount = 1
-                        ) else null,
-                        errorCode = item.errorCode,
-                        detail = item.errorDetail
-                    )
-                }
-                // The whole queue is kept: truncating hid older rows from Updates, Search and
-                // Details entirely, so a failed item could become unreachable.
-                _state.update { it.copy(installQueue = uiQueue) }
+                queueRows = items
+                // The batch reads the queue's own statuses; see toDisplayedStatus.
+                val uiQueue = queueItems(items) { it.state.toInstallQueueStatus() }
                 resolveIcons(uiQueue.map { row -> row.packageName })
                 advanceBatchIfSettled(uiQueue)
+                publishQueue()
                 // A batch that stood down because the slot was busy picks up again once it frees.
                 // Only rows that hold the slot count. Waiting rows were counted too, and with
                 // auto-download off a check leaves those waiting for good, so the batch never
@@ -428,7 +423,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 _state.update { it.copy(settings = appSettings.toStoreSettings()) }
             }
         }
-        // The smart prompt is derived from durable queue states, so it survives process death.
+                // The smart prompt is derived from durable queue states, so it survives process death.
         viewModelScope.launch { runCatching { queueCoordinator.restoreOfferedNext() } }
         // Installs the user declined are still downloaded and verified; they belong in the ready
         // list, not behind an error that offers to fetch them all over again.
@@ -894,6 +889,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 installAllRemaining = listOf(packageName) + it.installAllRemaining.filterNot { p -> p == packageName }
             )
         }
+        publishQueue()
     }
 
     /**
@@ -905,6 +901,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         installAllCurrent = null
         installAllHandedOver = false
         _state.update { it.copy(installAllCurrent = null) }
+        publishQueue()
         startNextBatchInstall()
     }
 
@@ -1042,6 +1039,47 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         app.iconUrl?.takeIf { it.isNotBlank() }?.also { catalogRepository.rememberIcons(listOf(app)) }
     }.getOrNull()
 
+    /** The queue as last read, kept so the cards can be redrawn when the batch moves on. */
+    private var queueRows: List<QueueItemSnapshot> = emptyList()
+
+    private fun queueItems(
+        rows: List<QueueItemSnapshot>,
+        statusOf: (QueueItemSnapshot) -> InstallQueueStatus
+    ) = rows.map { item ->
+        InstallQueueItem(
+            id = item.id,
+            packageName = item.packageName,
+            label = item.label,
+            status = statusOf(item),
+            versionName = item.versionName,
+            // Byte counters survive the transfer; showing them past DOWNLOADING leaves a
+            // full progress bar stuck under a finished item.
+            progress = if (
+                item.totalBytes > 0 &&
+                item.state == QueueState.DOWNLOADING
+            ) DownloadProgress(
+                downloadedBytes = item.downloadedBytes,
+                totalBytes = item.totalBytes,
+                artifactIndex = 1,
+                artifactCount = 1
+            ) else null,
+            errorCode = item.errorCode,
+            detail = item.errorDetail
+        )
+    }
+
+    /**
+     * What the cards show: the install the batch has just started already reads as installing.
+     * The whole queue is kept: truncating hid older rows from Updates, Search and Details
+     * entirely, so a failed item could become unreachable.
+     */
+    private fun publishQueue() {
+        val starting = installAllCurrent?.takeUnless { installAllHandedOver }
+        _state.update {
+            it.copy(installQueue = queueItems(queueRows) { row -> row.state.toDisplayedStatus(row.packageName, starting) })
+        }
+    }
+
     /** Hands the Activity the next install of a batch, or ends the batch. */
     private fun startNextBatchInstall() {
         if (installAllCurrent != null) return
@@ -1053,6 +1091,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         installAllCurrent = next
         installAllHandedOver = false
         _state.update { it.copy(installAllCurrent = next) }
+        publishQueue()
         // Spent the moment the installer is asked. Cleared here rather than for the whole batch at
         // once, because the batch list itself lives in memory: whatever has not been offered yet
         // must still be there if the app is closed before its turn comes.
@@ -1104,6 +1143,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         installAllCurrent = null
         installAllHandedOver = false
         _state.update { it.copy(installAllCurrent = null) }
+        publishQueue()
         // The app that just settled may have asked to be installed again: a firmware that refuses
         // installer sessions puts it back with a standing request, meant for the system installer.
         // That request is read when the pending list changes - which can happen while this app is
@@ -1116,6 +1156,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         installAllCurrent = null
         installAllHandedOver = false
         _state.update { it.copy(installAllRemaining = emptyList(), installAllCurrent = null) }
+        publishQueue()
     }
 
     /**

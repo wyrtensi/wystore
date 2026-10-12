@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import dev.wystore.R
 import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
+import dev.wystore.rowFor
 import dev.wystore.UpdateCheckTask
 import dev.wystore.data.CheckProblemReason
 import dev.wystore.data.InstalledApp
@@ -223,6 +224,7 @@ fun UpdatesScreen(
                 items(pendingUpdates, key = { "pending:${it.listKey}" }) { pending ->
                     PendingUpdateCard(
                         update = pending,
+                        installing = queue.rowFor(pending.packageName)?.status == InstallQueueStatus.INSTALLING,
                         iconUrl = packageIcons[pending.packageName],
                         onInstallPending = onInstallPending,
                         onDiscardPending = onDiscardPending
@@ -241,6 +243,11 @@ fun UpdatesScreen(
                         managed = managedApp,
                         installed = local,
                         pendingUpdate = pending,
+                        // Transfers have their own cards with their own actions in the queue section
+                        // above; here only the install itself is shown, so the row stops offering
+                        // Install while Android already has it.
+                        installingItem = queue.rowFor(managedApp.packageName)
+                            ?.takeIf { it.status == InstallQueueStatus.INSTALLING },
                         onOpen = { onOpen(managedApp) },
                         onAction = {
                             if (pending != null) onInstallPending(pending.packageName)
@@ -265,6 +272,8 @@ fun UpdatesScreen(
 fun PendingUpdateCard(
     update: PendingUpdate,
     iconUrl: String? = null,
+    /** Already being handed to Android or installed by it, so Install is not offered again. */
+    installing: Boolean = false,
     onInstallPending: (String) -> Unit,
     onDiscardPending: (String) -> Unit = {}
 ) {
@@ -309,6 +318,7 @@ fun PendingUpdateCard(
             Spacer(Modifier.width(10.dp))
             Button(
                 onClick = { onInstallPending(update.packageName) },
+                enabled = !installing,
                 // Tighter than the default so the name and the version keep their room on a narrow
                 // screen once the discard button is standing next to it.
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -317,7 +327,10 @@ fun PendingUpdateCard(
                     contentColor = MaterialTheme.colorScheme.primaryContainer
                 )
             ) {
-                Text(stringResource(R.string.common_install), maxLines = 1)
+                Text(
+                    stringResource(if (installing) R.string.common_installing else R.string.common_install),
+                    maxLines = 1
+                )
             }
             // A downloaded APK used to be a one-way street: install it or live with it.
             IconButton(
