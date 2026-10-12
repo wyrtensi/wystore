@@ -47,8 +47,10 @@ object PackageUiStateReducer {
 
         if (queueItem != null) {
             val progressFraction = queueItem.progress?.fraction
+            // Speed only once there is one: the first sample has nothing to compare against.
             val transferInfo = queueItem.progress?.let {
-                "${formatSize(resources, it.downloadedBytes)} / ${formatSize(resources, it.totalBytes)}"
+                val sizes = "${formatSize(resources, it.downloadedBytes)} / ${formatSize(resources, it.totalBytes)}"
+                if (it.bytesPerSecond > 0 && resources != null) "$sizes · ${formatSpeed(resources, it.bytesPerSecond)}" else sizes
             }
 
             when (queueItem.status) {

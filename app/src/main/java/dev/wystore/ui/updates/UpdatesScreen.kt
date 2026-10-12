@@ -532,6 +532,12 @@ fun QueueItemCard(
                         .fillMaxWidth()
                         .clip(MaterialTheme.shapes.extraSmall)
                 )
+                if (item.status == InstallQueueStatus.DOWNLOADING) {
+                    dev.wystore.ui.components.TransferProgressText(
+                        progress,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
             if (sourceProblem) {
                 TextButton(

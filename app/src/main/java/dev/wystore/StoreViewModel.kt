@@ -404,6 +404,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             queueRepository.observeAll().collect { items ->
                 queueRows = items
+                updateTransferRates(items)
                 // The batch reads the queue's own statuses; see toDisplayedStatus.
                 val uiQueue = queueItems(items) { it.state.toInstallQueueStatus() }
                 resolveIcons(uiQueue.map { row -> row.packageName })
@@ -1043,6 +1044,18 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         app.iconUrl?.takeIf { it.isNotBlank() }?.also { catalogRepository.rememberIcons(listOf(app)) }
     }.getOrNull()
 
+    /** Speed per downloading row, from the byte counts it reports; see [TransferRate]. */
+    private val transferRates = mutableMapOf<String, TransferRate.Sample>()
+
+    private fun updateTransferRates(rows: List<QueueItemSnapshot>) {
+        val now = android.os.SystemClock.elapsedRealtime()
+        val downloading = rows.filter { it.state == QueueState.DOWNLOADING && it.totalBytes > 0 }
+        transferRates.keys.retainAll(downloading.mapTo(mutableSetOf()) { it.id })
+        downloading.forEach { row ->
+            transferRates[row.id] = TransferRate.next(transferRates[row.id], row.downloadedBytes, now)
+        }
+    }
+
     /** The queue as last read, kept so the cards can be redrawn when the batch moves on. */
     private var queueRows: List<QueueItemSnapshot> = emptyList()
 
@@ -1065,7 +1078,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 downloadedBytes = item.downloadedBytes,
                 totalBytes = item.totalBytes,
                 artifactIndex = 1,
-                artifactCount = 1
+                artifactCount = 1,
+                bytesPerSecond = transferRates[item.id]?.bytesPerSecond ?: 0,
+                etaSeconds = transferRates[item.id]?.let { TransferRate.etaSeconds(it, item.totalBytes) }
             ) else null,
             errorCode = item.errorCode,
             detail = item.errorDetail

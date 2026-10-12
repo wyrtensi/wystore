@@ -42,6 +42,7 @@ import dev.wystore.data.InstallSource
 import dev.wystore.data.VerificationError
 import dev.wystore.localization.VerificationTextResolver
 import dev.wystore.data.ManagedApp
+import dev.wystore.data.DownloadProgress
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.StoreApp
 import dev.wystore.data.StoreReview
@@ -285,21 +286,7 @@ fun OperationProgress(
                     progress = { progress.fraction.coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.extraSmall)
                 )
-                val etaSuffix = progress.etaSeconds
-                    ?.let { " · " + stringResource(R.string.progress_eta, formatDuration(it)) }
-                    .orEmpty()
-                val head = stringResource(
-                    R.string.progress_transfer_full,
-                    formatSize(progress.downloadedBytes),
-                    formatSize(progress.totalBytes),
-                    progress.artifactIndex,
-                    progress.artifactCount,
-                    (progress.fraction * 100).toInt()
-                )
-                Text(
-                    "$head\n${formatSpeed(progress.bytesPerSecond)}$etaSuffix",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                TransferProgressText(progress)
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     WySpinner(size = 20.dp, strokeWidth = 2.dp)
@@ -309,6 +296,30 @@ fun OperationProgress(
             }
         }
     }
+}
+
+/**
+ * How far a download has got, in the same words wherever it is shown: size, share, speed and time
+ * left. The queue card on Updates showed a bare bar, and the speed read "calculating" everywhere.
+ */
+@Composable
+fun TransferProgressText(progress: DownloadProgress, modifier: Modifier = Modifier) {
+    val etaSuffix = progress.etaSeconds
+        ?.let { " · " + stringResource(R.string.progress_eta, formatDuration(it)) }
+        .orEmpty()
+    val head = stringResource(
+        R.string.progress_transfer_full,
+        formatSize(progress.downloadedBytes),
+        formatSize(progress.totalBytes),
+        progress.artifactIndex,
+        progress.artifactCount,
+        (progress.fraction * 100).toInt()
+    )
+    Text(
+        "$head\n${formatSpeed(progress.bytesPerSecond)}$etaSuffix",
+        modifier = modifier,
+        style = MaterialTheme.typography.bodySmall
+    )
 }
 
 @Composable
