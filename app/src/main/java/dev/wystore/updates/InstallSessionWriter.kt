@@ -39,7 +39,9 @@ sealed interface PreparedInstall {
         override val queueId: String,
         override val packageName: String,
         val sessionId: Int,
-        val callbackToken: String
+        val callbackToken: String,
+        /** Asked Android to skip the dialog; see [SilentInstallRefusal]. */
+        val silent: Boolean = false
     ) : PreparedInstall
 }
 
@@ -80,6 +82,7 @@ class InstallSessionWriter(private val context: Context) {
 
         val silent = SilentUpdatePolicy.allows(
             enabled = storeRepository.settings().silentUpdatesEnabled,
+            refusedOnThisFirmware = SilentInstallRefusal(appContext).refusedOnThisFirmware(),
             // Asked of the package manager rather than of the library: StoreRepository leaves Wy
             // Store out of the installed list on purpose, and reading "is this an update?" from
             // there made every self-update look like a first install.
@@ -128,12 +131,13 @@ class InstallSessionWriter(private val context: Context) {
         files: List<File>,
         silent: Boolean
     ): PreparedInstall.Session {
+        val requestsSilence = silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
             setAppPackageName(packageName)
             // A request, not an instruction. When Android declines - the app targets too old an
             // API, someone else has since become its installer - the session reports that user
             // action is needed and the ordinary confirmation runs, exactly as it did before.
-            if (silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (requestsSilence) {
                 setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
             }
             // Android 14 lets an installer claim responsibility for an app's future updates, and
@@ -172,7 +176,7 @@ class InstallSessionWriter(private val context: Context) {
                 )
             )
 
-            return PreparedInstall.Session(queueId, packageName, sessionId, callbackToken)
+            return PreparedInstall.Session(queueId, packageName, sessionId, callbackToken, requestsSilence)
         } catch (e: Exception) {
             packageInstaller.abandonSession(sessionId)
             throw e
@@ -185,6 +189,7 @@ class InstallSessionWriter(private val context: Context) {
             putExtra(EXTRA_QUEUE_ID, session.queueId)
             putExtra(EXTRA_PACKAGE_NAME, session.packageName)
             putExtra(EXTRA_SESSION_ID, session.sessionId)
+            putExtra(EXTRA_SILENT, session.silent)
         }
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
@@ -212,6 +217,7 @@ class InstallSessionWriter(private val context: Context) {
         const val EXTRA_QUEUE_ID = "extra_queue_id"
         const val EXTRA_PACKAGE_NAME = "extra_package_name"
         const val EXTRA_SESSION_ID = "extra_session_id"
+        const val EXTRA_SILENT = "extra_silent"
 
         const val SESSION_PREPARED = "PREPARED"
 

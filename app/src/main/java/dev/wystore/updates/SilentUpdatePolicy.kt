@@ -14,18 +14,21 @@ import android.os.Build
  * to target a recent enough API, and that floor rises with each release; reproducing the table
  * here would mean guessing at the next one. Asking is safe - the request is a request, and when
  * the system does not honour it the session simply reports that user action is needed and the
- * ordinary confirmation flow runs, exactly as before.
+ * ordinary confirmation flow runs, exactly as before. Not on every firmware, though: see
+ * [SilentInstallRefusal].
  */
 object SilentUpdatePolicy {
 
     fun allows(
         enabled: Boolean,
+        refusedOnThisFirmware: Boolean = false,
         sdkInt: Int = Build.VERSION.SDK_INT,
         isUpdate: Boolean,
         installerOfRecord: String?,
         ownPackageName: String
     ): Boolean {
         if (!enabled) return false
+        if (refusedOnThisFirmware) return false
         if (sdkInt < Build.VERSION_CODES.S) return false
         // A first install is always the user's decision; the system offers no way around it.
         if (!isUpdate) return false

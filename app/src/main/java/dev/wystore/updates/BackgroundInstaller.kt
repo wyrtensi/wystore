@@ -32,6 +32,7 @@ class BackgroundInstaller(context: Context) {
         if (!settings.autoInstallUpdates) return@withContext false
         if (!SilentUpdatePolicy.allows(
                 enabled = settings.silentUpdatesEnabled,
+                refusedOnThisFirmware = SilentInstallRefusal(appContext).refusedOnThisFirmware(),
                 isUpdate = isInstalled(packageName),
                 installerOfRecord = installerOfRecord(packageName),
                 ownPackageName = appContext.packageName

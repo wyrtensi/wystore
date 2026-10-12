@@ -10,9 +10,11 @@ class SilentUpdatePolicyTest {
         enabled: Boolean = true,
         sdkInt: Int = 34,
         isUpdate: Boolean = true,
-        installerOfRecord: String? = "dev.wystore"
+        installerOfRecord: String? = "dev.wystore",
+        refusedOnThisFirmware: Boolean = false
     ) = SilentUpdatePolicy.allows(
         enabled = enabled,
+        refusedOnThisFirmware = refusedOnThisFirmware,
         sdkInt = sdkInt,
         isUpdate = isUpdate,
         installerOfRecord = installerOfRecord,
@@ -51,5 +53,12 @@ class SilentUpdatePolicyTest {
     fun theApiIsNotThereBeforeAndroid12() {
         assertFalse(allows(sdkInt = 30))
         assertTrue(allows(sdkInt = 31))
+    }
+
+    @Test
+    fun firmwareThatRefusedItIsNotAskedAgain() {
+        // HyperOS on Android 16 aborts such a session instead of asking the user, so every update
+        // ended in nothing and the row went quietly back to ready.
+        assertFalse(allows(refusedOnThisFirmware = true))
     }
 }

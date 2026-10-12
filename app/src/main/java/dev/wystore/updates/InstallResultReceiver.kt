@@ -26,15 +26,7 @@ class InstallResultReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val repository = QueueRepository.getInstance(context)
-                repository.getEntityById(queueId)?.let { entity ->
-                    runCatching { AutoInstallStore(context).request(entity.packageName) }
-                }
-                repository.resetReadyToInstall(queueId)
-                runCatching {
-                    dev.wystore.background.NotificationCoordinator(context)
-                        .publishReady(repository.readyToInstallSnapshots())
-                }
+                returnForConfirmation(context, QueueRepository.getInstance(context), queueId)
             } catch (error: Throwable) {
                 android.util.Log.w("InstallResultReceiver", "Could not defer install $queueId", error)
             } finally {
@@ -45,12 +37,28 @@ class InstallResultReceiver : BroadcastReceiver() {
             }
         }
     }
+    /**
+     * Back to ready, with a standing request to install it: the app carries that out with Android's
+     * dialog the next time it is on screen, and the notification offers it until then.
+     */
+    private suspend fun returnForConfirmation(context: Context, repository: QueueRepository, queueId: String) {
+        repository.getEntityById(queueId)?.let { entity ->
+            runCatching { AutoInstallStore(context).request(entity.packageName) }
+        }
+        repository.resetReadyToInstall(queueId)
+        runCatching {
+            dev.wystore.background.NotificationCoordinator(context)
+                .publishReady(repository.readyToInstallSnapshots())
+        }
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != InstallSessionWriter.ACTION_INSTALL_RESULT) return
 
         val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE)
         val queueId = intent.getStringExtra(InstallSessionWriter.EXTRA_QUEUE_ID) ?: return
         val message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
+        val silentRequested = intent.getBooleanExtra(InstallSessionWriter.EXTRA_SILENT, false)
 
         if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
             @Suppress("DEPRECATION")
@@ -111,13 +119,35 @@ class InstallResultReceiver : BroadcastReceiver() {
                         }
                         repository.reconcileInstallResult(queueId, success = true)
                     }
-                    PackageInstaller.STATUS_FAILURE_ABORTED ->
+                    PackageInstaller.STATUS_FAILURE_ABORTED -> if (
+                        SilentInstallRefusal.isRefusal(
+                            status = status,
+                            silentRequested = silentRequested,
+                            sessionState = runCatching {
+                                dev.wystore.data.local.WyStoreDatabase.getInstance(context).updateQueueDao
+                                    .getSession(queueId)?.state
+                            }.getOrNull()
+                        )
+                    ) {
+                        // Nobody cancelled anything: the system refused to install without asking.
+                        // From now on this firmware is asked with the dialog, starting with this one.
+                        runCatching { SilentInstallRefusal(context).record() }
+                        runCatching {
+                            EventLog(context).record(
+                                packageName = repository.getEntityById(queueId)?.packageName.orEmpty(),
+                                code = "SILENT_INSTALL_REFUSED",
+                                detail = message ?: "aborted"
+                            )
+                        }
+                        returnForConfirmation(context, repository, queueId)
+                    } else {
                         repository.reconcileInstallResult(
                             id = queueId,
                             success = false,
                             errorCode = QueueErrorCode.INSTALL_CANCELED,
                             errorDetail = message
                         )
+                    }
                     // Not a failed install: the firmware refuses sessions, and the same APK goes
                     // through its own installer instead. Nothing is shown as an error.
                     else -> if (SessionInstallRejection.isFirmwareRefusal(message)) {
