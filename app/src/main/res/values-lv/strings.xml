@@ -456,6 +456,7 @@
     <string name="settings_silent_updates_title">Atjaunināt bez jautājumiem</string>
     <string name="settings_silent_updates_hint">Sākot ar Android 12, sistēma ļauj lietotņu veikalam atjaunināt to, ko tas pats ir instalējis, bez apstiprinājuma loga. Android 9, 10 un 11 tādas iespējas nav — atjauninājums lejupielādējas pats, bet instalēšana ir jāapstiprina. Pirmā instalēšana jautā vienmēr, un tāpat jautā par visu, ko instalējis cits veikals. Reizēm sistēma jautā arī tur, kur nevajadzētu: tā prasa, lai atjaunināmā lietotne būtu būvēta pietiekami jaunam Android.</string>
     <string name="settings_silent_updates_switch">Neprasīt apstiprinājumu atjauninājumiem</string>
+    <string name="settings_silent_updates_refused">Šī sistēma atteicās atjaunināt bez jautāšanas, tāpēc Wy Store rāda Android logu. Pēc sistēmas atjauninājuma tas mēģinās vēlreiz.</string>
     <string name="settings_auto_download_title">Lejupielādēt atjauninājumus, tiklīdz tie ir atrasti</string>
     <string name="settings_auto_download_hint">Pārbaude, kas atrod atjauninājumu, uzreiz to arī paņem, tāpēc piedāvājums instalēt pienāk ar jau gatavu failu. Instalēšana tāpat jautā.</string>
     <string name="settings_auto_download_updates">Lejupielādēt automātiski</string>

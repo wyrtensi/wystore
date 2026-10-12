@@ -456,6 +456,7 @@
     <string name="settings_silent_updates_title">更新时不询问</string>
     <string name="settings_silent_updates_hint">从 Android 12 起，系统允许应用商店更新自己安装过的应用而不弹出确认对话框。Android 9、10 和 11 没有这个选项——更新会自己下载，但安装还得确认。首次安装总会询问，别的商店装的应用也一样。有时系统会在本可不问的地方询问：它要求被更新的应用面向足够新的 Android 构建。</string>
     <string name="settings_silent_updates_switch">更新时跳过确认</string>
+    <string name="settings_silent_updates_refused">此系统拒绝了免确认更新，因此 Wy Store 会改为显示 Android 的确认窗口。系统更新后会再试一次。</string>
     <string name="settings_auto_download_title">发现更新就下载</string>
     <string name="settings_auto_download_hint">检查发现更新后立即下载，提示安装时文件已经就位。安装仍然会询问。</string>
     <string name="settings_auto_download_updates">自动下载</string>

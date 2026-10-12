@@ -456,6 +456,7 @@
     <string name="settings_silent_updates_title">Сұрамай жаңарту</string>
     <string name="settings_silent_updates_hint">Android 12-ден бастап жүйе дүкенге өзі орнатқан қолданбаны растау терезесінсіз жаңартуға рұқсат етеді. Android 9, 10 және 11-де мұндай мүмкіндік жоқ — жаңарту өзі жүктеліп алынады, бірақ орнатуды растау керек. Бірінші орнату әрқашан сұрайды, басқа дүкен орнатқанның бәрі де солай. Кейде жүйе қажет болмаса да сұрайды: ол жаңартылатын қолданбаның жеткілікті жаңа Android-қа құрастырылуын талап етеді.</string>
     <string name="settings_silent_updates_switch">Жаңартуда растауды өткізіп жіберу</string>
+    <string name="settings_silent_updates_refused">Бұл жүйе сұрамай жаңартудан бас тартты, сондықтан Wy Store Android терезесін көрсетеді. Жүйе жаңартылғаннан кейін қайта байқап көреді.</string>
     <string name="settings_auto_download_title">Жаңартуларды табылған бойда жүктеп алу</string>
     <string name="settings_auto_download_hint">Жаңартуды тапқан тексеру оны сол сәтте алады, сондықтан орнату ұсынысы файл дайын күйде келеді. Орнату бәрібір сұрайды.</string>
     <string name="settings_auto_download_updates">Автоматты жүктеп алу</string>

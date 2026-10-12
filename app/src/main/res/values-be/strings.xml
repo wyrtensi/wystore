@@ -456,6 +456,7 @@
     <string name="settings_silent_updates_title">Абнаўляць без пытанняў</string>
     <string name="settings_silent_updates_hint">Пачынаючы з Android 12 сістэма дазваляе краме абнаўляць тое, што яна ўсталявала сама, без акна пацвярджэння. На Android 9, 10 і 11 такой магчымасці няма — абнаўленне спампуецца само, але ўсталяванне давядзецца пацвердзіць. Першае ўсталяванне спытае заўсёды, і ўсё, што паставіла іншая крама, — таксама. Часам сістэма пытаецца і там, дзе магла б не пытацца: ёй патрэбна, каб праграма, якая абнаўляецца, была сабрана пад дастаткова свежы Android.</string>
     <string name="settings_silent_updates_switch">Не пытацца пры абнаўленні</string>
+    <string name="settings_silent_updates_refused">Гэтая сістэма адмовілася абнаўляць без пытання, таму Wy Store паказвае акно Android. Пасля абнаўлення сістэмы ён паспрабуе зноў.</string>
     <string name="settings_auto_download_title">Спампоўваць абнаўленні адразу</string>
     <string name="settings_auto_download_hint">Праверка знайшла абнаўленне — адразу спампоўвае, і прапанова ўсталяваць прыходзіць з гатовым файлам. Усталяванне ўсё роўна спытае.</string>
     <string name="settings_auto_download_updates">Спампоўваць аўтаматычна</string>

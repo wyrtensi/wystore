@@ -456,6 +456,7 @@
     <string name="settings_silent_updates_title">Soʻramasdan yangilash</string>
     <string name="settings_silent_updates_hint">Android 12 dan boshlab tizim ilova doʻkoniga oʻzi oʻrnatgan narsani tasdiqlash oynasisiz yangilashga ruxsat beradi. Android 9, 10 va 11 da bunday imkoniyat yoʻq — yangilanish oʻzi yuklab olinadi, lekin oʻrnatishni tasdiqlash kerak. Birinchi oʻrnatish har doim soʻraydi, boshqa doʻkon oʻrnatgan narsa ham shunday. Baʼzida tizim kerak boʻlmagan joyda ham soʻraydi: unga yangilanayotgan ilova yetarlicha yangi Android uchun yigʻilgan boʻlishi kerak.</string>
     <string name="settings_silent_updates_switch">Yangilashda tasdiqlashni oʻtkazib yuborish</string>
+    <string name="settings_silent_updates_refused">Bu tizim so‘ramasdan yangilashni rad etdi, shuning uchun Wy Store Android oynasini ko‘rsatadi. Tizim yangilangach yana urinib ko‘radi.</string>
     <string name="settings_auto_download_title">Topilgan yangilanishlarni darhol yuklab olish</string>
     <string name="settings_auto_download_hint">Yangilanish topgan tekshiruv uni darhol yuklab oladi, shunda oʻrnatish taklifi tayyor fayl bilan keladi. Oʻrnatish baribir soʻraydi.</string>
     <string name="settings_auto_download_updates">Avtomatik yuklab olish</string>

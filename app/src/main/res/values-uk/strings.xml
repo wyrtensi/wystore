@@ -456,6 +456,7 @@
     <string name="settings_silent_updates_title">Оновлювати без питань</string>
     <string name="settings_silent_updates_hint">Починаючи з Android 12 система дозволяє магазину оновлювати те, що він сам встановив, без вікна підтвердження. На Android 9, 10 і 11 такої можливості немає — оновлення завантажиться саме, але встановлення доведеться підтвердити. Перше встановлення запитає завжди, і все, що поставив інший магазин, — теж. Іноді система запитує й там, де могла б не запитувати: їй потрібно, щоб застосунок, який оновлюється, був зібраний під досить свіжий Android.</string>
     <string name="settings_silent_updates_switch">Не питати під час оновлення</string>
+    <string name="settings_silent_updates_refused">Ця система відмовилася оновлювати без запиту, тому Wy Store показує вікно Android. Після оновлення системи він спробує знову.</string>
     <string name="settings_auto_download_title">Завантажувати оновлення одразу</string>
     <string name="settings_auto_download_hint">Перевірка знайшла оновлення — одразу завантажує, і пропозиція встановити приходить із готовим файлом. Встановлення все одно запитає.</string>
     <string name="settings_auto_download_updates">Завантажувати автоматично</string>

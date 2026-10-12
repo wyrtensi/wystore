@@ -410,6 +410,20 @@ fun SettingsScreen(
                     editedSettings = editedSettings.copy(silentUpdatesEnabled = it)
                     onSave(editedSettings)
                 }
+                // HyperOS on Android 16 aborts such installs instead of asking, so the switch can be
+                // on and do nothing. Said here rather than left for the user to wonder about.
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val refused = remember(context) {
+                    dev.wystore.updates.SilentInstallRefusal(context).refusedOnThisFirmware()
+                }
+                if (editedSettings.silentUpdatesEnabled && refused) {
+                    Text(
+                        stringResource(R.string.settings_silent_updates_refused),
+                        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 12.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
 
             // Fetching was root-only, so on an ordinary phone a check announced an update and
