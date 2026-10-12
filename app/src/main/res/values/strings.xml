@@ -145,6 +145,7 @@
     <string name="search_field_placeholder">Search apps and games</string>
     <string name="search_clear">Clear</string>
     <string name="search_action">Search RuStore</string>
+    <string name="search_action_all">Search RuStore and GitHub</string>
     <string name="search_sources_all">Both</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>

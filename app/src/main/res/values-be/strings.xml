@@ -145,6 +145,7 @@
     <string name="search_field_placeholder">Пошук праграм і гульняў</string>
     <string name="search_clear">Ачысціць</string>
     <string name="search_action">Шукаць у RuStore</string>
+    <string name="search_action_all">Шукаць у RuStore і GitHub</string>
     <string name="search_sources_all">Абодва</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>

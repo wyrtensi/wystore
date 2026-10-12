@@ -145,6 +145,7 @@
     <string name="search_field_placeholder">Meklē lietotnes un spēles</string>
     <string name="search_clear">Notīrīt</string>
     <string name="search_action">Meklēt RuStore</string>
+    <string name="search_action_all">Meklēt RuStore un GitHub</string>
     <string name="search_sources_all">Abi</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>

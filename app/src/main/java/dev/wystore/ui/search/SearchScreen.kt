@@ -200,12 +200,20 @@ fun SearchScreen(
                             )
                         }
                     }
+                    // GitHub alone has no button: its results follow the typing (see above). With both
+                    // sources the one press searches both, and the label says so.
                     if (sources.includesRuStore) {
                         Button(
                             onClick = runSearch,
                             enabled = text.isNotBlank() && !busy,
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text(stringResource(R.string.search_action)) }
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (sources.includesGitHub) R.string.search_action_all else R.string.search_action
+                                )
+                            )
+                        }
                         DisclaimerNote(stringResource(R.string.search_disclaimer))
                     }
                 }

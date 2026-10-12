@@ -145,6 +145,7 @@
     <string name="search_field_placeholder">Қолданба мен ойын іздеу</string>
     <string name="search_clear">Тазалау</string>
     <string name="search_action">RuStore-дан іздеу</string>
+    <string name="search_action_all">RuStore және GitHub-тан іздеу</string>
     <string name="search_sources_all">Екеуі</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>

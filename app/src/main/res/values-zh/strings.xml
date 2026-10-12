@@ -145,6 +145,7 @@
     <string name="search_field_placeholder">搜索应用和游戏</string>
     <string name="search_clear">清除</string>
     <string name="search_action">在 RuStore 中搜索</string>
+    <string name="search_action_all">在 RuStore 和 GitHub 中搜索</string>
     <string name="search_sources_all">全部</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>

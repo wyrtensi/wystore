@@ -145,6 +145,7 @@
     <string name="search_field_placeholder">Поиск приложений и игр</string>
     <string name="search_clear">Очистить</string>
     <string name="search_action">Искать в RuStore</string>
+    <string name="search_action_all">Искать в RuStore и GitHub</string>
     <string name="search_sources_all">Оба</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>

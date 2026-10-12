@@ -145,6 +145,7 @@
     <string name="search_field_placeholder">Пошук застосунків та ігор</string>
     <string name="search_clear">Очистити</string>
     <string name="search_action">Шукати в RuStore</string>
+    <string name="search_action_all">Шукати в RuStore і GitHub</string>
     <string name="search_sources_all">Обидва</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>

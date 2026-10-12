@@ -145,6 +145,7 @@
     <string name="search_field_placeholder">Ilova va oʻyinlarni qidirish</string>
     <string name="search_clear">Tozalash</string>
     <string name="search_action">RuStore ichidan qidirish</string>
+    <string name="search_action_all">RuStore va GitHub ichidan qidirish</string>
     <string name="search_sources_all">Ikkalasi</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
