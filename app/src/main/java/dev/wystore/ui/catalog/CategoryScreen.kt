@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.List
@@ -25,6 +26,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +40,9 @@ import androidx.compose.ui.unit.dp
 import dev.wystore.ui.components.WySpinner
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
+import dev.wystore.data.PendingUpdate
+import dev.wystore.InstallQueueItem
+import dev.wystore.rowFor
 import dev.wystore.ui.components.RowActionPolicy
 import dev.wystore.ui.components.RowAction
 import dev.wystore.ui.components.LocalBottomBarInset
@@ -55,6 +64,10 @@ fun CategoryScreen(
     // Without this the same app is badged "RuStore" on Home and "Другое" here: the reducer falls
     // back to how the APK got onto the device when nobody tells it which source manages the app.
     managed: List<ManagedApp> = emptyList(),
+    // The same queue and downloads every other app list reads, so a row here shows its download,
+    // its progress and "ready to install" rather than a bare Install button.
+    queue: List<InstallQueueItem> = emptyList(),
+    pendingUpdates: List<PendingUpdate> = emptyList(),
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     onAppClick: (String) -> Unit = {},
@@ -72,6 +85,16 @@ fun CategoryScreen(
     onConfirmUnverifiedSource: (String) -> Unit = {},
     onLaunch: (String) -> Unit = {}
 ) {
+    val listState = rememberLazyListState()
+    // A new page is a new list, so it starts at its top. Only on a change of page: coming back from
+    // an app's details recomposes this screen too, and that must keep the place in the list.
+    var shownPage by rememberSaveable { mutableIntStateOf(state.page) }
+    LaunchedEffect(state.page) {
+        if (state.page != shownPage) {
+            shownPage = state.page
+            listState.scrollToItem(0)
+        }
+    }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -90,6 +113,7 @@ fun CategoryScreen(
         }
     ) { contentPadding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = contentPadding.calculateTopPadding()),
@@ -116,6 +140,8 @@ fun CategoryScreen(
                     app = app,
                     installed = installed.firstOrNull { it.packageName == app.packageName },
                     managed = managed.firstOrNull { it.packageName == app.packageName },
+                    queueItem = queue.rowFor(app.packageName),
+                    pendingUpdate = pendingUpdates.firstOrNull { it.packageName == app.packageName },
                     resources = LocalResources.current
                 )
                 AppRow(

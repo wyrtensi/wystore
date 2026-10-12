@@ -296,6 +296,8 @@ fun WyStoreRoot(
                         state = categoryState,
                         installed = state.installed,
                         managed = state.managed,
+                        queue = state.installQueue,
+                        pendingUpdates = state.pendingUpdates,
                         modifier = screenModifier,
                         onBack = { destination = WyStoreDestination.Home },
                         onAppClick = { packageName -> viewModel.openDetails(packageName) },
