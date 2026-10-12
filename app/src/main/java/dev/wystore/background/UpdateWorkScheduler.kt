@@ -7,7 +7,7 @@ import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
+import dev.wystore.background.TransferNetworkPolicy.requireTransferNetwork
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -164,15 +164,13 @@ object UpdateWorkScheduler {
             return
         }
 
-        val network = if (
-            UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
-                isManualCheck = false,
-                wifiOnly = settings.wifiOnly,
-                allowMobileData = settings.allowMobileData
-            )
-        ) NetworkType.UNMETERED else NetworkType.CONNECTED
+        val unmeteredOnly = UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
+            isManualCheck = false,
+            wifiOnly = settings.wifiOnly,
+            allowMobileData = settings.allowMobileData
+        )
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(network)
+            .requireTransferNetwork(unmeteredOnly)
             .setRequiresCharging(settings.requiresCharging)
             .setRequiresBatteryNotLow(true)
             .build()
@@ -196,13 +194,11 @@ object UpdateWorkScheduler {
     }
 
     fun checkPackageNow(context: Context, settings: StoreSettings, packageName: String?) {
-        val network = if (
-            UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
-                isManualCheck = true,
-                wifiOnly = settings.wifiOnly,
-                allowMobileData = settings.allowMobileData
-            )
-        ) NetworkType.UNMETERED else NetworkType.CONNECTED
+        val unmeteredOnly = UpdateCheckPolicy.checkRequiresUnmeteredNetwork(
+            isManualCheck = true,
+            wifiOnly = settings.wifiOnly,
+            allowMobileData = settings.allowMobileData
+        )
         val request = OneTimeWorkRequestBuilder<UpdateCheckWorker>()
             .setInputData(
                 Data.Builder()
@@ -210,7 +206,7 @@ object UpdateWorkScheduler {
                     .putString(UpdateCheckWorker.KEY_PACKAGE, packageName)
                     .build()
             )
-            .setConstraints(Constraints.Builder().setRequiredNetworkType(network).build())
+            .setConstraints(Constraints.Builder().requireTransferNetwork(unmeteredOnly).build())
             .apply {
                 if (UpdateCheckPolicy.checkMayBeExpedited()) {
                     setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

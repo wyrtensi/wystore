@@ -9,7 +9,7 @@ import android.os.PersistableBundle
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
+import dev.wystore.background.TransferNetworkPolicy.requireTransferNetwork
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
@@ -107,16 +107,12 @@ object TransferDispatcher {
      * for transfers the user actually initiated.
      */
     fun dispatchUnattended(context: Context, queueId: String, settings: StoreSettings) {
-        val network = if (settings.allowMobileData || !settings.wifiOnly) {
-            NetworkType.CONNECTED
-        } else {
-            NetworkType.UNMETERED
-        }
+        val unmeteredOnly = !(settings.allowMobileData || !settings.wifiOnly)
         enqueueWorkManagerForeground(
             context = context,
             queueId = queueId,
             constraints = Constraints.Builder()
-                .setRequiredNetworkType(network)
+                .requireTransferNetwork(unmeteredOnly)
                 .setRequiresCharging(settings.requiresCharging)
                 .setRequiresBatteryNotLow(true)
                 .build(),
@@ -128,7 +124,7 @@ object TransferDispatcher {
         context: Context,
         queueId: String,
         constraints: Constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .requireTransferNetwork(unmeteredOnly = false)
             .build(),
         expedited: Boolean = true
     ) {
@@ -163,7 +159,9 @@ object TransferDispatcher {
                 putString(UpdateDownloadWorker.KEY_QUEUE_ID, queueId)
             }
             val jobInfo = JobInfo.Builder(jobId, component)
-                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                // Not NETWORK_TYPE_ANY, which also waits for a network Android has validated;
+                // see TransferNetworkPolicy.
+                .setRequiredNetwork(TransferNetworkPolicy.request(unmeteredOnly = false))
                 .setUserInitiated(true)
                 .setExtras(extras)
                 .build()
