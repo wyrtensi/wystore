@@ -159,6 +159,13 @@ class InstallResultReceiver : BroadcastReceiver() {
                         errorDetail = message ?: "PackageInstaller reported failure"
                     )
                 }
+                // The ready entry lists what is still waiting, and this one no longer is. Nothing
+                // redrew it on an install, so the shade went on offering an app already installed;
+                // an empty list removes the entry.
+                runCatching {
+                    dev.wystore.background.NotificationCoordinator(context)
+                        .publishReady(repository.readyToInstallSnapshots())
+                }
             } catch (error: Throwable) {
                 android.util.Log.w("InstallResultReceiver", "Could not record install result for $queueId", error)
             } finally {
