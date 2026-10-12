@@ -99,7 +99,7 @@ class QueueRepository(
             errorDetail = nextSnapshot.errorDetail,
             updatedAt = System.currentTimeMillis()
         )
-        if (nextSnapshot.state.name in UpdateQueueDao.ACTIVE_STATES && entity.state !in UpdateQueueDao.ACTIVE_STATES) {
+        if (QueueSlots.entersSlot(from = entity.state, to = nextSnapshot.state.name)) {
             dao.transitionToActive(id, nextSnapshot.state.name)
         } else {
             dao.update(updatedEntity)
@@ -396,9 +396,12 @@ class QueueRepository(
         dao.getById(id)
     }
 
-    /** Ids of the items holding the single transfer slot - empty when the queue is free to start. */
-    suspend fun activeIds(): List<String> = withContext(Dispatchers.IO) {
-        dao.getActive(UpdateQueueDao.ACTIVE_STATES).map { it.id }
+    /**
+     * Ids of the items holding the transfer slot - empty when the next download is free to start.
+     * An install in progress is not among them: it has a slot of its own (see [QueueSlots]).
+     */
+    suspend fun activeTransferIds(): List<String> = withContext(Dispatchers.IO) {
+        dao.getActive(QueueSlots.states(QueueSlots.Slot.TRANSFER)).map { it.id }
     }
 
     suspend fun nextEligible(): QueueItemSnapshot? = withContext(Dispatchers.IO) {

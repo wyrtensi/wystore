@@ -33,8 +33,8 @@ class UserConfirmedInstaller(private val activity: Activity) {
      * before control leaves the process, and a failure to hand over rolls the row back so the item
      * stays installable instead of being stranded.
      *
-     * Returns false when the install was put off rather than started - the single queue slot was
-     * busy - so the caller can tell "Android is asking the user" from "nothing is going to happen
+     * Returns false when the install was put off rather than started - another install held the
+     * install slot - so the caller can tell "Android is asking the user" from "nothing is going to happen
      * for this one yet". Waiting on the second forever is how a queue of installs stops dead.
      */
     suspend fun install(queueId: String): Boolean = withContext(Dispatchers.IO) {
@@ -57,9 +57,9 @@ class UserConfirmedInstaller(private val activity: Activity) {
             throw error
         }
 
-        // A download may still hold the single slot. The prepared session is dropped and the row
-        // goes back to waiting, so the install happens when the queue reaches it, rather than
-        // reporting a failure for standing in a queue.
+        // Another install may still hold the install slot (downloads have their own, see
+        // QueueSlots). The prepared session is dropped and the row goes back to waiting, so the
+        // install happens when that one is done, rather than reporting a failure for waiting.
         if (!queueRepository.transitionIfFree(
                 id = queueId,
                 allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),

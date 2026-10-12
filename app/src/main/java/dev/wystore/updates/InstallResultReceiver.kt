@@ -30,8 +30,8 @@ class InstallResultReceiver : BroadcastReceiver() {
             } catch (error: Throwable) {
                 android.util.Log.w("InstallResultReceiver", "Could not defer install $queueId", error)
             } finally {
-                // The slot is free again. The download that handed this row over already asked for
-                // the next item while the row still held the slot, so nothing else would start it.
+                // Cheap and harmless when nothing is waiting: whatever else stopped the queue, a
+                // finished install is a moment to look again.
                 runCatching { dev.wystore.background.QueuePump.startNext(context) }
                 pendingResult.finish()
             }
@@ -162,7 +162,8 @@ class InstallResultReceiver : BroadcastReceiver() {
             } catch (error: Throwable) {
                 android.util.Log.w("InstallResultReceiver", "Could not record install result for $queueId", error)
             } finally {
-                // The install slot is free either way, so whatever is queued behind can start.
+                // The install slot is free either way. Installs behind it are started by the app's
+                // batch; this only makes sure a waiting download is not left standing.
                 runCatching { QueuePump.startNext(context) }
                 pendingResult.finish()
             }

@@ -233,7 +233,7 @@ class MainActivity : AppCompatActivity(), SystemInstallerHost {
                 if (UserConfirmedInstaller(this@MainActivity).install(update)) {
                     storeViewModel.reportInstallStarted(packageName)
                 } else {
-                    // The single queue slot was busy, so the row went back to waiting. Nothing is
+                    // Another install held the install slot, so the row went back to waiting. Nothing is
                     // coming for it now, and a queue of installs waiting on it would stop dead.
                     storeViewModel.reportInstallDeferred(packageName)
                 }

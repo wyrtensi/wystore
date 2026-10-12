@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import dev.wystore.updates.QueueSlots
 import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.flow.Flow
 
@@ -108,8 +109,9 @@ abstract class UpdateQueueDao {
 
     @Transaction
     open suspend fun upsertAtomic(entity: UpdateQueueEntity) {
-        if (entity.state in ACTIVE_STATES) {
-            val active = getActive(ACTIVE_STATES).filter { it.id != entity.id }
+        val slot = QueueSlots.statesInSlotOf(entity.state)
+        if (slot.isNotEmpty()) {
+            val active = getActive(slot).filter { it.id != entity.id }
             if (active.isNotEmpty()) throw QueueBusyException(active.map { it.id })
         }
         val existing = find(entity.packageName, entity.versionCode, entity.source)
@@ -148,8 +150,9 @@ abstract class UpdateQueueDao {
     ): Boolean {
         val current = getById(id) ?: return false
         if (current.state !in allowedFrom) return false
-        if (targetState in ACTIVE_STATES) {
-            val active = getActive(ACTIVE_STATES).filter { it.id != id }
+        val slot = QueueSlots.statesInSlotOf(targetState)
+        if (slot.isNotEmpty()) {
+            val active = getActive(slot).filter { it.id != id }
             if (active.isNotEmpty()) throw QueueBusyException(active.map { it.id })
         }
         update(
@@ -166,8 +169,9 @@ abstract class UpdateQueueDao {
     @Transaction
     open suspend fun transitionToActive(id: String, targetState: String) {
         val current = getById(id) ?: throw IllegalArgumentException("Item not found: $id")
-        if (targetState in ACTIVE_STATES) {
-            val active = getActive(ACTIVE_STATES).filter { it.id != id }
+        val slot = QueueSlots.statesInSlotOf(targetState)
+        if (slot.isNotEmpty()) {
+            val active = getActive(slot).filter { it.id != id }
             if (active.isNotEmpty()) throw QueueBusyException(active.map { it.id })
         }
         update(
@@ -265,10 +269,7 @@ abstract class UpdateQueueDao {
     abstract suspend fun updateSessionState(queueId: String, state: String, now: Long)
 
     companion object {
-        val ACTIVE_STATES = listOf(
-            QueueState.DOWNLOADING.name,
-            QueueState.VERIFYING.name,
-            QueueState.INSTALLING.name
-        )
+        /** Every state that holds a slot; which slot is [QueueSlots]'s answer. */
+        val ACTIVE_STATES = QueueSlots.ALL_STATES
     }
 }

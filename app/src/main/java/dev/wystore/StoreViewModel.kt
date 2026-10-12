@@ -165,9 +165,12 @@ val InstallQueueStatus.occupiesQueue: Boolean
 fun List<InstallQueueItem>.rowFor(packageName: String): InstallQueueItem? =
     filter { it.packageName == packageName }.minByOrNull { row ->
         when {
-            row.status.occupiesQueue || row.status == InstallQueueStatus.PAUSED -> 0
-            row.status == InstallQueueStatus.FAILED -> 1
-            else -> 2
+            // A download and an install can run side by side, so one app can have both: the
+            // install is what is happening to the app on the phone right now.
+            row.status == InstallQueueStatus.INSTALLING -> 0
+            row.status.occupiesQueue || row.status == InstallQueueStatus.PAUSED -> 1
+            row.status == InstallQueueStatus.FAILED -> 2
+            else -> 3
         }
     }
 
@@ -406,13 +409,14 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 resolveIcons(uiQueue.map { row -> row.packageName })
                 advanceBatchIfSettled(uiQueue)
                 publishQueue()
-                // A batch that stood down because the slot was busy picks up again once it frees.
-                // Only rows that hold the slot count. Waiting rows were counted too, and with
-                // auto-download off a check leaves those waiting for good, so the batch never
-                // resumed and every later Install tap was swallowed by the guard in requestInstall.
+                // A batch that stood down because the install slot was busy picks up again once it
+                // frees. Only an install holds it: downloads have their own (see QueueSlots), and
+                // counting them made every install wait for the last download of the round.
+                // Waiting rows were counted once too, and with auto-download off a check leaves
+                // those waiting for good, so every later Install tap was swallowed by requestInstall.
                 if (installAllCurrent == null &&
                     _state.value.installAllRemaining.isNotEmpty() &&
-                    uiQueue.none { row -> row.status in SLOT_HOLDING_STATUSES }
+                    uiQueue.none { row -> row.status == InstallQueueStatus.INSTALLING }
                 ) {
                     startNextBatchInstall()
                 }
@@ -875,7 +879,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * The install never reached Android because the queue's single slot was busy.
+     * The install never reached Android because another install held the install slot.
      *
      * The row is back to waiting, so the app it was queued behind must not keep waiting on it: the
      * package goes to the head of the batch and the batch stands down until the slot frees.
@@ -1810,12 +1814,6 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private companion object {
-        /** Statuses whose row holds the queue's single slot. */
-        val SLOT_HOLDING_STATUSES = setOf(
-            InstallQueueStatus.DOWNLOADING,
-            InstallQueueStatus.VERIFYING,
-            InstallQueueStatus.INSTALLING
-        )
 
         /** Long enough for the queue to be read from disk after a cold start, short enough to fail. */
         const val NOTIFICATION_INSTALL_WAIT_MILLIS = 5_000L

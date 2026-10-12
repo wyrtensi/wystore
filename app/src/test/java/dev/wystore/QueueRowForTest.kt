@@ -41,6 +41,15 @@ class QueueRowForTest {
     }
 
     @Test
+    fun `an install in progress outranks the next version downloading beside it`() {
+        // Downloads and installs run side by side now, so one app can have both at once; which
+        // one the card showed depended on the order Room returned them in.
+        val queue = listOf(row("next", InstallQueueStatus.DOWNLOADING), row("current", InstallQueueStatus.INSTALLING))
+        assertEquals("current", queue.rowFor("ru.app")?.id)
+        assertEquals("current", queue.reversed().rowFor("ru.app")?.id)
+    }
+
+    @Test
     fun `a row left in flight with nothing scheduled for it is orphaned`() {
         assertTrue(QueueRecoveryPolicy.isOrphaned(QueueState.DOWNLOADING, workScheduled = false, jobScheduled = false))
         assertFalse(QueueRecoveryPolicy.isOrphaned(QueueState.DOWNLOADING, workScheduled = true, jobScheduled = false))

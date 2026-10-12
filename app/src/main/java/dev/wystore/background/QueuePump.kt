@@ -31,7 +31,7 @@ object QueuePump {
             StoreRepository(context.applicationContext).managedApps().associateBy { it.packageName }
         }.getOrDefault(emptyMap())
         val next = runCatching {
-            if (repository.activeIds().isNotEmpty()) return
+            if (repository.activeTransferIds().isNotEmpty()) return
             repository.nextEligible { item ->
                 QueueOrigin.mayStartUnattended(
                     priority = item.priority,

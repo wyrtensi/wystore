@@ -4,8 +4,9 @@ package dev.wystore.updates
  * What to do with a row that still says INSTALLING when the app comes back to the front.
  *
  * A confirmation dialog left with Home, or swiped out of recents, never reports back, so the row
- * stayed INSTALLING. INSTALLING holds the queue's single slot, and every download after it found
+ * stayed INSTALLING. INSTALLING held the queue's only slot then, and every download after it found
  * the slot taken and quietly did nothing - "Download now" included - until the phone rebooted.
+ * Downloads have a slot of their own now (see [QueueSlots]); every install after it still waits.
  *
  * Only a row whose install is known to be waiting for the user is judged: Android asked for the
  * dialog ([awaitingUserSince]) and the app, not the dialog, is now in front. Android keeps such a

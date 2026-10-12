@@ -62,7 +62,7 @@ class BackgroundInstaller(context: Context) {
             return@withContext false
         }
 
-        // Something else is transferring; this one keeps its verified files and waits its turn.
+        // Another install is in progress; this one keeps its verified files and waits its turn.
         if (!queueRepository.transitionIfFree(
                 id = queueId,
                 allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),
