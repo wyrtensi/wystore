@@ -414,7 +414,7 @@
     <string name="github_fact_published">Published</string>
     <string name="github_fact_size">Size</string>
     <string name="github_fact_stars">Stars</string>
-    <string name="github_fact_owner">Updated by</string>
+    <string name="github_fact_owner">Installer</string>
     <string name="github_fact_installed">Installed</string>
     <string name="github_fact_unknown">not specified</string>
     <string name="github_archived">The repository is archived and no longer updated</string>
@@ -652,8 +652,8 @@
     <string name="details_reviews_loading">Loading reviews…</string>
     <string name="details_reviews_load_all">Load all reviews</string>
     <string name="details_reviews_show_less">Show fewer</string>
-    <string name="details_owner">Updates are handled by: %1$s</string>
-    <string name="details_owner_none">nobody — installed by hand</string>
+    <string name="details_owner">Installer: %1$s</string>
+    <string name="details_owner_none">none, installed by hand</string>
     <string name="details_take_over">Hand updates to Wy Store</string>
     <string name="details_catalog_older">The catalogue carries version %1$s, older than the one installed.</string>
     <string name="details_catalog_older_blocks">An update from here cannot install over what you have: Android never installs a version below the one on the phone. Handing updates over means uninstalling the app and installing it again, and its data is usually lost.</string>
@@ -766,4 +766,15 @@
     <string name="installer_manual_short">Manual</string>
     <string name="library_updates_from">Updates from: %1$s</string>
     <string name="library_missing_from_rustore">RuStore does not have this package, so no updates will come from there. Tap Remove and accept the app again to pick another source.</string>
+    <string name="library_backup_save_title">Keep a copy of this list</string>
+    <string name="library_backup_save_text">Updating Wy Store keeps everything, but uninstalling it loses the list of accepted apps: Android keeps it only inside Wy Store. A copy in a file you choose keeps itself up to date.</string>
+    <string name="library_backup_save">Save a copy</string>
+    <string name="library_backup_restore_title">Reinstalled Wy Store?</string>
+    <string name="library_backup_restore_text">If you saved a copy of the list before, restore it to get the accepted apps and GitHub repositories back.</string>
+    <string name="library_backup_restore">Restore from file</string>
+    <string name="library_backup_later">Not now</string>
+    <string name="github_adopt_installed">Accept into Wy Store</string>
+    <string name="github_adopt_installed_hint">The app stays as it is; Wy Store installs newer releases from this repository over it.</string>
+    <string name="msg_adopted">%1$s is now looked after by Wy Store</string>
+    <string name="library_withdrawn_from_rustore">RuStore has stopped serving this package: the last check got \"not found\". It may have been withdrawn or be unavailable for now; until it is back, no updates come.</string>
 </resources>

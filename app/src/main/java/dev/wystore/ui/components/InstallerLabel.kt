@@ -17,7 +17,8 @@ import dev.wystore.selfupdate.SelfUpdateChecker
  */
 @Composable
 fun installerLabel(installerPackageName: String?): String =
-    installerName(installerPackageName) ?: stringResource(R.string.details_owner_none)
+    if (InstallerNames.isManual(installerPackageName)) stringResource(R.string.details_owner_none)
+    else installerName(installerPackageName) ?: stringResource(R.string.details_owner_none)
 
 /**
  * The same name, short enough for a badge on a list row: "Manual" where nobody installed it.
@@ -28,7 +29,9 @@ fun installerLabel(installerPackageName: String?): String =
  */
 @Composable
 fun installerShortLabel(installerPackageName: String?): String =
-    installerName(installerPackageName) ?: stringResource(R.string.installer_manual_short)
+    InstallerNames.short(installerPackageName)
+        ?: if (InstallerNames.isManual(installerPackageName)) stringResource(R.string.installer_manual_short)
+        else installerName(installerPackageName) ?: stringResource(R.string.installer_manual_short)
 
 @Composable
 private fun installerName(installerPackageName: String?): String? {

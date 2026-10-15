@@ -414,7 +414,7 @@
     <string name="github_fact_published">Eʼlon qilingan</string>
     <string name="github_fact_size">Hajmi</string>
     <string name="github_fact_stars">Yulduzlar</string>
-    <string name="github_fact_owner">Yangilaydi</string>
+    <string name="github_fact_owner">Oʻrnatuvchi</string>
     <string name="github_fact_installed">Oʻrnatilgan</string>
     <string name="github_fact_unknown">koʻrsatilmagan</string>
     <string name="github_archived">Repozitoriy arxivlangan va boshqa yangilanmaydi</string>
@@ -652,8 +652,8 @@
     <string name="details_reviews_loading">Sharhlar yuklanmoqda…</string>
     <string name="details_reviews_load_all">Barcha sharhlarni yuklash</string>
     <string name="details_reviews_show_less">Kamroq koʻrsatish</string>
-    <string name="details_owner">Yangilanishlarni boshqaradi: %1$s</string>
-    <string name="details_owner_none">hech kim — qoʻlda oʻrnatilgan</string>
+    <string name="details_owner">Oʻrnatuvchi: %1$s</string>
+    <string name="details_owner_none">yoʻq, qoʻlda oʻrnatilgan</string>
     <string name="details_take_over">Yangilanishlarni Wy Store nazoratiga berish</string>
     <string name="details_catalog_older">Katalogda %1$s versiyasi bor — oʻrnatilganidan eski.</string>
     <string name="details_catalog_older_blocks">Bu yerdan yangilanish sizdagisi ustiga oʻrnatilmaydi: Android hech qachon telefondagidan past versiyani oʻrnatmaydi. Yangilanishlarni topshirish ilovani oʻchirib tashlab qaytadan oʻrnatishni bildiradi, maʼlumotlari esa odatda yoʻqoladi.</string>
@@ -766,4 +766,15 @@
     <string name="installer_manual_short">Qoʻlda</string>
     <string name="library_updates_from">Yangilanishlar manbai: %1$s</string>
     <string name="library_missing_from_rustore">RuStore’da bu paket yoʻq, u yerdan yangilanishlar kelmaydi. Boshqa manbani tanlash uchun «Olib tashlash» tugmasini bosing va ilovani qayta qabul qiling.</string>
+    <string name="library_backup_save_title">Roʻyxat nusxasini saqlang</string>
+    <string name="library_backup_save_text">Wy Store yangilanganda hammasi saqlanadi, oʻchirilganda esa qabul qilingan ilovalar roʻyxati yoʻqoladi: Android uni faqat Wy Store ichida saqlaydi. Tanlangan fayldagi nusxa oʻzi yangilanib turadi.</string>
+    <string name="library_backup_save">Nusxani saqlash</string>
+    <string name="library_backup_restore_title">Wy Store’ni qayta oʻrnatdingizmi?</string>
+    <string name="library_backup_restore_text">Agar avval roʻyxat nusxasini saqlagan boʻlsangiz, uni tiklang: qabul qilingan ilovalar va GitHub repozitoriylari qaytadi.</string>
+    <string name="library_backup_restore">Fayldan tiklash</string>
+    <string name="library_backup_later">Hozir emas</string>
+    <string name="github_adopt_installed">Wy Store’ga qabul qilish</string>
+    <string name="github_adopt_installed_hint">Ilova oʻz holicha qoladi, Wy Store esa bu repozitoriyning yangi relizlarini ustidan oʻrnatadi.</string>
+    <string name="msg_adopted">%1$s endi Wy Store tomonidan yangilanadi</string>
+    <string name="library_withdrawn_from_rustore">RuStore bu paketni berishni toʻxtatdi: oxirgi tekshiruvda «topilmadi» deb javob berdi. Ehtimol, u olib tashlangan yoki vaqtincha mavjud emas; u qaytmaguncha yangilanishlar boʻlmaydi.</string>
 </resources>

@@ -100,6 +100,10 @@ fun LibraryScreen(
     adoptionBatch: AdoptionBatch? = null,
     /** Packages RuStore has said it does not carry. */
     missingFromSource: Set<String> = emptySet(),
+    /** Starts the kept-current backup file; see [dev.wystore.data.BackupLocation]. */
+    onExportBackup: (android.net.Uri) -> Unit = {},
+    /** Restores a backup file, merged into what is there. */
+    onImportBackup: (android.net.Uri) -> Unit = {},
     onUpdateManaged: (ManagedApp) -> Unit,
     onRequestForce: (ManagedApp) -> Unit,
     onRemoveManaged: (InstalledApp) -> Unit,
@@ -251,12 +255,15 @@ fun LibraryScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
+            if (!selecting) item {
                 Text(
                     stringResource(R.string.library_intro),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            if (!selecting && installed.isNotEmpty()) item {
+                BackupNudge(hasAccepted = managed.isNotEmpty(), onExportUri = onExportBackup, onImportUri = onImportBackup)
             }
             updateCheckTask?.takeIf { it.active }?.let { task ->
                 item { UpdateCheckStatusCard(task) }

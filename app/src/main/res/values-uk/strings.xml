@@ -414,7 +414,7 @@
     <string name="github_fact_published">Опубліковано</string>
     <string name="github_fact_size">Розмір</string>
     <string name="github_fact_stars">Зірки</string>
-    <string name="github_fact_owner">Оновлює</string>
+    <string name="github_fact_owner">Інсталятор</string>
     <string name="github_fact_installed">Встановлено</string>
     <string name="github_fact_unknown">не вказано</string>
     <string name="github_archived">Репозиторій заархівовано і більше не оновлюється</string>
@@ -652,8 +652,8 @@
     <string name="details_reviews_loading">Завантажуємо відгуки…</string>
     <string name="details_reviews_load_all">Завантажити всі відгуки</string>
     <string name="details_reviews_show_less">Згорнути</string>
-    <string name="details_owner">Оновлення контролює: %1$s</string>
-    <string name="details_owner_none">ніхто — встановлено вручну</string>
+    <string name="details_owner">Інсталятор: %1$s</string>
+    <string name="details_owner_none">немає, встановлено вручну</string>
     <string name="details_take_over">Передати оновлення Wy Store</string>
     <string name="details_catalog_older">У каталозі версія %1$s — старіша за встановлену.</string>
     <string name="details_catalog_older_blocks">Оновлення звідси не встане поверх встановленого: Android не ставить версію нижчу за ту, що на телефоні. Передати оновлення можна лише з видаленням і встановленням заново — дані при цьому, як правило, не зберігаються.</string>
@@ -766,4 +766,15 @@
     <string name="installer_manual_short">Вручну</string>
     <string name="library_updates_from">Оновлення беруться з: %1$s</string>
     <string name="library_missing_from_rustore">У RuStore цього пакета немає, оновлень звідти не буде. Натисніть «Прибрати» й прийміть застосунок знову, щоб вибрати інше джерело.</string>
+    <string name="library_backup_save_title">Збережіть копію списку</string>
+    <string name="library_backup_save_text">Під час оновлення Wy Store усе зберігається, а після видалення список прийнятих застосунків зникає: Android зберігає його лише всередині Wy Store. Копія у вибраному файлі оновлюватиметься сама.</string>
+    <string name="library_backup_save">Зберегти копію</string>
+    <string name="library_backup_restore_title">Перевстановили Wy Store?</string>
+    <string name="library_backup_restore_text">Якщо раніше ви зберігали копію списку, відновіть її: прийняті застосунки й репозиторії GitHub повернуться.</string>
+    <string name="library_backup_restore">Відновити з файлу</string>
+    <string name="library_backup_later">Не зараз</string>
+    <string name="github_adopt_installed">Прийняти в Wy Store</string>
+    <string name="github_adopt_installed_hint">Застосунок залишиться як є, а Wy Store встановлюватиме поверх нові релізи з цього репозиторію.</string>
+    <string name="msg_adopted">%1$s тепер оновлює Wy Store</string>
+    <string name="library_withdrawn_from_rustore">RuStore перестав віддавати цей пакет: під час останньої перевірки відповів «не знайдено». Можливо, його зняли або він тимчасово недоступний; доки він не повернеться, оновлень не буде.</string>
 </resources>

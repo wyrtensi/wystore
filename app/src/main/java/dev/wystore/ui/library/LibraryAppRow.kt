@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -87,7 +88,8 @@ fun LibraryAppRow(
     WyCard(
         modifier = modifier.fillMaxWidth(),
         onClick = { if (selectable) onToggleSelected() else onExpandedChange(!expanded) },
-        containerColor = if (selected == true) MaterialTheme.colorScheme.secondaryContainer
+        // Not secondaryContainer: that is the badge's colour, and the badge vanished into the row.
+        containerColor = if (selected == true) MaterialTheme.colorScheme.surfaceContainerHighest
         else MaterialTheme.colorScheme.surfaceContainerLow,
         onLongClick = onStartSelection
     ) {
@@ -198,10 +200,16 @@ fun LibraryAppRow(
                     overflow = TextOverflow.Ellipsis
                 )
                 if (missingFromSource && managed.source == ManagedSource.RUSTORE) {
-                    // Accepted before the source was looked up, the app was recorded as RuStore's
-                    // whether RuStore had it or not; a check has since said it does not.
+                    // Two different stories behind the same answer. An app Wy Store installed came
+                    // from RuStore, so RuStore has stopped serving it - Yandex Messenger's page is
+                    // still there with no version to install. Anything else may have been recorded
+                    // as RuStore's before the source was looked up, and never been there at all.
+                    val installedByUs = app.installerPackageName == LocalContext.current.packageName
                     Text(
-                        stringResource(R.string.library_missing_from_rustore),
+                        stringResource(
+                            if (installedByUs) R.string.library_withdrawn_from_rustore
+                            else R.string.library_missing_from_rustore
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )

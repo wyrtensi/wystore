@@ -414,7 +414,7 @@
     <string name="github_fact_published">发布时间</string>
     <string name="github_fact_size">大小</string>
     <string name="github_fact_stars">星标</string>
-    <string name="github_fact_owner">更新者</string>
+    <string name="github_fact_owner">安装来源</string>
     <string name="github_fact_installed">已安装</string>
     <string name="github_fact_unknown">未指定</string>
     <string name="github_archived">该仓库已归档，不再更新</string>
@@ -652,8 +652,8 @@
     <string name="details_reviews_loading">正在加载评价…</string>
     <string name="details_reviews_load_all">加载全部评价</string>
     <string name="details_reviews_show_less">收起</string>
-    <string name="details_owner">更新由谁负责：%1$s</string>
-    <string name="details_owner_none">没有人——手动安装的</string>
+    <string name="details_owner">安装来源：%1$s</string>
+    <string name="details_owner_none">无，手动安装</string>
     <string name="details_take_over">把更新交给 Wy Store</string>
     <string name="details_catalog_older">目录里的版本是 %1$s，比已安装的旧。</string>
     <string name="details_catalog_older_blocks">这里的更新无法覆盖你现有的版本：Android 从不安装低于手机上的版本。要交接更新，就得卸载应用再重新安装，应用数据通常会丢失。</string>
@@ -766,4 +766,15 @@
     <string name="installer_manual_short">手动</string>
     <string name="library_updates_from">更新来源：%1$s</string>
     <string name="library_missing_from_rustore">RuStore 中没有此软件包，不会从那里获得更新。请点按“移除”，然后重新接管此应用以选择其他来源。</string>
+    <string name="library_backup_save_title">保存此列表的副本</string>
+    <string name="library_backup_save_text">更新 Wy Store 会保留所有内容，但卸载后已接管应用的列表会丢失：Android 只把它保存在 Wy Store 内部。保存在您所选文件中的副本会自动保持最新。</string>
+    <string name="library_backup_save">保存副本</string>
+    <string name="library_backup_restore_title">重新安装了 Wy Store？</string>
+    <string name="library_backup_restore_text">如果您之前保存过列表副本，请恢复它，已接管的应用和 GitHub 仓库都会回来。</string>
+    <string name="library_backup_restore">从文件恢复</string>
+    <string name="library_backup_later">暂不</string>
+    <string name="github_adopt_installed">由 Wy Store 接管</string>
+    <string name="github_adopt_installed_hint">应用保持不变，Wy Store 会用此仓库的新版本覆盖更新。</string>
+    <string name="msg_adopted">%1$s 现由 Wy Store 负责更新</string>
+    <string name="library_withdrawn_from_rustore">RuStore 已不再提供此软件包：上次检查返回“未找到”。它可能已被下架或暂时不可用；在恢复之前不会有更新。</string>
 </resources>

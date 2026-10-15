@@ -1657,6 +1657,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     fun dismissAdoption() = showNextAdoption()
 
+    /** Accepts an installed app as it is, with updates from [repository]; from a catalogue page. */
+    fun adoptFromRepository(app: InstalledApp, repository: GitHubRepository) {
+        if (saveAdopted(app, ManagedSource.GITHUB, repository)) {
+            _state.update { it.copy(message = string(R.string.msg_adopted, app.label)) }
+        }
+    }
+
     private fun showNextAdoption() {
         val next = adoptionBacklog.removeFirstOrNull()
         if (next == null) _state.update { it.copy(adoption = null) } else beginAdoption(next)

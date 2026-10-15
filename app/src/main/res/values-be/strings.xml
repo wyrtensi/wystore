@@ -414,7 +414,7 @@
     <string name="github_fact_published">Апублікавана</string>
     <string name="github_fact_size">Памер</string>
     <string name="github_fact_stars">Зоркі</string>
-    <string name="github_fact_owner">Абнаўляе</string>
+    <string name="github_fact_owner">Усталёўшчык</string>
     <string name="github_fact_installed">Усталявана</string>
     <string name="github_fact_unknown">не пазначана</string>
     <string name="github_archived">Рэпазіторый заархіваваны і больш не абнаўляецца</string>
@@ -652,8 +652,8 @@
     <string name="details_reviews_loading">Загружаем водгукі…</string>
     <string name="details_reviews_load_all">Загрузіць усе водгукі</string>
     <string name="details_reviews_show_less">Згарнуць</string>
-    <string name="details_owner">Абнаўленнямі кіруе: %1$s</string>
-    <string name="details_owner_none">ніхто — усталявана ўручную</string>
+    <string name="details_owner">Усталёўшчык: %1$s</string>
+    <string name="details_owner_none">няма, усталявана ўручную</string>
     <string name="details_take_over">Перадаць абнаўленні Wy Store</string>
     <string name="details_catalog_older">У каталогу версія %1$s — старэйшая за ўсталяваную.</string>
     <string name="details_catalog_older_blocks">Абнаўленне адсюль не ўстане паверх усталяванага: Android ніколі не ставіць версію ніжэйшую за тую, што на тэлефоне. Перадаць абнаўленні можна толькі з выдаленнем і ўсталяваннем нанова, а даныя пры гэтым звычайна губляюцца.</string>
@@ -766,4 +766,15 @@
     <string name="installer_manual_short">Уручную</string>
     <string name="library_updates_from">Абнаўленні бяруцца з: %1$s</string>
     <string name="library_missing_from_rustore">У RuStore гэтага пакета няма, абнаўленняў адтуль не будзе. Націсніце «Прыбраць» і прыміце праграму зноў, каб выбраць іншую крыніцу.</string>
+    <string name="library_backup_save_title">Захавайце копію спіса</string>
+    <string name="library_backup_save_text">Пры абнаўленні Wy Store усё захоўваецца, а пры выдаленні спіс прынятых праграм знікае: Android захоўвае яго толькі ўнутры Wy Store. Копія ў выбраным файле будзе абнаўляцца сама.</string>
+    <string name="library_backup_save">Захаваць копію</string>
+    <string name="library_backup_restore_title">Пераўсталявалі Wy Store?</string>
+    <string name="library_backup_restore_text">Калі раней вы захоўвалі копію спіса, аднавіце яе: прынятыя праграмы і рэпазіторыі GitHub вернуцца.</string>
+    <string name="library_backup_restore">Аднавіць з файла</string>
+    <string name="library_backup_later">Не зараз</string>
+    <string name="github_adopt_installed">Прыняць у Wy Store</string>
+    <string name="github_adopt_installed_hint">Праграма застанецца як ёсць, а Wy Store будзе ставіць паверх новыя рэлізы з гэтага рэпазіторыя.</string>
+    <string name="msg_adopted">%1$s цяпер абнаўляе Wy Store</string>
+    <string name="library_withdrawn_from_rustore">RuStore перастаў аддаваць гэты пакет: пры апошняй праверцы адказаў «не знойдзена». Магчыма, яго знялі або ён часова недаступны; пакуль ён не вернецца, абнаўленняў не будзе.</string>
 </resources>

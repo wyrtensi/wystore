@@ -414,7 +414,7 @@
     <string name="github_fact_published">Жарияланды</string>
     <string name="github_fact_size">Өлшемі</string>
     <string name="github_fact_stars">Жұлдыздар</string>
-    <string name="github_fact_owner">Жаңартады</string>
+    <string name="github_fact_owner">Орнатқыш</string>
     <string name="github_fact_installed">Орнатылған</string>
     <string name="github_fact_unknown">көрсетілмеген</string>
     <string name="github_archived">Репозиторий мұрағатталған және енді жаңартылмайды</string>
@@ -652,8 +652,8 @@
     <string name="details_reviews_loading">Пікірлер жүктелуде…</string>
     <string name="details_reviews_load_all">Барлық пікірді жүктеу</string>
     <string name="details_reviews_show_less">Азырақ көрсету</string>
-    <string name="details_owner">Жаңартуларды басқарады: %1$s</string>
-    <string name="details_owner_none">ешкім — қолмен орнатылған</string>
+    <string name="details_owner">Орнатқыш: %1$s</string>
+    <string name="details_owner_none">жоқ, қолмен орнатылған</string>
     <string name="details_take_over">Жаңартуларды Wy Store-ға беру</string>
     <string name="details_catalog_older">Каталогта %1$s нұсқасы бар, ол орнатылғаннан ескі.</string>
     <string name="details_catalog_older_blocks">Мұндағы жаңарту сіздегінің үстіне орнатылмайды: Android телефондағыдан төмен нұсқаны ешқашан орнатпайды. Жаңартуларды беру үшін қолданбаны жойып, қайта орнату керек, ал деректері әдетте жоғалады.</string>
@@ -766,4 +766,15 @@
     <string name="installer_manual_short">Қолмен</string>
     <string name="library_updates_from">Жаңартулар көзі: %1$s</string>
     <string name="library_missing_from_rustore">RuStore-да бұл пакет жоқ, сол жерден жаңартулар келмейді. Басқа дереккөзді таңдау үшін «Алып тастау» түймесін басып, қолданбаны қайта қабылдаңыз.</string>
+    <string name="library_backup_save_title">Тізімнің көшірмесін сақтаңыз</string>
+    <string name="library_backup_save_text">Wy Store жаңартылғанда бәрі сақталады, ал жойылғанда қабылданған қолданбалар тізімі жоғалады: Android оны тек Wy Store ішінде сақтайды. Таңдалған файлдағы көшірме өздігінен жаңартылып отырады.</string>
+    <string name="library_backup_save">Көшірмені сақтау</string>
+    <string name="library_backup_restore_title">Wy Store-ды қайта орнаттыңыз ба?</string>
+    <string name="library_backup_restore_text">Бұрын тізім көшірмесін сақтаған болсаңыз, оны қалпына келтіріңіз: қабылданған қолданбалар мен GitHub репозиторийлері қайтады.</string>
+    <string name="library_backup_restore">Файлдан қалпына келтіру</string>
+    <string name="library_backup_later">Қазір емес</string>
+    <string name="github_adopt_installed">Wy Store-ға қабылдау</string>
+    <string name="github_adopt_installed_hint">Қолданба сол күйінде қалады, ал Wy Store осы репозиторийдің жаңа релиздерін үстінен орнатады.</string>
+    <string name="msg_adopted">%1$s енді Wy Store арқылы жаңартылады</string>
+    <string name="library_withdrawn_from_rustore">RuStore бұл пакетті беруді тоқтатты: соңғы тексеруде «табылмады» деп жауап берді. Мүмкін, ол алынып тасталған немесе уақытша қолжетімсіз; ол қайтпайынша жаңартулар болмайды.</string>
 </resources>

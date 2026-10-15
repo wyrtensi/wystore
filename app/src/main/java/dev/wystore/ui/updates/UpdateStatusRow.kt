@@ -9,6 +9,7 @@ import dev.wystore.data.ManagedApp
 import dev.wystore.data.PendingUpdate
 import dev.wystore.ui.components.AppRow
 import dev.wystore.ui.components.PackageUiStateReducer
+import dev.wystore.ui.components.installerShortLabel
 
 @Composable
 fun UpdateStatusRow(
@@ -29,8 +30,11 @@ fun UpdateStatusRow(
         resources = LocalResources.current
     )
 
+    // Who installed it, as on My apps: "RuStore" is the RuStore app's install, "Wy Store" is ours.
+    // The badge used to name where Wy Store looks for updates, so both read "RuStore".
+    val installer = installed?.let { installerShortLabel(it.installerPackageName) }
     AppRow(
-        state = state,
+        state = if (installer != null) state.copy(sourceProvenance = installer) else state,
         onRowClick = onOpen,
         onPrimaryActionClick = onAction,
         modifier = modifier

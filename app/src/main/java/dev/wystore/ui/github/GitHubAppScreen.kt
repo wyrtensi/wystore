@@ -113,7 +113,11 @@ fun GitHubAppScreen(
     onOpenInstalled: (String) -> Unit = {},
     onRetry: () -> Unit = {},
     /** Opens one release of this repository on its own page. */
-    onOpenRelease: (GitHubRelease) -> Unit = {}
+    onOpenRelease: (GitHubRelease) -> Unit = {},
+    /** Whether Wy Store already looks after the installed app. */
+    installedManaged: Boolean = false,
+    /** Accepts the installed app as it is, with updates from this repository. */
+    onAdoptInstalled: () -> Unit = {}
 ) {
     val entry = state.entry
     var showAllAssets by rememberSaveable(entry?.slug) { mutableStateOf(false) }
@@ -354,6 +358,21 @@ fun GitHubAppScreen(
                                 }
                                 installedApp?.let { UninstallIconButton(it.packageName) }
                             }
+                        }
+                        // An app on the phone that Wy Store does not look after yet - an APK from
+                        // this repository installed by hand, typically - is accepted as it is.
+                        // The page offered only a reinstall, and nothing at all when the phone ran
+                        // a build newer than the release, so AmneziaVPN could not be accepted here.
+                        if (installedApp != null && !installedManaged) {
+                            FilledTonalButton(
+                                onClick = onAdoptInstalled,
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text(stringResource(R.string.github_adopt_installed)) }
+                            Text(
+                                stringResource(R.string.github_adopt_installed_hint),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                         if (installState == GitHubInstallState.InstalledNewer) {
                             Text(

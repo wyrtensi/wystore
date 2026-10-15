@@ -414,7 +414,7 @@
     <string name="github_fact_published">Publicēts</string>
     <string name="github_fact_size">Izmērs</string>
     <string name="github_fact_stars">Zvaigznes</string>
-    <string name="github_fact_owner">Atjaunina</string>
+    <string name="github_fact_owner">Instalētājs</string>
     <string name="github_fact_installed">Instalēts</string>
     <string name="github_fact_unknown">nav norādīts</string>
     <string name="github_archived">Repozitorijs ir arhivēts un vairs netiek atjaunināts</string>
@@ -652,8 +652,8 @@
     <string name="details_reviews_loading">Ielādē atsauksmes…</string>
     <string name="details_reviews_load_all">Ielādēt visas atsauksmes</string>
     <string name="details_reviews_show_less">Rādīt mazāk</string>
-    <string name="details_owner">Atjauninājumus pārvalda: %1$s</string>
-    <string name="details_owner_none">neviens — instalēts ar roku</string>
+    <string name="details_owner">Instalētājs: %1$s</string>
+    <string name="details_owner_none">nav, instalēts ar roku</string>
     <string name="details_take_over">Nodot atjauninājumus Wy Store</string>
     <string name="details_catalog_older">Katalogā ir versija %1$s, vecāka par instalēto.</string>
     <string name="details_catalog_older_blocks">Atjauninājums no šejienes nevar uzstādīties virsū tam, kas tev ir: Android nekad neinstalē versiju, kas zemāka par telefonā esošo. Atjauninājumu nodošana nozīmē lietotnes atinstalēšanu un instalēšanu no jauna, un tās dati parasti tiek zaudēti.</string>
@@ -766,4 +766,15 @@
     <string name="installer_manual_short">Manuāli</string>
     <string name="library_updates_from">Atjauninājumu avots: %1$s</string>
     <string name="library_missing_from_rustore">RuStore nav šīs pakotnes, tāpēc no turienes atjauninājumi nenāks. Nospiediet «Noņemt» un pieņemiet lietotni vēlreiz, lai izvēlētos citu avotu.</string>
+    <string name="library_backup_save_title">Saglabājiet saraksta kopiju</string>
+    <string name="library_backup_save_text">Atjauninot Wy Store, viss saglabājas, bet atinstalējot pieņemto lietotņu saraksts pazūd: Android to glabā tikai Wy Store iekšienē. Kopija jūsu izvēlētā failā atjauninās pati.</string>
+    <string name="library_backup_save">Saglabāt kopiju</string>
+    <string name="library_backup_restore_title">Pārinstalējāt Wy Store?</string>
+    <string name="library_backup_restore_text">Ja iepriekš saglabājāt saraksta kopiju, atjaunojiet to: pieņemtās lietotnes un GitHub repozitoriji atgriezīsies.</string>
+    <string name="library_backup_restore">Atjaunot no faila</string>
+    <string name="library_backup_later">Ne tagad</string>
+    <string name="github_adopt_installed">Pieņemt Wy Store</string>
+    <string name="github_adopt_installed_hint">Lietotne paliks, kā ir, un Wy Store instalēs virsū jaunus laidienus no šī repozitorija.</string>
+    <string name="msg_adopted">%1$s tagad atjaunina Wy Store</string>
+    <string name="library_withdrawn_from_rustore">RuStore vairs nepiedāvā šo pakotni: pēdējā pārbaudē atbilde bija «nav atrasts». Iespējams, tā ir izņemta vai īslaicīgi nepieejama; kamēr tā neatgriezīsies, atjauninājumu nebūs.</string>
 </resources>

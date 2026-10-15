@@ -200,21 +200,27 @@ fun WyStoreRoot(
                 LocalAppUninstaller provides viewModel::uninstall
             ) {
                 if (githubApp.entry != null && githubSelectedRelease == null) {
+                    val githubInstalled = state.installed.firstOrNull { installed ->
+                        // What Wy Store installed itself carries the link in its managed record; a curated
+                        // entry that states its package is recognised however the app got onto the phone.
+                        state.managed.any { managed ->
+                            managed.githubRepository == githubApp.entry.repository &&
+                                managed.packageName == installed.packageName
+                        } || githubApp.entry.packageName == installed.packageName
+                    }
                     GitHubAppScreen(
                         state = githubApp,
-                        installedApp = state.installed.firstOrNull { installed ->
-                            // What Wy Store installed itself carries the link in its managed record; a curated
-                            // entry that states its package is recognised however the app got onto the phone.
-                            state.managed.any { managed ->
-                                managed.githubRepository == githubApp.entry.repository &&
-                                    managed.packageName == installed.packageName
-                            } || githubApp.entry.packageName == installed.packageName
-                        },
+                        installedApp = githubInstalled,
                         onBack = viewModel::closeGitHubApp,
                         onInstallAsset = { githubInstallDialog = it },
                         onOpenInstalled = viewModel::launchInstalledApp,
                         onRetry = viewModel::retryGitHubApp,
-                        onOpenRelease = viewModel::openGitHubRelease
+                        onOpenRelease = viewModel::openGitHubRelease,
+                        installedManaged = githubInstalled != null &&
+                            state.managed.any { it.packageName == githubInstalled.packageName },
+                        onAdoptInstalled = {
+                            githubInstalled?.let { viewModel.adoptFromRepository(it, githubApp.entry.repository) }
+                        }
                     )
                 } else if (githubSelectedRelease != null) {
                     GitHubReleaseDetailsScreen(
@@ -419,6 +425,8 @@ fun WyStoreRoot(
                         onAdoptMany = viewModel::adoptMany,
                         adoptionBatch = state.adoptionBatch,
                         missingFromSource = state.missingFromSource,
+                        onExportBackup = viewModel::exportBackupToUri,
+                        onImportBackup = { uri -> viewModel.importBackupFromUri(uri, true) },
                         onUpdateManaged = viewModel::updateManaged,
                         onRequestForce = { forceDialog = it },
                         onRemoveManaged = viewModel::stopManaging,
