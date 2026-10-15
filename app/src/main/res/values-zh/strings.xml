@@ -422,6 +422,7 @@
     <string name="github_loading">正在从 GitHub 加载数据…</string>
     <string name="github_install_section">要安装的文件</string>
     <string name="github_no_apk">该版本没有 APK 文件</string>
+    <string name="github_no_android_build">没有 Android 版本</string>
     <string name="github_about_section">应用简介</string>
     <string name="github_changelog_section">更新说明</string>
     <string name="github_hide_releases">隐藏发布列表</string>

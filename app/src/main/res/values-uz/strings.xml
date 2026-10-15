@@ -422,6 +422,7 @@
     <string name="github_loading">GitHub maʼlumotlari yuklanmoqda…</string>
     <string name="github_install_section">Oʻrnatiladigan fayllar</string>
     <string name="github_no_apk">Bu relizda APK fayli yoʻq</string>
+    <string name="github_no_android_build">Android uchun versiya yoʻq</string>
     <string name="github_about_section">Ilova haqida</string>
     <string name="github_changelog_section">Reliz izohlari</string>
     <string name="github_hide_releases">Relizlar roʻyxatini yashirish</string>

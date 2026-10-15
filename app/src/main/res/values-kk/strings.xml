@@ -422,6 +422,7 @@
     <string name="github_loading">GitHub-тан деректер жүктелуде…</string>
     <string name="github_install_section">Орнататын файлдар</string>
     <string name="github_no_apk">Бұл релизде APK файлы жоқ</string>
+    <string name="github_no_android_build">Android нұсқасы жоқ</string>
     <string name="github_about_section">Қолданба туралы</string>
     <string name="github_changelog_section">Релиздегі өзгерістер</string>
     <string name="github_hide_releases">Релиз тізімін жасыру</string>

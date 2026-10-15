@@ -422,6 +422,7 @@
     <string name="github_loading">Загружаем данные с GitHub…</string>
     <string name="github_install_section">Файлы для установки</string>
     <string name="github_no_apk">В этом релизе нет APK-файла</string>
+    <string name="github_no_android_build">Нет версии для Android</string>
     <string name="github_about_section">Об приложении</string>
     <string name="github_changelog_section">Что нового</string>
     <string name="github_hide_releases">Скрыть список релизов</string>

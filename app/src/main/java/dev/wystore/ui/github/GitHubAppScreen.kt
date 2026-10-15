@@ -40,6 +40,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
@@ -496,7 +497,9 @@ fun GitHubAppScreen(
                             onClick = { onOpenRelease(release) }
                         ) {
                             Column(
-                                Modifier.padding(14.dp),
+                                Modifier
+                                    .padding(14.dp)
+                                    .alpha(if (release.assets.isNotEmpty()) 1f else MUTED_ALPHA),
                                 verticalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -514,7 +517,11 @@ fun GitHubAppScreen(
                                 Text(
                                     listOfNotNull(
                                         release.publishedAt?.take(10),
-                                        stringResource(R.string.github_release_assets, release.assets.size)
+                                        if (release.assets.isNotEmpty()) {
+                                            stringResource(R.string.github_release_assets, release.assets.size)
+                                        } else {
+                                            stringResource(R.string.github_no_android_build)
+                                        }
                                     ).joinToString(" · "),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant

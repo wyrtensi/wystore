@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -229,8 +230,14 @@ fun GitHubScreen(
 
 @Composable
 fun GitHubReleaseCard(release: GitHubRelease, onOpen: (GitHubRelease) -> Unit) {
+    // Desktop-only releases stay in the list, so the version seen on GitHub does not look lost,
+    // but they are muted: there is nothing in them to install on this phone.
+    val installable = release.assets.isNotEmpty()
     WyCard(modifier = Modifier.fillMaxWidth(), onClick = { onOpen(release) }) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            Modifier.padding(14.dp).alpha(if (installable) 1f else MUTED_ALPHA),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     release.title,
@@ -248,7 +255,7 @@ fun GitHubReleaseCard(release: GitHubRelease, onOpen: (GitHubRelease) -> Unit) {
                 Text(
                     release.tagName,
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
+                    color = if (installable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 release.publishedAt?.substringBefore("T")?.let {
                     Text(
@@ -267,10 +274,14 @@ fun GitHubReleaseCard(release: GitHubRelease, onOpen: (GitHubRelease) -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                stringResource(R.string.github_apk_count, release.assets.size),
+                if (installable) stringResource(R.string.github_apk_count, release.assets.size)
+                else stringResource(R.string.github_no_android_build),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
+
+/** How far a release with nothing to install on Android recedes from the ones that have an APK. */
+internal const val MUTED_ALPHA = 0.55f
