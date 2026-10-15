@@ -5,6 +5,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import dev.wystore.R
+import dev.wystore.data.InstalledApp
+import dev.wystore.data.InstallerNames
 import dev.wystore.selfupdate.SelfUpdateChecker
 
 /**
@@ -27,6 +29,16 @@ fun installerLabel(installerPackageName: String?): String =
  * every row read "RuStore" or "GitHub" and the one fact the list could not otherwise show - which
  * store actually installed each app - was hidden in the opened row.
  */
+@Composable
+fun installerLabel(app: InstalledApp): String =
+    if (app.preinstalled) stringResource(R.string.installer_preinstalled)
+    else installerLabel(app.installerPackageName)
+
+@Composable
+fun installerShortLabel(app: InstalledApp): String =
+    if (app.preinstalled) stringResource(R.string.installer_preinstalled_short)
+    else installerShortLabel(app.installerPackageName)
+
 @Composable
 fun installerShortLabel(installerPackageName: String?): String =
     InstallerNames.short(installerPackageName)

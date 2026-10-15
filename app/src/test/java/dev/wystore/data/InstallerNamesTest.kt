@@ -1,4 +1,4 @@
-package dev.wystore.ui.components
+package dev.wystore.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,5 +20,14 @@ class InstallerNamesTest {
         assertTrue(InstallerNames.isManual(null))
         assertTrue(InstallerNames.isManual("com.google.android.packageinstaller"))
         assertFalse(InstallerNames.isManual("ru.vk.store"))
+    }
+
+    @Test
+    fun `apps that came with the phone are told from apps installed by hand`() {
+        assertTrue(InstallerNames.isPreinstalled("android", "/cust/app/customized/partner-com.facebook.katana_91/base.apk"))
+        assertTrue(InstallerNames.isPreinstalled(null, "/product/data-app/MiuiCalendarGlobal/MiuiCalendarGlobal.apk"))
+        assertFalse(InstallerNames.isPreinstalled(null, "/data/app/~~x==/app.wystore-y==/base.apk"))
+        assertFalse(InstallerNames.isPreinstalled("com.google.android.packageinstaller", "/data/app/a/base.apk"))
+        assertEquals("Xiaomi", InstallerNames.short("com.xiaomi.discover"))
     }
 }

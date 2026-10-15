@@ -126,7 +126,7 @@ fun LibraryAppRow(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        StateBadge(text = installerShortLabel(app.installerPackageName))
+                        StateBadge(text = installerShortLabel(app))
                     }
                 }
                 Spacer(Modifier.width(8.dp))
@@ -177,7 +177,7 @@ fun LibraryAppRow(
             Text(
                 stringResource(
                     R.string.details_owner,
-                    installerLabel(app.installerPackageName)
+                    installerLabel(app)
                 ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

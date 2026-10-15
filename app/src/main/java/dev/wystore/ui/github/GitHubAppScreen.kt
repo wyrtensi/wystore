@@ -249,7 +249,7 @@ fun GitHubAppScreen(
                             GitHubFact(stringResource(R.string.github_fact_installed), it.versionName)
                             GitHubFact(
                                 stringResource(R.string.github_fact_owner),
-                                installerLabel(it.installerPackageName)
+                                installerLabel(it)
                             )
                         }
 

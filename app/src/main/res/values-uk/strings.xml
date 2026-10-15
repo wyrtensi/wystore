@@ -777,4 +777,6 @@
     <string name="github_adopt_installed_hint">Застосунок залишиться як є, а Wy Store встановлюватиме поверх нові релізи з цього репозиторію.</string>
     <string name="msg_adopted">%1$s тепер оновлює Wy Store</string>
     <string name="library_withdrawn_from_rustore">RuStore перестав віддавати цей пакет: під час останньої перевірки відповів «не знайдено». Можливо, його зняли або він тимчасово недоступний; доки він не повернеться, оновлень не буде.</string>
+    <string name="installer_preinstalled_short">Передвстановлено</string>
+    <string name="installer_preinstalled">система, було на телефоні від початку</string>
 </resources>

@@ -140,7 +140,12 @@ data class InstalledApp(
      * (sideloaded by hand, pushed over adb). The coarse [source] tells Play from everything else;
      * this is the name the user can actually be shown.
      */
-    val installerPackageName: String? = null
+    val installerPackageName: String? = null,
+    /**
+     * It came with the phone: its APK lives on a read-only partition, or Android itself is named as
+     * the installer. Such apps have no installer, or "android", and read as installed by hand.
+     */
+    val preinstalled: Boolean = false
 )
 
 data class ManagedApp(

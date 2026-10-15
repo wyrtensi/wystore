@@ -777,4 +777,6 @@
     <string name="github_adopt_installed_hint">Праграма застанецца як ёсць, а Wy Store будзе ставіць паверх новыя рэлізы з гэтага рэпазіторыя.</string>
     <string name="msg_adopted">%1$s цяпер абнаўляе Wy Store</string>
     <string name="library_withdrawn_from_rustore">RuStore перастаў аддаваць гэты пакет: пры апошняй праверцы адказаў «не знойдзена». Магчыма, яго знялі або ён часова недаступны; пакуль ён не вернецца, абнаўленняў не будзе.</string>
+    <string name="installer_preinstalled_short">Перадусталявана</string>
+    <string name="installer_preinstalled">сістэма, было на тэлефоне з самага пачатку</string>
 </resources>

@@ -777,4 +777,6 @@
     <string name="github_adopt_installed_hint">Ilova oʻz holicha qoladi, Wy Store esa bu repozitoriyning yangi relizlarini ustidan oʻrnatadi.</string>
     <string name="msg_adopted">%1$s endi Wy Store tomonidan yangilanadi</string>
     <string name="library_withdrawn_from_rustore">RuStore bu paketni berishni toʻxtatdi: oxirgi tekshiruvda «topilmadi» deb javob berdi. Ehtimol, u olib tashlangan yoki vaqtincha mavjud emas; u qaytmaguncha yangilanishlar boʻlmaydi.</string>
+    <string name="installer_preinstalled_short">Oldindan oʻrnatilgan</string>
+    <string name="installer_preinstalled">tizim, telefonda boshidan bor edi</string>
 </resources>

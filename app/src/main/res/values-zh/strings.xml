@@ -777,4 +777,6 @@
     <string name="github_adopt_installed_hint">应用保持不变，Wy Store 会用此仓库的新版本覆盖更新。</string>
     <string name="msg_adopted">%1$s 现由 Wy Store 负责更新</string>
     <string name="library_withdrawn_from_rustore">RuStore 已不再提供此软件包：上次检查返回“未找到”。它可能已被下架或暂时不可用；在恢复之前不会有更新。</string>
+    <string name="installer_preinstalled_short">预装</string>
+    <string name="installer_preinstalled">系统，手机自带</string>
 </resources>

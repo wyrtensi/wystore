@@ -32,7 +32,7 @@ fun UpdateStatusRow(
 
     // Who installed it, as on My apps: "RuStore" is the RuStore app's install, "Wy Store" is ours.
     // The badge used to name where Wy Store looks for updates, so both read "RuStore".
-    val installer = installed?.let { installerShortLabel(it.installerPackageName) }
+    val installer = installed?.let { installerShortLabel(it) }
     AppRow(
         state = if (installer != null) state.copy(sourceProvenance = installer) else state,
         onRowClick = onOpen,

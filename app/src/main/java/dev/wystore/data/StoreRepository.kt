@@ -248,7 +248,8 @@ class StoreRepository(private val context: Context) {
             lastUpdateTime = lastUpdateTime,
             source = sourceFor(installer),
             signingDigests = SigningVerifier.installedDigests(this),
-            installerPackageName = installer
+            installerPackageName = installer,
+            preinstalled = InstallerNames.isPreinstalled(installer, applicationInfo?.sourceDir)
         )
     }
 
@@ -276,7 +277,8 @@ class StoreRepository(private val context: Context) {
                     lastUpdateTime = info.lastUpdateTime,
                     source = sourceFor(installer),
                     signingDigests = SigningVerifier.installedDigests(info),
-                    installerPackageName = installer
+                    installerPackageName = installer,
+                    preinstalled = InstallerNames.isPreinstalled(installer, info.applicationInfo?.sourceDir)
                 )
             }.sortedBy { it.label.lowercase() }.toList()
     }

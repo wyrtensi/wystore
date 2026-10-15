@@ -777,4 +777,6 @@
     <string name="github_adopt_installed_hint">The app stays as it is; Wy Store installs newer releases from this repository over it.</string>
     <string name="msg_adopted">%1$s is now looked after by Wy Store</string>
     <string name="library_withdrawn_from_rustore">RuStore has stopped serving this package: the last check got \"not found\". It may have been withdrawn or be unavailable for now; until it is back, no updates come.</string>
+    <string name="installer_preinstalled_short">Preinstalled</string>
+    <string name="installer_preinstalled">the system, it came with the phone</string>
 </resources>

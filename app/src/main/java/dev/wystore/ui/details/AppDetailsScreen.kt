@@ -313,9 +313,8 @@ fun AppDetailsScreen(
                             // update an app without asking, so "why does this one still stop on a
                             // dialog?" has an answer, and something can be done about it.
                             if (installed != null) {
-                                val owner = installed.installerPackageName
                                 Text(
-                                    stringResource(R.string.details_owner, installerLabel(owner)),
+                                    stringResource(R.string.details_owner, installerLabel(installed)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -336,7 +335,7 @@ fun AppDetailsScreen(
                                 val takeover = TakeoverPolicy.decide(
                                     installedVersionCode = installed.versionCode,
                                     installedDigests = installed.signingDigests,
-                                    ownedByStore = owner == context.packageName,
+                                    ownedByStore = installed.installerPackageName == context.packageName,
                                     catalogVersionCode = app.versionCode,
                                     catalogSignatureHint = app.signatureHint,
                                     acceptedSourceDigest = acceptedDigest,
