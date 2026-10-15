@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -73,9 +74,20 @@ fun LibraryAppRow(
     onDownloadUpdate: (String) -> Unit,
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
-    onExpandedChange: (Boolean) -> Unit = {}
+    onExpandedChange: (Boolean) -> Unit = {},
+    /** Null outside selection; otherwise whether this row is picked. */
+    selected: Boolean? = null,
+    onToggleSelected: () -> Unit = {},
+    onStartSelection: (() -> Unit)? = null
 ) {
-    WyCard(modifier = modifier.fillMaxWidth(), onClick = { onExpandedChange(!expanded) }) {
+    val selectable = selected != null && managed == null
+    WyCard(
+        modifier = modifier.fillMaxWidth(),
+        onClick = { if (selectable) onToggleSelected() else onExpandedChange(!expanded) },
+        containerColor = if (selected == true) MaterialTheme.colorScheme.secondaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerLow,
+        onLongClick = onStartSelection
+    ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 InstalledAppIcon(
@@ -115,6 +127,10 @@ fun LibraryAppRow(
                     }
                 }
                 Spacer(Modifier.width(8.dp))
+                if (selectable) {
+                    Checkbox(checked = selected == true, onCheckedChange = { onToggleSelected() })
+                    return@Row
+                }
                 // The step the user is most likely to want, kept on the identity line.
                 if (pendingUpdate != null) {
                     Button(onClick = { onInstallPending(app.packageName) }) {

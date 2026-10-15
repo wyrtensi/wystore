@@ -48,6 +48,10 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import androidx.annotation.StringRes
 import dev.wystore.ui.components.WySpinner
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.Button
+import dev.wystore.AdoptionBatch
 import dev.wystore.InstallQueueItem
 import dev.wystore.R
 import dev.wystore.UpdateCheckTask
@@ -69,6 +73,7 @@ import java.util.Date
  */
 enum class LibrarySort(@StringRes val labelRes: Int) {
     ALL(R.string.library_filter_all),
+    NOT_ADOPTED(R.string.library_filter_not_adopted),
     WY_STORE(R.string.library_sort_wystore),
     GITHUB(R.string.library_sort_github),
     RUSTORE(R.string.library_sort_rustore),
@@ -89,6 +94,10 @@ fun LibraryScreen(
     installsWhatItFinds: Boolean = false,
     onUpdateAll: () -> Unit,
     onAdopt: (InstalledApp) -> Unit,
+    /** Several apps accepted at once; see [dev.wystore.StoreViewModel.adoptMany]. */
+    onAdoptMany: (List<InstalledApp>) -> Unit = {},
+    /** How far accepting several apps has got, while it runs. */
+    adoptionBatch: AdoptionBatch? = null,
     onUpdateManaged: (ManagedApp) -> Unit,
     onRequestForce: (ManagedApp) -> Unit,
     onRemoveManaged: (InstalledApp) -> Unit,
@@ -123,6 +132,7 @@ fun LibraryScreen(
             val management = managedByPackage[app.packageName]
             when (sort) {
                 LibrarySort.ALL -> true
+                LibrarySort.NOT_ADOPTED -> management == null
                 LibrarySort.WY_STORE -> management?.lastUpdatedAt != null
                 LibrarySort.GITHUB -> management != null && sourceOf(app) == ManagedSource.GITHUB
                 LibrarySort.RUSTORE -> management != null && sourceOf(app) == ManagedSource.RUSTORE
@@ -144,8 +154,60 @@ fun LibraryScreen(
             it.label.lowercase().contains(normalizedQuery) || it.packageName.lowercase().contains(normalizedQuery)
         }
     }
+    val packageSetSaver = listSaver<Set<String>, String>(save = { it.toList() }, restore = { it.toSet() })
+    var collapsedGroups by rememberSaveable(stateSaver = packageSetSaver) { mutableStateOf(emptySet<String>()) }
+    // Selecting is for accepting, so only apps that are not accepted yet can be picked.
+    var selecting by rememberSaveable { mutableStateOf(false) }
+    var selectedPackages by rememberSaveable(stateSaver = packageSetSaver) { mutableStateOf(emptySet<String>()) }
+    fun stopSelecting() {
+        selecting = false
+        selectedPackages = emptySet()
+    }
+    BackHandler(enabled = selecting) { stopSelecting() }
+    val groups = remember(filteredInstalled, managedByPackage, sort, selecting) {
+        LibraryGrouping.groups(filteredInstalled, managedByPackage.keys, sort, selecting)
+    }
+    // Rows hidden in a collapsed group are not on screen, so open-everything leaves them alone.
+    val visibleInstalled = remember(groups, collapsedGroups) {
+        groups.filterNot { it.key in collapsedGroups }.flatMap { it.apps }
+    }
+    // An app accepted, removed or filtered away since it was picked is no longer selected.
+    val selectable = remember(groups) {
+        groups.filter { it.key == LibraryGrouping.NOT_ADOPTED }.flatMap { it.apps }
+    }
+    val selectedApps = selectable.filter { it.packageName in selectedPackages }
     Scaffold(modifier = modifier, topBar = {
-        TopAppBar(
+        if (selecting) {
+            // The check button gives way rather than gaining a neighbour: two text buttons and a
+            // title do not fit the compact phone at its font scale.
+            TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = ::stopSelecting) {
+                        Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.common_cancel))
+                    }
+                },
+                title = {
+                    Text(
+                        stringResource(R.string.library_selected_count, selectedApps.size),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                actions = {
+                    Button(
+                        onClick = {
+                            onAdoptMany(selectedApps)
+                            stopSelecting()
+                        },
+                        enabled = selectedApps.isNotEmpty() && adoptionBatch == null,
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text(stringResource(R.string.library_adopt_selected, selectedApps.size), maxLines = 1)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            )
+        } else TopAppBar(
             title = {
                 Text(
                     stringResource(R.string.library_title),
@@ -197,9 +259,12 @@ fun LibraryScreen(
             updateCheckTask?.takeIf { it.active }?.let { task ->
                 item { UpdateCheckStatusCard(task) }
             }
+            adoptionBatch?.let { batch ->
+                item { AdoptionBatchCard(batch) }
+            }
             item {
-                val allExpanded = filteredInstalled.isNotEmpty() &&
-                    filteredInstalled.all { expandedPackages.contains(it.packageName) }
+                val allExpanded = visibleInstalled.isNotEmpty() &&
+                    visibleInstalled.all { expandedPackages.contains(it.packageName) }
                 TextField(
                     value = query,
                     onValueChange = { query = it },
@@ -222,13 +287,13 @@ fun LibraryScreen(
                                     contentDescription = stringResource(R.string.library_search_clear)
                                 )
                             }
-                        } else if (filteredInstalled.isNotEmpty()) {
+                        } else if (visibleInstalled.isNotEmpty() && !selecting) {
                             IconButton(
                                 onClick = {
                                     expandedPackages = if (allExpanded) {
                                         emptySet()
                                     } else {
-                                        filteredInstalled.map { it.packageName }.toSet()
+                                        visibleInstalled.map { it.packageName }.toSet()
                                     }
                                 }
                             ) {
@@ -279,15 +344,115 @@ fun LibraryScreen(
                     )
                 }
             }
-            items(filteredInstalled, key = { it.packageName }) { app ->
-                val managedApp = managedByPackage[app.packageName]
-                LibraryAppRow(app, managedApp, pendingByPackage[app.packageName], queueByPackage[app.packageName], onAdopt, onUpdateManaged, onRequestForce, onRemoveManaged, onUninstall, onCheck, onOpenDetails, onOpenStorePage, onLaunch, onInstallPending, onDownloadUpdate,
-                    expanded = expandedPackages.contains(app.packageName),
-                    onExpandedChange = { open ->
-                        expandedPackages = if (open) expandedPackages + app.packageName
-                        else expandedPackages - app.packageName
-                    })
+            groups.forEach { group ->
+                val collapsed = group.key in collapsedGroups
+                if (group.titled) item(key = "group:${group.key}") {
+                    val notAdopted = group.key == LibraryGrouping.NOT_ADOPTED
+                    val allSelected = notAdopted && group.apps.all { it.packageName in selectedPackages }
+                    LibraryGroupHeader(
+                        title = stringResource(
+                            if (notAdopted) R.string.library_group_not_adopted else R.string.library_group_adopted,
+                            group.apps.size
+                        ),
+                        collapsed = collapsed,
+                        onToggle = {
+                            collapsedGroups = if (collapsed) collapsedGroups - group.key else collapsedGroups + group.key
+                        },
+                        action = when {
+                            !notAdopted || adoptionBatch != null -> null
+                            !selecting -> stringResource(R.string.library_select) to {
+                                selecting = true
+                                collapsedGroups = collapsedGroups - group.key
+                            }
+                            allSelected -> stringResource(R.string.library_select_none) to { selectedPackages = emptySet() }
+                            else -> stringResource(R.string.library_select_all) to {
+                                selectedPackages = group.apps.mapTo(mutableSetOf()) { it.packageName }
+                            }
+                        }
+                    )
+                }
+                if (!collapsed) items(group.apps, key = { it.packageName }) { app ->
+                    val managedApp = managedByPackage[app.packageName]
+                    val toggle = {
+                        selectedPackages = if (app.packageName in selectedPackages) selectedPackages - app.packageName
+                        else selectedPackages + app.packageName
+                    }
+                    LibraryAppRow(app, managedApp, pendingByPackage[app.packageName], queueByPackage[app.packageName], onAdopt, onUpdateManaged, onRequestForce, onRemoveManaged, onUninstall, onCheck, onOpenDetails, onOpenStorePage, onLaunch, onInstallPending, onDownloadUpdate,
+                        expanded = !selecting && expandedPackages.contains(app.packageName),
+                        onExpandedChange = { open ->
+                            expandedPackages = if (open) expandedPackages + app.packageName
+                            else expandedPackages - app.packageName
+                        },
+                        selected = if (selecting) app.packageName in selectedPackages else null,
+                        onToggleSelected = toggle,
+                        // A long press on an app not accepted yet starts choosing several at once.
+                        onStartSelection = if (managedApp == null && !selecting && adoptionBatch == null) {
+                            {
+                                selecting = true
+                                selectedPackages = setOf(app.packageName)
+                            }
+                        } else null
+                    )
+                }
             }
+        }
+    }
+}
+
+/** A group's title, which opens and closes it, and the one action the group offers. */
+@Composable
+private fun LibraryGroupHeader(
+    title: String,
+    collapsed: Boolean,
+    onToggle: () -> Unit,
+    action: Pair<String, () -> Unit>?
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(MaterialTheme.shapes.small)
+                .clickable(onClick = onToggle)
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                title,
+                modifier = Modifier.weight(1f, fill = false),
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Icon(
+                imageVector = if (collapsed) Icons.Outlined.KeyboardArrowDown else Icons.Outlined.KeyboardArrowUp,
+                contentDescription = stringResource(
+                    if (collapsed) R.string.library_group_expand else R.string.library_group_collapse
+                ),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        action?.let { (label, onClick) ->
+            TextButton(onClick = onClick) { Text(label, maxLines = 1) }
+        }
+    }
+}
+
+@Composable
+private fun AdoptionBatchCard(batch: AdoptionBatch) {
+    WyCard(
+        modifier = Modifier.fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.secondaryContainer
+    ) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.library_adopt_progress, batch.checked, batch.total),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f)
+            )
+            WySpinner(size = 18.dp, strokeWidth = 2.dp)
         }
     }
 }

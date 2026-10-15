@@ -416,6 +416,8 @@ fun WyStoreRoot(
                         onUpdateAll = { viewModel.updateAll() },
                         onOpenStorePage = viewModel::openDetails,
                         onAdopt = viewModel::beginAdoption,
+                        onAdoptMany = viewModel::adoptMany,
+                        adoptionBatch = state.adoptionBatch,
                         onUpdateManaged = viewModel::updateManaged,
                         onRequestForce = { forceDialog = it },
                         onRemoveManaged = viewModel::stopManaging,
