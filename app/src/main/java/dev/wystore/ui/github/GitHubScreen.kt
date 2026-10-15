@@ -258,8 +258,9 @@ fun GitHubReleaseCard(release: GitHubRelease, onOpen: (GitHubRelease) -> Unit) {
                     )
                 }
             }
+            val summary = remember(release.description) { ReleaseNotes.plainText(release.description) }
             Text(
-                release.description.ifBlank { stringResource(R.string.github_no_description) },
+                summary.ifBlank { stringResource(R.string.github_no_description) },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 3,

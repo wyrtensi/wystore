@@ -90,8 +90,9 @@ fun GitHubReleaseDetailsScreen(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SectionHeader(title = stringResource(R.string.github_release_description))
-                    Text(
-                        release.description.ifBlank { stringResource(R.string.github_no_description_dev) },
+                    ReleaseNotesText(
+                        release.description,
+                        empty = stringResource(R.string.github_no_description_dev),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

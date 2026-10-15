@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.text.AnnotatedString
+import dev.wystore.ui.github.ReleaseNotes
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -260,7 +262,12 @@ fun TvGitHubAppScreen(
             state.latestRelease?.description?.takeIf { it.isNotBlank() }?.let { notes ->
                 item(key = "notes") {
                     TvSectionTitle(stringResource(R.string.github_changelog_section))
-                    TvTextCard(notes.take(MAX_NOTES), maxLines = 14)
+                    val colors = MaterialTheme.colorScheme
+                    val annotated = remember(notes, colors.primary, colors.surfaceVariant) {
+                        // Nothing to tap a link with on a TV; they are only coloured.
+                        ReleaseNotes.annotated(notes.take(MAX_NOTES), colors.primary, colors.surfaceVariant, clickableLinks = false)
+                    }
+                    TvTextCard(annotated, maxLines = 14)
                 }
             }
 
@@ -329,7 +336,11 @@ private fun GitHubActions(
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-private fun TvTextCard(text: String, maxLines: Int) {
+private fun TvTextCard(text: String, maxLines: Int) = TvTextCard(AnnotatedString(text), maxLines)
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+private fun TvTextCard(text: AnnotatedString, maxLines: Int) {
     // Focusable so pressing down reaches it and brings it into view.
     Surface(
         modifier = Modifier.fillMaxWidth().focusable(),

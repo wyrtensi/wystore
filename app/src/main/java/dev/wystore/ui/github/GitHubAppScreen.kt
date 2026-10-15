@@ -467,7 +467,7 @@ fun GitHubAppScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         SectionHeader(title = stringResource(R.string.github_changelog_section))
                         WyCard(modifier = Modifier.fillMaxWidth()) {
-                            Text(
+                            ReleaseNotesText(
                                 notes.take(4000),
                                 modifier = Modifier.padding(14.dp),
                                 style = MaterialTheme.typography.bodySmall
