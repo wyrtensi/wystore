@@ -379,6 +379,10 @@ object GitHubCatalog {
     fun find(slug: String, userRepositories: List<GitHubRepository> = emptyList()): GitHubCatalogEntry? =
         entries(userRepositories).firstOrNull { it.slug.equals(slug, ignoreCase = true) }
 
+    /** The entry known to publish [packageName], so adopting that app can offer its repository. */
+    fun findByPackage(packageName: String): GitHubCatalogEntry? =
+        entries().firstOrNull { it.packageName == packageName }
+
     /**
      * The entry a queue row belongs to, found by the placeholder name the row was created with.
      *

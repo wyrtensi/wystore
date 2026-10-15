@@ -50,7 +50,7 @@ import dev.wystore.ui.catalog.CategoryScreen
 import dev.wystore.ui.catalog.CategoryViewModel
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.LocalAppUninstaller
-import dev.wystore.ui.library.GoogleAdoptionDialog
+import dev.wystore.ui.library.AdoptionDialog
 import dev.wystore.ui.components.WySnackbarHost
 import dev.wystore.ui.details.AppDetailsScreen
 import dev.wystore.ui.home.HomeViewModel
@@ -98,7 +98,6 @@ fun WyStoreRoot(
         destination = WyStoreDestination.Category(category.slug)
     }
     var installDialog by remember { mutableStateOf(false) }
-    var adoptDialog by remember { mutableStateOf<InstalledApp?>(null) }
     var forceDialog by remember { mutableStateOf<ManagedApp?>(null) }
     // What is on the phone and what the catalogue offers in its place, for a handover that cannot
     // happen as an install and has to go through a removal.
@@ -416,16 +415,10 @@ fun WyStoreRoot(
                         ),
                         onUpdateAll = { viewModel.updateAll() },
                         onOpenStorePage = viewModel::openDetails,
-                        onAdopt = { app ->
-                            if (app.source == dev.wystore.data.InstallSource.GOOGLE_PLAY) {
-                                viewModel.beginGoogleAdoption(app)
-                            } else {
-                                adoptDialog = app
-                            }
-                        },
+                        onAdopt = viewModel::beginAdoption,
                         onUpdateManaged = viewModel::updateManaged,
                         onRequestForce = { forceDialog = it },
-                        onRemoveManaged = { viewModel.setManaged(it, false) },
+                        onRemoveManaged = viewModel::stopManaging,
                         onUninstall = { viewModel.uninstall(it.packageName) },
                         onCheck = viewModel::checkManagedApp,
                         queue = state.installQueue,
@@ -486,16 +479,17 @@ fun WyStoreRoot(
         )
     }
 
-    state.googleAdoption?.let { prompt ->
-        GoogleAdoptionDialog(
+    state.adoption?.let { prompt ->
+        AdoptionDialog(
             prompt = prompt,
-            onPick = { candidate ->
-                // Recorded first: the uninstall dialog takes the screen and may outlive this
-                // process, and the install has to survive that trip.
-                viewModel.confirmGoogleAdoption(candidate)
-                viewModel.uninstall(prompt.app.packageName)
+            onPick = { option ->
+                // A replacement is recorded first: the uninstall dialog takes the screen and may
+                // outlive this process, and the install has to survive that trip.
+                if (viewModel.acceptAdoption(option)) viewModel.uninstall(prompt.app.packageName)
             },
-            onDismiss = viewModel::dismissGoogleAdoption
+            onGitHub = viewModel::adoptFromGitHub,
+            onRetry = { viewModel.beginAdoption(prompt.app) },
+            onDismiss = viewModel::dismissAdoption
         )
     }
 
@@ -553,21 +547,6 @@ fun WyStoreRoot(
             dismissButton = {
                 TextButton(onClick = { queueReplaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
             }
-        )
-    }
-
-    adoptDialog?.let { target ->
-        AlertDialog(
-            onDismissRequest = { adoptDialog = null },
-            title = { Text(stringResource(R.string.dialog_adopt_title)) },
-            text = { Text(stringResource(R.string.dialog_adopt_text, target.label)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.setManaged(target, true)
-                    adoptDialog = null
-                }) { Text(stringResource(R.string.dialog_adopt_confirm)) }
-            },
-            dismissButton = { TextButton(onClick = { adoptDialog = null }) { Text(stringResource(R.string.common_cancel)) } }
         )
     }
 

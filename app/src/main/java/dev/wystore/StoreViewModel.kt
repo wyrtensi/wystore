@@ -24,8 +24,12 @@ import dev.wystore.data.StoreRepository
 import dev.wystore.data.StoreSettings
 import dev.wystore.data.UpdateCheckSummary
 import dev.wystore.R
-import dev.wystore.data.AdoptionCandidate
-import dev.wystore.data.GoogleAdoptionPolicy
+import dev.wystore.data.AdoptionOption
+import dev.wystore.data.AdoptionPolicy
+import dev.wystore.data.GitHubReleasePolicy
+import dev.wystore.data.ManagedSource
+import dev.wystore.data.SourceError
+import dev.wystore.data.SourceFormatException
 import dev.wystore.data.BackupLocation
 import dev.wystore.data.InstallSource
 import dev.wystore.data.MeteredDownloadConsent
@@ -241,17 +245,26 @@ data class UpdateCheckTask(
 )
 
 /**
- * What the store found when asked to take over an app that came from Google.
+ * What the store found when asked to take over an installed app, and what is being tried.
  *
- * Such an app cannot be updated in place at all, so "adopt" means removing it and installing the
- * same app from a source Wy Store can update. Which app that is has to be shown and chosen, never
- * guessed silently - it ends in an uninstall.
+ * Every option is shown and chosen, never taken silently: a replacement ends in an uninstall, and
+ * an app with no source at all is not accepted. See [AdoptionPolicy].
  */
-data class GoogleAdoptionPrompt(
+data class AdoptionPrompt(
     val app: InstalledApp,
     val loading: Boolean = true,
-    val candidates: List<AdoptionCandidate> = emptyList()
+    val options: List<AdoptionOption> = emptyList(),
+    /** RuStore could not be asked, so "it is not there" is not actually known. */
+    val lookupFailed: Boolean = false,
+    /** A typed repository link is being checked for an Android release. */
+    val githubChecking: Boolean = false,
+    val githubError: String? = null,
+    /** Apps still waiting for a decision after this one, when several were accepted at once. */
+    val waiting: Int = 0
 )
+
+/** Several apps being accepted at once: how far the lookups have got. */
+data class AdoptionBatch(val checked: Int, val total: Int)
 
 data class StoreUiState(
     val query: String = "",
@@ -261,7 +274,8 @@ data class StoreUiState(
     val managed: List<ManagedApp> = emptyList(),
     val settings: StoreSettings = StoreSettings(),
     val updateCheckTask: UpdateCheckTask? = null,
-    val googleAdoption: GoogleAdoptionPrompt? = null,
+    val adoption: AdoptionPrompt? = null,
+    val adoptionBatch: AdoptionBatch? = null,
     val lastUpdateCheck: UpdateCheckSummary? = null,
     val rootAvailable: Boolean? = null,
     val busy: Boolean = false,
@@ -1510,66 +1524,205 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
-    fun setManaged(app: InstalledApp, enabled: Boolean) {
-        if (enabled) {
-            if (app.signingDigests.isEmpty()) {
-                _state.value = _state.value.copy(message = string(R.string.vm_signature_read_failed))
-                return
-            }
-            repository.saveManaged(
-                ManagedApp(app.packageName, app.label, app.signingDigests, autoUpdate = true)
-            )
-        } else {
-            repository.removeManaged(app.packageName)
-        }
+    /** Adopting goes through [beginAdoption], which looks up the source first. */
+    fun stopManaging(app: InstalledApp) {
+        repository.removeManaged(app.packageName)
         refreshLibrary()
     }
 
+    /** Apps accepted together that still need a decision, shown one dialog at a time. */
+    private val adoptionBacklog = ArrayDeque<InstalledApp>()
+
     /**
-     * Looks for the app Wy Store could install in place of a Google-installed one.
+     * Looks up where updates for [app] could come from, then asks.
      *
      * The package name is asked for first, because the store carrying that exact package is an
-     * identity rather than a resemblance and needs no choosing. Only when it does not is the name
-     * searched, and then the user picks from what came back.
+     * identity rather than a resemblance. Only when neither RuStore nor the GitHub catalogue knows
+     * the package is the name searched, and then the user picks from what came back.
      */
-    fun beginGoogleAdoption(app: InstalledApp) {
-        _state.update { it.copy(googleAdoption = GoogleAdoptionPrompt(app = app), message = null) }
+    fun beginAdoption(app: InstalledApp) {
+        _state.update {
+            it.copy(adoption = AdoptionPrompt(app = app, waiting = adoptionBacklog.size), message = null)
+        }
         viewModelScope.launch {
-            val exact = withContext(Dispatchers.IO) {
-                runCatching { source.details(app.packageName, includeReviews = false) }.getOrNull()
-            }
-            val byName = if (exact != null) emptyList() else withContext(Dispatchers.IO) {
-                runCatching { source.search(app.label, 1).apps }.getOrDefault(emptyList())
-            }
-            val candidates = GoogleAdoptionPolicy.candidates(app.packageName, exact, byName)
+            val lookup = lookUpAdoption(app, searchByName = true)
             _state.update { state ->
-                val prompt = state.googleAdoption?.takeIf { it.app.packageName == app.packageName }
+                val prompt = state.adoption?.takeIf { it.app.packageName == app.packageName }
                     ?: return@update state
-                state.copy(googleAdoption = prompt.copy(loading = false, candidates = candidates))
+                state.copy(
+                    adoption = prompt.copy(loading = false, options = lookup.options, lookupFailed = lookup.failed)
+                )
             }
         }
     }
 
-    fun dismissGoogleAdoption() {
-        _state.update { it.copy(googleAdoption = null) }
+    private data class AdoptionLookup(val options: List<AdoptionOption>, val failed: Boolean)
+
+    private suspend fun lookUpAdoption(app: InstalledApp, searchByName: Boolean): AdoptionLookup {
+        val exactResult = withContext(Dispatchers.IO) {
+            runCatching { source.details(app.packageName, includeReviews = false) }
+        }
+        val exact = exactResult.getOrNull()
+        // "Not there" is an answer; anything else is a question RuStore did not answer. Read as
+        // "not there", a dropped connection told the user an app could not be taken over at all.
+        val failed = exactResult.exceptionOrNull()?.let { error ->
+            !(error is SourceFormatException && error.error == SourceError.RUSTORE_NOT_FOUND)
+        } ?: false
+        val catalogEntry = GitHubCatalog.findByPackage(app.packageName)
+        val byName = if (!searchByName || exact != null || catalogEntry != null) emptyList() else {
+            withContext(Dispatchers.IO) {
+                runCatching { source.search(app.label, 1).apps }.getOrDefault(emptyList())
+            }
+        }
+        val accepted = exact?.let {
+            runCatching {
+                UnverifiedSourceStore(getApplication()).acceptedArchiveDigest(app.packageName, it.signatureHint)
+            }.getOrNull()
+        }
+        return AdoptionLookup(AdoptionPolicy.options(app, exact, catalogEntry, byName, accepted), failed)
     }
 
     /**
-     * Records the handover and closes the prompt. The caller then opens Android's uninstall dialog;
-     * the install follows from the package-removed receiver, because the app may not survive the
-     * trip through that dialog.
+     * Takes the option the user picked. Returns true when it is a replacement: the handover is
+     * recorded and the caller opens Android's uninstall dialog; the install follows from the
+     * package-removed receiver, because the app may not survive the trip through that dialog.
      */
-    fun confirmGoogleAdoption(candidate: AdoptionCandidate) {
-        val prompt = _state.value.googleAdoption ?: return
-        PendingReinstallStore(getApplication()).save(
-            PendingReinstall(
-                removedPackageName = prompt.app.packageName,
-                installPackageName = candidate.packageName,
-                label = candidate.label,
-                startedAt = System.currentTimeMillis()
+    fun acceptAdoption(option: AdoptionOption): Boolean {
+        val prompt = _state.value.adoption ?: return false
+        return when (option) {
+            is AdoptionOption.RuStore -> {
+                saveAdopted(prompt.app, ManagedSource.RUSTORE, null)
+                showNextAdoption()
+                false
+            }
+            is AdoptionOption.GitHub -> {
+                saveAdopted(prompt.app, ManagedSource.GITHUB, option.repository)
+                showNextAdoption()
+                false
+            }
+            is AdoptionOption.Replace -> {
+                PendingReinstallStore(getApplication()).save(
+                    PendingReinstall(
+                        removedPackageName = prompt.app.packageName,
+                        installPackageName = option.candidate.packageName,
+                        label = option.candidate.label,
+                        startedAt = System.currentTimeMillis()
+                    )
+                )
+                showNextAdoption()
+                true
+            }
+        }
+    }
+
+    /**
+     * Adopts the app with updates from a repository the user typed in.
+     *
+     * Only a repository that has an Android release is taken: one that publishes desktop builds
+     * alone would leave an app that is "managed" and can never be updated.
+     */
+    fun adoptFromGitHub(input: String) {
+        val prompt = _state.value.adoption ?: return
+        _state.update { it.copy(adoption = prompt.copy(githubChecking = true, githubError = null)) }
+        viewModelScope.launch {
+            val error: String? = runCatching {
+                val repo = githubSource.parseRepository(input)
+                val pattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
+                val release = GitHubReleasePolicy.selectRelease(githubSource.releases(repo), pattern)
+                if (release == null) {
+                    string(R.string.adopt_github_no_apk)
+                } else {
+                    repository.saveGithubRepository(repo)
+                    _state.update { it.copy(githubRepositories = repository.githubRepositories()) }
+                    saveAdopted(prompt.app, ManagedSource.GITHUB, repo)
+                    showNextAdoption()
+                    null
+                }
+            }.getOrElse { it.message ?: string(R.string.vm_github_bad_url) }
+            if (error != null) {
+                _state.update { state ->
+                    val current = state.adoption?.takeIf { it.app.packageName == prompt.app.packageName }
+                        ?: return@update state
+                    state.copy(adoption = current.copy(githubChecking = false, githubError = error))
+                }
+            }
+        }
+    }
+
+    fun dismissAdoption() = showNextAdoption()
+
+    private fun showNextAdoption() {
+        val next = adoptionBacklog.removeFirstOrNull()
+        if (next == null) _state.update { it.copy(adoption = null) } else beginAdoption(next)
+    }
+
+    /**
+     * Accepts several apps at once.
+     *
+     * Each is looked up by its package only - never searched by name, which would be one more
+     * request per app for an answer that needs a person anyway. An app whose package has exactly
+     * one source is accepted from it on the spot; the rest (from Google, found nowhere, found in
+     * two places, RuStore not answering) are asked about afterwards, one dialog at a time.
+     */
+    fun adoptMany(apps: List<InstalledApp>) {
+        if (apps.isEmpty() || _state.value.adoptionBatch != null) return
+        _state.update { it.copy(adoptionBatch = AdoptionBatch(0, apps.size), message = null) }
+        viewModelScope.launch {
+            var accepted = 0
+            val undecided = mutableListOf<InstalledApp>()
+            apps.forEachIndexed { index, app ->
+                val automatic = if (app.source == InstallSource.GOOGLE_PLAY) null else {
+                    lookUpAdoption(app, searchByName = false)
+                        .takeUnless { it.failed }
+                        ?.let { AdoptionPolicy.automatic(it.options) }
+                }
+                val saved = when (automatic) {
+                    is AdoptionOption.RuStore -> saveAdopted(app, ManagedSource.RUSTORE, null, refresh = false)
+                    is AdoptionOption.GitHub -> saveAdopted(app, ManagedSource.GITHUB, automatic.repository, refresh = false)
+                    else -> false
+                }
+                if (saved) accepted++ else undecided += app
+                _state.update { it.copy(adoptionBatch = AdoptionBatch(index + 1, apps.size)) }
+            }
+            refreshLibrary()
+            _state.update {
+                it.copy(
+                    adoptionBatch = null,
+                    message = if (undecided.isEmpty()) {
+                        string(R.string.adopt_batch_done, accepted)
+                    } else {
+                        string(R.string.adopt_batch_done_ask, accepted, undecided.size)
+                    }
+                )
+            }
+            adoptionBacklog.addAll(undecided)
+            if (_state.value.adoption == null) showNextAdoption()
+        }
+    }
+
+    /** Records [app] as managed from [source]; false when its signature could not be read. */
+    private fun saveAdopted(
+        app: InstalledApp,
+        source: ManagedSource,
+        githubRepository: GitHubRepository?,
+        refresh: Boolean = true
+    ): Boolean {
+        if (app.signingDigests.isEmpty()) {
+            _state.update { it.copy(message = string(R.string.vm_signature_read_failed)) }
+            return false
+        }
+        repository.saveManaged(
+            ManagedApp(
+                app.packageName,
+                app.label,
+                app.signingDigests,
+                autoUpdate = true,
+                source = source,
+                githubRepository = githubRepository
             )
         )
-        _state.update { it.copy(googleAdoption = null) }
+        if (refresh) refreshLibrary()
+        return true
     }
 
     /**
