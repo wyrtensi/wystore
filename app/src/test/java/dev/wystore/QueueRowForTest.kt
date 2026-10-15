@@ -1,5 +1,6 @@
 package dev.wystore
 
+import dev.wystore.data.GitHubRepository
 import dev.wystore.updates.QueueRecoveryPolicy
 import dev.wystore.updates.model.QueueState
 import org.junit.Assert.assertEquals
@@ -47,6 +48,38 @@ class QueueRowForTest {
         val queue = listOf(row("next", InstallQueueStatus.DOWNLOADING), row("current", InstallQueueStatus.INSTALLING))
         assertEquals("current", queue.rowFor("ru.app")?.id)
         assertEquals("current", queue.reversed().rowFor("ru.app")?.id)
+    }
+
+    private val repo = GitHubRepository("owner", "app")
+
+    private fun githubRow(id: String, status: InstallQueueStatus, repository: GitHubRepository = repo) =
+        InstallQueueItem(id = id, packageName = "pending.github.$id", label = id, status = status, githubRepository = repository)
+
+    @Test
+    fun `the GitHub screen shows the open repository's install while it runs`() {
+        val queue = listOf(
+            githubRow("done", InstallQueueStatus.COMPLETE),
+            githubRow("other", InstallQueueStatus.DOWNLOADING, GitHubRepository("owner", "other")),
+            githubRow("running", InstallQueueStatus.VERIFYING)
+        )
+        assertEquals("running", queue.githubRowFor(repo)?.id)
+    }
+
+    @Test
+    fun `a finished or canceled GitHub install leaves no card behind`() {
+        // A card that said "Queued - please do not close Wy Store" stayed for the life of the
+        // process after the install had long finished.
+        assertNull(listOf(githubRow("done", InstallQueueStatus.COMPLETE)).githubRowFor(repo))
+        assertNull(listOf(githubRow("canceled", InstallQueueStatus.CANCELED)).githubRowFor(repo))
+        assertNull(listOf(githubRow("running", InstallQueueStatus.DOWNLOADING)).githubRowFor(null))
+        assertNull(listOf(githubRow("other", InstallQueueStatus.DOWNLOADING, GitHubRepository("owner", "other"))).githubRowFor(repo))
+    }
+
+    @Test
+    fun `a failed GitHub install is shown, a downloaded one waiting on Updates is not`() {
+        assertEquals("failed", listOf(githubRow("failed", InstallQueueStatus.FAILED)).githubRowFor(repo)?.id)
+        assertNull(listOf(githubRow("ready", InstallQueueStatus.READY)).githubRowFor(repo))
+        assertNull(listOf(githubRow("paused", InstallQueueStatus.PAUSED)).githubRowFor(repo))
     }
 
     @Test

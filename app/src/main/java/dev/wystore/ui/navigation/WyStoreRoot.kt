@@ -1,5 +1,6 @@
 package dev.wystore.ui.navigation
 
+import dev.wystore.githubRowFor
 import dev.wystore.rowFor
 import androidx.activity.compose.BackHandler
 import dev.wystore.background.UpdateCheckPolicy
@@ -219,7 +220,7 @@ fun WyStoreRoot(
                 } else if (githubSelectedRelease != null) {
                     GitHubReleaseDetailsScreen(
                         release = githubSelectedRelease,
-                        install = state.githubInstall,
+                        install = state.installQueue.githubRowFor(state.githubActiveRepository),
                         onBack = viewModel::closeGitHubRelease,
                         onInstall = { githubInstallDialog = it }
                     )
@@ -345,7 +346,7 @@ fun WyStoreRoot(
                         activeRepository = state.githubActiveRepository,
                         releases = state.githubReleases,
                         loading = state.githubLoading,
-                        install = state.githubInstall,
+                        install = state.installQueue.githubRowFor(state.githubActiveRepository),
                         catalog = dev.wystore.data.GitHubCatalog.entries(state.githubRepositories),
                         onLoad = viewModel::loadGitHubRepository,
                         onOpen = viewModel::openGitHubRelease,

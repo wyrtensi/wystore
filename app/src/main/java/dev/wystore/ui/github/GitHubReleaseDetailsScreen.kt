@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.wystore.InstallQueueItem
 import dev.wystore.R
+import dev.wystore.occupiesQueue
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.data.GitHubAsset
 import dev.wystore.data.GitHubRelease
@@ -96,6 +97,9 @@ fun GitHubReleaseDetailsScreen(
                 }
             }
             item { SectionHeader(title = stringResource(R.string.github_apk_to_install)) }
+            // The row's package name is a placeholder until the APK is verified, so it cannot be
+            // matched to one file; it is the repository's install, shown once above the files.
+            install?.let { item { OperationProgress(it) } }
             items(release.assets, key = { it.id }) { asset ->
                 WyCard(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -112,12 +116,12 @@ fun GitHubReleaseDetailsScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        if (install?.packageName == asset.id.toString()) {
-                            OperationProgress(install)
-                        } else {
-                            Button(onClick = { onInstall(asset) }, modifier = Modifier.fillMaxWidth()) {
-                                Text(stringResource(R.string.github_install_apk))
-                            }
+                        Button(
+                            onClick = { onInstall(asset) },
+                            enabled = install?.status?.occupiesQueue != true,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.github_install_apk))
                         }
                     }
                 }

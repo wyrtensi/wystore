@@ -99,5 +99,8 @@ fun UpdateQueueEntity.toSnapshot(): QueueItemSnapshot = QueueItemSnapshot(
     downloadedBytes = downloadedBytes,
     totalBytes = totalBytes,
     errorCode = errorCode?.let { code -> runCatching { QueueErrorCode.valueOf(code) }.getOrNull() },
-    errorDetail = errorDetail
+    errorDetail = errorDetail,
+    githubRepository = if (githubRepositoryOwner != null && githubRepositoryName != null) {
+        dev.wystore.data.GitHubRepository(githubRepositoryOwner, githubRepositoryName)
+    } else null
 )

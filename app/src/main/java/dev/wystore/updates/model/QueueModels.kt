@@ -1,5 +1,6 @@
 package dev.wystore.updates.model
 
+import dev.wystore.data.GitHubRepository
 import dev.wystore.data.ManagedSource
 
 enum class QueueMode {
@@ -73,7 +74,9 @@ data class QueueItemSnapshot(
     val downloadedBytes: Long = 0,
     val totalBytes: Long = 0,
     val errorCode: QueueErrorCode? = null,
-    val errorDetail: String? = null
+    val errorDetail: String? = null,
+    /** Set on GitHub rows: the package name is a placeholder until verification reads the real one. */
+    val githubRepository: GitHubRepository? = null
 )
 
 sealed interface QueueAction {

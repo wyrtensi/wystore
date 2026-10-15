@@ -163,7 +163,26 @@ val InstallQueueStatus.occupiesQueue: Boolean
  * row still being worked on wins, then one that stopped with an error, then whatever is left.
  */
 fun List<InstallQueueItem>.rowFor(packageName: String): InstallQueueItem? =
-    filter { it.packageName == packageName }.minByOrNull { row ->
+    filter { it.packageName == packageName }.mostRelevant()
+
+/**
+ * The install of a release from [repository] that the GitHub screens report, if one is under way.
+ *
+ * Matched by repository, because the row's package name stays a placeholder until the APK is
+ * verified. These screens used to keep their own copy of the row, made up as QUEUED when the
+ * button was pressed and never updated, so "Queued - please do not close Wy Store" stayed for the
+ * life of the process. Only work in progress and a failure are reported: a downloaded APK waiting
+ * for the user is offered on Updates, and the progress card would draw it as a running spinner.
+ */
+fun List<InstallQueueItem>.githubRowFor(repository: GitHubRepository?): InstallQueueItem? {
+    if (repository == null) return null
+    return filter { it.githubRepository == repository }.mostRelevant()?.takeIf {
+        it.status.isInFlight || it.status == InstallQueueStatus.FAILED
+    }
+}
+
+private fun List<InstallQueueItem>.mostRelevant(): InstallQueueItem? =
+    minByOrNull { row ->
         when {
             // A download and an install can run side by side, so one app can have both: the
             // install is what is happening to the app on the phone right now.
@@ -185,7 +204,8 @@ data class InstallQueueItem(
     val progress: DownloadProgress? = null,
     /** Typed reason, so the UI can render a localized message instead of the raw detail text. */
     val errorCode: dev.wystore.updates.model.QueueErrorCode? = null,
-    val detail: String? = null
+    val detail: String? = null,
+    val githubRepository: GitHubRepository? = null
 )
 
 /**
@@ -257,7 +277,6 @@ data class StoreUiState(
     val githubReleases: List<GitHubRelease> = emptyList(),
     val githubSelectedRelease: GitHubRelease? = null,
     val githubLoading: Boolean = false,
-    val githubInstall: InstallQueueItem? = null,
     /** GitHub catalogue entries matching the current search query. */
     val githubSearchResults: List<GitHubCatalogEntry> = emptyList(),
     val githubApp: GitHubAppUiState = GitHubAppUiState(),
@@ -771,15 +790,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
         askOnMeteredNetwork {
             GitHubInstallScheduler.enqueue(getApplication(), asset, repositorySource, _state.value.githubSelectedRelease?.id)
-            _state.value = _state.value.copy(
-                githubInstall = InstallQueueItem(
-                    id = asset.id.toString(),
-                    packageName = "",
-                    label = asset.name,
-                    status = InstallQueueStatus.QUEUED
-                ),
-                message = string(R.string.vm_github_queued, asset.name)
-            )
+            _state.value = _state.value.copy(message = string(R.string.vm_github_queued, asset.name))
         }
     }
 
@@ -1083,7 +1094,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 etaSeconds = transferRates[item.id]?.let { TransferRate.etaSeconds(it, item.totalBytes) }
             ) else null,
             errorCode = item.errorCode,
-            detail = item.errorDetail
+            detail = item.errorDetail,
+            githubRepository = item.githubRepository
         )
     }
 
