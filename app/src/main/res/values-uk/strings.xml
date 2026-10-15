@@ -209,7 +209,7 @@
     <string name="library_search_clear">Очистити пошук</string>
     <string name="library_expand_all">Розгорнути всі</string>
     <string name="library_collapse_all">Згорнути всі</string>
-    <string name="library_intro">Спочатку показано застосунки, які Wy Store уже встановив або оновлював. Застосунки з Google Play виключені, доки це не ввімкнено для конкретного застосунку.</string>
+    <string name="library_intro">Прийняті застосунки оновлює Wy Store, решта нижче. Значок показує, хто встановив застосунок.</string>
     <string name="library_search_label">Пошук серед встановлених</string>
     <string name="library_search_placeholder">Назва або package name</string>
     <string name="library_sort_title">Сортування</string>

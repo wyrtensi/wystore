@@ -209,7 +209,7 @@
     <string name="library_search_clear">清除搜索</string>
     <string name="library_expand_all">全部展开</string>
     <string name="library_collapse_all">全部收起</string>
-    <string name="library_intro">先显示 Wy Store 已经安装或更新过的应用。Google Play 的应用不在其中，除非你为其中某个单独开启。</string>
+    <string name="library_intro">已接管的应用由 Wy Store 更新，其余的在下方。标签显示应用由谁安装。</string>
     <string name="library_search_label">搜索已安装的应用</string>
     <string name="library_search_placeholder">名称或包名</string>
     <string name="library_sort_title">排序</string>

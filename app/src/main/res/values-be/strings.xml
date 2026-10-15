@@ -209,7 +209,7 @@
     <string name="library_search_clear">Ачысціць пошук</string>
     <string name="library_expand_all">Разгарнуць усе</string>
     <string name="library_collapse_all">Згарнуць усе</string>
-    <string name="library_intro">Спачатку паказаны праграмы, якія Wy Store ужо ўсталяваў або абнаўляў. Праграмы з Google Play выключаныя, пакуль гэта не ўключана для канкрэтнай праграмы.</string>
+    <string name="library_intro">Прынятыя праграмы абнаўляе Wy Store, астатнія ніжэй. Значок паказвае, хто ўсталяваў праграму.</string>
     <string name="library_search_label">Пошук сярод усталяваных</string>
     <string name="library_search_placeholder">Назва або package name</string>
     <string name="library_sort_title">Сартаванне</string>

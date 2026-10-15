@@ -209,7 +209,7 @@
     <string name="library_search_clear">Clear search</string>
     <string name="library_expand_all">Expand all</string>
     <string name="library_collapse_all">Collapse all</string>
-    <string name="library_intro">Apps that Wy Store has already installed or updated are shown first. Google Play apps are excluded until you turn that on for one of them.</string>
+    <string name="library_intro">Accepted apps are the ones Wy Store updates; the rest are below. The badge says who installed each app.</string>
     <string name="library_search_label">Search installed apps</string>
     <string name="library_search_placeholder">Name or package name</string>
     <string name="library_sort_title">Sorting</string>

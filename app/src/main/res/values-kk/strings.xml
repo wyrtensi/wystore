@@ -209,7 +209,7 @@
     <string name="library_search_clear">Іздеуді тазалау</string>
     <string name="library_expand_all">Бәрін жаю</string>
     <string name="library_collapse_all">Бәрін жию</string>
-    <string name="library_intro">Wy Store орнатқан немесе жаңартқан қолданбалар алдымен көрсетіледі. Google Play қолданбалары, оны нақты біреуі үшін қоспайынша, тізімге кірмейді.</string>
+    <string name="library_intro">Қабылданған қолданбаларды Wy Store жаңартады, қалғандары төменде. Белгі қолданбаны кім орнатқанын көрсетеді.</string>
     <string name="library_search_label">Орнатылған қолданбалардан іздеу</string>
     <string name="library_search_placeholder">Атауы немесе package name</string>
     <string name="library_sort_title">Сұрыптау</string>

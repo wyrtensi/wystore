@@ -209,7 +209,7 @@
     <string name="library_search_clear">Qidiruvni tozalash</string>
     <string name="library_expand_all">Barchasini ochish</string>
     <string name="library_collapse_all">Barchasini yigʻish</string>
-    <string name="library_intro">Avval Wy Store oʻrnatgan yoki yangilagan ilovalar koʻrsatiladi. Google Play ilovalari, ularning biri uchun buni yoqmaguningizcha, chetda qoladi.</string>
+    <string name="library_intro">Qabul qilingan ilovalarni Wy Store yangilaydi, qolganlari pastda. Belgi ilovani kim oʻrnatganini koʻrsatadi.</string>
     <string name="library_search_label">Oʻrnatilganlar orasidan qidirish</string>
     <string name="library_search_placeholder">Nomi yoki package name</string>
     <string name="library_sort_title">Saralash</string>

@@ -364,7 +364,9 @@ fun GitHubAppScreen(
                         // The page offered only a reinstall, and nothing at all when the phone ran
                         // a build newer than the release, so AmneziaVPN could not be accepted here.
                         if (installedApp != null && !installedManaged) {
-                            FilledTonalButton(
+                            // The main action here: it keeps the app and its data, where the
+                            // button beside Open reinstalls it to make Wy Store its installer.
+                            Button(
                                 onClick = onAdoptInstalled,
                                 modifier = Modifier.fillMaxWidth()
                             ) { Text(stringResource(R.string.github_adopt_installed)) }

@@ -209,7 +209,7 @@
     <string name="library_search_clear">Notīrīt meklēšanu</string>
     <string name="library_expand_all">Izvērst visas</string>
     <string name="library_collapse_all">Sakļaut visas</string>
-    <string name="library_intro">Vispirms parādītas lietotnes, ko Wy Store jau ir instalējis vai atjauninājis. Google Play lietotnes ir izslēgtas, līdz tu to ieslēdz kādai no tām.</string>
+    <string name="library_intro">Pieņemtās lietotnes atjaunina Wy Store, pārējās ir zemāk. Zīme rāda, kas lietotni instalēja.</string>
     <string name="library_search_label">Meklēt instalētajās lietotnēs</string>
     <string name="library_search_placeholder">Nosaukums vai pakotnes nosaukums</string>
     <string name="library_sort_title">Kārtošana</string>
