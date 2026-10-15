@@ -98,6 +98,8 @@ fun LibraryScreen(
     onAdoptMany: (List<InstalledApp>) -> Unit = {},
     /** How far accepting several apps has got, while it runs. */
     adoptionBatch: AdoptionBatch? = null,
+    /** Packages RuStore has said it does not carry. */
+    missingFromSource: Set<String> = emptySet(),
     onUpdateManaged: (ManagedApp) -> Unit,
     onRequestForce: (ManagedApp) -> Unit,
     onRemoveManaged: (InstalledApp) -> Unit,
@@ -384,6 +386,7 @@ fun LibraryScreen(
                             else expandedPackages - app.packageName
                         },
                         selected = if (selecting) app.packageName in selectedPackages else null,
+                        missingFromSource = app.packageName in missingFromSource,
                         onToggleSelected = toggle,
                         // A long press on an app not accepted yet starts choosing several at once.
                         onStartSelection = if (managedApp == null && !selecting && adoptionBatch == null) {

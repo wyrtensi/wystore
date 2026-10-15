@@ -763,4 +763,7 @@
     <string name="library_selected_count">Tanlandi: %1$d</string>
     <string name="library_adopt_selected">Qabul qilish (%1$d)</string>
     <string name="library_adopt_progress">Manbalar qidirilmoqda: %1$d / %2$d</string>
+    <string name="installer_manual_short">Qoʻlda</string>
+    <string name="library_updates_from">Yangilanishlar manbai: %1$s</string>
+    <string name="library_missing_from_rustore">RuStore’da bu paket yoʻq, u yerdan yangilanishlar kelmaydi. Boshqa manbani tanlash uchun «Olib tashlash» tugmasini bosing va ilovani qayta qabul qiling.</string>
 </resources>

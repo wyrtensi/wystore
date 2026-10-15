@@ -763,4 +763,7 @@
     <string name="library_selected_count">Вибрано: %1$d</string>
     <string name="library_adopt_selected">Прийняти (%1$d)</string>
     <string name="library_adopt_progress">Шукаємо джерела: %1$d з %2$d</string>
+    <string name="installer_manual_short">Вручну</string>
+    <string name="library_updates_from">Оновлення беруться з: %1$s</string>
+    <string name="library_missing_from_rustore">У RuStore цього пакета немає, оновлень звідти не буде. Натисніть «Прибрати» й прийміть застосунок знову, щоб вибрати інше джерело.</string>
 </resources>

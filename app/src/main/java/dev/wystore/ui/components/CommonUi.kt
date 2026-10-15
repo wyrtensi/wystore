@@ -384,13 +384,6 @@ fun sourceLabel(source: InstallSource): String = when (source) {
  * badge came out as "Goog..." and named nothing. The full name is still what the app page uses.
  */
 @Composable
-fun sourceBadgeLabel(source: InstallSource): String = when (source) {
-    InstallSource.GOOGLE_PLAY -> "Google"
-    InstallSource.WY_STORE -> "Wy Store"
-    InstallSource.OTHER -> stringResource(R.string.source_other_short)
-}
-
-@Composable
 fun managedSourceLabel(app: ManagedApp): String = when (app.source) {
     ManagedSource.RUSTORE -> "RuStore"
     ManagedSource.GITHUB -> "GitHub"

@@ -1,6 +1,7 @@
 package dev.wystore.ui.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import dev.wystore.R
@@ -15,18 +16,36 @@ import dev.wystore.selfupdate.SelfUpdateChecker
  * carries and falls back to the package only when that app is gone.
  */
 @Composable
-fun installerLabel(installerPackageName: String?): String {
+fun installerLabel(installerPackageName: String?): String =
+    installerName(installerPackageName) ?: stringResource(R.string.details_owner_none)
+
+/**
+ * The same name, short enough for a badge on a list row: "Manual" where nobody installed it.
+ *
+ * The library badge used to name where Wy Store looks for updates, so once apps were accepted
+ * every row read "RuStore" or "GitHub" and the one fact the list could not otherwise show - which
+ * store actually installed each app - was hidden in the opened row.
+ */
+@Composable
+fun installerShortLabel(installerPackageName: String?): String =
+    installerName(installerPackageName) ?: stringResource(R.string.installer_manual_short)
+
+@Composable
+private fun installerName(installerPackageName: String?): String? {
     val context = LocalContext.current
-    val ownPackage = context.packageName
-    return when {
-        installerPackageName.isNullOrBlank() -> stringResource(R.string.details_owner_none)
-        // The app's own name, spelled the way it is everywhere else - the label the package
-        // manager returns is the same string, but reading it back would depend on this package
-        // being visible to itself under every install state.
-        installerPackageName == ownPackage -> SelfUpdateChecker.APP_LABEL
-        else -> runCatching {
-            val info = context.packageManager.getApplicationInfo(installerPackageName, 0)
-            context.packageManager.getApplicationLabel(info).toString()
-        }.getOrNull()?.takeIf { it.isNotBlank() } ?: installerPackageName
+    // Each row asks; the package manager lookup is not something to repeat on every frame.
+    return remember(installerPackageName, context) {
+        val ownPackage = context.packageName
+        when {
+            installerPackageName.isNullOrBlank() -> null
+            // The app's own name, spelled the way it is everywhere else - the label the package
+            // manager returns is the same string, but reading it back would depend on this
+            // package being visible to itself under every install state.
+            installerPackageName == ownPackage -> SelfUpdateChecker.APP_LABEL
+            else -> runCatching {
+                val info = context.packageManager.getApplicationInfo(installerPackageName, 0)
+                context.packageManager.getApplicationLabel(info).toString()
+            }.getOrNull()?.takeIf { it.isNotBlank() } ?: installerPackageName
+        }
     }
 }

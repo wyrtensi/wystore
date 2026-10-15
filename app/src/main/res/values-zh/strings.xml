@@ -763,4 +763,7 @@
     <string name="library_selected_count">已选择：%1$d</string>
     <string name="library_adopt_selected">接管（%1$d）</string>
     <string name="library_adopt_progress">正在查找来源：%1$d / %2$d</string>
+    <string name="installer_manual_short">手动</string>
+    <string name="library_updates_from">更新来源：%1$s</string>
+    <string name="library_missing_from_rustore">RuStore 中没有此软件包，不会从那里获得更新。请点按“移除”，然后重新接管此应用以选择其他来源。</string>
 </resources>

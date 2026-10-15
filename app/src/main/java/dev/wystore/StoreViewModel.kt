@@ -276,6 +276,8 @@ data class StoreUiState(
     val updateCheckTask: UpdateCheckTask? = null,
     val adoption: AdoptionPrompt? = null,
     val adoptionBatch: AdoptionBatch? = null,
+    /** Packages RuStore answered "no such app" for on the last check. */
+    val missingFromSource: Set<String> = emptySet(),
     val lastUpdateCheck: UpdateCheckSummary? = null,
     val rootAvailable: Boolean? = null,
     val busy: Boolean = false,
@@ -664,9 +666,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                     finalizePendingUpdate(update)
                 }
             }
+            val missing = withContext(Dispatchers.IO) {
+                runCatching { dev.wystore.data.MissingFromSourceStore(getApplication()).read() }.getOrDefault(emptySet())
+            }
             _state.value = _state.value.copy(
                 installed = installed,
                 managed = managed,
+                missingFromSource = missing,
                 settings = repository.settings(),
                 lastUpdateCheck = repository.lastUpdateCheck(),
                 message = if (reportConfirmed && confirmed.isNotEmpty()) {

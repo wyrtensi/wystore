@@ -34,13 +34,14 @@ import dev.wystore.R
 import dev.wystore.data.InstallSource
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
+import dev.wystore.data.ManagedSource
 import dev.wystore.data.PendingUpdate
 import dev.wystore.ui.components.StateBadge
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.WyDivider
 import dev.wystore.ui.components.installerLabel
+import dev.wystore.ui.components.installerShortLabel
 import dev.wystore.ui.components.managedSourceLabel
-import dev.wystore.ui.components.sourceBadgeLabel
 import dev.wystore.ui.components.shortVersionName
 
 /**
@@ -77,6 +78,8 @@ fun LibraryAppRow(
     onExpandedChange: (Boolean) -> Unit = {},
     /** Null outside selection; otherwise whether this row is picked. */
     selected: Boolean? = null,
+    /** RuStore has said it does not carry this package. */
+    missingFromSource: Boolean = false,
     onToggleSelected: () -> Unit = {},
     onStartSelection: (() -> Unit)? = null
 ) {
@@ -121,9 +124,7 @@ fun LibraryAppRow(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        StateBadge(
-                            text = if (managed != null) managedSourceLabel(managed) else sourceBadgeLabel(app.source)
-                        )
+                        StateBadge(text = installerShortLabel(app.installerPackageName))
                     }
                 }
                 Spacer(Modifier.width(8.dp))
@@ -183,6 +184,28 @@ fun LibraryAppRow(
             )
 
             if (managed != null) {
+                // Where Wy Store looks for this app's updates, apart from who installed it.
+                Text(
+                    stringResource(
+                        R.string.library_updates_from,
+                        managed.githubRepository?.takeIf { managed.source == ManagedSource.GITHUB }
+                            ?.let { "GitHub · ${it.displayName}" }
+                            ?: managedSourceLabel(managed)
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (missingFromSource && managed.source == ManagedSource.RUSTORE) {
+                    // Accepted before the source was looked up, the app was recorded as RuStore's
+                    // whether RuStore had it or not; a check has since said it does not.
+                    Text(
+                        stringResource(R.string.library_missing_from_rustore),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
                 WyDivider()
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(

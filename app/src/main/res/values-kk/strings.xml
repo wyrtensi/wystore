@@ -763,4 +763,7 @@
     <string name="library_selected_count">Таңдалды: %1$d</string>
     <string name="library_adopt_selected">Қабылдау (%1$d)</string>
     <string name="library_adopt_progress">Дереккөздерді іздеу: %1$d / %2$d</string>
+    <string name="installer_manual_short">Қолмен</string>
+    <string name="library_updates_from">Жаңартулар көзі: %1$s</string>
+    <string name="library_missing_from_rustore">RuStore-да бұл пакет жоқ, сол жерден жаңартулар келмейді. Басқа дереккөзді таңдау үшін «Алып тастау» түймесін басып, қолданбаны қайта қабылдаңыз.</string>
 </resources>

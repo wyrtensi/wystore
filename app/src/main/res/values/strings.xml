@@ -763,4 +763,7 @@
     <string name="library_selected_count">Selected: %1$d</string>
     <string name="library_adopt_selected">Accept (%1$d)</string>
     <string name="library_adopt_progress">Looking up sources: %1$d of %2$d</string>
+    <string name="installer_manual_short">Manual</string>
+    <string name="library_updates_from">Updates from: %1$s</string>
+    <string name="library_missing_from_rustore">RuStore does not have this package, so no updates will come from there. Tap Remove and accept the app again to pick another source.</string>
 </resources>

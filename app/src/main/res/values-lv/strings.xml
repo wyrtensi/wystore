@@ -763,4 +763,7 @@
     <string name="library_selected_count">Atlasītas: %1$d</string>
     <string name="library_adopt_selected">Pieņemt (%1$d)</string>
     <string name="library_adopt_progress">Meklējam avotus: %1$d no %2$d</string>
+    <string name="installer_manual_short">Manuāli</string>
+    <string name="library_updates_from">Atjauninājumu avots: %1$s</string>
+    <string name="library_missing_from_rustore">RuStore nav šīs pakotnes, tāpēc no turienes atjauninājumi nenāks. Nospiediet «Noņemt» un pieņemiet lietotni vēlreiz, lai izvēlētos citu avotu.</string>
 </resources>
