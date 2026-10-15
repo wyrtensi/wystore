@@ -73,6 +73,23 @@ class GoogleAdoptionPolicyTest {
         assertEquals(listOf("com.notes.one"), candidates.map { it.packageName })
     }
 
+    /** Replace uninstalls; 1Password was offered mSecure and SafeInCloud in its place. */
+    @Test
+    fun appsWithAnotherNameAreNotOfferedAsTheSameApp() {
+        val candidates = GoogleAdoptionPolicy.candidates(
+            installedPackageName = "com.onepassword.android",
+            exactMatch = null,
+            byName = listOf(
+                app("com.mseven.barolo", "mSecure - Password Manager"),
+                app("com.safeincloud.rustore", "Менеджер Паролей SafeInCloud")
+            ),
+            installedLabel = "1Password"
+        )
+        assertTrue(candidates.isEmpty())
+        assertTrue(GoogleAdoptionPolicy.nameMatches("Яндекс Музыка", "Яндекс Музыка, книги, подкасты"))
+        assertFalse(GoogleAdoptionPolicy.nameMatches("Яндекс Музыка", "Яндекс Карты"))
+    }
+
     @Test
     fun aHandoverExpiresRatherThanFiringLater() {
         val now = 10_000_000L

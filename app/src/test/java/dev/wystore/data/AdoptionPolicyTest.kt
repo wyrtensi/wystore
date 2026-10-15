@@ -14,9 +14,9 @@ class AdoptionPolicyTest {
     private val key = "a".repeat(64)
     private val otherKey = "b".repeat(64)
 
-    private fun installed(packageName: String, source: InstallSource = InstallSource.OTHER) = InstalledApp(
+    private fun installed(packageName: String, source: InstallSource = InstallSource.OTHER, label: String = packageName) = InstalledApp(
         packageName = packageName,
-        label = packageName,
+        label = label,
         versionName = "1.0",
         versionCode = 1,
         lastUpdateTime = 0,
@@ -24,10 +24,10 @@ class AdoptionPolicyTest {
         signingDigests = setOf(key)
     )
 
-    private fun store(packageName: String, signature: String? = key) = StoreApp(
+    private fun store(packageName: String, signature: String? = key, name: String = packageName) = StoreApp(
         appId = 1,
         packageName = packageName,
-        name = packageName,
+        name = name,
         publisher = "",
         categories = emptyList(),
         shortDescription = "",
@@ -80,8 +80,12 @@ class AdoptionPolicyTest {
 
     @Test
     fun `apps found by name are replacements and only offered when nothing matches the package`() {
-        val byName = listOf(store("com.xiaomi.other"), store("com.xiaomi.mipicks"))
-        val options = AdoptionPolicy.options(installed("com.xiaomi.mipicks"), null, null, byName)
+        val byName = listOf(
+            store("com.xiaomi.other", name = "GetApps Lite"),
+            store("com.xiaomi.mipicks", name = "GetApps"),
+            store("com.unrelated", name = "Another store")
+        )
+        val options = AdoptionPolicy.options(installed("com.xiaomi.mipicks", label = "GetApps"), null, null, byName)
         assertEquals(listOf("com.xiaomi.other"), options.map { (it as AdoptionOption.Replace).candidate.packageName })
         assertNull(AdoptionPolicy.automatic(options))
         assertEquals(1, AdoptionPolicy.options(installed("ru.app"), store("ru.app"), null, byName).size)

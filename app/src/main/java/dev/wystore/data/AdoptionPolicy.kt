@@ -49,7 +49,7 @@ object AdoptionPolicy {
         acceptedFingerprint: String? = null
     ): List<AdoptionOption> {
         if (app.source == InstallSource.GOOGLE_PLAY) {
-            return GoogleAdoptionPolicy.candidates(app.packageName, exactMatch, byName)
+            return GoogleAdoptionPolicy.candidates(app.packageName, exactMatch, byName, app.label)
                 .map { AdoptionOption.Replace(it) }
         }
         val options = mutableListOf<AdoptionOption>()
@@ -74,7 +74,7 @@ object AdoptionPolicy {
         }
         if (options.isEmpty()) {
             options += byName
-                .filter { it.packageName != app.packageName }
+                .filter { it.packageName != app.packageName && GoogleAdoptionPolicy.nameMatches(app.label, it.name) }
                 .distinctBy { it.packageName }
                 .take(GoogleAdoptionPolicy.MAX_CANDIDATES)
                 .map { AdoptionOption.Replace(it.toCandidate(exact = false)) }

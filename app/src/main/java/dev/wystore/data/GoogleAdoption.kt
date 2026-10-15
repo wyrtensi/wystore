@@ -32,7 +32,8 @@ object GoogleAdoptionPolicy {
     fun candidates(
         installedPackageName: String,
         exactMatch: StoreApp?,
-        byName: List<StoreApp>
+        byName: List<StoreApp>,
+        installedLabel: String = ""
     ): List<AdoptionCandidate> {
         exactMatch?.takeIf { it.packageName == installedPackageName }?.let { app ->
             return listOf(
@@ -45,6 +46,7 @@ object GoogleAdoptionPolicy {
             )
         }
         return byName
+            .filter { installedLabel.isBlank() || nameMatches(installedLabel, it.name) }
             .distinctBy { it.packageName }
             .take(MAX_CANDIDATES)
             .map { app ->
@@ -56,6 +58,24 @@ object GoogleAdoptionPolicy {
                 )
             }
     }
+
+    /**
+     * Whether [candidateName] is plausibly the app called [installedLabel]: every word of the
+     * installed app's name appears in the candidate's.
+     *
+     * The search behind the list matches loosely, and whatever it returned was offered with a
+     * Replace button - 1Password was offered mSecure and SafeInCloud, and Replace uninstalls.
+     * Better to say nothing was found than to offer another app in its place.
+     */
+    fun nameMatches(installedLabel: String, candidateName: String): Boolean {
+        val wanted = words(installedLabel)
+        if (wanted.isEmpty()) return false
+        val haystack = candidateName.lowercase()
+        return wanted.all { it in haystack }
+    }
+
+    private fun words(text: String): List<String> =
+        text.lowercase().split(Regex("[^\\p{L}\\p{N}]+")).filter { it.length >= 2 }
 
     /**
      * Whether a handover recorded at [startedAt] may still act on an uninstall seen now.
