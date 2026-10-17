@@ -28,7 +28,12 @@ class Adb:
         self.base = ["adb"] + (["-s", serial] if serial else [])
 
     def shell(self, command):
-        result = subprocess.run(self.base + ["shell", command], capture_output=True, text=True)
+        # The status carries app names in Russian, as UTF-8. Decoded with the Windows code page they
+        # failed, stdout came back empty and the run died halfway through the queue.
+        result = subprocess.run(
+            self.base + ["shell", command],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+        )
         return (result.stdout + result.stderr).strip()
 
     def call(self, method, arg=None):
