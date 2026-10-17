@@ -12,6 +12,9 @@ import dev.wystore.R
  */
 object CategoryLabels {
     private val known = mapOf(
+        // The catalogue's own "everything" section; without it the English list of sections had
+        // one tile left in Russian.
+        "all" to R.string.home_all_apps,
         "adsandservices" to R.string.category_adsandservices,
         "books" to R.string.category_books,
         "business" to R.string.category_business,
@@ -56,8 +59,13 @@ object CategoryLabels {
         "learning" to R.string.category_learning
     )
 
-    /** The string resource naming [slug], or null when the source invented a new one. */
-    fun stringRes(slug: String): Int? = known[slug.trim().lowercase()]
+    /**
+     * The string resource naming [slug], or null when the source invented a new one. Also takes a
+     * section name as RuStore's web cards print it, which catalogue pages cached before the cards
+     * were read as slugs still hold.
+     */
+    fun stringRes(slug: String): Int? =
+        known[slug.trim().lowercase()] ?: dev.wystore.data.RuStoreCategoryNames.slugOf(slug)?.let { known[it] }
 
     /**
      * The name to show for a whole section, rather than for a tag under a card.

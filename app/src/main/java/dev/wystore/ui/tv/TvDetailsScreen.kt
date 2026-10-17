@@ -53,6 +53,7 @@ import dev.wystore.R
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.AppIcon
+import dev.wystore.ui.components.formatDownloads
 import dev.wystore.ui.components.PackageUiState
 import dev.wystore.ui.components.PrimaryAction
 import dev.wystore.ui.components.formatSize
@@ -185,7 +186,7 @@ fun TvDetailsScreen(
                                         (app.ratingCount?.let { " ($it)" } ?: "")
                                 )
                             }
-                            app.downloadsText?.let { TvFact(stringResource(R.string.details_label_downloads), it) }
+                            app.downloadsText?.let { TvFact(stringResource(R.string.details_label_downloads), formatDownloads(it)) }
                             app.minAndroidVersion?.let {
                                 TvFact(stringResource(R.string.details_label_min_android), stringResource(R.string.details_min_android_value, it))
                             }

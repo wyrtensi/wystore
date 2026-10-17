@@ -1,5 +1,6 @@
 package dev.wystore.ui.components
 
+import android.icu.text.CompactDecimalFormat
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.selection.toggleable
 import android.content.res.Resources
@@ -30,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -203,7 +205,7 @@ fun DetailFacts(app: StoreApp) {
                         stringResource(R.string.details_rating_value, DecimalFormat("0.0").format(it), app.ratingCount ?: 0)
                     )
                 }
-                app.downloadsText?.let { FactRow(stringResource(R.string.details_label_downloads), it) }
+                app.downloadsText?.let { FactRow(stringResource(R.string.details_label_downloads), formatDownloads(it)) }
                 WyDivider()
                 FactRow(
                     stringResource(R.string.details_label_fingerprint),
@@ -450,6 +452,18 @@ fun formatSize(res: Resources?, bytes: Long): String = when {
 
 @Composable
 fun formatSize(bytes: Long): String = formatSize(LocalResources.current, bytes)
+
+/**
+ * RuStore's download count in the interface language - "12M+" rather than its own "12 млн +". Text
+ * it sends in some other shape is shown as sent.
+ */
+fun formatDownloads(text: String, locale: java.util.Locale): String =
+    dev.wystore.data.RuStoreDownloads.atLeast(text)
+        ?.let { CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT).format(it) + "+" }
+        ?: text
+
+@Composable
+fun formatDownloads(text: String): String = formatDownloads(text, LocalConfiguration.current.locales[0])
 
 fun formatSpeed(res: Resources, bytesPerSecond: Long): String = when {
     bytesPerSecond <= 0 -> res.getString(R.string.common_speed_calculating)

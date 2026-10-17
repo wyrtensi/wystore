@@ -415,7 +415,7 @@ object RustoreHtmlParser {
             packageName = packageName,
             name = paragraphs.getOrNull(0)?.text().orEmpty(),
             publisher = "",
-            categories = listOfNotNull(paragraphs.getOrNull(1)?.text()?.takeIf { it.isNotBlank() }),
+            categories = paragraphs.getOrNull(1)?.text()?.let(RuStoreCategoryNames::slugsOf).orEmpty(),
             shortDescription = "",
             fullDescription = "",
             iconUrl = card.select("img").firstOrNull()?.attr("src")?.takeIf { RustoreUrlPolicy.isTrustedMedia(it) },

@@ -10,6 +10,7 @@ class CategoryLabelsTest {
     fun namesTheSectionsTheCatalogActuallyPublishes() {
         assertEquals(R.string.category_finance, CategoryLabels.stringRes("finance"))
         assertEquals(R.string.category_travelling, CategoryLabels.stringRes("travelling"))
+        assertEquals(R.string.home_all_apps, CategoryLabels.stringRes("all"))
     }
 
     /** The app JSON spells it "adsAndServices"; the catalogue URL spells it "adsandservices". */
@@ -19,6 +20,13 @@ class CategoryLabelsTest {
             CategoryLabels.stringRes("adsandservices"),
             CategoryLabels.stringRes("adsAndServices")
         )
+    }
+
+    /** Catalogue pages cached before cards were read as slugs hold RuStore's Russian names. */
+    @Test
+    fun namesASectionByTheWordsRuStorePrints() {
+        assertEquals(R.string.category_entertainment, CategoryLabels.stringRes("Развлечения"))
+        assertNull(CategoryLabels.stringRes("Ролевые"))
     }
 
     @Test
