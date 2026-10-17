@@ -22,14 +22,7 @@ class PackageChangedReceiver : BroadcastReceiver() {
             try {
                 val repository = QueueRepository.getInstance(context)
                 val packageManager = context.packageManager
-                val packageInfo = runCatching {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        packageManager.getPackageInfo(packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
-                    } else {
-                        @Suppress("DEPRECATION")
-                        packageManager.getPackageInfo(packageName, 0)
-                    }
-                }.getOrNull() ?: return@launch
+                val packageInfo = dev.wystore.data.InstalledPackageLookup.packageInfo(packageManager, packageName) ?: return@launch
 
                 val installedVersionCode = packageInfo.longVersionCode
 

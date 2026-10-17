@@ -184,6 +184,17 @@ fun LibraryAppRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            if (app.frozen) {
+                // Frozen in Shelter or another profile manager. It used to vanish from the list
+                // instead; it is still installed, and still updated.
+                Text(
+                    stringResource(R.string.library_frozen),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
             if (managed != null) {
                 // Where Wy Store looks for this app's updates, apart from who installed it.

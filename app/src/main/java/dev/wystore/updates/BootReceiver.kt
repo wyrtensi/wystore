@@ -27,14 +27,7 @@ class BootReceiver : BroadcastReceiver() {
 
                     val pm = context.packageManager
                     for (entity in installingItems) {
-                        val pkgInfo = runCatching {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                pm.getPackageInfo(entity.packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
-                            } else {
-                                @Suppress("DEPRECATION")
-                                pm.getPackageInfo(entity.packageName, 0)
-                            }
-                        }.getOrNull()
+                        val pkgInfo = dev.wystore.data.InstalledPackageLookup.packageInfo(pm, entity.packageName)
 
                         val installedVersion = pkgInfo?.longVersionCode
 

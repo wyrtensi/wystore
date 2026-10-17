@@ -111,9 +111,7 @@ class InstallSessionWriter(private val context: Context) {
         return PreparedInstall.LegacySingleApk(queueId, packageName, intent)
     }
 
-    private fun isInstalled(packageName: String): Boolean = runCatching {
-        appContext.packageManager.getPackageInfo(packageName, 0)
-    }.isSuccess
+    private fun isInstalled(packageName: String): Boolean = dev.wystore.data.InstalledPackageLookup.isInstalled(appContext.packageManager, packageName)
 
     /** Who Android considers responsible for this app, or null when nobody was given the job. */
     private fun installerOfRecord(packageName: String): String? = runCatching {

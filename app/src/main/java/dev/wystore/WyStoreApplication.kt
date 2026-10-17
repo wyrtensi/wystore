@@ -93,7 +93,7 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
             runCatching {
                 val discarded = dev.wystore.updates.QueueRepository.getInstance(this@WyStoreApplication)
                     .discardOutdated(changedPackage) { packageName ->
-                        runCatching { packageManager.getPackageInfo(packageName, 0).longVersionCode }.getOrNull()
+                        dev.wystore.data.InstalledPackageLookup.versionCode(packageManager, packageName)
                     }
                 if (discarded) dev.wystore.updates.PendingUpdateNotifier(this@WyStoreApplication).refresh()
             }
@@ -132,9 +132,7 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
         applicationScope.launch(Dispatchers.IO) {
             val pending = runCatching { PendingReinstallStore(this@WyStoreApplication).read() }.getOrNull()
                 ?: return@launch
-            val stillInstalled = runCatching {
-                packageManager.getPackageInfo(pending.removedPackageName, 0)
-            }.isSuccess
+            val stillInstalled = dev.wystore.data.InstalledPackageLookup.isInstalled(packageManager, pending.removedPackageName)
             if (!stillInstalled) finishPendingReinstall(pending.removedPackageName)
         }
 

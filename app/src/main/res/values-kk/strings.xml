@@ -779,4 +779,6 @@
     <string name="library_withdrawn_from_rustore">RuStore бұл пакетті беруді тоқтатты: соңғы тексеруде «табылмады» деп жауап берді. Мүмкін, ол алынып тасталған немесе уақытша қолжетімсіз; ол қайтпайынша жаңартулар болмайды.</string>
     <string name="installer_preinstalled_short">Алдын ала орнатылған</string>
     <string name="installer_preinstalled">жүйе, телефонда басынан бар</string>
+    <string name="library_frozen">Мұздатылған: жаңартулар орнатылады, қолданба мұздатылған күйде қалады</string>
+    <string name="vm_app_frozen">Қолданба мұздатылған. Ашу үшін оны Shelter-де немесе мұздатқан бағдарламада еріту керек.</string>
 </resources>

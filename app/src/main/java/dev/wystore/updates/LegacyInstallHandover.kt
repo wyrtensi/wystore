@@ -58,10 +58,7 @@ class LegacyInstallHandover(context: Context) {
         // Only the install this handover started. A row already settled elsewhere - by the package
         // broadcast, or cancelled from the queue - must not have a late answer written over it.
         if (entity.state != QueueState.INSTALLING.name) return
-        val installed = runCatching {
-            @Suppress("DEPRECATION")
-            appContext.packageManager.getPackageInfo(entity.packageName, 0)
-        }.getOrNull()
+        val installed = dev.wystore.data.InstalledPackageLookup.packageInfo(appContext.packageManager, entity.packageName)
         val outcome = LegacyInstallOutcome.decide(
             resultCode = resultCode,
             installResult = data?.takeIf { it.hasExtra(EXTRA_INSTALL_RESULT) }

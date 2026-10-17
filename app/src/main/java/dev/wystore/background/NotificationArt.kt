@@ -20,7 +20,7 @@ object NotificationArt {
     private const val MAX_SIZE_PX = 192
 
     fun iconFor(context: Context, packageName: String): Bitmap? = runCatching {
-        toBitmap(context.packageManager.getApplicationIcon(packageName))
+        dev.wystore.data.InstalledPackageLookup.icon(context.packageManager, packageName)?.let(::toBitmap)
     }.getOrNull()
 
     private fun toBitmap(drawable: Drawable): Bitmap? {

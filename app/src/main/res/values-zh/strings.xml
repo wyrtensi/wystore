@@ -779,4 +779,6 @@
     <string name="library_withdrawn_from_rustore">RuStore 已不再提供此软件包：上次检查返回“未找到”。它可能已被下架或暂时不可用；在恢复之前不会有更新。</string>
     <string name="installer_preinstalled_short">预装</string>
     <string name="installer_preinstalled">系统，手机自带</string>
+    <string name="library_frozen">已冻结：更新仍会安装，应用保持冻结</string>
+    <string name="vm_app_frozen">该应用已冻结。请在 Shelter 或冻结它的应用中解冻后再打开。</string>
 </resources>

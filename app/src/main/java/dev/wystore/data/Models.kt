@@ -145,7 +145,12 @@ data class InstalledApp(
      * It came with the phone: its APK lives on a read-only partition, or Android itself is named as
      * the installer. Such apps have no installer, or "android", and read as installed by hand.
      */
-    val preinstalled: Boolean = false
+    val preinstalled: Boolean = false,
+    /**
+     * Frozen by a profile manager such as Shelter: installed, but hidden until unfrozen, so it
+     * cannot be opened. Updates still install over it - see InstalledPackageLookup.
+     */
+    val frozen: Boolean = false
 )
 
 data class ManagedApp(

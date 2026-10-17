@@ -779,4 +779,6 @@
     <string name="library_withdrawn_from_rustore">RuStore bu paketni berishni toʻxtatdi: oxirgi tekshiruvda «topilmadi» deb javob berdi. Ehtimol, u olib tashlangan yoki vaqtincha mavjud emas; u qaytmaguncha yangilanishlar boʻlmaydi.</string>
     <string name="installer_preinstalled_short">Oldindan oʻrnatilgan</string>
     <string name="installer_preinstalled">tizim, telefonda boshidan bor edi</string>
+    <string name="library_frozen">Muzlatilgan: yangilanishlar oʻrnatiladi, ilova muzlatilgan holda qoladi</string>
+    <string name="vm_app_frozen">Ilova muzlatilgan. Uni ochish uchun Shelter yoki uni muzlatgan dasturda muzdan tushiring.</string>
 </resources>

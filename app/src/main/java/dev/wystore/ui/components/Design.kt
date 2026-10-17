@@ -128,7 +128,7 @@ fun AppIcon(
         if (model != null || fallbackPackageName.isNullOrBlank()) {
             null
         } else {
-            runCatching { context.packageManager.getApplicationIcon(fallbackPackageName) }.getOrNull()
+            dev.wystore.data.InstalledPackageLookup.icon(context.packageManager, fallbackPackageName)
         }
     }
     Box(

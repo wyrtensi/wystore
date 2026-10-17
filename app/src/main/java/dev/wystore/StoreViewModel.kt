@@ -1981,7 +1981,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         val leanback = { packageManager.getLeanbackLaunchIntentForPackage(packageName) }
         val intent = if (onTv) leanback() ?: regular() else regular() ?: leanback()
         if (intent == null) {
-            _state.update { it.copy(message = string(R.string.vm_no_launch_activity)) }
+            // A frozen app has no entry point until it is unfrozen; saying it has none at all sent
+            // people looking for a fault.
+            val frozen = _state.value.installed.firstOrNull { it.packageName == packageName }?.frozen == true
+            _state.update {
+                it.copy(message = string(if (frozen) R.string.vm_app_frozen else R.string.vm_no_launch_activity))
+            }
             return
         }
         runCatching {

@@ -508,7 +508,7 @@ fun UpdateCheckStatusCard(task: UpdateCheckTask) {
 fun InstalledAppIcon(app: InstalledApp, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val icon = remember(app.packageName, context) {
-        runCatching { context.packageManager.getApplicationIcon(app.packageName) }.getOrNull()
+        dev.wystore.data.InstalledPackageLookup.icon(context.packageManager, app.packageName)
     }
     AsyncImage(
         model = icon,

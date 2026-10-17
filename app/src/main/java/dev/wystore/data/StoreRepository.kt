@@ -52,16 +52,15 @@ class StoreRepository(private val context: Context) {
         return retained
     }
 
-    /** Direct query, which is not served from the cached installed-package list. */
-    fun isInstalled(packageName: String): Boolean = runCatching {
-        if (Build.VERSION.SDK_INT >= 33) {
-            context.packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
-        } else {
-            @Suppress("DEPRECATION")
-            context.packageManager.getPackageInfo(packageName, 0)
-        }
-        true
-    }.getOrDefault(false)
+    /**
+     * Direct query, which is not served from the cached installed-package list.
+     *
+     * Frozen apps count as installed: the plain lookup missed them, and the pruning above deleted
+     * the record of every app the user froze in Shelter, so unfreezing it brought back an app Wy
+     * Store no longer looked after.
+     */
+    fun isInstalled(packageName: String): Boolean =
+        InstalledPackageLookup.isInstalled(context.packageManager, packageName)
 
     /**
      * Settings come from [SettingsRepository] (DataStore) only.
@@ -220,20 +219,15 @@ class StoreRepository(private val context: Context) {
         installedCache?.let { cached ->
             cached.firstOrNull { it.packageName == packageName }?.let { return it }
         }
-        val info = runCatching {
-            if (Build.VERSION.SDK_INT >= 33) {
-                context.packageManager.getPackageInfo(
-                    packageName,
-                    PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong())
-                )
-            } else {
-                context.packageManager.getPackageInfo(
-                    packageName,
-                    SigningFlags.forSdk(Build.VERSION.SDK_INT)
-                )
-            }
-        }.getOrNull() ?: return null
-        return info.toInstalledApp()
+        // Frozen apps included - see InstalledPackageLookup.
+        val info = InstalledPackageLookup.packageInfo(
+            context.packageManager,
+            packageName,
+            SigningFlags.forSdk(Build.VERSION.SDK_INT)
+        ) ?: return null
+        return info.toInstalledApp().copy(
+            frozen = !InstalledPackageLookup.visibleWithoutFlag(context.packageManager, packageName)
+        )
     }
 
     private fun PackageInfo.toInstalledApp(): InstalledApp {
@@ -254,14 +248,25 @@ class StoreRepository(private val context: Context) {
     }
 
     private fun readInstalledApps(): List<InstalledApp> {
+        // Frozen apps included - see InstalledPackageLookup. A frozen app is one only this wider
+        // read finds, which the plain list of names tells apart cheaply.
+        val seeFrozen = InstalledPackageLookup.SEE_FROZEN
         val packages = if (Build.VERSION.SDK_INT >= 33) {
             context.packageManager.getInstalledPackages(
-                PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong())
+                PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong() or seeFrozen.toLong())
             )
         } else {
-            context.packageManager.getInstalledPackages(SigningFlags.forSdk(Build.VERSION.SDK_INT))
+            context.packageManager.getInstalledPackages(SigningFlags.forSdk(Build.VERSION.SDK_INT) or seeFrozen)
         }
+        val visible = runCatching {
+            if (Build.VERSION.SDK_INT >= 33) {
+                context.packageManager.getInstalledPackages(PackageManager.PackageInfoFlags.of(0))
+            } else {
+                context.packageManager.getInstalledPackages(0)
+            }.mapTo(HashSet()) { it.packageName }
+        }.getOrNull()
         return packages.asSequence()
+            .filter { InstalledPackageLookup.isOnDevice(it.applicationInfo?.flags) }
             .filter { it.applicationInfo?.flags?.and(android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0 }
             .filterNot { it.packageName == context.packageName }
             .map { info ->
@@ -278,7 +283,11 @@ class StoreRepository(private val context: Context) {
                     source = sourceFor(installer),
                     signingDigests = SigningVerifier.installedDigests(info),
                     installerPackageName = installer,
-                    preinstalled = InstallerNames.isPreinstalled(installer, info.applicationInfo?.sourceDir)
+                    preinstalled = InstallerNames.isPreinstalled(installer, info.applicationInfo?.sourceDir),
+                    frozen = visible != null && InstalledPackageLookup.isFrozen(
+                        visibleWithoutFlag = info.packageName in visible,
+                        onDevice = true
+                    )
                 )
             }.sortedBy { it.label.lowercase() }.toList()
     }

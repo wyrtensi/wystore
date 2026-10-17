@@ -92,9 +92,7 @@ class BackgroundInstaller(context: Context) {
         }
     }
 
-    private fun isInstalled(packageName: String): Boolean = runCatching {
-        appContext.packageManager.getPackageInfo(packageName, 0)
-    }.isSuccess
+    private fun isInstalled(packageName: String): Boolean = dev.wystore.data.InstalledPackageLookup.isInstalled(appContext.packageManager, packageName)
 
     private fun installerOfRecord(packageName: String): String? = runCatching {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

@@ -39,7 +39,7 @@ object QueueRecovery {
         // An app another store updated while Wy Store was not running.
         runCatching {
             val discarded = repository.discardOutdated { packageName ->
-                runCatching { appContext.packageManager.getPackageInfo(packageName, 0).longVersionCode }.getOrNull()
+                dev.wystore.data.InstalledPackageLookup.versionCode(appContext.packageManager, packageName)
             }
             if (discarded) dev.wystore.updates.PendingUpdateNotifier(appContext).refresh()
         }

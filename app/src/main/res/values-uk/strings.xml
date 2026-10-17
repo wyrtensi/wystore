@@ -779,4 +779,6 @@
     <string name="library_withdrawn_from_rustore">RuStore перестав віддавати цей пакет: під час останньої перевірки відповів «не знайдено». Можливо, його зняли або він тимчасово недоступний; доки він не повернеться, оновлень не буде.</string>
     <string name="installer_preinstalled_short">Передвстановлено</string>
     <string name="installer_preinstalled">система, було на телефоні від початку</string>
+    <string name="library_frozen">Заморожено: оновлення встановлюються, застосунок залишиться замороженим</string>
+    <string name="vm_app_frozen">Застосунок заморожено. Щоб відкрити його, розморозьте його в Shelter або в програмі, якою заморожували.</string>
 </resources>
