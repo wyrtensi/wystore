@@ -38,6 +38,9 @@ class UserConfirmedInstaller(private val activity: Activity) {
      * for this one yet". Waiting on the second forever is how a queue of installs stops dead.
      */
     suspend fun install(queueId: String): Boolean = withContext(Dispatchers.IO) {
+        // A dialog from an earlier attempt that nothing reported closed must not make this one
+        // read as waiting for the user before Android has asked anything.
+        ConfirmationDialogs.closed(queueId)
         queueRepository.transitionIfIn(
             id = queueId,
             allowedFrom = setOf(QueueState.READY_TO_INSTALL),

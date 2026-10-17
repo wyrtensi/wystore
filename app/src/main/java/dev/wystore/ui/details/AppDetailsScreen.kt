@@ -110,7 +110,10 @@ fun AppDetailsScreen(
     onInstall: () -> Unit,
     onConfirmUnverifiedSource: (String) -> Unit = {},
     /** Asks to remove the installed copy and install this one, when nothing can install in place. */
-    onReplace: () -> Unit
+    onReplace: () -> Unit,
+    /** For an install waiting on Android's dialog off screen, by queue row. */
+    onShowInstallDialog: (String) -> Unit = {},
+    onCancelInstall: (String) -> Unit = {}
 ) {
     var screenshotPreview by remember { mutableStateOf<String?>(null) }
     var shownReviews by remember(app.packageName) { mutableIntStateOf(REVIEW_PAGE) }
@@ -450,7 +453,9 @@ fun AppDetailsScreen(
                         OperationProgress(
                             item = it,
                             onConfirmUnverifiedSource = { onConfirmUnverifiedSource(app.packageName) },
-                            onRetry = onInstall
+                            onRetry = onInstall,
+                            onShowInstallDialog = onShowInstallDialog,
+                            onCancelInstall = onCancelInstall
                         )
                     }
                 }

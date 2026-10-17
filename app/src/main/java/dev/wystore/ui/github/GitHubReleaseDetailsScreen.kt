@@ -44,7 +44,10 @@ fun GitHubReleaseDetailsScreen(
     release: GitHubRelease,
     install: InstallQueueItem?,
     onBack: () -> Unit,
-    onInstall: (GitHubAsset) -> Unit
+    onInstall: (GitHubAsset) -> Unit,
+    /** For an install waiting on Android's dialog off screen, by queue row. */
+    onShowInstallDialog: (String) -> Unit = {},
+    onCancelInstall: (String) -> Unit = {}
 ) {
     Scaffold(topBar = {
         TopAppBar(
@@ -100,7 +103,11 @@ fun GitHubReleaseDetailsScreen(
             item { SectionHeader(title = stringResource(R.string.github_apk_to_install)) }
             // The row's package name is a placeholder until the APK is verified, so it cannot be
             // matched to one file; it is the repository's install, shown once above the files.
-            install?.let { item { OperationProgress(it) } }
+            install?.let {
+                item {
+                    OperationProgress(it, onShowInstallDialog = onShowInstallDialog, onCancelInstall = onCancelInstall)
+                }
+            }
             items(release.assets, key = { it.id }) { asset ->
                 WyCard(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

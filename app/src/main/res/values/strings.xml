@@ -781,4 +781,8 @@
     <string name="installer_preinstalled">the system, it came with the phone</string>
     <string name="library_frozen">Frozen: updates still install, and the app stays frozen</string>
     <string name="vm_app_frozen">The app is frozen. Unfreeze it in Shelter or the app that froze it to open it.</string>
+    <string name="queue_status_awaiting_confirmation">Android is waiting for you to confirm the install</string>
+    <string name="queue_awaiting_confirmation_hint">If the window closed, show it again or cancel the install.</string>
+    <string name="queue_awaiting_confirmation_cancel_hint">If the window closed, cancel and press Install again.</string>
+    <string name="queue_show_install_dialog">Show window</string>
 </resources>

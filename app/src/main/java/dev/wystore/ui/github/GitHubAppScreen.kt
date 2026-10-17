@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import dev.wystore.ui.components.WySpinner
 import dev.wystore.R
+import dev.wystore.isInFlight
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.data.GitHubInstallStatePolicy
 import dev.wystore.data.GitHubInstallState
@@ -117,7 +118,12 @@ fun GitHubAppScreen(
     /** Whether Wy Store already looks after the installed app. */
     installedManaged: Boolean = false,
     /** Accepts the installed app as it is, with updates from this repository. */
-    onAdoptInstalled: () -> Unit = {}
+    onAdoptInstalled: () -> Unit = {},
+    /** This repository's install in the queue, while there is one. */
+    install: dev.wystore.InstallQueueItem? = null,
+    /** For an install waiting on Android's dialog off screen, by queue row. */
+    onShowInstallDialog: (String) -> Unit = {},
+    onCancelInstall: (String) -> Unit = {}
 ) {
     val entry = state.entry
     var showAllAssets by rememberSaveable(entry?.slug) { mutableStateOf(false) }
@@ -291,7 +297,21 @@ fun GitHubAppScreen(
                 installedVersionName = installedApp?.versionName,
                 releaseTag = state.latestRelease?.tagName
             )
-            if (recommended != null) {
+            // The page showed its Install button and nothing else while the install ran, so an
+            // install waiting on a closed dialog had no visible state here at all.
+            install?.let {
+                item {
+                    dev.wystore.ui.components.OperationProgress(
+                        it,
+                        onShowInstallDialog = onShowInstallDialog,
+                        onCancelInstall = onCancelInstall
+                    )
+                }
+            }
+            // While the queue has this repository in hand the card above is the action; a second
+            // Install beside it started a second fetch of the same file.
+            val installBusy = install?.status?.isInFlight == true
+            if (recommended != null && !installBusy) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         // Laid out like a RuStore card: what is installed opens, and only a
@@ -441,7 +461,9 @@ fun GitHubAppScreen(
                         }
                     }
                 }
-            } else if (!state.loading && state.error == null) {
+            } else if (recommended == null && !state.loading && state.error == null) {
+                // Only when there is truly nothing to install: while an install runs the actions
+                // are hidden, and this used to announce that the release had no APK.
                 item {
                     EmptyState(
                         icon = Icons.Outlined.Warning,

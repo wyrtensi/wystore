@@ -14,6 +14,19 @@ import kotlinx.coroutines.launch
 
 class InstallResultReceiver : BroadcastReceiver() {
 
+    companion object {
+        /**
+         * How Android's confirmation dialog is opened, here and when it is shown again.
+         *
+         * Every dialog Android hands out is the same Intent apart from the session in its extras, and
+         * a new-task start of an Intent equal to a task's root brings that task forward instead of
+         * opening anything. A dialog left behind with Home kept its task after its session was called
+         * off, so the next install surfaced that old dialog, whose Install did nothing. Clearing the
+         * task opens the dialog for the session actually asked about.
+         */
+        const val DIALOG_FLAGS = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
+
     private fun canConfirmNow(context: Context): Boolean = runCatching {
         val importance = ActivityManager.RunningAppProcessInfo().also {
             ActivityManager.getMyMemoryState(it)
@@ -63,10 +76,12 @@ class InstallResultReceiver : BroadcastReceiver() {
         if (status == PackageInstaller.STATUS_PENDING_USER_ACTION) {
             @Suppress("DEPRECATION")
             val confirmation = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)?.apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(DIALOG_FLAGS)
             }
-            if (confirmation != null && canConfirmNow(context)) {
-                context.startActivity(confirmation)
+            val shown = confirmation != null && canConfirmNow(context) &&
+                runCatching { context.startActivity(confirmation) }.isSuccess
+            if (shown) {
+                val dialog = confirmation!!
                 // Written down so a dialog left unanswered can be told apart later - see
                 // StuckInstallPolicy. Nothing else reports that the dialog went away.
                 val pendingResult = goAsync()
@@ -75,6 +90,11 @@ class InstallResultReceiver : BroadcastReceiver() {
                         runCatching {
                             dev.wystore.data.local.WyStoreDatabase.getInstance(context).updateQueueDao
                                 .updateSessionState(queueId, InstallSessionWriter.SESSION_AWAITING_USER, System.currentTimeMillis())
+                        }.onSuccess {
+                            // Kept, so a dialog closed by a stray tap can be shown again - see
+                            // ConfirmationDialogs. Only once the row is marked as waiting: its
+                            // Cancel acts on that mark and does nothing without it.
+                            ConfirmationDialogs.opened(queueId, dialog)
                         }
                     } finally {
                         pendingResult.finish()
@@ -93,6 +113,17 @@ class InstallResultReceiver : BroadcastReceiver() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val repository = QueueRepository.getInstance(context)
+                val currentSession = runCatching {
+                    dev.wystore.data.local.WyStoreDatabase.getInstance(context).updateQueueDao.getSession(queueId)
+                }.getOrNull()
+                val resultSessionId = intent.getIntExtra(InstallSessionWriter.EXTRA_SESSION_ID, -1)
+                if (AwaitingConfirmationPolicy.isStaleResult(
+                        resultSessionId = resultSessionId,
+                        currentSessionId = currentSession?.sessionId,
+                        succeeded = status == PackageInstaller.STATUS_SUCCESS,
+                        abandoned = ConfirmationDialogs.wasCalledOff(resultSessionId)
+                    )
+                ) return@launch
                 // The row is not guaranteed to still be INSTALLING: the process may have died and
                 // been restarted, or Android may redeliver the broadcast. Pushing the outcome
                 // through the reducer would throw on an illegal transition and lose the result, so

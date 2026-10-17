@@ -781,4 +781,8 @@
     <string name="installer_preinstalled">жүйе, телефонда басынан бар</string>
     <string name="library_frozen">Мұздатылған: жаңартулар орнатылады, қолданба мұздатылған күйде қалады</string>
     <string name="vm_app_frozen">Қолданба мұздатылған. Ашу үшін оны Shelter-де немесе мұздатқан бағдарламада еріту керек.</string>
+    <string name="queue_status_awaiting_confirmation">Android орнатуды растауыңызды күтуде</string>
+    <string name="queue_awaiting_confirmation_hint">Терезе жабылып қалса, оны қайта көрсетіңіз немесе орнатудан бас тартыңыз.</string>
+    <string name="queue_awaiting_confirmation_cancel_hint">Терезе жабылып қалса, бас тартып, «Орнату» түймесін қайта басыңыз.</string>
+    <string name="queue_show_install_dialog">Терезені көрсету</string>
 </resources>

@@ -100,7 +100,10 @@ fun UpdatesScreen(
     onQueuePause: (String) -> Unit = {},
     /** Carries a paused transfer on from the bytes on disk. */
     onQueueResume: (String) -> Unit = {},
-    onStartQueue: () -> Unit = {}
+    onStartQueue: () -> Unit = {},
+    /** Brings back Android's dialog for an install waiting on it off screen. */
+    onShowInstallDialog: (String) -> Unit = {},
+    onCancelAwaitingInstall: (String) -> Unit = {}
 ) {
     val installedByPackage = remember(installed) { installed.associateBy { it.packageName } }
     val orderedManaged = remember(managed, installedByPackage) {
@@ -123,6 +126,8 @@ fun UpdatesScreen(
                 InstallQueueStatus.PAUSED,
                 InstallQueueStatus.CANCELED,
                 InstallQueueStatus.FAILED -> true
+                // Only while Android's dialog waits off screen: the card is where its Cancel is.
+                InstallQueueStatus.INSTALLING -> item.awaitingConfirmation
                 else -> false
             }
         }
@@ -205,23 +210,28 @@ fun UpdatesScreen(
                             appInstalled = installed.any { it.packageName == item.packageName }
                         ),
                         onPause = { onQueuePause(item.id) },
-                        onResume = { onQueueResume(item.id) }
+                        onResume = { onQueueResume(item.id) },
+                        onShowInstallDialog = { onShowInstallDialog(item.id) },
+                        onCancelAwaitingInstall = { onCancelAwaitingInstall(item.id) }
                     )
                 }
             }
 
-            if (pendingUpdates.isNotEmpty()) {
+            // An install waiting on Android's dialog has its card in the queue above, with its
+            // Cancel; listed here as well it would be the same app twice.
+            val readyUpdates = pendingUpdates.filterNot { queue.rowFor(it.packageName)?.awaitingConfirmation == true }
+            if (readyUpdates.isNotEmpty()) {
                 item {
                     // Installing everything already downloaded lived on Home, and in the Library it
                     // lived in a label only. This is the screen those downloads are listed on, so it
                     // was the one place the action was missing.
                     SectionHeader(
-                        title = stringResource(R.string.updates_ready_title, pendingUpdates.size),
+                        title = stringResource(R.string.updates_ready_title, readyUpdates.size),
                         actionLabel = stringResource(R.string.updates_install_all),
                         onActionClick = onUpdateAll
                     )
                 }
-                items(pendingUpdates, key = { "pending:${it.listKey}" }) { pending ->
+                items(readyUpdates, key = { "pending:${it.listKey}" }) { pending ->
                     PendingUpdateCard(
                         update = pending,
                         installing = queue.rowFor(pending.packageName)?.status == InstallQueueStatus.INSTALLING,
@@ -442,7 +452,9 @@ fun QueueItemCard(
     /** Whether removing the installed app would get this row past its failure - see ReplaceOfferPolicy. */
     canReplace: Boolean = false,
     onPause: () -> Unit = {},
-    onResume: () -> Unit = {}
+    onResume: () -> Unit = {},
+    onShowInstallDialog: () -> Unit = {},
+    onCancelAwaitingInstall: () -> Unit = {}
 ) {
     val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED
     val failed = item.status == InstallQueueStatus.FAILED
@@ -545,7 +557,13 @@ fun QueueItemCard(
                     modifier = Modifier.align(Alignment.End)
                 ) { Text(stringResource(R.string.source_failure_help)) }
             }
-            Row(
+            if (item.awaitingConfirmation) {
+                dev.wystore.ui.components.AwaitingConfirmationActions(
+                    item = item,
+                    onShowInstallDialog = onShowInstallDialog,
+                    onCancelInstall = onCancelAwaitingInstall
+                )
+            } else Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {

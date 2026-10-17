@@ -781,4 +781,8 @@
     <string name="installer_preinstalled">系统，手机自带</string>
     <string name="library_frozen">已冻结：更新仍会安装，应用保持冻结</string>
     <string name="vm_app_frozen">该应用已冻结。请在 Shelter 或冻结它的应用中解冻后再打开。</string>
+    <string name="queue_status_awaiting_confirmation">Android 正在等待你确认安装</string>
+    <string name="queue_awaiting_confirmation_hint">如果窗口已关闭，可以重新显示或取消安装。</string>
+    <string name="queue_awaiting_confirmation_cancel_hint">如果窗口已关闭，请取消后再次点击“安装”。</string>
+    <string name="queue_show_install_dialog">显示窗口</string>
 </resources>

@@ -10,7 +10,6 @@ import dev.wystore.updates.InstallSessionWriter
 import dev.wystore.updates.InstalledAppRegistrar
 import dev.wystore.updates.QueueOrigin
 import dev.wystore.updates.StuckInstallPolicy
-import dev.wystore.updates.model.QueueErrorCode
 import dev.wystore.updates.model.QueueItemSnapshot
 import dev.wystore.updates.QueueRecoveryPolicy
 import dev.wystore.updates.QueueRepository
@@ -91,16 +90,16 @@ object QueueRecovery {
         rows: List<QueueItemSnapshot>
     ) {
         val dao = WyStoreDatabase.getInstance(context).updateQueueDao
-        val installer = context.packageManager.packageInstaller
         rows.filter { it.state == QueueState.INSTALLING }.forEach { row ->
             runCatching {
                 val session = dao.getSession(row.id)
                 val awaitingUserSince = session
                     ?.takeIf { it.state == InstallSessionWriter.SESSION_AWAITING_USER }
                     ?.updatedAt
-                val installedVersion = runCatching {
-                    context.packageManager.getPackageInfo(row.packageName, 0).longVersionCode
-                }.getOrNull()
+                // The app is in front, so the dialog is not: the row can offer its own way out now
+                // instead of only after the grace below.
+                if (awaitingUserSince != null) dev.wystore.updates.ConfirmationDialogs.noticed(row.id)
+                val installedVersion = dev.wystore.data.InstalledPackageLookup.versionCode(context.packageManager, row.packageName)
                 val outcome = StuckInstallPolicy.decide(
                     expectedVersionCode = row.versionCode,
                     awaitingUserSince = awaitingUserSince,
@@ -117,18 +116,11 @@ object QueueRecovery {
                         runCatching { InstalledAppRegistrar.register(context, current) }
                         repository.reconcileInstallResult(row.id, success = true)
                     }
-                    else -> {
-                        // The session would otherwise go on waiting on Android's side; an answer
-                        // given to it later would install behind a row that has moved on.
-                        session?.let { runCatching { installer.abandonSession(it.sessionId) } }
-                        // Back to waiting with its files, as a "not now" in the dialog would be.
-                        repository.reconcileInstallResult(
-                            row.id,
-                            success = false,
-                            errorCode = QueueErrorCode.INSTALL_CANCELED,
-                            errorDetail = "Install confirmation was left unanswered"
-                        )
-                    }
+                    else -> dev.wystore.updates.AwaitingInstallRelease.release(
+                        context,
+                        row.id,
+                        reason = "Install confirmation was left unanswered"
+                    )
                 }
             }
         }

@@ -781,4 +781,8 @@
     <string name="installer_preinstalled">sistēma, bija tālrunī jau no sākuma</string>
     <string name="library_frozen">Iesaldēta: atjauninājumi tiek instalēti, un lietotne paliek iesaldēta</string>
     <string name="vm_app_frozen">Lietotne ir iesaldēta. Lai to atvērtu, atkausējiet to lietotnē Shelter vai tajā, ar kuru to iesaldējāt.</string>
+    <string name="queue_status_awaiting_confirmation">Android gaida instalēšanas apstiprinājumu</string>
+    <string name="queue_awaiting_confirmation_hint">Ja logs aizvērās, parādiet to vēlreiz vai atceliet instalēšanu.</string>
+    <string name="queue_awaiting_confirmation_cancel_hint">Ja logs aizvērās, atceliet un vēlreiz nospiediet «Instalēt».</string>
+    <string name="queue_show_install_dialog">Rādīt logu</string>
 </resources>

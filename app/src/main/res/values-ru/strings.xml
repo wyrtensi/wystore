@@ -781,4 +781,8 @@
     <string name="installer_preinstalled">система, было на телефоне изначально</string>
     <string name="library_frozen">Заморожено: обновления ставятся, приложение останется замороженным</string>
     <string name="vm_app_frozen">Приложение заморожено. Чтобы открыть его, разморозьте его в Shelter или в той программе, которой замораживали.</string>
+    <string name="queue_status_awaiting_confirmation">Android ждёт подтверждения установки</string>
+    <string name="queue_awaiting_confirmation_hint">Если окно закрылось, покажите его снова или отмените установку.</string>
+    <string name="queue_awaiting_confirmation_cancel_hint">Если окно закрылось, отмените и нажмите «Установить» ещё раз.</string>
+    <string name="queue_show_install_dialog">Показать окно</string>
 </resources>

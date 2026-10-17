@@ -781,4 +781,8 @@
     <string name="installer_preinstalled">tizim, telefonda boshidan bor edi</string>
     <string name="library_frozen">Muzlatilgan: yangilanishlar oʻrnatiladi, ilova muzlatilgan holda qoladi</string>
     <string name="vm_app_frozen">Ilova muzlatilgan. Uni ochish uchun Shelter yoki uni muzlatgan dasturda muzdan tushiring.</string>
+    <string name="queue_status_awaiting_confirmation">Android oʻrnatishni tasdiqlashingizni kutmoqda</string>
+    <string name="queue_awaiting_confirmation_hint">Agar oyna yopilib qolgan boʻlsa, uni qayta koʻrsating yoki oʻrnatishni bekor qiling.</string>
+    <string name="queue_awaiting_confirmation_cancel_hint">Agar oyna yopilib qolgan boʻlsa, bekor qiling va «Oʻrnatish»ni yana bosing.</string>
+    <string name="queue_show_install_dialog">Oynani koʻrsatish</string>
 </resources>

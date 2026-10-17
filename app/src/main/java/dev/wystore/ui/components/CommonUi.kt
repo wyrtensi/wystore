@@ -21,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -247,7 +248,10 @@ fun Loading(operation: String? = null) {
 fun OperationProgress(
     item: InstallQueueItem,
     onConfirmUnverifiedSource: (() -> Unit)? = null,
-    onRetry: (() -> Unit)? = null
+    onRetry: (() -> Unit)? = null,
+    /** For an install waiting on Android's dialog; see [AwaitingConfirmationActions]. */
+    onShowInstallDialog: ((String) -> Unit)? = null,
+    onCancelInstall: ((String) -> Unit)? = null
 ) {
     WyCard(
         modifier = Modifier.fillMaxWidth(),
@@ -279,6 +283,12 @@ fun OperationProgress(
                         }
                     }
                 }
+            } else if (item.awaitingConfirmation && onCancelInstall != null) {
+                AwaitingConfirmationActions(
+                    item = item,
+                    onShowInstallDialog = { onShowInstallDialog?.invoke(item.id) },
+                    onCancelInstall = { onCancelInstall(item.id) }
+                )
             } else if (item.status == InstallQueueStatus.COMPLETE) {
                 Text(item.detail ?: stringResource(R.string.queue_status_install_complete), style = MaterialTheme.typography.bodySmall)
             } else if (progress != null && progress.totalBytes > 0) {
@@ -294,6 +304,39 @@ fun OperationProgress(
                     Text(stringResource(R.string.progress_dont_close), style = MaterialTheme.typography.bodySmall)
                 }
             }
+        }
+    }
+}
+
+/**
+ * The way out of an install waiting on Android's dialog that is no longer on screen.
+ *
+ * A stray tap beside the dialog can close it without Android saying so, and the row then read
+ * "Installing" with nothing to press for a minute. Cancel puts the row back to Install with its
+ * files; the dialog itself can be shown again while this run of the app still has it.
+ */
+@Composable
+fun AwaitingConfirmationActions(
+    item: InstallQueueItem,
+    onShowInstallDialog: () -> Unit,
+    onCancelInstall: () -> Unit
+) {
+    Text(
+        stringResource(
+            if (item.canShowDialogAgain) R.string.queue_awaiting_confirmation_hint
+            else R.string.queue_awaiting_confirmation_cancel_hint
+        ),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        OutlinedButton(onClick = onCancelInstall) { Text(stringResource(R.string.common_cancel)) }
+        if (item.canShowDialogAgain) {
+            Spacer(Modifier.width(4.dp))
+            Button(onClick = onShowInstallDialog) { Text(stringResource(R.string.queue_show_install_dialog)) }
         }
     }
 }
@@ -332,7 +375,9 @@ fun queueStatusLabel(item: InstallQueueItem): String = when (item.status) {
     InstallQueueStatus.PAUSED -> stringResource(R.string.queue_status_paused)
     InstallQueueStatus.VERIFYING -> stringResource(R.string.queue_status_verifying)
     InstallQueueStatus.READY -> stringResource(R.string.queue_status_ready)
-    InstallQueueStatus.INSTALLING -> stringResource(R.string.queue_status_installing)
+    InstallQueueStatus.INSTALLING ->
+        if (item.awaitingConfirmation) stringResource(R.string.queue_status_awaiting_confirmation)
+        else stringResource(R.string.queue_status_installing)
     InstallQueueStatus.COMPLETE -> stringResource(R.string.queue_status_complete)
     InstallQueueStatus.CANCELED -> stringResource(R.string.queue_status_canceled)
     // Failure text comes from the typed code, because the raw detail is an exception message from

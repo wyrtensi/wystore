@@ -265,7 +265,13 @@ class QueueRepository(
         errorCode: QueueErrorCode = QueueErrorCode.INSTALL_FAILED,
         errorDetail: String? = null
     ): QueueItemSnapshot? = withContext(Dispatchers.IO) {
+        // Whatever answered, no dialog is waiting for this row any more.
+        ConfirmationDialogs.closed(id)
         val entity = dao.getById(id) ?: return@withContext null
+        // An app that installed stays installed. A failure arriving after the success - the late
+        // report of a session called off, or a cancel that lost the race with Android's answer -
+        // turned the row into an error about an app that was on the phone.
+        if (!success && entity.state == QueueState.INSTALLED.name) return@withContext entity.toSnapshot()
         // However it ended, an install was attempted for this row here, not by an agent.
         endHandoff(id)
 

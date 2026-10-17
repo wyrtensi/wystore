@@ -28,6 +28,9 @@ class BackgroundInstaller(context: Context) {
 
     /** True when the install was handed to Android here and needs no further help. */
     suspend fun install(queueId: String, packageName: String): Boolean = withContext(Dispatchers.IO) {
+        // A silent install must not read as one waiting on a dialog from an earlier attempt: its
+        // Cancel would drop a session nobody is asked about. See UserConfirmedInstaller.install.
+        ConfirmationDialogs.closed(queueId)
         val settings = storeRepository.settings()
         if (!settings.autoInstallUpdates) return@withContext false
         if (!SilentUpdatePolicy.allows(

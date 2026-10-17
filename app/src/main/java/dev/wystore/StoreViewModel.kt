@@ -209,7 +209,14 @@ data class InstallQueueItem(
     /** Typed reason, so the UI can render a localized message instead of the raw detail text. */
     val errorCode: dev.wystore.updates.model.QueueErrorCode? = null,
     val detail: String? = null,
-    val githubRepository: GitHubRepository? = null
+    val githubRepository: GitHubRepository? = null,
+    /**
+     * Android is waiting for an answer in its dialog, which is not on screen: the app is in front
+     * of it. The row then offers a way out instead of an "Installing" with nothing to press.
+     */
+    val awaitingConfirmation: Boolean = false,
+    /** The dialog can be brought back; after a restart of the app it can only be cancelled. */
+    val canShowDialogAgain: Boolean = false
 )
 
 /**
@@ -456,6 +463,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 ) {
                     startNextBatchInstall()
                 }
+            }
+        }
+        viewModelScope.launch {
+            dev.wystore.updates.ConfirmationDialogs.waiting.collect { dialogs ->
+                confirmationDialogs = dialogs
+                publishQueue()
             }
         }
         viewModelScope.launch {
@@ -1115,8 +1128,50 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             ) else null,
             errorCode = item.errorCode,
             detail = item.errorDetail,
-            githubRepository = item.githubRepository
+            githubRepository = item.githubRepository,
+            awaitingConfirmation = item.state == QueueState.INSTALLING && item.id in confirmationDialogs,
+            canShowDialogAgain = item.state == QueueState.INSTALLING && confirmationDialogs[item.id] != null
         )
+    }
+
+    /** See [dev.wystore.updates.ConfirmationDialogs]; read when the cards are built. */
+    private var confirmationDialogs: Map<String, android.content.Intent?> = emptyMap()
+
+    /**
+     * Brings back Android's dialog for an install waiting on it. Without the dialog - the app was
+     * restarted behind it - or when Android will not open it again, the install is called off and
+     * the row goes back to Install, which asks afresh.
+     */
+    fun showInstallDialogAgain(id: String) {
+        viewModelScope.launch {
+            val dialog = dev.wystore.updates.ConfirmationDialogs.dialogFor(id)
+            val shown = dialog != null && runCatching {
+                getApplication<Application>().startActivity(
+                    android.content.Intent(dialog).addFlags(dev.wystore.updates.InstallResultReceiver.DIALOG_FLAGS)
+                )
+            }.isSuccess
+            if (!shown) {
+                runCatching { queueCoordinator.cancelAwaitingInstall(id) }
+                return@launch
+            }
+            // Asked again just now: the grace before an unanswered dialog is given up on starts
+            // over, or an answer given to this one could be cut off as if nobody had replied. Only
+            // a session still marked as waiting - a silent install's mark is what tells it apart.
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val dao = dev.wystore.data.local.WyStoreDatabase.getInstance(getApplication()).updateQueueDao
+                    val waiting = dev.wystore.updates.InstallSessionWriter.SESSION_AWAITING_USER
+                    if (dao.getSession(id)?.state == waiting) {
+                        dao.updateSessionState(id, waiting, System.currentTimeMillis())
+                    }
+                }
+            }
+        }
+    }
+
+    /** Calls off an install waiting on Android's dialog; see [QueueCoordinator.cancelAwaitingInstall]. */
+    fun cancelAwaitingInstall(id: String) {
+        viewModelScope.launch { runCatching { queueCoordinator.cancelAwaitingInstall(id) } }
     }
 
     /**

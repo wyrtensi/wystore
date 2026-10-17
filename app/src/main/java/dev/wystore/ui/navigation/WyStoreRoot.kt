@@ -220,14 +220,19 @@ fun WyStoreRoot(
                             state.managed.any { it.packageName == githubInstalled.packageName },
                         onAdoptInstalled = {
                             githubInstalled?.let { viewModel.adoptFromRepository(it, githubApp.entry.repository) }
-                        }
+                        },
+                        install = state.installQueue.githubRowFor(githubApp.entry.repository),
+                        onShowInstallDialog = viewModel::showInstallDialogAgain,
+                        onCancelInstall = viewModel::cancelAwaitingInstall
                     )
                 } else if (githubSelectedRelease != null) {
                     GitHubReleaseDetailsScreen(
                         release = githubSelectedRelease,
                         install = state.installQueue.githubRowFor(state.githubActiveRepository),
                         onBack = viewModel::closeGitHubRelease,
-                        onInstall = { githubInstallDialog = it }
+                        onInstall = { githubInstallDialog = it },
+                        onShowInstallDialog = viewModel::showInstallDialogAgain,
+                        onCancelInstall = viewModel::cancelAwaitingInstall
                     )
                 } else if (selected != null) {
                     val selectedInstalled = state.installed.firstOrNull { it.packageName == selected.packageName }
@@ -253,7 +258,9 @@ fun WyStoreRoot(
                             else viewModel.installSelected()
                         },
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedInstalled,
-                        onReplace = { selectedInstalled?.let { replaceDialog = it to selected } }
+                        onReplace = { selectedInstalled?.let { replaceDialog = it to selected } },
+                        onShowInstallDialog = viewModel::showInstallDialogAgain,
+                        onCancelInstall = viewModel::cancelAwaitingInstall
                     )
                 } else when (destination) {
                     WyStoreDestination.Home -> dev.wystore.ui.home.HomeScreen(
@@ -393,7 +400,9 @@ fun WyStoreRoot(
                         onOpenPackage = { packageName -> viewModel.openDetails(packageName) },
                         onQueuePause = viewModel::queuePause,
                         onQueueResume = viewModel::queueResume,
-                        onStartQueue = viewModel::startQueue
+                        onStartQueue = viewModel::startQueue,
+                        onShowInstallDialog = viewModel::showInstallDialogAgain,
+                        onCancelAwaitingInstall = viewModel::cancelAwaitingInstall
                     )
                     WyStoreDestination.Categories -> dev.wystore.ui.home.AllCategoriesScreen(
                         modifier = screenModifier,

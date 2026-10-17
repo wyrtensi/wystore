@@ -141,7 +141,8 @@ class QueueCoordinator(
 
     suspend fun cancel(id: String) {
         val current = repository.getById(id) ?: return
-        // An install belongs to Android by then, and a finished row has nothing left to stop.
+        // An install belongs to Android by then, and a finished row has nothing left to stop. One
+        // still waiting on Android's dialog has its own way out, cancelAwaitingInstall.
         if (current.state !in QueueReducer.CANCELLABLE_STATES) return
         repository.endHandoff(id)
         // Row first, then the work - see skip.
@@ -153,6 +154,17 @@ class QueueCoordinator(
         if (current.state in setOf(QueueState.PAUSED, QueueState.AVAILABLE, QueueState.FAILED)) {
             runCatching { java.io.File(context.cacheDir, "download_$id").deleteRecursively() }
         }
+    }
+
+    /**
+     * Calls off an install waiting on Android's dialog - see [AwaitingInstallRelease].
+     *
+     * Kept apart from [cancel] on purpose: a second tap from a frame drawn before the first one
+     * landed finds the row already back to ready, and [cancel] would turn that into a cancelled row
+     * whose only way back is downloading the file again. Here it does nothing.
+     */
+    suspend fun cancelAwaitingInstall(id: String) {
+        AwaitingInstallRelease.release(context, id, reason = "Install cancelled while waiting for confirmation")
     }
 
     suspend fun acceptNext(installer: UserConfirmedInstaller) {

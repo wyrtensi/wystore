@@ -781,4 +781,8 @@
     <string name="installer_preinstalled">сістэма, было на тэлефоне з самага пачатку</string>
     <string name="library_frozen">Замарожана: абнаўленні ўсталёўваюцца, праграма застанецца замарожанай</string>
     <string name="vm_app_frozen">Праграма замарожана. Каб адкрыць яе, размарозьце яе ў Shelter або ў той праграме, якой замарожвалі.</string>
+    <string name="queue_status_awaiting_confirmation">Android чакае пацверджання ўсталёўкі</string>
+    <string name="queue_awaiting_confirmation_hint">Калі акно закрылася, пакажыце яго зноў або скасуйце ўсталёўку.</string>
+    <string name="queue_awaiting_confirmation_cancel_hint">Калі акно закрылася, скасуйце і націсніце «Усталяваць» яшчэ раз.</string>
+    <string name="queue_show_install_dialog">Паказаць акно</string>
 </resources>
