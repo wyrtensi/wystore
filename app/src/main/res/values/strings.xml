@@ -430,7 +430,6 @@
     <string name="github_all_releases">All releases (%1$d)</string>
     <string name="github_catalog_section">GitHub Releases</string>
     <string name="github_catalog_hint">Repositories from the built-in catalogue and the ones you added</string>
-    <string name="github_curated_badge">Built-in</string>
     <string name="github_view_releases">View releases</string>
     <string name="home_github_title">From GitHub</string>
     <string name="home_github_hint">Open-source apps installed straight from releases</string>
@@ -785,4 +784,24 @@
     <string name="queue_awaiting_confirmation_hint">If the window closed, show it again or cancel the install.</string>
     <string name="queue_awaiting_confirmation_cancel_hint">If the window closed, cancel and press Install again.</string>
     <string name="queue_show_install_dialog">Show window</string>
+    <string name="category_vpn">VPN</string>
+    <string name="category_proxy">Proxy</string>
+    <string name="category_unblock">Bypassing blocks</string>
+    <string name="category_network">Network</string>
+    <string name="category_privacy">Privacy</string>
+    <string name="category_messengers">Messengers</string>
+    <string name="category_media">Video</string>
+    <string name="category_music">Music</string>
+    <string name="category_browsers">Browsers</string>
+    <string name="category_stores">App stores</string>
+    <string name="category_files">Files</string>
+    <string name="category_backup">Backup</string>
+    <string name="category_photos">Photos</string>
+    <string name="category_security">Security</string>
+    <string name="category_utilities">Utilities</string>
+    <string name="category_keyboards">Keyboards</string>
+    <string name="category_torrents">Torrents</string>
+    <string name="category_reading">Reading</string>
+    <string name="category_weather">Weather</string>
+    <string name="category_learning">Learning</string>
 </resources>

@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.saveable.rememberSaveable
+import dev.wystore.ui.components.CategoryLabels
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -37,6 +40,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -75,9 +79,19 @@ fun GitHubScreen(
     onLoad: (String) -> Unit,
     onOpen: (GitHubRelease) -> Unit,
     onOpenCatalogEntry: (GitHubCatalogEntry) -> Unit = {},
-    onRemove: (GitHubRepository) -> Unit
+    onRemove: (GitHubRepository) -> Unit,
+    /** For an install waiting on Android's dialog off screen, by queue row. */
+    onShowInstallDialog: (String) -> Unit = {},
+    onCancelInstall: (String) -> Unit = {},
+    /** What is on the phone, so a catalogue entry can say it is installed. */
+    installed: List<dev.wystore.data.InstalledApp> = emptyList(),
+    managed: List<dev.wystore.data.ManagedApp> = emptyList()
 ) {
     var input by remember(activeRepository) { mutableStateOf(activeRepository?.url.orEmpty()) }
+    // The catalogue section shown, or null for all of them.
+    var section by rememberSaveable { mutableStateOf<String?>(null) }
+    var showAllReleases by rememberSaveable(activeRepository?.displayName) { mutableStateOf(false) }
+    val installedPackages = remember(installed) { installed.mapTo(HashSet()) { it.packageName } }
     val haptic = LocalHapticFeedback.current
     Scaffold(
         modifier = modifier,
@@ -159,7 +173,11 @@ fun GitHubScreen(
             // the whole built-in catalogue, so pressing "Open releases" scrolled nothing into
             // view and looked exactly like nothing happening.
             if (loading) item { Loading(stringResource(R.string.github_loading_releases)) }
-            install?.let { item { OperationProgress(it) } }
+            install?.let {
+                item {
+                    OperationProgress(it, onShowInstallDialog = onShowInstallDialog, onCancelInstall = onCancelInstall)
+                }
+            }
             if (!loading && activeRepository != null && releases.isEmpty()) item {
                 EmptyState(
                     icon = Icons.Outlined.Info,
@@ -173,8 +191,22 @@ fun GitHubScreen(
                             ?: stringResource(R.string.github_releases_section)
                     )
                 }
-                items(releases, key = { it.id }) { release ->
+                // The last repository opened kept all thirty of its releases here, above the
+                // catalogue - which "All" on Home now leads to - so the catalogue and its filters
+                // sat thirty cards down. The newest few are what is usually wanted.
+                items(
+                    if (showAllReleases) releases else releases.take(RELEASES_SHOWN),
+                    key = { it.id }
+                ) { release ->
                     GitHubReleaseCard(release, onOpen)
+                }
+                if (releases.size > RELEASES_SHOWN) item {
+                    TextButton(onClick = { showAllReleases = !showAllReleases }) {
+                        Text(
+                            if (showAllReleases) stringResource(R.string.github_hide_releases)
+                            else stringResource(R.string.github_all_releases, releases.size)
+                        )
+                    }
                 }
             }
 
@@ -182,7 +214,37 @@ fun GitHubScreen(
             // search matches against.
             if (catalog.isNotEmpty()) {
                 item { SectionHeader(title = stringResource(R.string.github_catalog_section)) }
-                items(catalog, key = { "catalog:${it.slug}" }) { entry ->
+                // Sixty entries in one column is a list nobody reads to the end; the sections the
+                // entries actually use are offered as filters, most used first.
+                val sections = catalog.flatMap { it.categories }
+                    .groupingBy { it }.eachCount()
+                    .entries.sortedByDescending { it.value }
+                    .map { it.key }
+                if (sections.size > 1) item {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        item {
+                            FilterChip(
+                                selected = section == null,
+                                onClick = { section = null },
+                                label = { Text(stringResource(R.string.library_filter_all)) }
+                            )
+                        }
+                        items(sections, key = { it }) { slug ->
+                            FilterChip(
+                                selected = section == slug,
+                                onClick = { section = if (section == slug) null else slug },
+                                label = {
+                                    Text(
+                                        CategoryLabels.stringRes(slug)?.let { stringResource(it) }
+                                            ?: CategoryLabels.humanize(slug)
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+                val shown = catalog.filter { section == null || section in it.categories }
+                items(shown, key = { "catalog:${it.slug}" }) { entry ->
                     WyCard(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = { onOpenCatalogEntry(entry) }
@@ -194,7 +256,22 @@ fun GitHubScreen(
                                 modifier = Modifier.weight(1f),
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Text(entry.title, style = MaterialTheme.typography.titleSmall)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        entry.title,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                    if (entry.isInstalled(installedPackages, managed)) {
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            stringResource(R.string.github_fact_installed),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
                                 Text(
                                     entry.repository.displayName,
                                     style = MaterialTheme.typography.labelMedium,
@@ -202,9 +279,10 @@ fun GitHubScreen(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
-                                if (entry.summary.isNotBlank()) {
+                                val summary = entry.summaryIn(LocalConfiguration.current.locales[0].language)
+                                if (summary.isNotBlank()) {
                                     Text(
-                                        entry.summary,
+                                        summary,
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 2,
@@ -215,7 +293,8 @@ fun GitHubScreen(
                                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                                     verticalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    if (entry.curated) CategoryPill(stringResource(R.string.github_curated_badge))
+                                    // "Built-in" stood on nearly every entry once the catalogue
+                                    // grew, so it told nothing apart; the sections do.
                                     entry.categories.forEach { CategoryPill(it) }
                                 }
                             }
@@ -285,3 +364,6 @@ fun GitHubReleaseCard(release: GitHubRelease, onOpen: (GitHubRelease) -> Unit) {
 
 /** How far a release with nothing to install on Android recedes from the ones that have an APK. */
 internal const val MUTED_ALPHA = 0.55f
+
+/** Releases of the open repository listed before "All releases". */
+private const val RELEASES_SHOWN = 3

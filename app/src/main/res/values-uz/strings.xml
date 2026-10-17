@@ -430,7 +430,6 @@
     <string name="github_all_releases">Barcha relizlar (%1$d)</string>
     <string name="github_catalog_section">GitHub Releases</string>
     <string name="github_catalog_hint">Ichki katalogdagi va siz qoʻshgan repozitoriylar</string>
-    <string name="github_curated_badge">Ichki</string>
     <string name="github_view_releases">Relizlarni koʻrish</string>
     <string name="home_github_title">GitHub manbasidan</string>
     <string name="home_github_hint">Ochiq kodli ilovalar — toʻgʻridan-toʻgʻri relizlardan oʻrnatiladi</string>
@@ -785,4 +784,24 @@
     <string name="queue_awaiting_confirmation_hint">Agar oyna yopilib qolgan boʻlsa, uni qayta koʻrsating yoki oʻrnatishni bekor qiling.</string>
     <string name="queue_awaiting_confirmation_cancel_hint">Agar oyna yopilib qolgan boʻlsa, bekor qiling va «Oʻrnatish»ni yana bosing.</string>
     <string name="queue_show_install_dialog">Oynani koʻrsatish</string>
+    <string name="category_vpn">VPN</string>
+    <string name="category_proxy">Proksi</string>
+    <string name="category_unblock">Bloklarni chetlab oʻtish</string>
+    <string name="category_network">Tarmoq</string>
+    <string name="category_privacy">Maxfiylik</string>
+    <string name="category_messengers">Messenjerlar</string>
+    <string name="category_media">Video</string>
+    <string name="category_music">Musiqa</string>
+    <string name="category_browsers">Brauzerlar</string>
+    <string name="category_stores">Doʻkonlar</string>
+    <string name="category_files">Fayllar</string>
+    <string name="category_backup">Zaxira nusxa</string>
+    <string name="category_photos">Foto</string>
+    <string name="category_security">Xavfsizlik</string>
+    <string name="category_utilities">Vositalar</string>
+    <string name="category_keyboards">Klaviaturalar</string>
+    <string name="category_torrents">Torrentlar</string>
+    <string name="category_reading">Oʻqish</string>
+    <string name="category_weather">Ob-havo</string>
+    <string name="category_learning">Taʼlim</string>
 </resources>

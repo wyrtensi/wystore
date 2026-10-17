@@ -430,7 +430,6 @@
     <string name="github_all_releases">Барлық релиз (%1$d)</string>
     <string name="github_catalog_section">GitHub Releases</string>
     <string name="github_catalog_hint">Кірістірілген каталогтағы және өзіңіз қосқан репозиторийлер</string>
-    <string name="github_curated_badge">Кірістірілген</string>
     <string name="github_view_releases">Релиздерді көру</string>
     <string name="home_github_title">GitHub-тан</string>
     <string name="home_github_hint">Ашық кодты қолданбалар — тікелей релиздерден орнатылады</string>
@@ -785,4 +784,24 @@
     <string name="queue_awaiting_confirmation_hint">Терезе жабылып қалса, оны қайта көрсетіңіз немесе орнатудан бас тартыңыз.</string>
     <string name="queue_awaiting_confirmation_cancel_hint">Терезе жабылып қалса, бас тартып, «Орнату» түймесін қайта басыңыз.</string>
     <string name="queue_show_install_dialog">Терезені көрсету</string>
+    <string name="category_vpn">VPN</string>
+    <string name="category_proxy">Прокси</string>
+    <string name="category_unblock">Бұғаттауды айналып өту</string>
+    <string name="category_network">Желі</string>
+    <string name="category_privacy">Құпиялылық</string>
+    <string name="category_messengers">Мессенджерлер</string>
+    <string name="category_media">Бейне</string>
+    <string name="category_music">Музыка</string>
+    <string name="category_browsers">Браузерлер</string>
+    <string name="category_stores">Дүкендер</string>
+    <string name="category_files">Файлдар</string>
+    <string name="category_backup">Сақтық көшірме</string>
+    <string name="category_photos">Фото</string>
+    <string name="category_security">Қауіпсіздік</string>
+    <string name="category_utilities">Құралдар</string>
+    <string name="category_keyboards">Пернетақталар</string>
+    <string name="category_torrents">Торренттер</string>
+    <string name="category_reading">Оқу</string>
+    <string name="category_weather">Ауа райы</string>
+    <string name="category_learning">Білім</string>
 </resources>

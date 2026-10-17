@@ -67,9 +67,10 @@ class GitHubCatalogTest {
 
     @Test
     fun searchMatchesProductNameOwnerAndRepositoryName() {
-        // Both Amnezia entries share the owner, so the query matches each of them.
+        // Both Amnezia entries share the owner, so the query matches each of them; WG Tunnel says
+        // in its summary that it runs AmneziaWG, which is what someone searching for it wants.
         assertEquals(
-            listOf("amnezia-vpn/amnezia-client", "amnezia-vpn/amneziawg-android"),
+            listOf("amnezia-vpn/amnezia-client", "amnezia-vpn/amneziawg-android", "wgtunnel/android"),
             GitHubCatalog.search("amnezia").map { it.slug }.sorted()
         )
         assertEquals(
@@ -149,6 +150,82 @@ class GitHubCatalogTest {
         // An override on a host GitHub does not control is ignored rather than rendered.
         val spoofed = amnezia.copy(iconOverrideUrl = "https://evil.example/icon.png")
         assertEquals("https://github.com/amnezia-vpn.png?size=200", spoofed.iconUrl)
+    }
+
+    @Test
+    fun everyEntryIsFiledUnderSectionsThatHaveAName() {
+        // The label comes from the app's strings; a slug without one would show up raw, and an
+        // entry without a section would be missing from every filter but "All".
+        GitHubCatalog.CURATED.forEach { entry ->
+            assertTrue("${entry.slug} has no section", entry.categories.isNotEmpty())
+            entry.categories.forEach { slug ->
+                assertNotNull("${entry.slug}: no label for $slug", dev.wystore.ui.components.CategoryLabels.stringRes(slug))
+            }
+        }
+    }
+
+    @Test
+    fun aSectionIsFoundByTheWordsPeopleTypeInEitherLanguage() {
+        assertTrue(GitHubCatalog.search("мессенджер").map { it.slug }.contains("signalapp/Signal-Android"))
+        assertTrue(GitHubCatalog.search("messenger").map { it.slug }.contains("signalapp/Signal-Android"))
+        assertTrue(GitHubCatalog.search("browser").map { it.slug }.contains("uazo/cromite"))
+    }
+
+    @Test
+    fun anEntryIsInstalledByItsPackageOrByWhatWyStoreInstalledFromIt() {
+        val amnezia = GitHubCatalog.find("amnezia-vpn/amnezia-client")!!
+        assertTrue(amnezia.isInstalled(setOf("org.amnezia.vpn"), emptyList()))
+        assertFalse(amnezia.isInstalled(setOf("com.other.app"), emptyList()))
+
+        // No package stated: only the managed record ties the repository to an app.
+        val molly = GitHubCatalog.find("mollyim/mollyim-android")!!
+        val managed = ManagedApp(
+            packageName = "im.molly.app",
+            label = "Molly",
+            pinnedDigests = emptySet(),
+            source = ManagedSource.GITHUB,
+            githubRepository = molly.repository
+        )
+        assertTrue(molly.isInstalled(setOf("im.molly.app"), listOf(managed)))
+        // Managed once, removed since.
+        assertFalse(molly.isInstalled(emptySet(), listOf(managed)))
+    }
+
+    @Test
+    fun homeRailMixesSectionsAndPutsAddedRepositoriesFirst() {
+        val rail = GitHubCatalog.homeRail(GitHubCatalog.CURATED, 12)
+        assertEquals(12, rail.size)
+        assertEquals(12, rail.map { it.categories.first() }.distinct().size)
+        // Within a section the catalogue's own order holds: its most relevant project leads.
+        assertEquals("amnezia-vpn/amnezia-client", rail.first().slug)
+
+        val added = GitHubCatalogEntry(
+            repository = GitHubRepository("someone", "something"),
+            title = "something",
+            publisher = "someone",
+            summary = ""
+        )
+        val withAdded = GitHubCatalog.homeRail(GitHubCatalog.CURATED + added, 12)
+        assertEquals(added, withAdded.first())
+        assertEquals(12, withAdded.size)
+    }
+
+    @Test
+    fun everyCuratedEntryHasAnEnglishSummary() {
+        val missing = GitHubCatalog.CURATED.filter { it.summaryEn.isNullOrBlank() }.map { it.slug }
+        assertTrue("no English summary: $missing", missing.isEmpty())
+    }
+
+    @Test
+    fun summaryFollowsTheInterfaceLanguage() {
+        val auxio = GitHubCatalog.find("OxygenCobalt/Auxio")!!
+        assertEquals(auxio.summary, auxio.summaryIn("ru"))
+        assertEquals(auxio.summary, auxio.summaryIn("kk"))
+        assertEquals(auxio.summaryEn, auxio.summaryIn("en"))
+        assertEquals(auxio.summaryEn, auxio.summaryIn("zh"))
+
+        val added = auxio.copy(summary = "A project description", summaryEn = null)
+        assertEquals("A project description", added.summaryIn("en"))
     }
 
     @Test

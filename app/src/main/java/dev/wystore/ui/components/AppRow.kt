@@ -40,7 +40,12 @@ fun AppRow(
     onRowClick: () -> Unit,
     onPrimaryActionClick: () -> Unit,
     onSecondaryActionClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /**
+     * The source every row of the list comes from, when the list is one source's. Its badge then
+     * says nothing the section title has not: "Popular on RuStore" put "RuStore" on every row.
+     */
+    implicitSource: String? = null
 ) {
     WyCard(
         modifier = modifier
@@ -68,19 +73,24 @@ fun AppRow(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
+                    // Two lines: catalogue names run long ("VK Видео: кино, сериалы, ТВ...") and one
+                    // line cut every one of them after the first word or two.
                     Text(
                         text = state.label,
                         style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Row(
+                    val version = shortVersionName(state.versionName)
+                    val shownSource = state.sourceProvenance
+                        ?.takeUnless { implicitSource != null && it.equals(implicitSource, ignoreCase = true) }
+                    if (version != null || shownSource != null) Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         // The catalogue does not state a version for every app, and a lone dash
                         // in front of the badge says nothing worth a line.
-                        shortVersionName(state.versionName)?.let { version ->
+                        version?.let { version ->
                             Text(
                                 text = version,
                                 // A long version string used to claim the whole line and squeeze
@@ -93,14 +103,23 @@ fun AppRow(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-                        state.sourceProvenance?.let { source ->
-                            // The reducer carries the raw enum name; the card shows the name the
-                            // source actually goes by.
-                            SourceLabel(text = sourceDisplayName(source))
-                        }
+                        shownSource?.let { source ->
+                                // The reducer carries the raw enum name; the card shows the name the
+                                // source actually goes by.
+                                SourceLabel(text = sourceDisplayName(source))
+                            }
                     }
+                    // A catalogue row says what a store listing says - rating and section. The
+                    // package name stays for rows the catalogue knows nothing about.
+                    val category = state.category?.let { slug ->
+                        CategoryLabels.stringRes(slug)?.let { stringResource(it) } ?: CategoryLabels.humanize(slug)
+                    }
+                    val listing = listOfNotNull(
+                        state.rating?.let { "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it) },
+                        category
+                    ).joinToString(" · ")
                     Text(
-                        text = state.packageName,
+                        text = listing.ifEmpty { state.packageName },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

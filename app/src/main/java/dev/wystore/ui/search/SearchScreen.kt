@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -539,9 +540,10 @@ private fun GitHubCatalogCard(entry: GitHubCatalogEntry, onOpen: () -> Unit) {
                 }
             }
 
-            if (entry.summary.isNotBlank()) {
+            val summary = entry.summaryIn(LocalConfiguration.current.locales[0].language)
+            if (summary.isNotBlank()) {
                 Text(
-                    entry.summary,
+                    summary,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
@@ -554,7 +556,6 @@ private fun GitHubCatalogCard(entry: GitHubCatalogEntry, onOpen: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 CategoryPill("GitHub")
-                if (entry.curated) CategoryPill(stringResource(R.string.github_curated_badge))
                 entry.categories.forEach { CategoryPill(it) }
             }
 

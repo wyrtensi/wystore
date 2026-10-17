@@ -430,7 +430,6 @@
     <string name="github_all_releases">Все релизы (%1$d)</string>
     <string name="github_catalog_section">GitHub Releases</string>
     <string name="github_catalog_hint">Репозитории из встроенного каталога и добавленные тобой</string>
-    <string name="github_curated_badge">Встроенный</string>
     <string name="github_view_releases">Смотреть релизы</string>
     <string name="home_github_title">Из GitHub</string>
     <string name="home_github_hint">Приложения с открытым кодом — установка прямо из релизов</string>
@@ -785,4 +784,24 @@
     <string name="queue_awaiting_confirmation_hint">Если окно закрылось, покажите его снова или отмените установку.</string>
     <string name="queue_awaiting_confirmation_cancel_hint">Если окно закрылось, отмените и нажмите «Установить» ещё раз.</string>
     <string name="queue_show_install_dialog">Показать окно</string>
+    <string name="category_vpn">VPN</string>
+    <string name="category_proxy">Прокси</string>
+    <string name="category_unblock">Обход блокировок</string>
+    <string name="category_network">Сеть</string>
+    <string name="category_privacy">Приватность</string>
+    <string name="category_messengers">Мессенджеры</string>
+    <string name="category_media">Видео</string>
+    <string name="category_music">Музыка</string>
+    <string name="category_browsers">Браузеры</string>
+    <string name="category_stores">Магазины</string>
+    <string name="category_files">Файлы</string>
+    <string name="category_backup">Бэкап</string>
+    <string name="category_photos">Фото</string>
+    <string name="category_security">Безопасность</string>
+    <string name="category_utilities">Инструменты</string>
+    <string name="category_keyboards">Клавиатуры</string>
+    <string name="category_torrents">Торренты</string>
+    <string name="category_reading">Чтение</string>
+    <string name="category_weather">Погода</string>
+    <string name="category_learning">Учёба</string>
 </resources>

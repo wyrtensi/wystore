@@ -20,6 +20,21 @@ object PackageUiStateReducer {
         pendingUpdate: PendingUpdate? = null,
         deviceSdkInt: Int = android.os.Build.VERSION.SDK_INT,
         resources: Resources? = null
+    ): PackageUiState = reduceState(app, installed, managed, queueItem, pendingUpdate, deviceSdkInt, resources).copy(
+        // What the catalogue says about the app, whatever is happening to it: a row reads like a
+        // store listing - rating and section - rather than like a package dump.
+        rating = app?.rating?.takeIf { it > 0.0 },
+        category = app?.categories?.firstOrNull()?.takeIf { it.isNotBlank() }
+    )
+
+    private fun reduceState(
+        app: StoreApp?,
+        installed: InstalledApp?,
+        managed: ManagedApp?,
+        queueItem: InstallQueueItem?,
+        pendingUpdate: PendingUpdate?,
+        deviceSdkInt: Int,
+        resources: Resources?
     ): PackageUiState {
         val packageName = app?.packageName
             ?: installed?.packageName

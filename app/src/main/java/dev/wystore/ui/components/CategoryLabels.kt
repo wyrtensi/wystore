@@ -32,7 +32,28 @@ object CategoryLabels {
         "state" to R.string.category_state,
         "tools" to R.string.category_tools,
         "transport" to R.string.category_transport,
-        "travelling" to R.string.category_travelling
+        "travelling" to R.string.category_travelling,
+        // The GitHub catalogue's own sections; see GitHubCategories.
+        "vpn" to R.string.category_vpn,
+        "proxy" to R.string.category_proxy,
+        "unblock" to R.string.category_unblock,
+        "network" to R.string.category_network,
+        "privacy" to R.string.category_privacy,
+        "messengers" to R.string.category_messengers,
+        "media" to R.string.category_media,
+        "music" to R.string.category_music,
+        "browsers" to R.string.category_browsers,
+        "stores" to R.string.category_stores,
+        "files" to R.string.category_files,
+        "backup" to R.string.category_backup,
+        "photos" to R.string.category_photos,
+        "security" to R.string.category_security,
+        "utilities" to R.string.category_utilities,
+        "keyboards" to R.string.category_keyboards,
+        "torrents" to R.string.category_torrents,
+        "reading" to R.string.category_reading,
+        "weather" to R.string.category_weather,
+        "learning" to R.string.category_learning
     )
 
     /** The string resource naming [slug], or null when the source invented a new one. */

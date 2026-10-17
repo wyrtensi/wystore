@@ -158,7 +158,9 @@ fun CategoryScreen(
                             RowAction.OpenApp -> onLaunch(app.packageName)
                             RowAction.Nothing -> Unit
                         }
-                    }
+                    },
+                    // Every section here is RuStore's, and the page header names it.
+                    implicitSource = "RuStore"
                 )
             }
 

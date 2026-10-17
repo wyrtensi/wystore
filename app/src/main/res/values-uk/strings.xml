@@ -430,7 +430,6 @@
     <string name="github_all_releases">Усі релізи (%1$d)</string>
     <string name="github_catalog_section">GitHub Releases</string>
     <string name="github_catalog_hint">Репозиторії з вбудованого каталогу та додані тобою</string>
-    <string name="github_curated_badge">Вбудований</string>
     <string name="github_view_releases">Дивитися релізи</string>
     <string name="home_github_title">З GitHub</string>
     <string name="home_github_hint">Застосунки з відкритим кодом — встановлення просто з релізів</string>
@@ -785,4 +784,24 @@
     <string name="queue_awaiting_confirmation_hint">Якщо вікно закрилося, покажіть його знову або скасуйте встановлення.</string>
     <string name="queue_awaiting_confirmation_cancel_hint">Якщо вікно закрилося, скасуйте й натисніть «Встановити» ще раз.</string>
     <string name="queue_show_install_dialog">Показати вікно</string>
+    <string name="category_vpn">VPN</string>
+    <string name="category_proxy">Проксі</string>
+    <string name="category_unblock">Обхід блокувань</string>
+    <string name="category_network">Мережа</string>
+    <string name="category_privacy">Приватність</string>
+    <string name="category_messengers">Месенджери</string>
+    <string name="category_media">Відео</string>
+    <string name="category_music">Музика</string>
+    <string name="category_browsers">Браузери</string>
+    <string name="category_stores">Магазини</string>
+    <string name="category_files">Файли</string>
+    <string name="category_backup">Резервні копії</string>
+    <string name="category_photos">Фото</string>
+    <string name="category_security">Безпека</string>
+    <string name="category_utilities">Інструменти</string>
+    <string name="category_keyboards">Клавіатури</string>
+    <string name="category_torrents">Торенти</string>
+    <string name="category_reading">Читання</string>
+    <string name="category_weather">Погода</string>
+    <string name="category_learning">Навчання</string>
 </resources>

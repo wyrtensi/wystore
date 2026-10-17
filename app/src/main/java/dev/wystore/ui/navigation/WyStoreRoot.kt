@@ -363,7 +363,11 @@ fun WyStoreRoot(
                         onLoad = viewModel::loadGitHubRepository,
                         onOpen = viewModel::openGitHubRelease,
                         onOpenCatalogEntry = viewModel::openGitHubApp,
-                        onRemove = viewModel::removeGitHubRepository
+                        onRemove = viewModel::removeGitHubRepository,
+                        onShowInstallDialog = viewModel::showInstallDialogAgain,
+                        onCancelInstall = viewModel::cancelAwaitingInstall,
+                        installed = state.installed,
+                        managed = state.managed
                     )
                     WyStoreDestination.Updates -> UpdatesScreen(
                         modifier = screenModifier,

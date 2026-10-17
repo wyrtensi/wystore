@@ -22,15 +22,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.wystore.ui.components.WySpinner
 import dev.wystore.InstallQueueItem
 import dev.wystore.R
+import dev.wystore.data.GitHubCatalog
 import dev.wystore.data.GitHubCatalogEntry
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
@@ -148,17 +151,29 @@ fun HomeScreen(
             // Home instead of only from Settings.
             if (githubPicks.isNotEmpty()) {
                 item {
+                    val installedPackages = remember(installed) { installed.mapTo(HashSet()) { it.packageName } }
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionHeader(
                             title = stringResource(R.string.home_github_title),
-                            subtitle = stringResource(R.string.home_github_hint)
+                            subtitle = stringResource(R.string.home_github_hint),
+                            actionLabel = stringResource(R.string.home_categories_all),
+                            onActionClick = onOpenGitHub
                         )
+                        // The catalogue is eighty entries now; the rail is a taste of it and "All"
+                        // opens the whole list with its sections.
+                        val rail = remember(githubPicks) {
+                            GitHubCatalog.homeRail(githubPicks, HOME_GITHUB_PICKS)
+                        }
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            items(githubPicks, key = { it.slug }) { entry ->
+                            items(rail, key = { it.slug }) { entry ->
                                 GitHubPickTile(
                                     iconUrl = entry.iconUrl,
                                     title = entry.title,
-                                    publisher = entry.publisher,
+                                    // A repository the user added has no summary of its own.
+                                    summary = entry.summaryIn(LocalConfiguration.current.locales[0].language)
+                                        .ifBlank { entry.repository.displayName },
+                                    category = entry.categories.firstOrNull(),
+                                    installed = entry.isInstalled(installedPackages, managed),
                                     onClick = { onGitHubPickClick(entry) }
                                 )
                             }
@@ -201,7 +216,8 @@ fun HomeScreen(
                                 RowAction.OpenApp -> onLaunch(app.packageName)
                                 RowAction.Nothing -> Unit
                             }
-                        }
+                        },
+                        implicitSource = "RuStore"
                     )
                 }
             } else {
@@ -231,3 +247,6 @@ fun HomeScreen(
         }
     }
 }
+
+/** How many GitHub entries the Home rail shows before "All". */
+private const val HOME_GITHUB_PICKS = 12

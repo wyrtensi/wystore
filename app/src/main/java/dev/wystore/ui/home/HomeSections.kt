@@ -524,39 +524,68 @@ internal fun CategoryGlyph(
     }
 }
 
-/** A compact GitHub entry for the Home rail: icon, name and owner. */
+/**
+ * A GitHub entry for the Home rail: icon, name, what it is for and its section.
+ *
+ * It showed the owner's nickname under the name and nothing else, so "romanvht" was all a tile said
+ * about ByeByeDPI. The summary is what tells someone whether to open it; a tile already on the
+ * phone says so, the way a RuStore row does.
+ */
 @Composable
 internal fun GitHubPickTile(
     iconUrl: String?,
     title: String,
-    publisher: String,
+    summary: String,
+    category: String?,
+    installed: Boolean,
     onClick: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.width(fontScaledWidth(150.dp)).clickable(onClick = onClick),
+        modifier = Modifier.width(fontScaledWidth(176.dp)).clickable(onClick = onClick),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
             modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AppIcon(model = iconUrl, contentDescription = null, size = 48.dp)
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    publisher,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AppIcon(model = iconUrl, contentDescription = null, size = 44.dp)
+                Spacer(Modifier.weight(1f))
+                if (installed) {
+                    Icon(
+                        imageVector = Icons.Outlined.CheckCircle,
+                        contentDescription = stringResource(R.string.github_fact_installed),
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
+            Text(
+                title,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            // Always two lines tall, so the tiles in the rail stay one height.
+            Text(
+                summary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                minLines = 2,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                category?.let { slug ->
+                    dev.wystore.ui.components.CategoryLabels.stringRes(slug)?.let { stringResource(it) }
+                        ?: dev.wystore.ui.components.CategoryLabels.humanize(slug)
+                }.orEmpty(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

@@ -430,7 +430,6 @@
     <string name="github_all_releases">Visi laidieni (%1$d)</string>
     <string name="github_catalog_section">GitHub Releases</string>
     <string name="github_catalog_hint">Repozitoriji no iebūvētā kataloga un tie, ko pievienoji pats</string>
-    <string name="github_curated_badge">Iebūvēts</string>
     <string name="github_view_releases">Skatīt laidienus</string>
     <string name="home_github_title">No GitHub</string>
     <string name="home_github_hint">Atvērtā koda lietotnes, ko instalē tieši no laidieniem</string>
@@ -785,4 +784,24 @@
     <string name="queue_awaiting_confirmation_hint">Ja logs aizvērās, parādiet to vēlreiz vai atceliet instalēšanu.</string>
     <string name="queue_awaiting_confirmation_cancel_hint">Ja logs aizvērās, atceliet un vēlreiz nospiediet «Instalēt».</string>
     <string name="queue_show_install_dialog">Rādīt logu</string>
+    <string name="category_vpn">VPN</string>
+    <string name="category_proxy">Starpniekserveri</string>
+    <string name="category_unblock">Bloķēšanas apiešana</string>
+    <string name="category_network">Tīkls</string>
+    <string name="category_privacy">Privātums</string>
+    <string name="category_messengers">Ziņojumapmaiņa</string>
+    <string name="category_media">Video</string>
+    <string name="category_music">Mūzika</string>
+    <string name="category_browsers">Pārlūki</string>
+    <string name="category_stores">Lietotņu veikali</string>
+    <string name="category_files">Faili</string>
+    <string name="category_backup">Dublēšana</string>
+    <string name="category_photos">Foto</string>
+    <string name="category_security">Drošība</string>
+    <string name="category_utilities">Rīki</string>
+    <string name="category_keyboards">Tastatūras</string>
+    <string name="category_torrents">Torenti</string>
+    <string name="category_reading">Lasīšana</string>
+    <string name="category_weather">Laikapstākļi</string>
+    <string name="category_learning">Mācības</string>
 </resources>

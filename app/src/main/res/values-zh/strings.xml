@@ -430,7 +430,6 @@
     <string name="github_all_releases">全部发布（%1$d）</string>
     <string name="github_catalog_section">GitHub Releases</string>
     <string name="github_catalog_hint">内置目录中的仓库，以及你添加的仓库</string>
-    <string name="github_curated_badge">内置</string>
     <string name="github_view_releases">查看发布</string>
     <string name="home_github_title">来自 GitHub</string>
     <string name="home_github_hint">开源应用，直接从发布页安装</string>
@@ -785,4 +784,24 @@
     <string name="queue_awaiting_confirmation_hint">如果窗口已关闭，可以重新显示或取消安装。</string>
     <string name="queue_awaiting_confirmation_cancel_hint">如果窗口已关闭，请取消后再次点击“安装”。</string>
     <string name="queue_show_install_dialog">显示窗口</string>
+    <string name="category_vpn">VPN</string>
+    <string name="category_proxy">代理</string>
+    <string name="category_unblock">绕过封锁</string>
+    <string name="category_network">网络</string>
+    <string name="category_privacy">隐私</string>
+    <string name="category_messengers">即时通讯</string>
+    <string name="category_media">视频</string>
+    <string name="category_music">音乐</string>
+    <string name="category_browsers">浏览器</string>
+    <string name="category_stores">应用商店</string>
+    <string name="category_files">文件</string>
+    <string name="category_backup">备份</string>
+    <string name="category_photos">照片</string>
+    <string name="category_security">安全</string>
+    <string name="category_utilities">工具</string>
+    <string name="category_keyboards">输入法</string>
+    <string name="category_torrents">种子下载</string>
+    <string name="category_reading">阅读</string>
+    <string name="category_weather">天气</string>
+    <string name="category_learning">学习</string>
 </resources>
