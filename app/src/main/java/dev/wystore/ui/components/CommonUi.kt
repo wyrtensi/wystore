@@ -89,9 +89,8 @@ fun RatingPill(rating: Double, count: Int?) {
 @Composable
 fun CategoryPill(category: String) {
     // A faint tag, as every secondary fact is now; the outlined box read as a button.
-    HubTag(
-        CategoryLabels.stringRes(category)?.let { stringResource(it) } ?: CategoryLabels.humanize(category)
-    )
+    val text = CategoryLabels.stringRes(category)?.let { stringResource(it) } ?: CategoryLabels.humanize(category)
+    HubTag(text, tint = sourceTint(text))
 }
 
 @Composable

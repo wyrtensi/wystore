@@ -272,7 +272,7 @@ private fun AppGroupRowContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     shownVersion?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
-                    source?.let { HubTag(it) }
+                    source?.let { HubTag(it, tint = sourceTint(it)) }
                     state.rating?.let {
                         Text(
                             "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it),

@@ -615,6 +615,22 @@ fun HubTag(text: String, modifier: Modifier = Modifier, tint: Color? = null) {
     )
 }
 
+/**
+ * The colour a source or an installer is told in, so "RuStore", "GitHub", "Wy Store" and "Google
+ * Play" can be told apart at a glance instead of being four grey words; null for anything else.
+ */
+@Composable
+fun sourceTint(name: String): Color? {
+    val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    return when (name.trim().lowercase()) {
+        "rustore" -> if (dark) Color(0xFF6CA8F5) else Color(0xFF1F5FB8)
+        "github" -> if (dark) Color(0xFFC59BF2) else Color(0xFF7440B8)
+        "wy store" -> MaterialTheme.colorScheme.primary
+        "google play", "play" -> if (dark) Color(0xFF6FCF97) else Color(0xFF1E7F48)
+        else -> null
+    }
+}
+
 @Composable
 private fun hairline(): BorderStroke? =
     if (LocalHubStyle.current) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null

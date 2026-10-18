@@ -127,7 +127,9 @@ fun LibraryAppRow(
                             shortVersionName(app.versionName) ?: app.versionName,
                             modifier = Modifier.weight(1f, fill = false)
                         )
-                        dev.wystore.ui.components.HubTag(installerShortLabel(app))
+                        installerShortLabel(app).let {
+                            dev.wystore.ui.components.HubTag(it, tint = dev.wystore.ui.components.sourceTint(it))
+                        }
                     }
                 }
                 Spacer(Modifier.width(8.dp))

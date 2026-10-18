@@ -53,7 +53,7 @@ fun sourceDisplayName(raw: String): String = when (raw.uppercase()) {
 fun SourceLabel(text: String, modifier: Modifier = Modifier) {
     // A faint tag, as every secondary fact is now. A source is a word; squeezed, the old badge
     // wrapped into a column of letters, and the tag keeps to one line.
-    HubTag(text, modifier)
+    HubTag(text, modifier, tint = sourceTint(text))
 }
 
 /**

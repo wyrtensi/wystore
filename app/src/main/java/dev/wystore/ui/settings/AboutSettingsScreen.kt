@@ -1,5 +1,14 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.color
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import dev.wystore.ui.components.HubPageHeader
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
@@ -117,57 +126,179 @@ fun AboutSettingsScreen(
                 .padding(start = ScreenPadding, end = ScreenPadding, top = 4.dp, bottom = 28.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(SectionSpacing)
         ) {
-            WyCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text("Wy Store", style = MaterialTheme.typography.titleMedium)
-                    // Says plainly what this is and what it is not: reading RuStore's catalogue
-                    // without saying so invites the assumption that RuStore stands behind it.
-                    Text(
-                        stringResource(R.string.about_independent),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            // Who this is and whether it is current, in one panel: the version and the check sat
+            // in two cards a screen apart, so "is mine the latest?" took scrolling to answer.
+            dev.wystore.ui.components.HubPanel {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    dev.wystore.ui.components.AppIcon(
+                        model = null,
+                        contentDescription = null,
+                        size = 56.dp,
+                        fallbackPackageName = context.packageName
                     )
-                    WyDivider()
-                    FactRow(stringResource(R.string.about_version), "$versionName ($versionCode)")
-                    FactRow(stringResource(R.string.about_source), SelfUpdateChecker.PROJECT_URL)
-                    WyDivider()
-                    FilledTonalButton(
-                        onClick = {
-                            runCatching {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, SelfUpdateChecker.PROJECT_URL.toUri())
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.about_source)) }
-                    FilledTonalButton(
-                        onClick = {
-                            runCatching {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, SelfUpdateChecker.DISCLAIMER_URL.toUri())
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.about_disclaimer_link)) }
-                    FilledTonalButton(
-                        onClick = {
-                            runCatching {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, SelfUpdateChecker.ISSUES_URL.toUri())
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.about_issues_link)) }
-                    WyDivider()
-                    // The answers to the first three questions anyone asks about a bug - which
-                    // Android, which device, is there root - plus what the queue actually did.
-                    // Collected on demand rather than kept: root has to be asked, not remembered.
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            "Wy Store",
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                            )
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            dev.wystore.ui.components.HubTag("$versionName ($versionCode)")
+                            dev.wystore.ui.components.HubTag("GitHub", tint = dev.wystore.ui.components.sourceTint("GitHub"))
+                        }
+                    }
+                }
+
+                // Wy Store updates through the same queue as every other app, so its own download
+                // was visible only on Updates and in the shade - not on the page the user pressed
+                // "check" on. The queue's state is shown here too.
+                val transfer = remember(queueItem, pendingUpdate, resources) {
+                    if (queueItem == null && pendingUpdate == null) {
+                        null
+                    } else {
+                        // A finished row stays in the queue, and the reducer has no catalogue entry
+                        // to fall back on here, so it reads a completed update as "not installed".
+                        // Only a run still in progress or waiting for the user says anything true.
+                        PackageUiStateReducer.reduce(
+                            queueItem = queueItem,
+                            pendingUpdate = pendingUpdate,
+                            resources = resources
+                        ).takeIf { it.status.code in QUEUE_STATES }
+                    }
+                }
+                val working = transfer != null &&
+                    transfer.primaryAction != PrimaryAction.Install &&
+                    transfer.primaryAction != PrimaryAction.Retry
+
+                Spacer(Modifier.height(4.dp))
+                if (transfer != null) {
+                    Text(
+                        text = StatusTextResolver.resolve(context, transfer.status),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = dev.wystore.ui.components.StatusTones.of(transfer.status.code).color()
+                            ?: MaterialTheme.colorScheme.onSurface
+                    )
+                    // A transfer whose size the server has not stated yet has neither a fraction
+                    // nor byte counts; an indeterminate bar is the honest answer while it lasts.
+                    if (transfer.progress != null ||
+                        transfer.transferInfo != null ||
+                        transfer.status.code == StatusCode.DOWNLOADING
+                    ) {
+                        TransferProgress(progress = transfer.progress, transferInfo = transfer.transferInfo)
+                    }
+                } else when (status) {
+                    SelfUpdateStatus.Checking -> Row(verticalAlignment = Alignment.CenterVertically) {
+                        WySpinner(size = 18.dp, strokeWidth = 2.dp)
+                        Spacer(Modifier.width(10.dp))
+                        Text(stringResource(R.string.about_checking), style = MaterialTheme.typography.bodyMedium)
+                    }
+                    SelfUpdateStatus.UpToDate -> Text(
+                        stringResource(R.string.about_up_to_date),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = dev.wystore.ui.components.StatusTone.READY.color() ?: MaterialTheme.colorScheme.onSurface
+                    )
+                    is SelfUpdateStatus.Available -> Text(
+                        stringResource(R.string.about_available, status.versionName),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    is SelfUpdateStatus.Failed -> Text(
+                        stringResource(R.string.about_failed, status.reason),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    SelfUpdateStatus.Idle -> Unit
+                }
+
+                // Downloaded and verified: the only step left is Android's own dialog.
+                if (transfer?.primaryAction == PrimaryAction.Install) {
+                    dev.wystore.ui.components.HubWideButton(
+                        text = stringResource(R.string.common_install),
+                        onClick = onInstallDownloaded,
+                        primary = true
+                    )
+                } else if (!working && status is SelfUpdateStatus.Available) {
+                    dev.wystore.ui.components.HubWideButton(
+                        text = stringResource(R.string.about_install),
+                        onClick = onInstall,
+                        primary = true
+                    )
+                }
+                // Changing your mind used to mean leaving for the Updates tab.
+                if (working && queueItem != null) {
+                    dev.wystore.ui.components.HubWideButton(
+                        text = stringResource(R.string.common_cancel),
+                        onClick = { onCancelDownload(queueItem.id) },
+                        chevron = false
+                    )
+                } else if (status != SelfUpdateStatus.Checking) {
+                    dev.wystore.ui.components.HubWideButton(
+                        text = stringResource(R.string.about_check),
+                        onClick = onCheck,
+                        chevron = false
+                    )
+                }
+                Text(
+                    stringResource(R.string.about_signature_note),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                WyDivider()
+                CompactSettingSwitch(
+                    label = stringResource(R.string.about_auto_title),
+                    checked = settings.selfUpdateEnabled
+                ) { onUpdateSettings(settings.copy(selfUpdateEnabled = it)) }
+                Text(
+                    stringResource(R.string.about_auto_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Says plainly what this is and what it is not: reading RuStore's catalogue without
+            // saying so invites the assumption that RuStore stands behind it.
+            dev.wystore.ui.components.HubNote(
+                text = stringResource(R.string.about_independent),
+                icon = Icons.Outlined.Info
+            )
+
+            // The links as one menu of rows, as the settings menu is, instead of three wide grey
+            // buttons stacked one on another.
+            WyCard(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    val open: (String) -> Unit = { url ->
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
+                    }
+                    AboutLinkRow(
+                        title = stringResource(R.string.about_source),
+                        subtitle = SelfUpdateChecker.PROJECT_URL.removePrefix("https://"),
+                        icon = Icons.Outlined.Home,
+                        tint = androidx.compose.ui.graphics.Color(0xFFC59BF2)
+                    ) { open(SelfUpdateChecker.PROJECT_URL) }
+                    WyDivider(modifier = Modifier.padding(start = 66.dp, end = 16.dp))
+                    AboutLinkRow(
+                        title = stringResource(R.string.about_disclaimer_link),
+                        subtitle = null,
+                        icon = Icons.Outlined.Info,
+                        tint = androidx.compose.ui.graphics.Color(0xFF6CC7F0)
+                    ) { open(SelfUpdateChecker.DISCLAIMER_URL) }
+                    WyDivider(modifier = Modifier.padding(start = 66.dp, end = 16.dp))
+                    AboutLinkRow(
+                        title = stringResource(R.string.about_issues_link),
+                        subtitle = null,
+                        icon = Icons.Outlined.Warning,
+                        tint = androidx.compose.ui.graphics.Color(0xFFF2C94C)
+                    ) { open(SelfUpdateChecker.ISSUES_URL) }
+                }
+            }
+
+            // The answers to the first three questions anyone asks about a bug - which Android,
+            // which device, is there root - plus what the queue actually did. Collected on demand
+            // rather than kept: root has to be asked, not remembered.
+            WyCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         stringResource(R.string.about_diagnostics_hint),
                         style = MaterialTheme.typography.bodySmall,
@@ -176,132 +307,53 @@ fun AboutSettingsScreen(
                     DiagnosticsButton()
                 }
             }
+        }
+    }
+}
 
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SectionHeader(
-                    title = stringResource(R.string.about_check),
-                    subtitle = stringResource(R.string.about_signature_note)
+/** One link of the About menu: a coloured glyph in a tile, its name, and a chevron. */
+@Composable
+private fun AboutLinkRow(
+    title: String,
+    subtitle: String?,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                .background(tint.copy(alpha = 0.14f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+        }
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            subtitle?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
-                WyCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // Wy Store updates through the same queue as every other app, so its own
-                        // download was visible only on Updates and in the shade — not on the page
-                        // the user pressed "check" on. The queue's state is shown here too.
-                        val transfer = remember(queueItem, pendingUpdate, resources) {
-                            if (queueItem == null && pendingUpdate == null) {
-                                null
-                            } else {
-                                // A finished row stays in the queue, and the reducer has no
-                                // catalogue entry to fall back on here, so it reads a completed
-                                // update as "not installed". Only a run still in progress or
-                                // waiting for the user says anything true on this page.
-                                PackageUiStateReducer.reduce(
-                                    queueItem = queueItem,
-                                    pendingUpdate = pendingUpdate,
-                                    resources = resources
-                                ).takeIf { it.status.code in QUEUE_STATES }
-                            }
-                        }
-                        val working = transfer != null &&
-                            transfer.primaryAction != PrimaryAction.Install &&
-                            transfer.primaryAction != PrimaryAction.Retry
-
-                        if (transfer != null) {
-                            Text(
-                                text = StatusTextResolver.resolve(context, transfer.status),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = when (transfer.status.code) {
-                                    StatusCode.FAILED_NETWORK,
-                                    StatusCode.FAILED_STORAGE,
-                                    StatusCode.FAILED_SIGNATURE,
-                                    StatusCode.FAILED_GENERIC -> MaterialTheme.colorScheme.error
-                                    else -> MaterialTheme.colorScheme.onSurface
-                                }
-                            )
-                            // A transfer whose size the server has not stated yet has neither a
-                            // fraction nor byte counts, and the card sat on "0%" with nothing
-                            // moving. An indeterminate bar is the honest answer while it lasts.
-                            if (transfer.progress != null ||
-                                transfer.transferInfo != null ||
-                                transfer.status.code == StatusCode.DOWNLOADING
-                            ) {
-                                TransferProgress(
-                                    progress = transfer.progress,
-                                    transferInfo = transfer.transferInfo
-                                )
-                            }
-                        } else when (status) {
-                            SelfUpdateStatus.Checking -> Row(verticalAlignment = Alignment.CenterVertically) {
-                                WySpinner(size = 18.dp, strokeWidth = 2.dp)
-                                Spacer(Modifier.width(10.dp))
-                                Text(
-                                    stringResource(R.string.about_checking),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                            SelfUpdateStatus.UpToDate -> Text(
-                                stringResource(R.string.about_up_to_date),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            is SelfUpdateStatus.Available -> Text(
-                                stringResource(R.string.about_available, status.versionName),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            is SelfUpdateStatus.Failed -> Text(
-                                stringResource(R.string.about_failed, status.reason),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                            SelfUpdateStatus.Idle -> Unit
-                        }
-
-                        // Downloaded and verified: the only step left is Android's own dialog.
-                        if (transfer?.primaryAction == PrimaryAction.Install) {
-                            Button(onClick = onInstallDownloaded, modifier = Modifier.fillMaxWidth()) {
-                                Text(stringResource(R.string.common_install))
-                            }
-                        } else if (!working && status is SelfUpdateStatus.Available) {
-                            Button(onClick = onInstall, modifier = Modifier.fillMaxWidth()) {
-                                Text(stringResource(R.string.about_install))
-                            }
-                        }
-                        // Changing your mind used to mean leaving for the Updates tab.
-                        if (working && queueItem != null) {
-                            FilledTonalButton(
-                                onClick = { onCancelDownload(queueItem.id) },
-                                modifier = Modifier.fillMaxWidth()
-                            ) { Text(stringResource(R.string.common_cancel)) }
-                        }
-                        FilledTonalButton(
-                            onClick = onCheck,
-                            enabled = status != SelfUpdateStatus.Checking && !working,
-                            modifier = Modifier.fillMaxWidth()
-                        ) { Text(stringResource(R.string.about_check)) }
-                    }
-                }
-            }
-
-            WyCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    CompactSettingSwitch(
-                        label = stringResource(R.string.about_auto_title),
-                        checked = settings.selfUpdateEnabled
-                    ) { onUpdateSettings(settings.copy(selfUpdateEnabled = it)) }
-                    Text(
-                        stringResource(R.string.about_auto_subtitle),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
         }
+        Icon(
+            Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -341,9 +393,9 @@ private fun DiagnosticsButton() {
     var notice by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
 
-    FilledTonalButton(
+    androidx.compose.material3.Button(
         onClick = {
-            if (busy) return@FilledTonalButton
+            if (busy) return@Button
             busy = true
             scope.launch {
                 notice = runCatching {
