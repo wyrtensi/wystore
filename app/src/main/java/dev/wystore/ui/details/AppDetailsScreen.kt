@@ -113,7 +113,9 @@ fun AppDetailsScreen(
     onReplace: () -> Unit,
     /** For an install waiting on Android's dialog off screen, by queue row. */
     onShowInstallDialog: (String) -> Unit = {},
-    onCancelInstall: (String) -> Unit = {}
+    onCancelInstall: (String) -> Unit = {},
+    /** Carries a paused download on, by queue row. */
+    onResume: (String) -> Unit = {}
 ) {
     var screenshotPreview by remember { mutableStateOf<String?>(null) }
     var shownReviews by remember(app.packageName) { mutableIntStateOf(REVIEW_PAGE) }
@@ -122,6 +124,9 @@ fun AppDetailsScreen(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val queueActive = queueItem?.status?.isInFlight == true
+    // A paused download is not running, so the page offered "Install" over it as though nothing had
+    // been fetched; the answer to a paused download is to carry it on.
+    val paused = queueItem?.takeIf { it.status == InstallQueueStatus.PAUSED && pendingUpdate == null }
     // Most of what the catalogue carries needs a newer Android than this app's own minimum, and
     // the page used to offer "Install" all the same: the download ran to the end and the source
     // refused it. The requirement is on the page, so the answer belongs there too.
@@ -133,6 +138,7 @@ fun AppDetailsScreen(
     val installLabel = stringResource(
         when {
             pendingUpdate != null -> if (installed == null) R.string.details_install_downloaded else R.string.common_update
+            paused != null -> R.string.common_resume
             queueActive -> R.string.queue_status_queued
             installed == null -> R.string.common_install
             canUpdate -> R.string.common_update
@@ -141,7 +147,11 @@ fun AppDetailsScreen(
     )
     val runInstall = {
         haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-        if (pendingUpdate != null) onInstallPending(pendingUpdate.packageName) else onInstall()
+        when {
+            pendingUpdate != null -> onInstallPending(pendingUpdate.packageName)
+            paused != null -> onResume(paused.id)
+            else -> onInstall()
+        }
     }
 
     Scaffold(topBar = {
@@ -229,7 +239,7 @@ fun AppDetailsScreen(
                     if (installed == null) {
                         Button(
                             onClick = runInstall,
-                            enabled = !busy && (canUpdate || pendingUpdate != null),
+                            enabled = !busy && (canUpdate || pendingUpdate != null || paused != null),
                             modifier = Modifier.fillMaxWidth()
                         ) { Text(installLabel) }
                     } else {
@@ -244,10 +254,10 @@ fun AppDetailsScreen(
                                 },
                                 modifier = Modifier.weight(1f)
                             ) { Text(stringResource(R.string.common_open)) }
-                            if (canUpdate || queueActive || pendingUpdate != null) {
+                            if (canUpdate || queueActive || pendingUpdate != null || paused != null) {
                                 Button(
                                     onClick = runInstall,
-                                    enabled = !busy && (canUpdate || pendingUpdate != null),
+                                    enabled = !busy && (canUpdate || pendingUpdate != null || paused != null),
                                     modifier = Modifier.weight(1f)
                                 ) { Text(installLabel) }
                             }

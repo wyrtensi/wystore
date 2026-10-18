@@ -260,7 +260,8 @@ fun WyStoreRoot(
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedInstalled,
                         onReplace = { selectedInstalled?.let { replaceDialog = it to selected } },
                         onShowInstallDialog = viewModel::showInstallDialogAgain,
-                        onCancelInstall = viewModel::cancelAwaitingInstall
+                        onCancelInstall = viewModel::cancelAwaitingInstall,
+                        onResume = viewModel::queueResume
                     )
                 } else when (destination) {
                     WyStoreDestination.Home -> dev.wystore.ui.home.HomeScreen(
