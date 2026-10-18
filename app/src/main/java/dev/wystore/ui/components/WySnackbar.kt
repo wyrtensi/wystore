@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -40,16 +41,38 @@ fun WySnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modifier) 
         // so the message reads as belonging to the bar rather than floating in the middle.
         modifier = modifier.padding(bottom = SnackbarBottomInset, start = 8.dp, end = 8.dp)
     ) { data ->
+        // The overload taking SnackbarData pads its own modifier by 12dp, so a border given to it
+        // was drawn round an empty margin with the snackbar inside it: two capsules, one in the
+        // other. This overload has no such margin, and lines up with the queue banner above it.
+        val action = data.visuals.actionLabel
         Snackbar(
-            snackbarData = data,
-            // A capsule with the hairline, as every floating thing in the Wy Hub look.
             modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp)),
+            action = action?.let { label ->
+                {
+                    androidx.compose.material3.TextButton(onClick = { data.performAction() }) {
+                        Text(label, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            },
+            dismissAction = if (data.visuals.withDismissAction) {
+                {
+                    androidx.compose.material3.IconButton(onClick = { data.dismiss() }) {
+                        androidx.compose.material3.Icon(
+                            androidx.compose.material.icons.Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.common_close)
+                        )
+                    }
+                }
+            } else {
+                null
+            },
             shape = RoundedCornerShape(24.dp),
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             contentColor = MaterialTheme.colorScheme.onSurface,
-            actionColor = MaterialTheme.colorScheme.primary,
             dismissActionContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        ) {
+            Text(data.visuals.message)
+        }
     }
 }
 
