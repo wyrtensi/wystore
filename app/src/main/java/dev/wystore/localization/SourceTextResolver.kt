@@ -56,6 +56,20 @@ object SourceTextResolver {
     fun describe(context: Context, throwable: Throwable?): String? = when {
         throwable == null -> null
         throwable is SourceFormatException -> resolve(context, throwable.error)
+        isConnectionFailure(throwable) -> context.getString(R.string.source_error_no_connection)
         else -> throwable.message
     }
+
+    /**
+     * The phone could not reach the server at all. Its own message is the JVM's - "Unable to
+     * resolve host "www.rustore.ru": No address associated with hostname" - which is what a search
+     * or a catalogue page used to show with the network off.
+     */
+    fun isConnectionFailure(throwable: Throwable): Boolean =
+        generateSequence(throwable) { it.cause }.take(8).any {
+            it is java.net.UnknownHostException ||
+                it is java.net.ConnectException ||
+                it is java.net.NoRouteToHostException ||
+                it is java.net.SocketTimeoutException
+        }
 }

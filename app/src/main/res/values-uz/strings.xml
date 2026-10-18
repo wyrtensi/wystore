@@ -824,4 +824,5 @@
     <string name="search_failed_title">RuStore’da qidirib boʻlmadi</string>
     <string name="library_frozen_short">Muzlatilgan</string>
     <string name="library_adopt_progress_title">Manbalar qidirilmoqda</string>
+    <string name="source_error_no_connection">Server bilan aloqa yoʻq. Tarmoqni tekshirib, qayta urinib koʻring.</string>
 </resources>

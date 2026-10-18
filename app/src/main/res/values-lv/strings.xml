@@ -824,4 +824,5 @@
     <string name="search_failed_title">Neizdevās meklēt RuStore</string>
     <string name="library_frozen_short">Iesaldēta</string>
     <string name="library_adopt_progress_title">Meklējam avotus</string>
+    <string name="source_error_no_connection">Nav savienojuma ar serveri. Pārbaudiet tīklu un mēģiniet vēlreiz.</string>
 </resources>

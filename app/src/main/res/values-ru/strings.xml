@@ -824,4 +824,5 @@
     <string name="search_failed_title">Не удалось выполнить поиск в RuStore</string>
     <string name="library_frozen_short">Заморожено</string>
     <string name="library_adopt_progress_title">Ищем источники</string>
+    <string name="source_error_no_connection">Нет связи с сервером. Проверьте сеть и повторите.</string>
 </resources>

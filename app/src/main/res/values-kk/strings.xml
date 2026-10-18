@@ -824,4 +824,5 @@
     <string name="search_failed_title">RuStore-да іздеу мүмкін болмады</string>
     <string name="library_frozen_short">Мұздатылған</string>
     <string name="library_adopt_progress_title">Дереккөздерді іздеп жатырмыз</string>
+    <string name="source_error_no_connection">Сервермен байланыс жоқ. Желіні тексеріп, қайталаңыз.</string>
 </resources>
