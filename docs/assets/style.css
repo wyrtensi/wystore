@@ -259,6 +259,31 @@ code {
   color: var(--paper);
 }
 
+/* The GitHub button: a pill before the language menu, the mark alone on a phone */
+
+.nav .gh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding-inline: 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--paper);
+  line-height: 1;
+}
+
+.nav .gh:hover,
+.nav .gh:focus-visible {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav .gh svg {
+  flex: none;
+}
+
 /*
  * The language menu. Seven names do not fit a phone's masthead in a row, so the current one stands
  * in the bar and the rest live one tap away in a native <details> - no script, and it still works
@@ -1020,4 +1045,26 @@ html:not(.js) .scene:first-child {
 
 html:not(.js) .masthead {
   position: static;
+}
+
+@media (max-width: 560px) {
+  .nav {
+    gap: 14px;
+  }
+
+  .nav .gh {
+    width: 32px;
+    padding-inline: 0;
+    justify-content: center;
+  }
+
+  .nav .gh-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
