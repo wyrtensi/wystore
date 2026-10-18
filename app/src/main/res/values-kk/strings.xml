@@ -402,7 +402,6 @@
     <string name="vm_signature_read_failed">Орнатылған қолданбаның қолтаңбасын оқу мүмкін болмады</string>
     <string name="vm_autoupdate_off">%1$s үшін автожаңарту өшірулі — тексерулер оның жаңартуын жүктеп те, орнатып та бермейді</string>
     <string name="vm_check_already_running">Жаңартуды тексеру қазір орындалуда</string>
-    <string name="vm_no_github_repo">Бұл қолданбаға GitHub репозиторийі байланыстырылмаған</string>
     <string name="vm_queued_app">%1$s кезекке қосылды</string>
     <string name="vm_queued_generic">Қолданба кезекке қосылды</string>
     <string name="vm_no_launch_activity">Бұл қолданбаның іске қосылатын әрекеті жоқ</string>
@@ -804,4 +803,7 @@
     <string name="category_reading">Оқу</string>
     <string name="category_weather">Ауа райы</string>
     <string name="category_learning">Білім</string>
+    <string name="whats_new_version">%1$s нұсқасы</string>
+    <string name="whats_new_empty">Дереккөз бұл нұсқада не жаңа екенін жазбаған.</string>
+    <string name="whats_new_failed">Не жаңа екенін жүктеу мүмкін болмады. Қосылымды тексеріп, қайталап көріңіз.</string>
 </resources>

@@ -110,6 +110,7 @@ fun LibraryScreen(
     onUninstall: (InstalledApp) -> Unit,
     onCheck: (ManagedApp) -> Unit,
     onOpenDetails: (ManagedApp) -> Unit,
+    onWhatsNew: (ManagedApp) -> Unit = {},
     onOpenStorePage: (String) -> Unit,
     onLaunch: (String) -> Unit,
     onInstallPending: (String) -> Unit,
@@ -395,6 +396,7 @@ fun LibraryScreen(
                         selected = if (selecting) app.packageName in selectedPackages else null,
                         missingFromSource = app.packageName in missingFromSource,
                         onToggleSelected = toggle,
+                        onWhatsNew = onWhatsNew,
                         // A long press on an app not accepted yet starts choosing several at once.
                         onStartSelection = if (managedApp == null && !selecting && adoptionBatch == null) {
                             {

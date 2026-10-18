@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,6 +45,7 @@ import dev.wystore.InstallQueueStatus
 import dev.wystore.rowFor
 import dev.wystore.UpdateCheckTask
 import dev.wystore.data.CheckProblemReason
+import dev.wystore.data.GitHubRepository
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.PendingUpdate
@@ -103,7 +105,14 @@ fun UpdatesScreen(
     onStartQueue: () -> Unit = {},
     /** Brings back Android's dialog for an install waiting on it off screen. */
     onShowInstallDialog: (String) -> Unit = {},
-    onCancelAwaitingInstall: (String) -> Unit = {}
+    onCancelAwaitingInstall: (String) -> Unit = {},
+    /**
+     * Opens the page of a queued or downloaded app: package, name and the repository a GitHub row
+     * names, since such a row's package is a placeholder until its file is verified.
+     */
+    onOpenAppPage: (String, String, GitHubRepository?) -> Unit = { _, _, _ -> },
+    /** Shows the source's notes for the version waiting here; same arguments as [onOpenAppPage]. */
+    onWhatsNew: (String, String, GitHubRepository?) -> Unit = { _, _, _ -> }
 ) {
     val installedByPackage = remember(installed) { installed.associateBy { it.packageName } }
     val orderedManaged = remember(managed, installedByPackage) {
@@ -212,7 +221,9 @@ fun UpdatesScreen(
                         onPause = { onQueuePause(item.id) },
                         onResume = { onQueueResume(item.id) },
                         onShowInstallDialog = { onShowInstallDialog(item.id) },
-                        onCancelAwaitingInstall = { onCancelAwaitingInstall(item.id) }
+                        onCancelAwaitingInstall = { onCancelAwaitingInstall(item.id) },
+                        onOpen = { onOpenAppPage(item.packageName, item.label, item.githubRepository) },
+                        onWhatsNew = { onWhatsNew(item.packageName, item.label, item.githubRepository) }
                     )
                 }
             }
@@ -237,7 +248,9 @@ fun UpdatesScreen(
                         installing = queue.rowFor(pending.packageName)?.status == InstallQueueStatus.INSTALLING,
                         iconUrl = packageIcons[pending.packageName],
                         onInstallPending = onInstallPending,
-                        onDiscardPending = onDiscardPending
+                        onDiscardPending = onDiscardPending,
+                        onOpen = { onOpenAppPage(pending.packageName, pending.label, pending.githubRepository) },
+                        onWhatsNew = { onWhatsNew(pending.packageName, pending.label, pending.githubRepository) }
                     )
                 }
             }
@@ -285,12 +298,16 @@ fun PendingUpdateCard(
     /** Already being handed to Android or installed by it, so Install is not offered again. */
     installing: Boolean = false,
     onInstallPending: (String) -> Unit,
-    onDiscardPending: (String) -> Unit = {}
+    onDiscardPending: (String) -> Unit = {},
+    /** The app's page. A downloaded update could not be tapped through to it, nor to its notes. */
+    onOpen: () -> Unit = {},
+    onWhatsNew: (() -> Unit)? = null
 ) {
     val onContainer = MaterialTheme.colorScheme.onPrimaryContainer
     WyCard(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.primaryContainer
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        onClick = onOpen
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -324,6 +341,22 @@ fun PendingUpdateCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                // Under the version it is about, and as quiet as the line above: the install
+                // button is the card's action, this only answers what the install brings.
+                onWhatsNew?.let { showNotes ->
+                    TextButton(
+                        onClick = showNotes,
+                        modifier = Modifier.height(32.dp),
+                        contentPadding = PaddingValues(horizontal = 0.dp),
+                        colors = ButtonDefaults.textButtonColors(contentColor = onContainer)
+                    ) {
+                        Text(
+                            stringResource(R.string.details_changelog),
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1
+                        )
+                    }
+                }
             }
             Spacer(Modifier.width(10.dp))
             Button(
@@ -454,7 +487,10 @@ fun QueueItemCard(
     onPause: () -> Unit = {},
     onResume: () -> Unit = {},
     onShowInstallDialog: () -> Unit = {},
-    onCancelAwaitingInstall: () -> Unit = {}
+    onCancelAwaitingInstall: () -> Unit = {},
+    /** The app's page: a row in the queue had no way to it, and so no way to its notes either. */
+    onOpen: () -> Unit = {},
+    onWhatsNew: (() -> Unit)? = null
 ) {
     val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED
     val failed = item.status == InstallQueueStatus.FAILED
@@ -476,7 +512,8 @@ fun QueueItemCard(
             MaterialTheme.colorScheme.errorContainer
         } else {
             MaterialTheme.colorScheme.surfaceContainerHigh
-        }
+        },
+        onClick = onOpen
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -527,6 +564,18 @@ fun QueueItemCard(
                         MaterialTheme.colorScheme.onSurfaceVariant
                     }
                 )
+                // On the status line rather than among the actions below, which already hold two
+                // buttons and would not fit a third on a compact phone. Not on a failed row: its line
+                // is the reason for the failure, which needs the width, and its page is a tap away.
+                if (onWhatsNew != null && !failed) {
+                    TextButton(onClick = onWhatsNew) {
+                        Text(
+                            stringResource(R.string.details_changelog),
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1
+                        )
+                    }
+                }
                 // The reasons, reachable without pressing the button that answers the question.
                 if (unconfirmed) {
                     IconButton(onClick = onConfirmUnverifiedSource) {

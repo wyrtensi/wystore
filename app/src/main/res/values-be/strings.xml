@@ -402,7 +402,6 @@
     <string name="vm_signature_read_failed">Не ўдалося прачытаць подпіс усталяванай праграмы</string>
     <string name="vm_autoupdate_off">Аўтаабнаўленне для %1$s выключана — праверкі не будуць спампоўваць ці ўсталёўваць яе абнаўленні</string>
     <string name="vm_check_already_running">Праверка абнаўленняў ужо выконваецца</string>
-    <string name="vm_no_github_repo">Да гэтай праграмы не прывязаны рэпазіторый GitHub</string>
     <string name="vm_queued_app">%1$s дададзена ў чаргу</string>
     <string name="vm_queued_generic">Праграма дададзена ў чаргу</string>
     <string name="vm_no_launch_activity">У гэтай праграмы няма актыўнасці для запуску</string>
@@ -804,4 +803,7 @@
     <string name="category_reading">Чытанне</string>
     <string name="category_weather">Надвор\'е</string>
     <string name="category_learning">Вучоба</string>
+    <string name="whats_new_version">Версія %1$s</string>
+    <string name="whats_new_empty">Крыніца не напісала, што новага ў гэтай версіі.</string>
+    <string name="whats_new_failed">Не ўдалося загрузіць, што новага. Праверце падключэнне і паспрабуйце яшчэ раз.</string>
 </resources>

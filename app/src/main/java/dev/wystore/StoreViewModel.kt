@@ -7,6 +7,8 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import dev.wystore.data.AppPage
+import dev.wystore.data.AppPages
 import dev.wystore.data.DownloadProgress
 import dev.wystore.data.GitHubAsset
 import dev.wystore.data.GitHubCatalog
@@ -270,6 +272,26 @@ data class AdoptionPrompt(
     val waiting: Int = 0
 )
 
+/**
+ * The "what's new" window for one app: the source's notes for the version it offers.
+ *
+ * Only the app page showed them, and an app whose update was waiting in the queue or already
+ * downloaded could not be opened from there, so the notes could not be reached at the moment they
+ * matter - before installing.
+ */
+data class WhatsNewPrompt(
+    val packageName: String,
+    val label: String,
+    val githubRepository: GitHubRepository? = null,
+    val loading: Boolean = true,
+    val versionName: String? = null,
+    val publishedAt: String? = null,
+    val notes: String? = null,
+    /** GitHub release notes are Markdown; RuStore's are plain text. */
+    val markdown: Boolean = false,
+    val error: String? = null
+)
+
 /** Several apps being accepted at once: how far the lookups have got. */
 data class AdoptionBatch(val checked: Int, val total: Int)
 
@@ -318,6 +340,7 @@ data class StoreUiState(
      * the app page, the library and the queue, and the question is the same one everywhere.
      */
     val unverifiedSource: UnverifiedSourcePrompt? = null,
+    val whatsNew: WhatsNewPrompt? = null,
     val installAllRemaining: List<String> = emptyList(),
     /** The app whose confirmation dialog is up, if the queue is working through a batch. */
     val installAllCurrent: String? = null,
@@ -1850,30 +1873,90 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         checkForUpdates(app.packageName)
     }
 
-    fun openManagedGitHubRepository(app: ManagedApp) {
-        val repositorySource = app.githubRepository
-        if (app.source != dev.wystore.data.ManagedSource.GITHUB || repositorySource == null) {
-            _state.update { it.copy(message = string(R.string.vm_no_github_repo)) }
-            return
+    /**
+     * Opens the page of an app from a list row: its catalogue page, or its repository's page.
+     *
+     * A GitHub app used to set the repository the GitHub tab lists without going there, so on the
+     * phone a tap on such a row did nothing visible; queue and download cards opened nothing at
+     * all. See [AppPages].
+     */
+    fun openAppPage(packageName: String, label: String = "", githubRepository: GitHubRepository? = null) {
+        val managed = _state.value.managed.firstOrNull { it.packageName == packageName }
+        when (val page = AppPages.resolve(packageName, label, githubRepository, managed, _state.value.githubRepositories)) {
+            is AppPage.Store -> openDetails(page.packageName)
+            is AppPage.GitHub -> openGitHubApp(page.entry)
         }
+    }
+
+    /**
+     * Shows the source's notes for the version it offers, without leaving the list.
+     *
+     * RuStore's come from the app page the catalogue already caches for the session; a GitHub
+     * app's from the release that is downloaded, or else the one an update would install.
+     */
+    fun showWhatsNew(packageName: String, label: String = "", githubRepository: GitHubRepository? = null) {
+        val managed = _state.value.managed.firstOrNull { it.packageName == packageName }
+        val page = AppPages.resolve(packageName, label, githubRepository, managed, _state.value.githubRepositories)
+        val repository = (page as? AppPage.GitHub)?.entry?.repository
+        val prompt = WhatsNewPrompt(
+            packageName = packageName,
+            label = label.ifBlank { managed?.label.orEmpty() }.ifBlank { packageName },
+            githubRepository = repository
+        )
+        _state.update { it.copy(whatsNew = prompt) }
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    githubActiveRepository = repositorySource,
-                    githubLoading = true,
-                    githubReleases = emptyList(),
-                    githubSelectedRelease = null,
-                    message = null
+            val loaded = runCatching {
+                when (page) {
+                    is AppPage.Store -> catalogRepository.details(page.packageName).changelog.let { changelog ->
+                        prompt.copy(
+                            loading = false,
+                            versionName = changelog?.versionName,
+                            publishedAt = changelog?.publishedAt,
+                            notes = changelog?.notes?.takeIf { it.isNotBlank() }
+                        )
+                    }
+                    is AppPage.GitHub -> {
+                        val downloaded = _state.value.pendingUpdates.firstOrNull {
+                            it.githubRepository == page.entry.repository || it.packageName == packageName
+                        }?.githubReleaseId
+                        val release = AppPages.releaseForNotes(
+                            githubSource.releases(page.entry.repository),
+                            downloadedReleaseId = downloaded,
+                            assetPattern = page.entry.assetPattern()
+                        )
+                        prompt.copy(
+                            loading = false,
+                            versionName = release?.tagName?.let(AppPages::versionOfTag),
+                            publishedAt = release?.publishedAt?.substringBefore("T"),
+                            notes = release?.description?.takeIf { it.isNotBlank() },
+                            markdown = true
+                        )
+                    }
+                }
+            }.getOrElse { error ->
+                prompt.copy(
+                    loading = false,
+                    error = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.whats_new_failed)
                 )
             }
-            runCatching { githubSource.releases(repositorySource) }
-                .onSuccess { releases ->
-                    _state.update { it.copy(githubLoading = false, githubReleases = releases) }
-                }
-                .onFailure { error ->
-                    _state.update { it.copy(githubLoading = false, message = error.message ?: string(R.string.vm_github_releases_failed)) }
-                }
+            // Only into the window it was asked for: closed, or opened for another app meanwhile,
+            // it is not this one any more.
+            _state.update { state ->
+                if (state.whatsNew?.packageName == packageName && state.whatsNew.loading) state.copy(whatsNew = loaded)
+                else state
+            }
         }
+    }
+
+    fun dismissWhatsNew() {
+        _state.update { it.copy(whatsNew = null) }
+    }
+
+    /** From the "what's new" window to the app's whole page. */
+    fun openWhatsNewPage() {
+        val prompt = _state.value.whatsNew ?: return
+        dismissWhatsNew()
+        openAppPage(prompt.packageName, prompt.label, prompt.githubRepository)
     }
 
     fun installSelected() {

@@ -402,7 +402,6 @@
     <string name="vm_signature_read_failed">Не вдалося прочитати підпис встановленого застосунку</string>
     <string name="vm_autoupdate_off">Автооновлення для %1$s вимкнено — перевірка не завантажуватиме і не встановлюватиме його оновлення</string>
     <string name="vm_check_already_running">Перевірка оновлень уже виконується</string>
-    <string name="vm_no_github_repo">До цього застосунку не прив\'язано репозиторій GitHub</string>
     <string name="vm_queued_app">%1$s додано в чергу</string>
     <string name="vm_queued_generic">Застосунок додано в чергу</string>
     <string name="vm_no_launch_activity">У цього застосунку немає активності для запуску</string>
@@ -804,4 +803,7 @@
     <string name="category_reading">Читання</string>
     <string name="category_weather">Погода</string>
     <string name="category_learning">Навчання</string>
+    <string name="whats_new_version">Версія %1$s</string>
+    <string name="whats_new_empty">Джерело не написало, що нового в цій версії.</string>
+    <string name="whats_new_failed">Не вдалося завантажити, що нового. Перевірте підключення і спробуйте ще раз.</string>
 </resources>

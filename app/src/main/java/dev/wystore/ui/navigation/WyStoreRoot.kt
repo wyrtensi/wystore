@@ -384,13 +384,7 @@ fun WyStoreRoot(
                         ),
                         onCheckUpdates = { viewModel.checkForUpdates() },
                         onUpdateAll = { viewModel.updateAll() },
-                        onOpen = { managedApp ->
-                            if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
-                                viewModel.openManagedGitHubRepository(managedApp)
-                            } else {
-                                viewModel.openDetails(managedApp.packageName)
-                            }
-                        },
+                        onOpen = { managedApp -> viewModel.openAppPage(managedApp.packageName, managedApp.label) },
                         onInstallPending = onInstallPending,
                         onDiscardPending = viewModel::discardPendingUpdate,
                         onQueueRetry = viewModel::queueRetry,
@@ -406,7 +400,9 @@ fun WyStoreRoot(
                         onQueueResume = viewModel::queueResume,
                         onStartQueue = viewModel::startQueue,
                         onShowInstallDialog = viewModel::showInstallDialogAgain,
-                        onCancelAwaitingInstall = viewModel::cancelAwaitingInstall
+                        onCancelAwaitingInstall = viewModel::cancelAwaitingInstall,
+                        onOpenAppPage = viewModel::openAppPage,
+                        onWhatsNew = viewModel::showWhatsNew
                     )
                     WyStoreDestination.Categories -> dev.wystore.ui.home.AllCategoriesScreen(
                         modifier = screenModifier,
@@ -447,13 +443,8 @@ fun WyStoreRoot(
                         onCheck = viewModel::checkManagedApp,
                         queue = state.installQueue,
                         onDownloadUpdate = viewModel::queueDownload,
-                        onOpenDetails = { managedApp ->
-                            if (managedApp.source == dev.wystore.data.ManagedSource.GITHUB) {
-                                viewModel.openManagedGitHubRepository(managedApp)
-                            } else {
-                                viewModel.openDetails(managedApp.packageName)
-                            }
-                        },
+                        onOpenDetails = { managedApp -> viewModel.openAppPage(managedApp.packageName, managedApp.label) },
+                        onWhatsNew = { managedApp -> viewModel.showWhatsNew(managedApp.packageName, managedApp.label) },
                         onLaunch = viewModel::launchInstalledApp,
                         onInstallPending = onInstallPending
                     )

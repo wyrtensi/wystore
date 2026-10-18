@@ -82,7 +82,9 @@ fun LibraryAppRow(
     /** RuStore has said it does not carry this package. */
     missingFromSource: Boolean = false,
     onToggleSelected: () -> Unit = {},
-    onStartSelection: (() -> Unit)? = null
+    onStartSelection: (() -> Unit)? = null,
+    /** The source's notes for the version it offers, without opening the page. */
+    onWhatsNew: (ManagedApp) -> Unit = {}
 ) {
     val selectable = selected != null && managed == null
     WyCard(
@@ -285,6 +287,9 @@ fun LibraryAppRow(
                 } else {
                     TextButton(onClick = { onOpenDetails(managed) }) {
                         Text(stringResource(R.string.library_open_page))
+                    }
+                    TextButton(onClick = { onWhatsNew(managed) }) {
+                        Text(stringResource(R.string.details_changelog))
                     }
                     if (available != null) {
                         TextButton(onClick = { onDownloadUpdate(available.id) }) {

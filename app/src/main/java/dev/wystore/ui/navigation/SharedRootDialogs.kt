@@ -25,6 +25,7 @@ import dev.wystore.StoreUiState
 import dev.wystore.StoreViewModel
 import dev.wystore.ui.components.SourceFailureDialog
 import dev.wystore.ui.components.UnverifiedSourceDialog
+import dev.wystore.ui.components.WhatsNewDialog
 import dev.wystore.updates.UserConfirmedInstaller
 
 /**
@@ -62,6 +63,15 @@ fun SharedRootDialogs(
             isUpdate = state.installed.any { it.packageName == prompt.packageName },
             onConfirm = viewModel::confirmUnverifiedSource,
             onDismiss = viewModel::dismissUnverifiedSource
+        )
+    }
+
+    // Raised from the queue, the downloads and My apps, and the same window on every one of them.
+    state.whatsNew?.let { prompt ->
+        WhatsNewDialog(
+            prompt = prompt,
+            onOpenPage = viewModel::openWhatsNewPage,
+            onDismiss = viewModel::dismissWhatsNew
         )
     }
 

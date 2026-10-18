@@ -65,7 +65,6 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import dev.wystore.R
 import dev.wystore.StoreViewModel
-import dev.wystore.data.ManagedSource
 import dev.wystore.data.GitHubAsset
 import androidx.compose.foundation.lazy.rememberLazyListState
 import dev.wystore.data.GitHubCatalog
@@ -390,22 +389,8 @@ fun TvApp(
                                 onCancel = viewModel::queueCancel,
                                 onOpenManaged = { app ->
                                     lastOpened = app.packageName
-                                    val repository = app.githubRepository
-                                    if (app.source == ManagedSource.GITHUB && repository != null) {
-                                        // The GitHub page, as from Home: a repository added by hand
-                                        // has no catalogue entry, so one is made from the record.
-                                        viewModel.openGitHubApp(
-                                            GitHubCatalog.entries(state.githubRepositories).firstOrNull { it.repository == repository }
-                                                ?: GitHubCatalogEntry(
-                                                    repository = repository,
-                                                    title = app.label.ifBlank { repository.name },
-                                                    publisher = repository.owner,
-                                                    summary = ""
-                                                )
-                                        )
-                                    } else {
-                                        viewModel.openDetails(app.packageName)
-                                    }
+                                    // The GitHub page, as from Home, or the catalogue page.
+                                    viewModel.openAppPage(app.packageName, app.label)
                                 }
                             )
                             // The phone's settings, as they are: every option stays reachable on a

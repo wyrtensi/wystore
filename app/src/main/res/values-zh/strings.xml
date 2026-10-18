@@ -402,7 +402,6 @@
     <string name="vm_signature_read_failed">无法读取已安装应用的签名</string>
     <string name="vm_autoupdate_off">%1$s 的自动更新已关闭——检查不会下载或安装它的更新</string>
     <string name="vm_check_already_running">更新检查已在进行中</string>
-    <string name="vm_no_github_repo">该应用没有关联的 GitHub 仓库</string>
     <string name="vm_queued_app">%1$s 已加入队列</string>
     <string name="vm_queued_generic">应用已加入队列</string>
     <string name="vm_no_launch_activity">该应用没有可启动的活动</string>
@@ -804,4 +803,7 @@
     <string name="category_reading">阅读</string>
     <string name="category_weather">天气</string>
     <string name="category_learning">学习</string>
+    <string name="whats_new_version">版本 %1$s</string>
+    <string name="whats_new_empty">来源没有说明此版本的更新内容。</string>
+    <string name="whats_new_failed">无法加载更新内容。请检查网络连接后重试。</string>
 </resources>
