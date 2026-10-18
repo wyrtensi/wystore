@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubPageHeader
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Refresh
@@ -521,12 +522,12 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding())
+                .padding(top = contentPadding.calculateTopPadding()).fadingTopEdge()
                 .verticalScroll(rememberScrollState())
                 .padding(
                     start = ScreenPadding,
                     end = ScreenPadding,
-                    top = 4.dp,
+                    top = 20.dp,
                     bottom = 28.dp + LocalBottomBarInset.current
                 ),
             verticalArrangement = Arrangement.spacedBy(SectionSpacing)
@@ -764,9 +765,9 @@ private fun SettingsSubPage(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding())
+                .padding(top = contentPadding.calculateTopPadding()).fadingTopEdge()
                 .verticalScroll(rememberScrollState())
-                .padding(start = ScreenPadding, end = ScreenPadding, top = 8.dp, bottom = 28.dp + LocalBottomBarInset.current),
+                .padding(start = ScreenPadding, end = ScreenPadding, top = 20.dp, bottom = 28.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(SectionSpacing),
             content = content
         )

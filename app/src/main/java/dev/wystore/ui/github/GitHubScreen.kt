@@ -1,5 +1,6 @@
 package dev.wystore.ui.github
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubHeader
 import dev.wystore.ui.components.HubTextAction
@@ -102,11 +103,11 @@ fun GitHubScreen(
         }
     ) { contentPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
+            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()).fadingTopEdge(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 4.dp,
+                top = 20.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)

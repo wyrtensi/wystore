@@ -1,5 +1,6 @@
 package dev.wystore.ui.home
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubPageHeader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -87,11 +88,11 @@ fun AllCategoriesScreen(
             columns = GridCells.Fixed(2),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding()),
+                .padding(top = contentPadding.calculateTopPadding()).fadingTopEdge(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 4.dp,
+                top = 20.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
             ),
             horizontalArrangement = Arrangement.spacedBy(10.dp),

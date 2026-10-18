@@ -197,7 +197,11 @@ fun WyStoreRoot(
             // strip of background underneath.
             val screenModifier = Modifier.fillMaxSize()
             CompositionLocalProvider(
-                LocalBottomBarInset provides padding.calculateBottomPadding(),
+                // The install banner stays up for as long as Android is asked one dialog after
+                // another, and it sat over the last rows of every list; while it is up, the lists
+                // leave it room as they do for the bar.
+                LocalBottomBarInset provides padding.calculateBottomPadding() +
+                    if (state.installAllCurrent != null || state.installAllRemaining.isNotEmpty()) 60.dp else 0.dp,
                 LocalAppUninstaller provides viewModel::uninstall
             ) {
                 if (githubApp.entry != null && githubSelectedRelease == null) {

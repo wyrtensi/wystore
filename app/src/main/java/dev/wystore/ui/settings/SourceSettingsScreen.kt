@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.fadingTopEdge
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.foundation.clickable
 import dev.wystore.ui.components.HubPageHeader
@@ -65,9 +66,9 @@ fun SourceSettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding())
+                .padding(top = contentPadding.calculateTopPadding()).fadingTopEdge()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + LocalBottomBarInset.current),
+                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 16.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // A panel per source, each named by its own coloured tag.

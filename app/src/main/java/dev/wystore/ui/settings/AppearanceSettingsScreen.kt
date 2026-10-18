@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.WyDivider
 import dev.wystore.settings.AccentPreset
 import androidx.compose.material.icons.outlined.Check
@@ -84,9 +85,9 @@ fun AppearanceSettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding())
+                .padding(top = contentPadding.calculateTopPadding()).fadingTopEdge()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + LocalBottomBarInset.current),
+                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 16.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // One panel per question, as the concept groups its settings.

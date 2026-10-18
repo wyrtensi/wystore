@@ -1,5 +1,6 @@
 package dev.wystore.ui.search
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubTextAction
 import androidx.compose.foundation.border
@@ -141,11 +142,12 @@ fun SearchScreen(
     // long list of them has the whole screen.
     Column(modifier = modifier.fillMaxSize().statusBarsPadding()) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            // Shelves scrolled up under the status bar dissolve rather than end on a cut.
+            modifier = Modifier.fillMaxSize().fadingTopEdge(12.dp),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 0.dp,
+                top = 6.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
             )
         ) {

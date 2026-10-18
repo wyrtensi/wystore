@@ -188,7 +188,7 @@ fun AppDetailsScreen(
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 16.dp,
+                top = 20.dp,
                 bottom = 28.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(18.dp)

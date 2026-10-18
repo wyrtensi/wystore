@@ -1,5 +1,7 @@
 package dev.wystore.ui.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,7 +42,9 @@ fun WySnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modifier) 
     ) { data ->
         Snackbar(
             snackbarData = data,
-            shape = MaterialTheme.shapes.large,
+            // A capsule with the hairline, as every floating thing in the Wy Hub look.
+            modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp)),
+            shape = RoundedCornerShape(24.dp),
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             contentColor = MaterialTheme.colorScheme.onSurface,
             actionColor = MaterialTheme.colorScheme.primary,
@@ -67,9 +71,10 @@ fun InstallQueueBanner(
         modifier = modifier
             .padding(bottom = SnackbarBottomInset, start = 8.dp, end = 8.dp)
             .fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
+        shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        contentColor = MaterialTheme.colorScheme.onSurface
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),

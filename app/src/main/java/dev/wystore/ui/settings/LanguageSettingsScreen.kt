@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubPageHeader
 import androidx.compose.foundation.layout.Arrangement
@@ -56,9 +57,9 @@ fun LanguageSettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding())
+                .padding(top = contentPadding.calculateTopPadding()).fadingTopEdge()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + LocalBottomBarInset.current),
+                .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 16.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(stringResource(R.string.language_pick), style = MaterialTheme.typography.titleMedium)

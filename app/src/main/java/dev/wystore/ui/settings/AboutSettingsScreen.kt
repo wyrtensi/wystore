@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.color
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Warning
@@ -121,9 +122,9 @@ fun AboutSettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding())
+                .padding(top = contentPadding.calculateTopPadding()).fadingTopEdge()
                 .verticalScroll(rememberScrollState())
-                .padding(start = ScreenPadding, end = ScreenPadding, top = 4.dp, bottom = 28.dp + LocalBottomBarInset.current),
+                .padding(start = ScreenPadding, end = ScreenPadding, top = 20.dp, bottom = 28.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(SectionSpacing)
         ) {
             // Who this is and whether it is current, in one panel: the version and the check sat

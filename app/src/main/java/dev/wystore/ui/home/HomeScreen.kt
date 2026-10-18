@@ -1,5 +1,6 @@
 package dev.wystore.ui.home
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.bleedToScreenEdges
 import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
@@ -100,11 +101,12 @@ fun HomeScreen(
     // the clock and the icons.
     Column(modifier = modifier.fillMaxSize().statusBarsPadding()) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            // Shelves scrolled up under the status bar dissolve rather than end on a cut.
+            modifier = Modifier.fillMaxSize().fadingTopEdge(12.dp),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 0.dp,
+                top = 6.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
             )
         ) {
