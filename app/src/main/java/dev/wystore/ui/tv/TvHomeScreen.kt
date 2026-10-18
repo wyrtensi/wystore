@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.ui.components.color
 import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -184,7 +185,10 @@ fun TvHomeScreen(
                 Text(
                     stringResource(R.string.home_catalog_stale),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    // In the "paused" yellow, as the phone's note: in grey across a TV room it was
+                    // easy to take for a subtitle.
+                    color = dev.wystore.ui.components.StatusTone.PAUSED.color()
+                        ?: MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
             }

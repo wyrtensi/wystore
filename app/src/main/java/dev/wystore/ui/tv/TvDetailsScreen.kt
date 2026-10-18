@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.ui.components.color
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
@@ -137,7 +138,13 @@ fun TvDetailsScreen(
                                     Text(app.publisher, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    TvBadge(stringResource(R.string.source_rustore))
+                                    // The source in its own colour, as on the phone's tags.
+                                    val rustore = dev.wystore.ui.components.sourceTint("RuStore")
+                                    TvBadge(
+                                        stringResource(R.string.source_rustore),
+                                        container = rustore?.copy(alpha = 0.16f) ?: MaterialTheme.colorScheme.secondaryContainer,
+                                        content = rustore ?: MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
                                     if (forPhone) {
                                         TvBadge(
                                             stringResource(R.string.tv_badge_phone),
@@ -151,7 +158,10 @@ fun TvDetailsScreen(
                         Text(
                             tvStatusText(context, state.status),
                             style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary
+                            // Every state was in the accent, so "Not installed" looked like the
+                            // thing to act on; it is told in the tone the phone uses for it.
+                            color = dev.wystore.ui.components.StatusTones.of(state.status.code).color()
+                                ?: MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             if (primaryLabel != null) {

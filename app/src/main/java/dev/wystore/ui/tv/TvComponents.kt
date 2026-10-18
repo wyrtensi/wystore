@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.ui.components.color
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
@@ -273,7 +274,10 @@ fun TvAppCard(
                 Text(
                     text = status,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    // "Installed" and "Ready to install" were the same accent; the phone's tones
+                    // tell done from waiting.
+                    color = state?.status?.code?.let { dev.wystore.ui.components.StatusTones.of(it).color() }
+                        ?: MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
