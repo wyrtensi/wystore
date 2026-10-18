@@ -806,4 +806,7 @@
     <string name="whats_new_empty">Manba bu versiyada nima yangiligini yozmagan.</string>
     <string name="whats_new_failed">Nima yangiligini yuklab boʻlmadi. Ulanishni tekshirib, qayta urinib koʻring.</string>
     <string name="queue_error_install_conflict">Bu ilova telefonda boshqa imzo bilan oʻrnatilgan, ehtimol boshqa profilda (ish, Shelter, ikkinchi makon). Oʻsha nusxani oʻchirib, qayta urinib koʻring</string>
+    <string name="library_all_accepted_title">Barcha ilovalar qabul qilingan</string>
+    <string name="library_all_accepted_message">Wy Store telefondagi barcha ilovalarning yangilanishlarini kuzatib boradi.</string>
+    <string name="library_filter_empty_message">Boshqa filtrni tanlang.</string>
 </resources>

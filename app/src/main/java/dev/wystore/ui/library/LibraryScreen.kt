@@ -347,10 +347,23 @@ fun LibraryScreen(
             }
             if (filteredInstalled.isEmpty()) {
                 item {
+                    val reason = LibraryGrouping.emptyReason(query, sort)
                     EmptyState(
                         icon = Icons.AutoMirrored.Outlined.List,
-                        title = stringResource(R.string.library_empty_title),
-                        message = stringResource(R.string.library_empty_message)
+                        title = stringResource(
+                            when (reason) {
+                                LibraryGrouping.EmptyReason.SEARCH -> R.string.library_empty_title
+                                LibraryGrouping.EmptyReason.ALL_ACCEPTED -> R.string.library_all_accepted_title
+                                LibraryGrouping.EmptyReason.FILTER -> R.string.library_filter_empty
+                            }
+                        ),
+                        message = stringResource(
+                            when (reason) {
+                                LibraryGrouping.EmptyReason.SEARCH -> R.string.library_empty_message
+                                LibraryGrouping.EmptyReason.ALL_ACCEPTED -> R.string.library_all_accepted_message
+                                LibraryGrouping.EmptyReason.FILTER -> R.string.library_filter_empty_message
+                            }
+                        )
                     )
                 }
             }

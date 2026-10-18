@@ -42,4 +42,12 @@ class LibraryGroupingTest {
         assertEquals(1, groups.size)
         assertEquals(false, groups.single().titled)
     }
+
+    @Test
+    fun anEmptyListIsExplainedByWhatEmptiedIt() {
+        assertEquals(LibraryGrouping.EmptyReason.SEARCH, LibraryGrouping.emptyReason("sber", LibrarySort.NOT_ADOPTED))
+        // Nothing searched for: an empty "Not accepted" means everything is accepted.
+        assertEquals(LibraryGrouping.EmptyReason.ALL_ACCEPTED, LibraryGrouping.emptyReason(" ", LibrarySort.NOT_ADOPTED))
+        assertEquals(LibraryGrouping.EmptyReason.FILTER, LibraryGrouping.emptyReason("", LibrarySort.GITHUB))
+    }
 }

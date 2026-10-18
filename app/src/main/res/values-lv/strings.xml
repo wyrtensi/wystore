@@ -806,4 +806,7 @@
     <string name="whats_new_empty">Avots nav norādījis, kas jauns šajā versijā.</string>
     <string name="whats_new_failed">Neizdevās ielādēt, kas jauns. Pārbaudiet savienojumu un mēģiniet vēlreiz.</string>
     <string name="queue_error_install_conflict">Šī lietotne jau ir tālrunī ar citu parakstu, iespējams, citā profilā (darba, Shelter, otrajā telpā). Noņemiet to kopiju un mēģiniet vēlreiz</string>
+    <string name="library_all_accepted_title">Visas lietotnes ir pieņemtas</string>
+    <string name="library_all_accepted_message">Wy Store jau seko visu tālruņa lietotņu atjauninājumiem.</string>
+    <string name="library_filter_empty_message">Izvēlies citu filtru.</string>
 </resources>

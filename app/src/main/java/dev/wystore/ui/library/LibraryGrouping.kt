@@ -37,4 +37,26 @@ object LibraryGrouping {
             else -> listOf(Group(PLAIN, titled = false, apps = apps)).filter { it.apps.isNotEmpty() }
         }
     }
+
+    /** Why the list came out empty, which decides what the screen says. */
+    enum class EmptyReason {
+        /** The search found nothing: clearing it is the answer. */
+        SEARCH,
+
+        /** "Not accepted" with nothing left in it: every app is already looked after. */
+        ALL_ACCEPTED,
+
+        /** Another filter holds no apps; the search is not the reason. */
+        FILTER
+    }
+
+    /**
+     * An empty "Not accepted" said "nothing matches, clear the search or pick another filter" with
+     * the search empty - when the news was that every app had been accepted.
+     */
+    fun emptyReason(query: String, sort: LibrarySort): EmptyReason = when {
+        query.isNotBlank() -> EmptyReason.SEARCH
+        sort == LibrarySort.NOT_ADOPTED -> EmptyReason.ALL_ACCEPTED
+        else -> EmptyReason.FILTER
+    }
 }

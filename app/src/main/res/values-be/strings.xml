@@ -806,4 +806,7 @@
     <string name="whats_new_empty">Крыніца не напісала, што новага ў гэтай версіі.</string>
     <string name="whats_new_failed">Не ўдалося загрузіць, што новага. Праверце падключэнне і паспрабуйце яшчэ раз.</string>
     <string name="queue_error_install_conflict">Гэта праграма ўжо стаіць на тэлефоне з іншым подпісам, магчыма, у іншым профілі (працоўным, Shelter, другой прасторы). Выдаліце тую копію і паўтарыце</string>
+    <string name="library_all_accepted_title">Усе праграмы прынятыя</string>
+    <string name="library_all_accepted_message">Wy Store ужо сочыць за абнаўленнямі ўсіх праграм на тэлефоне.</string>
+    <string name="library_filter_empty_message">Выберыце іншы фільтр.</string>
 </resources>

@@ -806,4 +806,7 @@
     <string name="whats_new_empty">Дереккөз бұл нұсқада не жаңа екенін жазбаған.</string>
     <string name="whats_new_failed">Не жаңа екенін жүктеу мүмкін болмады. Қосылымды тексеріп, қайталап көріңіз.</string>
     <string name="queue_error_install_conflict">Бұл қолданба телефонда басқа қолтаңбамен орнатылған, мүмкін басқа профильде (жұмыс, Shelter, екінші кеңістік). Сол көшірмені жойып, қайталаңыз</string>
+    <string name="library_all_accepted_title">Барлық қолданба қабылданды</string>
+    <string name="library_all_accepted_message">Wy Store телефондағы барлық қолданбаның жаңартуларын бақылап отыр.</string>
+    <string name="library_filter_empty_message">Басқа сүзгіні таңдаңыз.</string>
 </resources>

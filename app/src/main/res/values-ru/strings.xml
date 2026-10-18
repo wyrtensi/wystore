@@ -806,4 +806,7 @@
     <string name="whats_new_empty">Источник не написал, что нового в этой версии.</string>
     <string name="whats_new_failed">Не удалось загрузить, что нового. Проверьте подключение и попробуйте ещё раз.</string>
     <string name="queue_error_install_conflict">Это приложение уже стоит на телефоне с другой подписью, возможно, в другом профиле (рабочем, Shelter, втором пространстве). Удалите ту копию и повторите</string>
+    <string name="library_all_accepted_title">Все приложения приняты</string>
+    <string name="library_all_accepted_message">Wy Store уже следит за обновлениями всех приложений на телефоне.</string>
+    <string name="library_filter_empty_message">Выберите другой фильтр.</string>
 </resources>
