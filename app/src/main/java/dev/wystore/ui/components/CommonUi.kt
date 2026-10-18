@@ -89,16 +89,9 @@ fun RatingPill(rating: Double, count: Int?) {
  */
 @Composable
 fun CategoryPill(category: String) {
-    Text(
-        text = CategoryLabels.stringRes(category)?.let { stringResource(it) }
-            ?: CategoryLabels.humanize(category),
-        modifier = Modifier
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.extraSmall)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
+    // A faint tag, as every secondary fact is now; the outlined box read as a button.
+    HubTag(
+        CategoryLabels.stringRes(category)?.let { stringResource(it) } ?: CategoryLabels.humanize(category)
     )
 }
 

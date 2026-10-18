@@ -424,7 +424,7 @@
     <string name="github_release_assets">файлів: %1$d</string>
     <string name="github_all_releases">Усі релізи (%1$d)</string>
     <string name="github_catalog_section">GitHub Releases</string>
-    <string name="github_catalog_hint">Репозиторії з вбудованого каталогу та додані тобою</string>
+    <string name="github_catalog_hint">Репозиторії з вбудованого каталогу та додані вами</string>
     <string name="github_view_releases">Дивитися релізи</string>
     <string name="home_github_title">З GitHub</string>
     <string name="home_github_hint">Застосунки з відкритим кодом — встановлення просто з релізів</string>

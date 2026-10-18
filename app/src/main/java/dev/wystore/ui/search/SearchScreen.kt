@@ -1,5 +1,19 @@
 package dev.wystore.ui.search
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import dev.wystore.ui.components.GroupPosition
+import dev.wystore.ui.components.HubGroupRow
+import dev.wystore.ui.components.HubHeader
+import dev.wystore.ui.components.HubNote
+import dev.wystore.ui.components.HubTag
+import dev.wystore.ui.components.HubWideButton
+import dev.wystore.ui.components.groupPosition
+import dev.wystore.ui.theme.LocalHubStyle
 import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -123,32 +137,33 @@ fun SearchScreen(
     val visibleApps = if (sources.includesRuStore) apps else emptyList()
     val hasResults = visibleApps.isNotEmpty() || visibleGitHub.isNotEmpty()
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.search_title)) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        }
-    ) { contentPadding ->
+    // The Wy Hub screen, scrolling as one: the header and the field go up with the results, so a
+    // long list of them has the whole screen.
+    Column(modifier = modifier.fillMaxSize().statusBarsPadding()) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 4.dp,
+                top = 0.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
-            ),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            )
         ) {
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        stringResource(R.string.search_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                HubHeader(
+                    title = stringResource(R.string.search_title),
+                    eyebrow = "RuStore · GitHub",
+                    subtitle = stringResource(R.string.search_subtitle),
+                    horizontalPadding = 0.dp,
+                    insetStatusBar = false,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
+            item {
+                Column(
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     // A filled field with no visible box outline, so the search input reads like the
                     // pill on Home rather than like a form control.
                     TextField(
@@ -156,7 +171,14 @@ fun SearchScreen(
                         onValueChange = { text = it },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(MaterialTheme.shapes.extraLarge),
+                            .clip(RoundedCornerShape(percent = 50))
+                            .then(
+                                if (LocalHubStyle.current) Modifier.border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outlineVariant,
+                                    RoundedCornerShape(percent = 50)
+                                ) else Modifier
+                            ),
                         singleLine = true,
                         placeholder = { Text(stringResource(R.string.search_field_placeholder)) },
                         leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
@@ -179,7 +201,7 @@ fun SearchScreen(
                             imeAction = ImeAction.Search
                         ),
                         keyboardActions = KeyboardActions(onSearch = { runSearch() }),
-                        shape = MaterialTheme.shapes.extraLarge,
+                        shape = RoundedCornerShape(percent = 50),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -221,12 +243,12 @@ fun SearchScreen(
                                 )
                             )
                         }
-                        DisclaimerNote(stringResource(R.string.search_disclaimer))
+                        HubNote(text = stringResource(R.string.search_disclaimer), icon = Icons.Outlined.Info)
                     }
                 }
             }
 
-            if (busy) item { Loading(operation) }
+            if (busy) item { Box(Modifier.padding(bottom = 14.dp)) { Loading(operation) } }
 
             if (!busy && !hasResults) {
                 item {
@@ -252,21 +274,31 @@ fun SearchScreen(
                 item {
                     SectionHeader(
                         title = stringResource(R.string.github_catalog_section),
-                        subtitle = stringResource(R.string.github_catalog_hint)
+                        subtitle = stringResource(R.string.github_catalog_hint),
+                        modifier = Modifier.padding(bottom = 10.dp)
                     )
                 }
-                items(visibleGitHub, key = { "github:${it.slug}" }) { entry ->
-                    GitHubCatalogCard(entry = entry, onOpen = { onOpenGitHubApp(entry) })
+                itemsIndexed(visibleGitHub, key = { _, it -> "github:${it.slug}" }) { index, entry ->
+                    GitHubCatalogCard(
+                        entry = entry,
+                        onOpen = { onOpenGitHubApp(entry) },
+                        position = groupPosition(index, visibleGitHub.size)
+                    )
                 }
+                item { Spacer(Modifier.height(18.dp)) }
             }
 
             total?.takeIf { sources.includesRuStore }?.let {
                 item {
-                    SectionHeader(title = stringResource(R.string.search_results_count, it))
+                    SectionHeader(
+                        title = stringResource(R.string.search_results_count, it),
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
                 }
             }
-            items(visibleApps, key = { it.packageName }) { app ->
+            itemsIndexed(visibleApps, key = { _, it -> it.packageName }) { index, app ->
                 SearchCard(
+                    position = groupPosition(index, visibleApps.size),
                     app = app,
                     installed = installed.firstOrNull { it.packageName == app.packageName },
                     queueItem = queue.rowFor(app.packageName),
@@ -283,19 +315,17 @@ fun SearchScreen(
             // first page even when the result count said there was much more.
             if (apps.isNotEmpty() && total != null && apps.size < total) {
                 item {
-                    OutlinedButton(
-                        onClick = onLoadMore,
-                        enabled = !busy,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.search_load_more))
-                    }
+                    HubWideButton(
+                        text = stringResource(R.string.search_load_more),
+                        onClick = { if (!busy) onLoadMore() },
+                        modifier = Modifier.padding(top = 14.dp)
+                    )
                 }
             } else if (apps.isNotEmpty() && total != null) {
                 item {
                     Text(
                         stringResource(R.string.search_all_loaded),
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -331,6 +361,8 @@ private fun DisclaimerNote(text: String) {
 @Composable
 fun SearchCard(
     app: StoreApp,
+    /** Where the card stands in a list drawn as one panel of rows; null for a card of its own. */
+    position: GroupPosition? = null,
     installed: InstalledApp?,
     queueItem: InstallQueueItem?,
     pendingUpdate: PendingUpdate?,
@@ -343,13 +375,13 @@ fun SearchCard(
     val haptic = LocalHapticFeedback.current
     val inFlight = queueItem?.status?.isInFlight == true
 
-    WyCard(modifier = Modifier.fillMaxWidth(), onClick = { onOpen(app) }) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Framed(position = position, onClick = { onOpen(app) }) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AppIcon(
                     model = app.iconUrl,
                     contentDescription = stringResource(R.string.common_app_icon, app.name),
-                    size = 58.dp
+                    size = if (position != null) 48.dp else 58.dp
                 )
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -371,14 +403,19 @@ fun SearchCard(
                     }
                     // The same line Home shows under a name. The coloured rating pill and the boxed
                     // section here made one app look like two different things on two screens.
-                    listingLine(app.rating, app.categories.firstOrNull()).takeIf { it.isNotEmpty() }?.let {
-                        Text(
-                            it,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                    if (app.rating != null || app.categories.isNotEmpty()) Row(
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        app.rating?.let {
+                            Text(
+                                "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                        }
+                        app.categories.firstOrNull()?.let { CategoryPill(it) }
                     }
                 }
                 // The action stays on the title line: the card keeps one row of chrome instead of
@@ -530,11 +567,11 @@ fun SearchCard(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GitHubCatalogCard(entry: GitHubCatalogEntry, onOpen: () -> Unit) {
-    WyCard(modifier = Modifier.fillMaxWidth(), onClick = onOpen) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+private fun GitHubCatalogCard(entry: GitHubCatalogEntry, onOpen: () -> Unit, position: GroupPosition? = null) {
+    Framed(position = position, onClick = onOpen) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                AppIcon(model = entry.iconUrl, contentDescription = null, size = 58.dp)
+                AppIcon(model = entry.iconUrl, contentDescription = null, size = if (position != null) 48.dp else 58.dp)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(
@@ -571,10 +608,20 @@ private fun GitHubCatalogCard(entry: GitHubCatalogEntry, onOpen: () -> Unit) {
                 CategoryPill("GitHub")
                 entry.categories.forEach { CategoryPill(it) }
             }
-
-            FilledTonalButton(onClick = onOpen, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.github_view_releases))
+            // In a panel of rows the row itself opens the page; a full-width button under every
+            // result made each one a form. A card of its own keeps it.
+            if (position == null) {
+                FilledTonalButton(onClick = onOpen, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.github_view_releases))
+                }
             }
         }
     }
+}
+
+/** A card of its own, or a row of a panel when it has a [position] in one. */
+@Composable
+private fun Framed(position: GroupPosition?, onClick: () -> Unit, content: @Composable () -> Unit) {
+    if (position != null) HubGroupRow(position = position, onClick = onClick) { content() }
+    else WyCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) { content() }
 }
