@@ -509,7 +509,7 @@
     <string name="details_label_downloads">Lejupielādes</string>
     <string name="details_label_fingerprint">RuStore nospiedums</string>
     <string name="details_min_android_value">Android %1$s un jaunāks</string>
-    <string name="details_rating_value">%1$s (%2$d)</string>
+    <string name="details_rating_value">%1$s (%2$s)</string>
     <string name="details_fingerprint_note">Norādījis RuStore — pārbauda pirms instalēšanas</string>
     <string name="home_tagline">Krievu lietotnes un vēl vairāk</string>
     <string name="home_empty_featured_title">Pagaidām nav ko rādīt</string>

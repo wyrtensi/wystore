@@ -73,7 +73,7 @@ fun RatingPill(rating: Double, count: Int?) {
             tint = MaterialTheme.colorScheme.onTertiaryContainer
         )
         Text(
-            text = DecimalFormat("0.0").format(rating) + (count?.let { " · $it" }.orEmpty()),
+            text = DecimalFormat("0.0").format(rating) + (count?.let { " · " + formatCount(it) }.orEmpty()),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onTertiaryContainer,
             maxLines = 1
@@ -200,9 +200,12 @@ fun DetailFacts(app: StoreApp) {
                     stringResource(R.string.details_min_android_value, app.minAndroidVersion ?: notSpecified)
                 )
                 app.rating?.let {
+                    val rating = DecimalFormat("0.0").format(it)
                     FactRow(
                         stringResource(R.string.details_label_rating),
-                        stringResource(R.string.details_rating_value, DecimalFormat("0.0").format(it), app.ratingCount ?: 0)
+                        app.ratingCount?.let { count ->
+                            stringResource(R.string.details_rating_value, rating, formatCountInFull(count))
+                        } ?: rating
                     )
                 }
                 app.downloadsText?.let { FactRow(stringResource(R.string.details_label_downloads), formatDownloads(it)) }
@@ -464,6 +467,20 @@ fun formatDownloads(text: String, locale: java.util.Locale): String =
 
 @Composable
 fun formatDownloads(text: String): String = formatDownloads(text, LocalConfiguration.current.locales[0])
+
+/**
+ * How many people rated an app, short: "4,4 млн". Shown as the bare number it read "4439591",
+ * which nobody can take in at a glance.
+ */
+@Composable
+fun formatCount(count: Int): String =
+    CompactDecimalFormat.getInstance(LocalConfiguration.current.locales[0], CompactDecimalFormat.CompactStyle.SHORT)
+        .format(count)
+
+/** The same count in full, with the locale's digit grouping: "4 439 591". */
+@Composable
+fun formatCountInFull(count: Int): String =
+    java.text.NumberFormat.getIntegerInstance(LocalConfiguration.current.locales[0]).format(count)
 
 fun formatSpeed(res: Resources, bytesPerSecond: Long): String = when {
     bytesPerSecond <= 0 -> res.getString(R.string.common_speed_calculating)

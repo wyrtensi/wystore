@@ -509,7 +509,7 @@
     <string name="details_label_downloads">Скачивания</string>
     <string name="details_label_fingerprint">Отпечаток RuStore</string>
     <string name="details_min_android_value">Android от %1$s</string>
-    <string name="details_rating_value">%1$s (%2$d)</string>
+    <string name="details_rating_value">%1$s (%2$s)</string>
     <string name="details_fingerprint_note">Заявлен источником RuStore — сверяется перед установкой</string>
     <string name="home_tagline">Российские приложения и даже больше</string>
     <string name="home_empty_featured_title">Пока нечего показать</string>

@@ -509,7 +509,7 @@
     <string name="details_label_downloads">Спампаванні</string>
     <string name="details_label_fingerprint">Адбітак RuStore</string>
     <string name="details_min_android_value">Android ад %1$s</string>
-    <string name="details_rating_value">%1$s (%2$d)</string>
+    <string name="details_rating_value">%1$s (%2$s)</string>
     <string name="details_fingerprint_note">Заяўлены RuStore — правяраецца перад усталяваннем</string>
     <string name="home_tagline">Расійскія праграмы і нават больш</string>
     <string name="home_empty_featured_title">Пакуль няма чаго паказаць</string>

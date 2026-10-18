@@ -54,6 +54,7 @@ import dev.wystore.data.InstalledApp
 import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.formatDownloads
+import dev.wystore.ui.components.formatCountInFull
 import dev.wystore.ui.components.PackageUiState
 import dev.wystore.ui.components.PrimaryAction
 import dev.wystore.ui.components.formatSize
@@ -183,7 +184,7 @@ fun TvDetailsScreen(
                                 TvFact(
                                     stringResource(R.string.details_label_rating),
                                     String.format(java.util.Locale.getDefault(), "%.1f", rating) +
-                                        (app.ratingCount?.let { " ($it)" } ?: "")
+                                        (app.ratingCount?.let { " (" + formatCountInFull(it) + ")" } ?: "")
                                 )
                             }
                             app.downloadsText?.let { TvFact(stringResource(R.string.details_label_downloads), formatDownloads(it)) }

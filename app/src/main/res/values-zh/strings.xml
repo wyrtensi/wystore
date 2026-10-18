@@ -509,7 +509,7 @@
     <string name="details_label_downloads">下载量</string>
     <string name="details_label_fingerprint">RuStore 指纹</string>
     <string name="details_min_android_value">Android %1$s 及以上</string>
-    <string name="details_rating_value">%1$s（%2$d）</string>
+    <string name="details_rating_value">%1$s（%2$s）</string>
     <string name="details_fingerprint_note">由 RuStore 声明——安装前会核对</string>
     <string name="home_tagline">俄罗斯应用，还有更多</string>
     <string name="home_empty_featured_title">暂时没有可显示的内容</string>
