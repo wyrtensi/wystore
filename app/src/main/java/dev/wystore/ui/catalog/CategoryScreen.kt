@@ -1,5 +1,11 @@
 package dev.wystore.ui.catalog
 
+import dev.wystore.ui.components.groupPosition
+import dev.wystore.ui.components.color
+import dev.wystore.ui.components.StatusTone
+import dev.wystore.ui.components.HubNote
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.foundation.layout.height
 import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubPageHeader
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -97,6 +103,12 @@ fun CategoryScreen(
             listState.scrollToItem(0)
         }
     }
+    // The note arrives after the saved list, once the refresh has failed, and a lazy list keeps its
+    // first row in place when something is inserted above it - so the note landed above the screen
+    // and was never seen. Still at the top, the list moves up to show it.
+    LaunchedEffect(state.stale) {
+        if (state.stale && listState.firstVisibleItemIndex <= 1) listState.scrollToItem(0)
+    }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -119,20 +131,23 @@ fun CategoryScreen(
                 end = ScreenPadding,
                 top = 20.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
-            ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            )
         ) {
             if (state.stale) {
+                // A grey line of small print at the top of the list sat in the fade under the header,
+                // so the one thing saying these apps may be out of date was the hardest to read.
                 item {
-                    Text(
-                        stringResource(R.string.catalog_stale),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    HubNote(
+                        text = stringResource(R.string.catalog_stale),
+                        icon = Icons.Outlined.Warning,
+                        tint = StatusTone.PAUSED.color() ?: MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
                 }
             }
 
-            items(state.apps, key = { it.packageName }) { app ->
+            // One panel of rows, as on Home: a card per app made a section of forty apps forty boxes.
+            itemsIndexed(state.apps, key = { _, app -> app.packageName }) { index, app ->
                 val uiState = PackageUiStateReducer.reduce(
                     app = app,
                     installed = installed.firstOrNull { it.packageName == app.packageName },
@@ -157,11 +172,29 @@ fun CategoryScreen(
                         }
                     },
                     // Every section here is RuStore's, and the page header names it.
-                    implicitSource = "RuStore"
+                    implicitSource = "RuStore",
+                    groupPosition = groupPosition(index, state.apps.size)
                 )
             }
 
             item {
+                if (state.apps.isNotEmpty()) Spacer(Modifier.height(14.dp))
+                // "Next" with no network left the page as it was and said nothing: the failure was
+                // only shown for an empty list, and this one still held the previous page.
+                if (state.failedOverList) {
+                    HubNote(
+                        text = state.error.orEmpty(),
+                        icon = Icons.Outlined.Warning,
+                        tint = StatusTone.FAILED.color() ?: MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
+                    dev.wystore.ui.components.HubWideButton(
+                        text = stringResource(R.string.common_retry),
+                        onClick = onRetry,
+                        chevron = false,
+                        modifier = Modifier.padding(bottom = 14.dp)
+                    )
+                }
                 when {
                     state.loading -> Row(verticalAlignment = Alignment.CenterVertically) {
                         WySpinner(size = 18.dp, strokeWidth = 2.dp)

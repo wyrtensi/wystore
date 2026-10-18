@@ -24,8 +24,19 @@ data class CategoryUiState(
     val lastPage: Int? = null,
     val loading: Boolean = false,
     val stale: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    /** The page that failed to load, when it is not the one on screen - "Next" with no network. */
+    val failedPage: Int? = null
 ) {
+    /**
+     * Which page "Retry" loads. A failed "Next" leaves the previous page's apps on screen and
+     * [page] where it was; retrying [page] would reload what is already shown.
+     */
+    val retryPage: Int get() = failedPage ?: page
+
+    /** A failure the empty-list message cannot show, because there is a list. */
+    val failedOverList: Boolean get() = error != null && apps.isNotEmpty()
+
     val canGoBack: Boolean get() = page > 1 && !loading
     val canGoForward: Boolean get() = !loading && (lastPage == null || page < lastPage)
 }
@@ -65,7 +76,7 @@ class CategoryViewModel(
         loadPage(state.page - 1)
     }
 
-    fun retry() = loadPage(_uiState.value.page, forceRefresh = true)
+    fun retry() = loadPage(_uiState.value.retryPage, forceRefresh = true)
 
     private fun loadPage(page: Int, forceRefresh: Boolean = false) {
         // Paging taps arrive faster than a page loads; only the newest request may write state.
@@ -82,7 +93,7 @@ class CategoryViewModel(
                     }
                 }
             }
-            _uiState.update { it.copy(loading = true, error = null) }
+            _uiState.update { it.copy(loading = true, error = null, failedPage = null) }
             runCatching {
                 if (curated != null) catalogRepository.curatedCatalog(curated, forceRefresh)
                 else catalogRepository.catalog(slug, page, forceRefresh)
@@ -103,6 +114,7 @@ class CategoryViewModel(
                     _uiState.update {
                         it.copy(
                             loading = false,
+                            failedPage = page,
                             error = SourceTextResolver.describe(getApplication(), error)
                                 ?: getApplication<Application>().getString(R.string.catalog_load_failed)
                         )
