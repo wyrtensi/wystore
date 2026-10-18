@@ -50,7 +50,7 @@ fun TvCategoryTile(
             .tvPointerClick(onClick = onClick),
         shape = ClickableSurfaceDefaults.shape(shape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
-        border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
+        border = tvCardBorder(shape),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = container,
             contentColor = onContainer,

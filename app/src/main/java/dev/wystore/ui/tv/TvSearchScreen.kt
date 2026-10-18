@@ -279,7 +279,7 @@ fun TvSearchScreen(
                             .tvPointerClick(onClick = startEditing),
                         shape = ClickableSurfaceDefaults.shape(fieldShape),
                         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
-                        border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(fieldShape)),
+                        border = tvCardBorder(fieldShape),
                         colors = ClickableSurfaceDefaults.colors(
                             containerColor = androidx.compose.ui.graphics.Color.Transparent,
                             focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,

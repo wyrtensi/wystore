@@ -152,7 +152,7 @@ fun TvMyAppsScreen(
                     modifier = Modifier.fillMaxWidth().tvPointerClick { onOpenManaged(app) },
                     shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
                     scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
-                    border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder()),
+                    border = tvCardBorder(),
                     colors = ClickableSurfaceDefaults.colors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant

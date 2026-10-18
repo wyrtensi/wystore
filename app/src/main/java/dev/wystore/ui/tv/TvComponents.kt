@@ -153,6 +153,22 @@ fun tvFocusBorder(shape: androidx.compose.ui.graphics.Shape = M3Theme.shapes.lar
     shape = shape
 )
 
+/**
+ * The Wy Hub hairline around a card at rest, as on the phone, and the focus ring when focused: a
+ * card on the graphite page otherwise had no edge until the remote reached it.
+ */
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+fun tvCardBorder(shape: androidx.compose.ui.graphics.Shape = M3Theme.shapes.large) =
+    androidx.tv.material3.ClickableSurfaceDefaults.border(
+        border = Border(
+            border = BorderStroke(1.dp, M3Theme.colorScheme.outlineVariant),
+            inset = 0.dp,
+            shape = shape
+        ),
+        focusedBorder = tvFocusBorder(shape)
+    )
+
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun tvFocusGlow(): Glow = Glow(
@@ -331,7 +347,7 @@ fun TvUpdateHero(
         modifier = modifier.fillMaxWidth().tvPointerClick(onClick = onClick),
         shape = ClickableSurfaceDefaults.shape(shape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
-        border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
+        border = tvCardBorder(shape),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = container,
             contentColor = onContainer,
@@ -479,7 +495,7 @@ fun TvIconButton(
             .semantics { contentDescription = label },
         shape = ClickableSurfaceDefaults.shape(shape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
-        border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
+        border = tvCardBorder(shape),
         colors = ClickableSurfaceDefaults.colors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,

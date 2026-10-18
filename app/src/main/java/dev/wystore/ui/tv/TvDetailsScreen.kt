@@ -291,7 +291,7 @@ fun TvDetailsScreen(
                                 modifier = Modifier.width(TvReviewWidth),
                                 shape = ClickableSurfaceDefaults.shape(shape),
                                 scale = ClickableSurfaceDefaults.scale(focusedScale = 1.03f),
-                                border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
+                                border = tvCardBorder(shape),
                                 colors = ClickableSurfaceDefaults.colors(
                                     containerColor = androidx.compose.ui.graphics.Color.Transparent,
                                     focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent

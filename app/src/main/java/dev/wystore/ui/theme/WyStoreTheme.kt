@@ -18,7 +18,7 @@ import dev.wystore.settings.AppSettings
 @Composable
 fun WyStoreTheme(
     settings: AppSettings,
-    /** The TV interface: its fallback palette is the neutral one, see [TvDarkColorScheme]. */
+    /** The TV interface: the same palette and typeface, at the type sizes its layouts were measured with. */
     tv: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -33,23 +33,22 @@ fun WyStoreTheme(
     val colorScheme = when {
         useDynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isDark -> dynamicDarkColorScheme(context).withSeparatedSurfaces()
         useDynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isDark -> dynamicLightColorScheme(context).withSeparatedSurfaces()
-        tv && isDark -> TvDarkColorScheme.withSeparatedSurfaces()
-        tv -> TvLightColorScheme.withSeparatedSurfaces()
+        // The TV wears the same Wy Hub palette: its graphite ramp is as neutral as the grey one
+        // the TV had of its own, and the accent marks the focus as the old cyan did.
         // The phone's own look is Wy Hub's; see HubDarkColorScheme for why it is not widened.
         isDark -> hubDarkColorScheme(Color(settings.accent.argb))
         else -> hubLightColorScheme(Color(settings.accent.argb))
     }
     val language = LocalConfiguration.current.locales[0].language
     val typography = remember(language, tv) {
-        // The TV keeps the system typeface: read from across a room, its letterforms were chosen
-        // for that, and the TV interface was not part of the Wy Hub concept.
+        // Manrope on the TV too; its sizes stay those its layouts were measured with.
         wyStoreTypography(
-            family = if (!tv && ThemePolicy.brandFontCovers(language)) Manrope else FontFamily.Default,
+            family = if (ThemePolicy.brandFontCovers(language)) Manrope else FontFamily.Default,
             step = if (tv) 0 else 1
         )
     }
 
-    val hub = !tv && !useDynamic
+    val hub = !useDynamic
     CompositionLocalProvider(LocalHubStyle provides hub) {
         MaterialTheme(
             colorScheme = colorScheme,
