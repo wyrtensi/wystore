@@ -1,0 +1,19 @@
+# Lives in /opt/edge/sites/ on the server. TLS for wystore.ru ends here; the
+# pages come from the wystore-web container (deploy/server/docker-compose.yml).
+www.wystore.ru {
+	redir https://wystore.ru{uri} permanent
+}
+
+wystore.ru {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	reverse_proxy wystore-web:80
+
+	log {
+		output stdout
+		format console
+	}
+}

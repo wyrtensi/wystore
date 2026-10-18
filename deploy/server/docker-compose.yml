@@ -1,0 +1,24 @@
+version: "2.4"
+
+# wystore.ru static site. No published ports: edge-caddy (/opt/edge) owns
+# 80/443 and proxies wystore.ru here over the external "proxy" network.
+services:
+  web:
+    image: caddy:2-alpine
+    container_name: wystore-web
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./site:/srv:ro
+    networks:
+      - proxy
+    mem_limit: 32m
+    logging:
+      driver: json-file
+      options:
+        max-size: "2m"
+        max-file: "2"
+
+networks:
+  proxy:
+    external: true

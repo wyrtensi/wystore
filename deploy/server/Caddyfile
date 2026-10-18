@@ -1,0 +1,36 @@
+# Static server for wystore.ru inside the wystore-web container. It has no
+# public ports: edge-caddy terminates TLS and proxies here over the "proxy"
+# docker network. /srv/current is a symlink the deploy key swaps atomically.
+{
+	admin off
+	auto_https off
+}
+
+:80 {
+	root * /srv/current
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "frame-ancestors 'none'"
+		-Server
+	}
+
+	# Asset names carry no content hash, so caching stays short; pages revalidate.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=86400"
+	@pages path / */ *.html
+	header @pages Cache-Control "no-cache"
+
+	file_server
+
+	handle_errors {
+		@missing expression {err.status_code} == 404
+		handle @missing {
+			rewrite * /404.html
+			file_server
+		}
+	}
+}
