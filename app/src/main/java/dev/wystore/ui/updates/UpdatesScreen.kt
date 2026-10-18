@@ -1,10 +1,10 @@
 package dev.wystore.ui.updates
 
+import dev.wystore.ui.components.HubRing
 import dev.wystore.ui.components.HubTextAction
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.text.font.FontWeight
 import dev.wystore.ui.components.HubGroupTitle
 import dev.wystore.ui.components.color
@@ -74,7 +74,6 @@ import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.SectionHeader
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.queueStatusLabel
-import dev.wystore.ui.library.UpdateCheckStatusCard
 import java.text.DateFormat
 import java.util.Date
 
@@ -191,13 +190,10 @@ fun UpdatesScreen(
                 bottom = 24.dp + LocalBottomBarInset.current
             )
         ) {
-            updateCheckTask?.takeIf { it.active }?.let { task ->
-                item { Box(Modifier.padding(bottom = 12.dp)) { UpdateCheckStatusCard(task) } }
-            }
-
             item {
                 UpdatesHero(
                     summary = lastUpdateCheck,
+                    checking = updateCheckTask?.takeIf { it.active },
                     ready = pendingUpdates.size,
                     waiting = actionableQueue.size,
                     onOpenApp = onOpenPackage,
@@ -335,6 +331,7 @@ fun UpdatesScreen(
 @Composable
 private fun UpdatesHero(
     summary: UpdateCheckSummary?,
+    checking: UpdateCheckTask?,
     ready: Int,
     waiting: Int,
     onOpenApp: (String) -> Unit,
@@ -350,11 +347,25 @@ private fun UpdatesHero(
                         waiting > 0 -> stringResource(R.string.updates_hero_waiting, waiting)
                         summary != null && summary.problems > 0 ->
                             stringResource(R.string.updates_hero_problems, summary.problems)
+                        // "All up to date" while a check is still looking would be a guess.
+                        checking != null -> stringResource(UpdateCheckText.titleRes(checking.status))
                         else -> stringResource(R.string.home_all_up_to_date)
                     },
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium)
                 )
-                summary?.let {
+                // A running check stood in a card of its own above this panel, so the screen said
+                // "checking" in one box and the previous check's result in the next. The panel now
+                // says how far the running check has got where the last one's line was.
+                if (checking != null) {
+                    val line = if (UpdateCheckText.showsCount(checking)) {
+                        stringResource(R.string.library_check_progress, checking.checked, checking.total, checking.updates)
+                    } else {
+                        checking.detail
+                    }
+                    line?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                    }
+                } else summary?.let {
                     Text(
                         stringResource(
                             if (it.manual) R.string.updates_hero_checked_manual else R.string.updates_hero_checked,
@@ -369,9 +380,12 @@ private fun UpdatesHero(
             }
             // The ring is about the check, so it stands beside a sentence about the check. Beside
             // "ready to install: 3" it read as "3 of 8" and said nothing about the three.
-            summary?.takeIf { it.total > 0 && ready == 0 && waiting == 0 }?.let {
+            if (checking != null) {
                 Spacer(Modifier.width(14.dp))
-                CheckRing(checked = it.checked, total = it.total)
+                HubRing(done = checking.checked, total = checking.total)
+            } else summary?.takeIf { it.total > 0 && ready == 0 && waiting == 0 }?.let {
+                Spacer(Modifier.width(14.dp))
+                HubRing(done = it.checked, total = it.total)
             }
         }
         summary?.let { ProblemLines(it, onOpenApp) }
@@ -383,26 +397,6 @@ private fun UpdatesHero(
                 primary = true
             )
         }
-    }
-}
-
-/** The concept's ring: how much of what is looked after the last check reached. */
-@Composable
-private fun CheckRing(checked: Int, total: Int) {
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
-        CircularProgressIndicator(
-            progress = { (checked.toFloat() / total).coerceIn(0f, 1f) },
-            modifier = Modifier.fillMaxSize(),
-            strokeWidth = 5.dp,
-            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
-            gapSize = 4.dp,
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-        )
-        Text(
-            "$checked/$total",
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
-        )
     }
 }
 

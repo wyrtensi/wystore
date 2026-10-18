@@ -146,18 +146,11 @@ fun PermissionCenterScreen(
                         )
                     }
                     androidx.compose.foundation.layout.Spacer(Modifier.width(14.dp))
-                    androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
-                        androidx.compose.material3.CircularProgressIndicator(
-                            progress = { ready / 3f },
-                            modifier = Modifier.fillMaxSize(),
-                            strokeWidth = 5.dp,
-                            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
-                            gapSize = 4.dp,
-                            color = if (ready == 3) READY_GREEN else MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                        Text("$ready/3", style = MaterialTheme.typography.labelMedium)
-                    }
+                    dev.wystore.ui.components.HubRing(
+                        done = ready,
+                        total = 3,
+                        color = if (ready == 3) READY_GREEN else MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 

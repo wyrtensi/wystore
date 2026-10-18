@@ -823,4 +823,5 @@
     <string name="settings_hub_storage_subtitle">How long downloads are kept, export and import</string>
     <string name="search_failed_title">Could not search RuStore</string>
     <string name="library_frozen_short">Frozen</string>
+    <string name="library_adopt_progress_title">Looking up sources</string>
 </resources>

@@ -643,3 +643,71 @@ fun glyphTint(colour: Color): Color =
 @Composable
 private fun hairline(): BorderStroke? =
     if (LocalHubStyle.current) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
+
+/**
+ * The concept's ring: how far something has got, with "done/total" in its middle. With no total
+ * yet it spins - a check that has not counted its apps has nothing to fill the ring with.
+ */
+@Composable
+fun HubRing(
+    done: Int,
+    total: Int,
+    modifier: Modifier = Modifier,
+    size: androidx.compose.ui.unit.Dp = 56.dp,
+    color: Color = MaterialTheme.colorScheme.primary
+) {
+    Box(contentAlignment = Alignment.Center, modifier = modifier.size(size)) {
+        val stroke = if (size < 48.dp) 4.dp else 5.dp
+        if (total > 0) {
+            androidx.compose.material3.CircularProgressIndicator(
+                progress = { (done.toFloat() / total).coerceIn(0f, 1f) },
+                modifier = Modifier.matchParentSize(),
+                strokeWidth = stroke,
+                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
+                gapSize = 4.dp,
+                color = color,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            )
+            Text(
+                "$done/$total",
+                style = (if (size < 48.dp) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium)
+                    .copy(fontWeight = FontWeight.SemiBold)
+            )
+        } else {
+            androidx.compose.material3.CircularProgressIndicator(
+                modifier = Modifier.matchParentSize(),
+                strokeWidth = stroke,
+                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
+                color = color,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            )
+        }
+    }
+}
+
+/**
+ * Work under way, as a panel: what is happening, how far it has got in one line, and the ring.
+ * The secondary-container cards it replaces said the count twice - "0 of 7" as the detail and
+ * "checked 0 of 7" under it - and stood apart from the panels around them.
+ */
+@Composable
+fun HubProgressPanel(
+    title: String,
+    line: String?,
+    done: Int,
+    total: Int,
+    modifier: Modifier = Modifier
+) {
+    HubPanel(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(title, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium))
+                line?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Spacer(Modifier.width(14.dp))
+            HubRing(done = done, total = total, size = 44.dp)
+        }
+    }
+}

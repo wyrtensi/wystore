@@ -823,4 +823,5 @@
     <string name="settings_hub_storage_subtitle">Колькі захоўваць спампоўкі, экспарт і імпарт</string>
     <string name="search_failed_title">Не ўдалося выканаць пошук у RuStore</string>
     <string name="library_frozen_short">Замарожана</string>
+    <string name="library_adopt_progress_title">Шукаем крыніцы</string>
 </resources>

@@ -65,7 +65,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import androidx.annotation.StringRes
-import dev.wystore.ui.components.WySpinner
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Button
@@ -499,56 +498,26 @@ private fun LibraryGroupHeader(
 
 @Composable
 private fun AdoptionBatchCard(batch: AdoptionBatch) {
-    WyCard(
-        modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.secondaryContainer
-    ) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                stringResource(R.string.library_adopt_progress, batch.checked, batch.total),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.weight(1f)
-            )
-            WySpinner(size = 18.dp, strokeWidth = 2.dp)
-        }
-    }
+    dev.wystore.ui.components.HubProgressPanel(
+        title = stringResource(R.string.library_adopt_progress_title),
+        line = null,
+        done = batch.checked,
+        total = batch.total
+    )
 }
 
 @Composable
 fun UpdateCheckStatusCard(task: UpdateCheckTask) {
-    val title = stringResource(
-        when (task.status) {
-            "QUEUED" -> R.string.update_check_queued
-            "CHECKING" -> R.string.update_check_checking
-            "FOUND" -> R.string.update_check_found
-            "READY" -> R.string.update_check_ready
-            "DOWNLOADING" -> R.string.update_check_downloading
-            "VERIFYING" -> R.string.queue_status_verifying
-            "DOWNLOADED" -> R.string.update_check_downloaded
-            "INSTALLING" -> R.string.update_check_installing
-            "COMPLETE" -> R.string.update_check_complete
-            "CURRENT" -> R.string.update_check_current
-            "INSTALLED" -> R.string.update_check_installed
-            "SKIPPED" -> R.string.update_check_skipped
-            "ERROR", "FAILED" -> R.string.update_check_error
-            else -> R.string.update_check_current
-        }
+    dev.wystore.ui.components.HubProgressPanel(
+        title = stringResource(dev.wystore.ui.updates.UpdateCheckText.titleRes(task.status)),
+        line = if (dev.wystore.ui.updates.UpdateCheckText.showsCount(task)) {
+            stringResource(R.string.library_check_progress, task.checked, task.total, task.updates)
+        } else {
+            task.detail
+        },
+        done = task.checked,
+        total = task.total
     )
-    WyCard(
-        modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.secondaryContainer
-    ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                if (task.active) WySpinner(size = 18.dp, strokeWidth = 2.dp)
-            }
-            task.detail?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-            if (task.total > 0) {
-                Text(stringResource(R.string.library_check_progress, task.checked, task.total, task.updates), style = MaterialTheme.typography.labelSmall)
-            }
-        }
-    }
 }
 
 @Composable
@@ -588,23 +557,7 @@ private fun LibraryHero(accepted: Int, total: Int, onPick: (() -> Unit)?, modifi
             }
             if (total > 0) {
                 Spacer(Modifier.width(14.dp))
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
-                    androidx.compose.material3.CircularProgressIndicator(
-                        progress = { accepted.toFloat() / total },
-                        modifier = Modifier.fillMaxSize(),
-                        strokeWidth = 5.dp,
-                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
-                        gapSize = 4.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                    )
-                    Text(
-                        "$accepted/$total",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
-                        )
-                    )
-                }
+                dev.wystore.ui.components.HubRing(done = accepted, total = total)
             }
         }
         onPick?.let {

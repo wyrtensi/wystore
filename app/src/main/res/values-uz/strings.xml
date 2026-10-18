@@ -823,4 +823,5 @@
     <string name="settings_hub_storage_subtitle">Yuklamalarni qancha saqlash, eksport va import</string>
     <string name="search_failed_title">RuStore’da qidirib boʻlmadi</string>
     <string name="library_frozen_short">Muzlatilgan</string>
+    <string name="library_adopt_progress_title">Manbalar qidirilmoqda</string>
 </resources>
