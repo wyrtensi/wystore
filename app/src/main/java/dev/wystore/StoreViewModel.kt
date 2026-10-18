@@ -594,6 +594,19 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Forgets the search: the query, its results and anything still being fetched for it.
+     *
+     * Clearing the field only emptied the field. The query stayed in the state, so the search pill
+     * on Home went on showing it and the field filled up with it again on the next visit.
+     */
+    fun clearSearch() {
+        searchJob?.cancel()
+        _state.update {
+            it.copy(query = "", search = null, searching = false, operation = null, githubSearchResults = emptyList())
+        }
+    }
+
     /** Appends the next page of the current search. */
     fun searchMore() {
         val current = _state.value

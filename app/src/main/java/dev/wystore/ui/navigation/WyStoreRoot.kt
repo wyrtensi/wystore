@@ -351,7 +351,8 @@ fun WyStoreRoot(
                         onOpen = { app -> viewModel.openDetails(app.packageName) },
                         onQuickInstall = viewModel::quickInstall,
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
-                        onLaunch = viewModel::launchInstalledApp
+                        onLaunch = viewModel::launchInstalledApp,
+                        onClear = viewModel::clearSearch
                     )
                     WyStoreDestination.GitHub -> GitHubScreen(
                         modifier = screenModifier,

@@ -104,7 +104,9 @@ fun SearchScreen(
     onQuickInstall: (String) -> Unit,
     onInstallPending: (String) -> Unit = {},
     onConfirmUnverifiedSource: (String) -> Unit = {},
-    onLaunch: (String) -> Unit
+    onLaunch: (String) -> Unit,
+    /** Forgets the query along with the field, so Home does not go on showing it. */
+    onClear: () -> Unit = {}
 ) {
     var text by remember(query) { mutableStateOf(query) }
     val runSearch = {
@@ -159,7 +161,10 @@ fun SearchScreen(
                         leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                         trailingIcon = {
                             when {
-                                text.isNotEmpty() -> IconButton(onClick = { text = "" }) {
+                                text.isNotEmpty() -> IconButton(onClick = {
+                                    text = ""
+                                    onClear()
+                                }) {
                                     Icon(
                                         Icons.Outlined.Clear,
                                         contentDescription = stringResource(R.string.search_clear)
