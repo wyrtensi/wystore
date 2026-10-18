@@ -238,6 +238,8 @@ fun HubGroupRow(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
+    /** Washed with the accent, for a row that is picked. */
+    highlighted: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -278,6 +280,7 @@ fun HubGroupRow(
             }
             .clip(shape)
             .background(colors.surfaceContainerLow)
+            .then(if (highlighted) Modifier.background(colors.primary.copy(alpha = 0.12f)) else Modifier)
             .then(
                 when {
                     onClick != null && onLongClick != null ->

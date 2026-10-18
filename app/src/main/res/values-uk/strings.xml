@@ -811,4 +811,6 @@
     <string name="updates_hero_problems">Не вдалося перевірити: %1$d</string>
     <string name="updates_hero_checked">Фонова перевірка: %1$d з %2$d · %3$s</string>
     <string name="updates_hero_checked_manual">Перевірено: %1$d з %2$d · %3$s</string>
+    <string name="library_hero_title">Під наглядом: %1$d з %2$d</string>
+    <string name="library_hero_pick">Вибрати, що прийняти</string>
 </resources>

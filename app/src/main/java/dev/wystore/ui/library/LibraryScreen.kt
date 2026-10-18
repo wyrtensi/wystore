@@ -1,5 +1,22 @@
 package dev.wystore.ui.library
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.sp
+import dev.wystore.ui.components.HubHeader
+import dev.wystore.ui.components.HubHeaderPill
+import dev.wystore.ui.components.HubPanel
+import dev.wystore.ui.components.HubWideButton
+import dev.wystore.ui.components.fadingTopEdge
+import dev.wystore.ui.components.groupPosition
+import dev.wystore.ui.theme.LocalHubStyle
 import dev.wystore.ui.components.bleedToScreenEdges
 import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
@@ -215,63 +232,64 @@ fun LibraryScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
-        } else TopAppBar(
-            title = {
-                Text(
-                    stringResource(R.string.library_title),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            actions = {
+        } else HubHeader(
+            title = stringResource(R.string.library_title),
+            eyebrow = "Wy Store",
+            trailing = {
                 // "Install (5)" used to run a check: the label counted downloads waiting and the
                 // press went looking for more. Once something is downloaded, the button does what
                 // it says instead.
                 val installsWaiting = pendingUpdates.isNotEmpty()
-                TextButton(
+                HubHeaderPill(
+                    text = when {
+                        installsWaiting -> stringResource(R.string.library_install_count, pendingUpdates.size)
+                        updateCheckTask?.running == true -> stringResource(R.string.library_checking)
+                        // The label used to promise an install unconditionally, on a phone where
+                        // the switch for it may well be off.
+                        installsWhatItFinds -> stringResource(R.string.library_check_and_install)
+                        else -> stringResource(R.string.updates_check_now)
+                    },
                     onClick = if (installsWaiting) onUpdateAll else onCheckUpdates,
                     enabled = installsWaiting || updateCheckTask?.running != true
-                ) {
-                    Text(
-                        when {
-                            installsWaiting -> stringResource(R.string.library_install_count, pendingUpdates.size)
-                            updateCheckTask?.running == true -> stringResource(R.string.library_checking)
-                            // The label used to promise an install unconditionally, on a phone
-                            // where the switch for it may well be off.
-                            installsWhatItFinds -> stringResource(R.string.library_check_and_install)
-                            else -> stringResource(R.string.updates_check_now)
-                        }
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+            }
         )
     }) { contentPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
+            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()).fadingTopEdge(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 4.dp,
+                top = 20.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
-            ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            )
         ) {
+            // The Permissions screen of the concept: how much is looked after, as a sentence and a
+            // ring, with the way to look after the rest.
             if (!selecting) item {
-                Text(
-                    stringResource(R.string.library_intro),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                val notAccepted = installed.count { it.packageName !in managedByPackage }
+                LibraryHero(
+                    accepted = installed.size - notAccepted,
+                    total = installed.size,
+                    onPick = if (notAccepted > 0 && adoptionBatch == null) {
+                        {
+                            selecting = true
+                            collapsedGroups = collapsedGroups - LibraryGrouping.NOT_ADOPTED
+                        }
+                    } else null,
+                    modifier = Modifier.padding(bottom = 10.dp)
                 )
             }
             if (!selecting && installed.isNotEmpty()) item {
-                BackupNudge(hasAccepted = managed.isNotEmpty(), onExportUri = onExportBackup, onImportUri = onImportBackup)
+                Box(Modifier.padding(bottom = 10.dp)) {
+                    BackupNudge(hasAccepted = managed.isNotEmpty(), onExportUri = onExportBackup, onImportUri = onImportBackup)
+                }
             }
             updateCheckTask?.takeIf { it.active }?.let { task ->
-                item { UpdateCheckStatusCard(task) }
+                item { Box(Modifier.padding(bottom = 10.dp)) { UpdateCheckStatusCard(task) } }
             }
             adoptionBatch?.let { batch ->
-                item { AdoptionBatchCard(batch) }
+                item { Box(Modifier.padding(bottom = 10.dp)) { AdoptionBatchCard(batch) } }
             }
             item {
                 val allExpanded = visibleInstalled.isNotEmpty() &&
@@ -281,7 +299,13 @@ fun LibraryScreen(
                     onValueChange = { query = it },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.extraLarge),
+                        .padding(bottom = 10.dp)
+                        .clip(RoundedCornerShape(percent = 50))
+                        .then(
+                            if (LocalHubStyle.current) Modifier.border(
+                                1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(percent = 50)
+                            ) else Modifier
+                        ),
                     singleLine = true,
                     placeholder = { Text(stringResource(R.string.library_search_placeholder)) },
                     leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
@@ -319,10 +343,10 @@ fun LibraryScreen(
                             }
                         }
                     },
-                    shape = MaterialTheme.shapes.extraLarge,
+                    shape = RoundedCornerShape(percent = 50),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent
@@ -334,7 +358,7 @@ fun LibraryScreen(
                 // pushing the list itself below the fold. It gets the whole width: sharing the row
                 // with a button cut the last chip in half at that button's edge.
                 LazyRow(
-                    modifier = Modifier.bleedToScreenEdges(),
+                    modifier = Modifier.bleedToScreenEdges().padding(bottom = 12.dp),
                     contentPadding = PaddingValues(horizontal = ScreenPadding),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -372,6 +396,8 @@ fun LibraryScreen(
             groups.forEach { group ->
                 val collapsed = group.key in collapsedGroups
                 if (group.titled) item(key = "group:${group.key}") {
+                    // Groups after the first stand apart, as the concept's sections do.
+                    if (group.key != groups.first().key) Spacer(Modifier.height(16.dp))
                     val notAdopted = group.key == LibraryGrouping.NOT_ADOPTED
                     val allSelected = notAdopted && group.apps.all { it.packageName in selectedPackages }
                     LibraryGroupHeader(
@@ -396,7 +422,7 @@ fun LibraryScreen(
                         }
                     )
                 }
-                if (!collapsed) items(group.apps, key = { it.packageName }) { app ->
+                if (!collapsed) itemsIndexed(group.apps, key = { _, it -> it.packageName }) { index, app ->
                     val managedApp = managedByPackage[app.packageName]
                     val toggle = {
                         selectedPackages = if (app.packageName in selectedPackages) selectedPackages - app.packageName
@@ -412,6 +438,7 @@ fun LibraryScreen(
                         missingFromSource = app.packageName in missingFromSource,
                         onToggleSelected = toggle,
                         onWhatsNew = onWhatsNew,
+                        position = groupPosition(index, group.apps.size),
                         // A long press on an app not accepted yet starts choosing several at once.
                         onStartSelection = if (managedApp == null && !selecting && adoptionBatch == null) {
                             {
@@ -449,7 +476,10 @@ private fun LibraryGroupHeader(
             Text(
                 title,
                 modifier = Modifier.weight(1f, fill = false),
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                    fontSize = 18.sp
+                ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -537,3 +567,49 @@ fun InstalledAppIcon(app: InstalledApp, modifier: Modifier = Modifier) {
 @Composable
 fun formatLastUpdated(time: Long): String =
     if (time <= 0) stringResource(R.string.common_no_data) else DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(time))
+
+/** How much of the phone Wy Store looks after, and the way to look after the rest. */
+@Composable
+private fun LibraryHero(accepted: Int, total: Int, onPick: (() -> Unit)?, modifier: Modifier = Modifier) {
+    HubPanel(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    stringResource(R.string.library_hero_title, accepted, total),
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                    )
+                )
+                Text(
+                    stringResource(R.string.library_intro),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (total > 0) {
+                Spacer(Modifier.width(14.dp))
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        progress = { accepted.toFloat() / total },
+                        modifier = Modifier.fillMaxSize(),
+                        strokeWidth = 5.dp,
+                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
+                        gapSize = 4.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                    Text(
+                        "$accepted/$total",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                        )
+                    )
+                }
+            }
+        }
+        onPick?.let {
+            Spacer(Modifier.height(4.dp))
+            HubWideButton(text = stringResource(R.string.library_hero_pick), onClick = it)
+        }
+    }
+}

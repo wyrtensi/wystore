@@ -811,4 +811,6 @@
     <string name="updates_hero_problems">Unreachable: %1$d</string>
     <string name="updates_hero_checked">Background check: %1$d of %2$d · %3$s</string>
     <string name="updates_hero_checked_manual">Checked: %1$d of %2$d · %3$s</string>
+    <string name="library_hero_title">Looked after: %1$d of %2$d</string>
+    <string name="library_hero_pick">Choose what to accept</string>
 </resources>

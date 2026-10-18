@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,23 +85,25 @@ fun LibraryAppRow(
     onToggleSelected: () -> Unit = {},
     onStartSelection: (() -> Unit)? = null,
     /** The source's notes for the version it offers, without opening the page. */
-    onWhatsNew: (ManagedApp) -> Unit = {}
+    onWhatsNew: (ManagedApp) -> Unit = {},
+    /** Where the row stands in its group, which is drawn as one panel of rows. */
+    position: dev.wystore.ui.components.GroupPosition = dev.wystore.ui.components.GroupPosition.SINGLE
 ) {
     val selectable = selected != null && managed == null
-    WyCard(
-        modifier = modifier.fillMaxWidth(),
+    dev.wystore.ui.components.HubGroupRow(
+        position = position,
+        modifier = modifier,
+        // A picked row is told by a faint wash of the accent, as the concept marks the open tab.
+        highlighted = selected == true,
         onClick = { if (selectable) onToggleSelected() else onExpandedChange(!expanded) },
-        // Not secondaryContainer: that is the badge's colour, and the badge vanished into the row.
-        containerColor = if (selected == true) MaterialTheme.colorScheme.surfaceContainerHighest
-        else MaterialTheme.colorScheme.surfaceContainerLow,
         onLongClick = onStartSelection
     ) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 InstalledAppIcon(
                     app,
                     Modifier
-                        .size(44.dp)
+                        .size(40.dp)
                         .clickable { onOpenStorePage(app.packageName) }
                 )
                 Spacer(Modifier.width(12.dp))
@@ -108,7 +111,7 @@ fun LibraryAppRow(
                     Text(
                         app.label,
                         style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                     Row(
@@ -120,15 +123,11 @@ fun LibraryAppRow(
                         // "1.423.966222932" took the whole line and left the badge one character
                         // wide, which wrapped it into a column of letters and stretched the row
                         // to half a screen.
-                        Text(
+                        dev.wystore.ui.components.HubTag(
                             shortVersionName(app.versionName) ?: app.versionName,
-                            modifier = Modifier.weight(1f, fill = false),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            modifier = Modifier.weight(1f, fill = false)
                         )
-                        StateBadge(text = installerShortLabel(app))
+                        dev.wystore.ui.components.HubTag(installerShortLabel(app))
                     }
                 }
                 Spacer(Modifier.width(8.dp))
@@ -138,11 +137,17 @@ fun LibraryAppRow(
                 }
                 // The step the user is most likely to want, kept on the identity line.
                 if (pendingUpdate != null) {
-                    Button(onClick = { onInstallPending(app.packageName) }) {
+                    Button(
+                        onClick = { onInstallPending(app.packageName) },
+                        contentPadding = dev.wystore.ui.components.rowButtonPadding()
+                    ) {
                         Text(stringResource(R.string.common_update), maxLines = 1)
                     }
                 } else {
-                    FilledTonalButton(onClick = { onLaunch(app.packageName) }) {
+                    FilledTonalButton(
+                        onClick = { onLaunch(app.packageName) },
+                        contentPadding = dev.wystore.ui.components.rowButtonPadding()
+                    ) {
                         Text(stringResource(R.string.common_open), maxLines = 1)
                     }
                 }
@@ -276,38 +281,50 @@ fun LibraryAppRow(
             }
 
             WyDivider()
+            // Grey pills, the concept's quiet controls, instead of a row of accent text; removing the
+            // app is the one told in red, being the one that cannot be taken back.
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 if (managed == null) {
-                    TextButton(onClick = { onAdopt(app) }) {
-                        Text(stringResource(R.string.dialog_adopt_confirm))
-                    }
+                    RowAction(stringResource(R.string.dialog_adopt_confirm), accent = true) { onAdopt(app) }
                 } else {
-                    TextButton(onClick = { onOpenDetails(managed) }) {
-                        Text(stringResource(R.string.library_open_page))
-                    }
-                    TextButton(onClick = { onWhatsNew(managed) }) {
-                        Text(stringResource(R.string.details_changelog))
-                    }
+                    RowAction(stringResource(R.string.library_open_page)) { onOpenDetails(managed) }
+                    RowAction(stringResource(R.string.details_changelog)) { onWhatsNew(managed) }
                     if (available != null) {
-                        TextButton(onClick = { onDownloadUpdate(available.id) }) {
-                            Text(stringResource(R.string.common_update))
-                        }
+                        RowAction(stringResource(R.string.common_update), accent = true) { onDownloadUpdate(available.id) }
                     } else if (pendingUpdate == null) {
-                        TextButton(onClick = { onCheck(managed) }) {
-                            Text(stringResource(R.string.common_check))
-                        }
+                        RowAction(stringResource(R.string.common_check)) { onCheck(managed) }
                     }
-                    TextButton(onClick = { onRemoveManaged(app) }) {
-                        Text(stringResource(R.string.library_remove))
-                    }
+                    RowAction(stringResource(R.string.library_remove)) { onRemoveManaged(app) }
                 }
-                TextButton(onClick = { onUninstall(app) }) {
-                    Text(stringResource(R.string.dialog_uninstall_confirm))
-                }
+                RowAction(stringResource(R.string.dialog_uninstall_confirm), destructive = true) { onUninstall(app) }
             }
         }
+    }
+}
+
+/** One of a row's actions: a small grey pill, the accent for the step offered, red for removal. */
+@Composable
+private fun RowAction(text: String, accent: Boolean = false, destructive: Boolean = false, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    androidx.compose.material3.Surface(
+        onClick = onClick,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(percent = 50),
+        color = if (accent) colors.primary else colors.secondaryContainer,
+        contentColor = when {
+            accent -> colors.onPrimary
+            destructive -> colors.error
+            else -> colors.onSecondaryContainer
+        }
+    ) {
+        Text(
+            text,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1
+        )
     }
 }

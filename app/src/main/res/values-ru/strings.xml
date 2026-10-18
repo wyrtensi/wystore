@@ -811,4 +811,6 @@
     <string name="updates_hero_problems">Не удалось проверить: %1$d</string>
     <string name="updates_hero_checked">Фоновая проверка: %1$d из %2$d · %3$s</string>
     <string name="updates_hero_checked_manual">Проверено: %1$d из %2$d · %3$s</string>
+    <string name="library_hero_title">Под присмотром: %1$d из %2$d</string>
+    <string name="library_hero_pick">Выбрать, что принять</string>
 </resources>
