@@ -78,8 +78,8 @@ Wy Store не собирает персональные данные, не за�
 
 Всё сказанное выше относится к приложению. Сайт wystore.ru считает просмотры страниц собственным
 счётчиком (GoatCounter на нашем сервере), без cookie и без сторонних сервисов. Счётчик не хранит
-IP-адреса; сохраняются только страница, источник перехода, страна, браузер и система. Статистика
-открыта: https://stats.wyrtensi.ru/.
+IP-адреса; для каждого просмотра сохраняются страница, время, источник перехода, страна, язык
+браузера, браузер и система. Сводка открыта: https://stats.wyrtensi.ru/.
 
 ## Изменения
 
@@ -170,8 +170,8 @@ The app is not directed at children and collects no data about them — or about
 
 Everything above is about the app. The wystore.ru website counts page views with our own counter
 (GoatCounter on our server), without cookies or third-party services. The counter does not store IP
-addresses; only the page, the referrer, the country, the browser and the system are kept. The stats
-are public: https://stats.wyrtensi.ru/.
+addresses; for each view it keeps the page, the time, the referrer, the country, the browser
+language, the browser and the system. The summary is public: https://stats.wyrtensi.ru/.
 
 ## Changes
 
