@@ -306,7 +306,7 @@ class StoreRepository(private val context: Context) {
     fun restoreBackup(backup: WyStoreBackup, merge: Boolean = false): BackupRestoreSummary {
         // The interface choice describes this device, not the one the backup came from: a phone
         // restoring a TV's backup must not come up in the TV interface.
-        saveSettings(backup.settings.copy(deviceType = settings().deviceType))
+        saveSettings(backup.settings.withKnownChoices().copy(deviceType = settings().deviceType))
         if (backup.ruStoreCompatibility.apiVersionCode > 0L) {
             saveRuStoreCompatibility(
                 backup.ruStoreCompatibility.copy(

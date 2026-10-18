@@ -129,4 +129,25 @@ class SettingsCodecTest {
 
         assertEquals(AppSettings().language, SettingsCodec.read(prefs).language)
     }
+
+    @Test
+    fun theAccentRoundTripsAndDefaultsToOrange() {
+        val prefs = mutablePreferencesOf()
+        val current = SettingsCodec.read(prefs)
+        assertEquals(AccentPreset.ORANGE, current.accent)
+
+        SettingsCodec.write(prefs, current, current.copy(accent = AccentPreset.TEAL))
+
+        assertEquals(setOf(SettingsCodec.KEY_ACCENT), prefs.asMap().keys)
+        assertEquals(AccentPreset.TEAL, SettingsCodec.read(prefs).accent)
+        assertEquals(AccentPreset.TEAL, SettingsCodec.read(prefs).toStoreSettings().toAppSettings().accent)
+    }
+
+    @Test
+    fun anAccentThisBuildDoesNotKnowReadsAsTheDefault() {
+        val prefs = mutablePreferencesOf()
+        prefs[SettingsCodec.KEY_ACCENT] = "PLUM"
+
+        assertEquals(AccentPreset.ORANGE, SettingsCodec.read(prefs).accent)
+    }
 }

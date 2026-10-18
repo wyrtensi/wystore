@@ -102,4 +102,25 @@ class StoreBackupTest {
         assertEquals(false, restored.settings.dynamicColorEnabled)
         assertEquals(false, restored.settings.githubEnabled)
     }
+
+    @Test
+    fun aChoiceThisBuildDoesNotKnowRestoresAsTheDefault() {
+        // A backup from a newer build may name an accent, theme or language this one lacks. Gson
+        // reads an unknown enum constant as null, behind a non-null type, and saving it threw.
+        val json = """{"version":3,"settings":{"accent":"PLUM","themeMode":"SEPIA","language":"XX","queueMode":"NEW"}}"""
+        val restored = Gson().fromJson(json, WyStoreBackup::class.java).settings.withKnownChoices()
+
+        assertEquals(dev.wystore.settings.AccentPreset.ORANGE, restored.accent)
+        assertEquals(dev.wystore.settings.ThemeMode.SYSTEM, restored.themeMode)
+        assertEquals(dev.wystore.settings.AppLanguage.SYSTEM, restored.language)
+        assertEquals(QueueMode.SMART_PROMPTS, restored.queueMode)
+    }
+
+    @Test
+    fun aKnownAccentSurvivesTheBackup() {
+        val json = """{"version":3,"settings":{"accent":"TEAL"}}"""
+        val restored = Gson().fromJson(json, WyStoreBackup::class.java).settings.withKnownChoices()
+
+        assertEquals(dev.wystore.settings.AccentPreset.TEAL, restored.accent)
+    }
 }

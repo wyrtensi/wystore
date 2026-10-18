@@ -306,6 +306,26 @@ data class UpdateCheckSummary(
     val problemApps: List<UpdateCheckProblem> = emptyList()
 )
 
+/**
+ * The settings with every choice this build knows, the default standing in for any it does not.
+ *
+ * Gson reads an enum constant it has no entry for as null, behind a non-null type: a backup from a
+ * newer build naming an accent, theme or language this one lacks restored as null, and saving it
+ * threw. The casts to the nullable type are what see that null.
+ */
+fun StoreSettings.withKnownChoices(): StoreSettings {
+    val defaults = StoreSettings()
+    return copy(
+        queueMode = (queueMode as QueueMode?) ?: defaults.queueMode,
+        themeMode = (themeMode as dev.wystore.settings.ThemeMode?) ?: defaults.themeMode,
+        deviceType = (deviceType as dev.wystore.settings.DeviceType?) ?: defaults.deviceType,
+        tvCatalog = (tvCatalog as dev.wystore.settings.TvCatalog?) ?: defaults.tvCatalog,
+        language = (language as dev.wystore.settings.AppLanguage?) ?: defaults.language,
+        accent = (accent as dev.wystore.settings.AccentPreset?) ?: defaults.accent,
+        searchSources = (searchSources as SearchSources?) ?: defaults.searchSources
+    )
+}
+
 data class WyStoreBackup(
     val version: Int = 3,
     val exportedAt: Long = System.currentTimeMillis(),
