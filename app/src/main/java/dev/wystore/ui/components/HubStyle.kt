@@ -90,8 +90,8 @@ fun HubHeader(
                 title,
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Medium,
-                    fontSize = 30.sp,
-                    lineHeight = 36.sp,
+                    fontSize = 31.sp,
+                    lineHeight = 37.sp,
                     letterSpacing = (-0.5).sp
                 ),
                 maxLines = 1,
@@ -184,7 +184,7 @@ fun HubGroupTitle(
         Text(
             title,
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, fontSize = 17.sp),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, fontSize = 18.sp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

@@ -42,7 +42,10 @@ fun WyStoreTheme(
     val typography = remember(language, tv) {
         // The TV keeps the system typeface: read from across a room, its letterforms were chosen
         // for that, and the TV interface was not part of the Wy Hub concept.
-        wyStoreTypography(if (!tv && ThemePolicy.brandFontCovers(language)) Manrope else FontFamily.Default)
+        wyStoreTypography(
+            family = if (!tv && ThemePolicy.brandFontCovers(language)) Manrope else FontFamily.Default,
+            step = if (tv) 0 else 1
+        )
     }
 
     val hub = colorScheme === HubDarkColorScheme || colorScheme === HubLightColorScheme
