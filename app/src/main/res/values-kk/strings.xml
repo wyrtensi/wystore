@@ -813,4 +813,5 @@
     <string name="updates_hero_checked_manual">Тексерілді: %2$d ішінен %1$d · %3$s</string>
     <string name="library_hero_title">Бақылауда: %2$d ішінен %1$d</string>
     <string name="library_hero_pick">Не қабылдауды таңдау</string>
+    <string name="permissions_hero_title">Дайын: %2$d ішінен %1$d</string>
 </resources>

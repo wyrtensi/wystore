@@ -15,40 +15,40 @@ Branch `design/wy-hub-style`. Rules taken from the Wy Hub concept (wy-hub-legacy
 
 - [x] Palette, Manrope, radii, hairline (theme)
 - [x] Bottom bar: capsule, tab pill holding icon and name, one label size for all
-- [ ] Faint tags for version / installer / section
+- [x] Faint tags for version / installer / section
 - [ ] Snackbar and the "waiting for Android" banner over the last rows
-- [ ] Dialogs: what's new, metered network, unverified source, adoption, GitHub install, replace,
+- [x] Dialogs: what's new, metered network, unverified source, adoption, GitHub install, replace,
       force Wy Store, offer next, source failure
 
 ## Updates
 
 - [x] Panel: all current / ready N (Install all) / in queue / unreachable; check ring
 - [x] Ready to install as one group; accepted apps as one group
-- [ ] Queue cards: queued, resolving, downloading, paused, verifying, awaiting Android's dialog,
+- [x] Queue cards: queued, resolving, downloading, paused, verifying, awaiting Android's dialog,
       canceled, failed (network, signature with replace, unverified source, source problem)
 - [ ] Check running card; problem lines under the panel
 - [ ] Empty: nothing accepted
 
 ## Home
 
-- [ ] Header and the updates panel: nothing pending / N ready / queue running
-- [ ] Catalogue loading, failed (retry), stale
-- [ ] Categories rail, GitHub rail (installed mark, GitHub switched off)
-- [ ] RuStore list as one group; row states: not installed, installed, update, downloading,
+- [x] Header and the updates panel: nothing pending / N ready / queue running
+- [x] Catalogue loading, failed (retry), stale
+- [x] Categories rail, GitHub rail (installed mark, GitHub switched off)
+- [x] RuStore list as one group; row states: not installed, installed, update, downloading,
       paused, ready, installing, failed, unverified source
 
 ## Search
 
-- [ ] Start state, sources chips, the search button and the note
-- [ ] Results: RuStore group, GitHub group; loading; nothing found; source error / rate limit;
+- [x] Start state, sources chips, the search button and the note
+- [x] Results: RuStore group, GitHub group; loading; nothing found; source error / rate limit;
       load more
 - [ ] Inline progress and failure on a result
 
 ## My apps
 
-- [ ] Header, search field, filter chips
-- [ ] Accepted and not accepted as groups; collapse
-- [ ] Expanded row: facts, auto-update and force switches, frozen, missing from RuStore,
+- [x] Header, search field, filter chips
+- [x] Accepted and not accepted as groups; collapse
+- [x] Expanded row: facts, auto-update and force switches, frozen, missing from RuStore,
       update available, actions
 - [ ] Selection: long press, select all, accept many, batch progress
 - [ ] Backup nudge, export, import
@@ -56,14 +56,29 @@ Branch `design/wy-hub-style`. Rules taken from the Wy Hub concept (wy-hub-legacy
 
 ## App page (RuStore) and GitHub page
 
-- [ ] Not installed, installed and current, update, downloading, paused, ready, awaiting dialog,
+- [x] Not installed, installed and current, update, downloading, paused, ready, awaiting dialog,
       failed
 - [ ] Takeover in place, replace (signature / older in catalogue), source unconfirmed
 - [ ] Incompatible Android, no root note
-- [ ] Facts, what's new, description, screenshots viewer, reviews and "load all"
+- [x] Facts, what's new, description, screenshots viewer, reviews and "load all"
 
 ## Settings
 
-- [ ] Hub list as groups
+- [x] Hub list as groups
 - [ ] Appearance, language, notifications, sources, GitHub repositories, about (self-update,
       diagnostics), permission center, background updates
+
+## Done so far (branch)
+
+- Status tones in one place (StatusTone): active accent, ready green, paused yellow, asking blue,
+  failed red sentence, neutral grey.
+- Tabs renamed in Russian: «Апдейты», «Приложения».
+- Rails bleed to the screen edge; lists under a fixed header fade at the top.
+
+## Still open
+
+- Settings sections beyond the hub, Permissions and page headers: Appearance, Notifications,
+  Sources, About laid out as panels; FilterChip restyle.
+- Snackbar and the "waiting for Android" banner over the last rows.
+- Search: inline progress/failure on a result; nothing found; source error.
+- TV untouched by design (keeps its palette and type).

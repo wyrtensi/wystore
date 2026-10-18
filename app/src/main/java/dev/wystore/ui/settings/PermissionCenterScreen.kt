@@ -1,5 +1,8 @@
 package dev.wystore.ui.settings
 
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import dev.wystore.ui.components.color
 import dev.wystore.ui.components.HubPageHeader
 import dev.wystore.permissions.openUnknownSourcesSettings
 
@@ -123,11 +126,39 @@ fun PermissionCenterScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text(
-                stringResource(R.string.permissions_intro),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // The concept's Permissions screen opens with how many are ready, as a number and a
+            // ring; the intro becomes its caption.
+            val ready = listOf(notificationsEnabled, installUnknownSourcesEnabled, ignoringBatteryOptimizations).count { it }
+            dev.wystore.ui.components.HubPanel(tint = if (ready == 3) READY_GREEN else MaterialTheme.colorScheme.primary) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            stringResource(R.string.permissions_hero_title, ready, 3),
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
+                            )
+                        )
+                        Text(
+                            stringResource(R.string.permissions_intro),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    androidx.compose.foundation.layout.Spacer(Modifier.width(14.dp))
+                    androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
+                        androidx.compose.material3.CircularProgressIndicator(
+                            progress = { ready / 3f },
+                            modifier = Modifier.fillMaxSize(),
+                            strokeWidth = 5.dp,
+                            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
+                            gapSize = 4.dp,
+                            color = if (ready == 3) READY_GREEN else MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        )
+                        Text("$ready/3", style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
 
             // 1. Notifications
             WyCard(
@@ -138,8 +169,8 @@ fun PermissionCenterScreen(
                         Text(stringResource(R.string.permissions_notifications_title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                         StateBadge(
                             text = stringResource(if (notificationsEnabled) R.string.permissions_state_allowed else R.string.permissions_state_off),
-                            containerColor = if (notificationsEnabled) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer,
-                            contentColor = if (notificationsEnabled) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onErrorContainer
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = if (notificationsEnabled) READY_GREEN else MaterialTheme.colorScheme.error
                         )
                     }
                     Text(
@@ -181,8 +212,8 @@ fun PermissionCenterScreen(
                         Text(stringResource(R.string.permissions_unknown_sources_title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                         StateBadge(
                             text = stringResource(if (installUnknownSourcesEnabled) R.string.permissions_state_allowed else R.string.permissions_state_denied),
-                            containerColor = if (installUnknownSourcesEnabled) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer,
-                            contentColor = if (installUnknownSourcesEnabled) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onErrorContainer
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = if (installUnknownSourcesEnabled) READY_GREEN else MaterialTheme.colorScheme.error
                         )
                     }
                     Text(
@@ -209,8 +240,8 @@ fun PermissionCenterScreen(
                         Text(stringResource(R.string.permissions_background_title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                         StateBadge(
                             text = stringResource(if (ignoringBatteryOptimizations) R.string.permissions_state_unrestricted else R.string.permissions_state_optimized),
-                            containerColor = if (ignoringBatteryOptimizations) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                            contentColor = if (ignoringBatteryOptimizations) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = if (ignoringBatteryOptimizations) READY_GREEN else PAUSED_YELLOW
                         )
                     }
                     Text(
@@ -286,3 +317,9 @@ fun PermissionCenterScreen(
         }
     }
 }
+
+/** The tones the status tags are told in: see StatusTone. */
+private val READY_GREEN: androidx.compose.ui.graphics.Color
+    @Composable get() = dev.wystore.ui.components.StatusTone.READY.color()!!
+private val PAUSED_YELLOW: androidx.compose.ui.graphics.Color
+    @Composable get() = dev.wystore.ui.components.StatusTone.PAUSED.color()!!

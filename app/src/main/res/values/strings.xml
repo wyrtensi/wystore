@@ -813,4 +813,5 @@
     <string name="updates_hero_checked_manual">Checked: %1$d of %2$d · %3$s</string>
     <string name="library_hero_title">Looked after: %1$d of %2$d</string>
     <string name="library_hero_pick">Choose what to accept</string>
+    <string name="permissions_hero_title">Ready: %1$d of %2$d</string>
 </resources>

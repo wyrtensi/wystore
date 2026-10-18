@@ -813,4 +813,5 @@
     <string name="updates_hero_checked_manual">Pārbaudītas: %1$d no %2$d · %3$s</string>
     <string name="library_hero_title">Uzraudzībā: %1$d no %2$d</string>
     <string name="library_hero_pick">Izvēlēties, ko pieņemt</string>
+    <string name="permissions_hero_title">Gatavas: %1$d no %2$d</string>
 </resources>

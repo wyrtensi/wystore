@@ -813,4 +813,5 @@
     <string name="updates_hero_checked_manual">Tekshirildi: %2$d tadan %1$d · %3$s</string>
     <string name="library_hero_title">Nazoratda: %2$d tadan %1$d</string>
     <string name="library_hero_pick">Nimani qabul qilishni tanlash</string>
+    <string name="permissions_hero_title">Tayyor: %2$d tadan %1$d</string>
 </resources>
