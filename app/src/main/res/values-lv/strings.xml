@@ -825,4 +825,8 @@
     <string name="library_frozen_short">Iesaldēta</string>
     <string name="library_adopt_progress_title">Meklējam avotus</string>
     <string name="source_error_no_connection">Nav savienojuma ar serveri. Pārbaudiet tīklu un mēģiniet vēlreiz.</string>
+    <string name="search_start_rustore_title">Meklēt RuStore</string>
+    <string name="search_start_rustore_message">Ievadiet nosaukumu vai pakotnes nosaukumu un sāciet meklēšanu: vaicājam tikai RuStore.</string>
+    <string name="search_start_github_title">Meklēt GitHub katalogā</string>
+    <string name="search_start_github_message">Atvērtā koda lietotnes no GitHub laidieniem, atlasītas rakstīšanas laikā.</string>
 </resources>

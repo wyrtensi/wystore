@@ -825,4 +825,8 @@
     <string name="library_frozen_short">Замарожана</string>
     <string name="library_adopt_progress_title">Шукаем крыніцы</string>
     <string name="source_error_no_connection">Няма сувязі з серверам. Праверце сетку і паўтарыце.</string>
+    <string name="search_start_rustore_title">Пошук у RuStore</string>
+    <string name="search_start_rustore_message">Увядзіце назву або імя пакета і запусціце пошук: пытаемся толькі ў RuStore.</string>
+    <string name="search_start_github_title">Пошук па каталогу GitHub</string>
+    <string name="search_start_github_message">Праграмы з адкрытым кодам з рэлізаў GitHub, падбіраюцца па меры ўводу.</string>
 </resources>

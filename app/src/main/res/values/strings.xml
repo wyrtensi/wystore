@@ -825,4 +825,8 @@
     <string name="library_frozen_short">Frozen</string>
     <string name="library_adopt_progress_title">Looking up sources</string>
     <string name="source_error_no_connection">No connection to the server. Check the network and try again.</string>
+    <string name="search_start_rustore_title">Search RuStore</string>
+    <string name="search_start_rustore_message">Type a name or a package name and start the search: only RuStore is asked.</string>
+    <string name="search_start_github_title">Search the GitHub catalogue</string>
+    <string name="search_start_github_message">Open-source apps from GitHub releases, matched as you type.</string>
 </resources>

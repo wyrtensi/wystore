@@ -825,4 +825,8 @@
     <string name="library_frozen_short">Мұздатылған</string>
     <string name="library_adopt_progress_title">Дереккөздерді іздеп жатырмыз</string>
     <string name="source_error_no_connection">Сервермен байланыс жоқ. Желіні тексеріп, қайталаңыз.</string>
+    <string name="search_start_rustore_title">RuStore ішінен іздеу</string>
+    <string name="search_start_rustore_message">Атауын не пакет атын енгізіп, іздеуді бастаңыз: тек RuStore сұралады.</string>
+    <string name="search_start_github_title">GitHub каталогынан іздеу</string>
+    <string name="search_start_github_message">GitHub релиздеріндегі ашық кодты қолданбалар, енгізген сайын табылады.</string>
 </resources>

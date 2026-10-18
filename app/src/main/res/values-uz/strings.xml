@@ -825,4 +825,8 @@
     <string name="library_frozen_short">Muzlatilgan</string>
     <string name="library_adopt_progress_title">Manbalar qidirilmoqda</string>
     <string name="source_error_no_connection">Server bilan aloqa yoʻq. Tarmoqni tekshirib, qayta urinib koʻring.</string>
+    <string name="search_start_rustore_title">RuStore\'da qidirish</string>
+    <string name="search_start_rustore_message">Nom yoki paket nomini kiriting va qidiruvni boshlang: faqat RuStore soʻraladi.</string>
+    <string name="search_start_github_title">GitHub katalogidan qidirish</string>
+    <string name="search_start_github_message">GitHub relizlaridagi ochiq kodli ilovalar, yozish davomida topiladi.</string>
 </resources>

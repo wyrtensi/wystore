@@ -112,6 +112,8 @@ fun SearchScreen(
     githubResults: List<GitHubCatalogEntry> = emptyList(),
     onOpenGitHubApp: (GitHubCatalogEntry) -> Unit = {},
     sources: SearchSources = SearchSources.ALL,
+    /** The GitHub source in settings; switched off, search is RuStore's alone and says so. */
+    githubEnabled: Boolean = true,
     onSourcesChange: (SearchSources) -> Unit = {},
     /** Matches the bundled catalogue without asking RuStore anything; see [SearchSources]. */
     onSearchLocal: (String) -> Unit = {},
@@ -127,6 +129,8 @@ fun SearchScreen(
     /** Forgets the query along with the field, so Home does not go on showing it. */
     onClear: () -> Unit = {}
 ) {
+    @Suppress("NAME_SHADOWING")
+    val sources = sources.within(githubEnabled)
     var text by remember(query) { mutableStateOf(query) }
     val runSearch = {
         val requested = text.trim()
@@ -157,7 +161,7 @@ fun SearchScreen(
             item {
                 HubHeader(
                     title = stringResource(R.string.search_title),
-                    eyebrow = "RuStore · GitHub",
+                    eyebrow = if (githubEnabled) "RuStore · GitHub" else "RuStore",
                     subtitle = stringResource(R.string.search_subtitle),
                     horizontalPadding = 0.dp,
                     insetStatusBar = false,
@@ -215,7 +219,8 @@ fun SearchScreen(
                             disabledIndicatorColor = Color.Transparent
                         )
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // One source left is no choice to offer.
+                    if (githubEnabled) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         SearchSources.entries.forEach { option ->
                             HubChoiceChip(
                                 selected = sources == option,
@@ -270,8 +275,21 @@ fun SearchScreen(
                     } else if (query.isBlank()) {
                         EmptyState(
                             icon = Icons.Outlined.Search,
-                            title = stringResource(R.string.search_start_title),
-                            message = stringResource(R.string.search_start_message)
+                            // It said "two sources at once" whichever one was chosen.
+                            title = stringResource(
+                                when (sources) {
+                                    SearchSources.ALL -> R.string.search_start_title
+                                    SearchSources.RUSTORE -> R.string.search_start_rustore_title
+                                    SearchSources.GITHUB -> R.string.search_start_github_title
+                                }
+                            ),
+                            message = stringResource(
+                                when (sources) {
+                                    SearchSources.ALL -> R.string.search_start_message
+                                    SearchSources.RUSTORE -> R.string.search_start_rustore_message
+                                    SearchSources.GITHUB -> R.string.search_start_github_message
+                                }
+                            )
                         )
                     } else {
                         EmptyState(

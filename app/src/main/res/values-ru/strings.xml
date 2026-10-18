@@ -825,4 +825,8 @@
     <string name="library_frozen_short">Заморожено</string>
     <string name="library_adopt_progress_title">Ищем источники</string>
     <string name="source_error_no_connection">Нет связи с сервером. Проверьте сеть и повторите.</string>
+    <string name="search_start_rustore_title">Поиск в RuStore</string>
+    <string name="search_start_rustore_message">Введите название или имя пакета и запустите поиск: спрашиваем только RuStore.</string>
+    <string name="search_start_github_title">Поиск по каталогу GitHub</string>
+    <string name="search_start_github_message">Приложения с открытым кодом из релизов GitHub, подбираются по мере ввода.</string>
 </resources>

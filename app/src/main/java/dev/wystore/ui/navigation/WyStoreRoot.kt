@@ -347,6 +347,7 @@ fun WyStoreRoot(
                         githubResults = if (state.settings.githubEnabled) state.githubSearchResults else emptyList(),
                         onOpenGitHubApp = viewModel::openGitHubApp,
                         sources = state.settings.searchSources,
+                        githubEnabled = state.settings.githubEnabled,
                         onSourcesChange = { chosen ->
                             viewModel.saveSettings(state.settings.copy(searchSources = chosen))
                         },

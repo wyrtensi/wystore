@@ -15,4 +15,10 @@ enum class SearchSources {
 
     val includesRuStore: Boolean get() = this != GITHUB
     val includesGitHub: Boolean get() = this != RUSTORE
+
+    /**
+     * What a search can actually look in. With the GitHub source switched off in settings, a saved
+     * "GitHub only" searched nowhere, and "both" still offered a source that was gone.
+     */
+    fun within(githubEnabled: Boolean): SearchSources = if (githubEnabled) this else RUSTORE
 }
