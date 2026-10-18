@@ -673,6 +673,7 @@ private fun SettingsHubRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         // The concept's menu rows lead with a coloured glyph in a dark tile.
+        val tint = dev.wystore.ui.components.glyphTint(tint)
         icon?.let {
             androidx.compose.foundation.layout.Box(
                 modifier = Modifier

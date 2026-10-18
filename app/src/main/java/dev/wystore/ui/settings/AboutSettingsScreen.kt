@@ -321,6 +321,7 @@ private fun AboutLinkRow(
     tint: androidx.compose.ui.graphics.Color,
     onClick: () -> Unit
 ) {
+    val tint = dev.wystore.ui.components.glyphTint(tint)
     Row(
         modifier = Modifier
             .fillMaxWidth()

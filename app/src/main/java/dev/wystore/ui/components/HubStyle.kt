@@ -631,6 +631,15 @@ fun sourceTint(name: String): Color? {
     }
 }
 
+/**
+ * A glyph colour for the page it is on: the pastel tones the concept uses on its dark glass are
+ * too pale on a light page, so there they are taken most of the way to a deep shade of themselves.
+ */
+@Composable
+fun glyphTint(colour: Color): Color =
+    if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) colour
+    else androidx.compose.ui.graphics.lerp(colour, Color.Black, 0.38f)
+
 @Composable
 private fun hairline(): BorderStroke? =
     if (LocalHubStyle.current) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
