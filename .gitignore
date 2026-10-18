@@ -32,3 +32,6 @@ docs/superpowers/
 
 # Local agent/editor tooling config
 .claude/
+
+# The site as the Site workflow assembles it from docs/
+dist/

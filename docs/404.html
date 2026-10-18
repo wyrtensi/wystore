@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Страница не найдена · Page not found — Wy Store</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0e0e0e">
+<link rel="icon" href="/assets/img/favicon-32.png" sizes="32x32">
+<link rel="icon" href="/assets/img/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/assets/img/icon-180.png">
+<link rel="stylesheet" href="/assets/style.css">
+<!-- Served for any unknown path, so every link here is absolute. No app.js: the page scrolls
+     like a plain document instead of running the deck. -->
+<style>
+  body { user-select: text; -webkit-user-select: text; }
+  .missing {
+    display: grid;
+    align-content: center;
+    gap: 56px;
+    min-height: 100svh;
+    max-width: 760px;
+    padding: calc(var(--head) + 24px) var(--gutter) 64px;
+  }
+  .missing section { display: grid; gap: 18px; }
+  .missing h1 { font-size: clamp(1.9rem, 4vw, 2.8rem); }
+  .missing p { color: var(--dim); }
+  .missing .cta { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .missing .code { font-family: var(--mono); color: var(--faint); font-size: 15px; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <nav class="nav" aria-label="Ссылки">
+    <a href="https://github.com/wyrtensi/wystore">GitHub</a>
+  </nav>
+</header>
+
+<main class="missing">
+  <p class="brandline"><img src="/assets/img/icon-192.webp" width="192" height="192" alt="">Wy&nbsp;Store</p>
+
+  <section lang="ru">
+    <p class="code">404</p>
+    <h1>Такой страницы нет</h1>
+    <p>Возможно, ссылка устарела или в адресе опечатка. Всё о Wy&nbsp;Store — на главной.</p>
+    <p class="cta"><a class="btn" href="/">На главную</a></p>
+  </section>
+
+  <section lang="en">
+    <h1>This page does not exist</h1>
+    <p>The link may be out of date, or the address has a typo. Everything about Wy&nbsp;Store is on the home page.</p>
+    <p class="cta"><a class="btn" href="/en/">Go to the home page</a></p>
+  </section>
+</main>
+
+</body>
+</html>

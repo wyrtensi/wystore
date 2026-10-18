@@ -1,0 +1,116 @@
+name: Site
+
+# The site lives in docs/ and is served from our own server behind the shared
+# Caddy proxy. Nothing is built: the build job copies the public part of docs/
+# into dist/ and checks it, then the deploy job uploads it as a new release.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/site.yml'
+      - '.github/scripts/site-*.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Assemble and check the site
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+
+      - name: Assemble dist/ from docs/
+        run: node .github/scripts/site-build.mjs
+
+      - name: Upload checked site
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: site
+          path: dist
+          include-hidden-files: true
+          retention-days: 7
+
+  deploy:
+    name: Deploy to the server
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The deploy key is an environment secret; only main may use this environment.
+    environment:
+      name: production
+      url: https://wystore.ru/
+    env:
+      DEPLOY_HOST: 192.144.58.198
+      # Pinned host key: the job refuses to talk to any other server.
+      DEPLOY_HOST_KEY: 192.144.58.198 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGOZ0fO8Qdcb+HvRDeYCoWBhO4mXePpSMC19rBCDvdvn
+    steps:
+      - name: Download checked site
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: site
+          path: dist
+
+      # The key can only upload into a new release directory and switch the
+      # site to it (forced command wystore-deploy on the server).
+      - name: Upload and activate the release
+        env:
+          DEPLOY_KEY: ${{ secrets.WYSTORE_DEPLOY_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_HOST_KEY" > ~/.ssh/known_hosts
+          release="$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}"
+          ssh_command="ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+          rsync -rlt --chmod=D755,F644 -e "$ssh_command" dist/ "wydeploy@$DEPLOY_HOST:$release/"
+          $ssh_command "wydeploy@$DEPLOY_HOST" "activate $release"
+          rm -f ~/.ssh/deploy_key
+
+  smoke:
+    name: Check the live site
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+
+      - name: Pages, 404 and redirects
+        run: node .github/scripts/site-smoke.mjs
+
+  indexnow:
+    name: Notify search engines
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+
+      - name: Submit sitemap URLs to IndexNow
+        run: node .github/scripts/site-indexnow.mjs
