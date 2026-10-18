@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,16 +51,38 @@ fun AppRow(
      */
     implicitSource: String? = null,
     /** Shows the source's notes for the version it offers; the row only offers it when given. */
-    onWhatsNew: (() -> Unit)? = null
+    onWhatsNew: (() -> Unit)? = null,
+    /**
+     * Where the row stands in a group, when the list is drawn as one panel of rows the Wy Hub way;
+     * null for a card of its own.
+     */
+    groupPosition: GroupPosition? = null
 ) {
-    WyCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {
-                contentDescription = "${state.label}, ${state.versionName.orEmpty()}, ${state.status.code}"
-            },
-        onClick = onRowClick
-    ) {
+    val described = modifier
+        .fillMaxWidth()
+        .semantics(mergeDescendants = true) {
+            contentDescription = "${state.label}, ${state.versionName.orEmpty()}, ${state.status.code}"
+        }
+    if (groupPosition != null) {
+        HubGroupRow(position = groupPosition, modifier = described, onClick = onRowClick) {
+            AppGroupRowContent(state, onPrimaryActionClick, implicitSource, onWhatsNew)
+        }
+    } else {
+        WyCard(modifier = described, onClick = onRowClick) {
+            AppRowContent(state, onPrimaryActionClick, onSecondaryActionClick, implicitSource, onWhatsNew)
+        }
+    }
+}
+
+@Composable
+private fun AppRowContent(
+    state: PackageUiState,
+    onPrimaryActionClick: () -> Unit,
+    onSecondaryActionClick: (() -> Unit)?,
+    implicitSource: String?,
+    onWhatsNew: (() -> Unit)?
+) {
+    run {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -198,6 +224,81 @@ fun AppRow(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * A row as one line of a Wy Hub group: icon, name, one grey line under it, and the action at the
+ * right. The card version stacks a version chip, a listing line and a strip of extra buttons, which
+ * inside a panel of a hundred rows made each one three times the height of the concept's.
+ */
+@Composable
+private fun AppGroupRowContent(
+    state: PackageUiState,
+    onPrimaryActionClick: () -> Unit,
+    implicitSource: String?,
+    onWhatsNew: (() -> Unit)?
+) {
+    Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AppIcon(
+                model = state.iconUrl,
+                contentDescription = null,
+                size = 44.dp,
+                fallbackPackageName = state.packageName
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    state.label,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                val source = state.sourceProvenance
+                    ?.takeUnless { implicitSource != null && it.equals(implicitSource, ignoreCase = true) }
+                    ?.let { sourceDisplayName(it) }
+                val line = listOfNotNull(
+                    shortVersionName(state.versionName),
+                    source,
+                    listingLine(state.rating, state.category).takeIf { it.isNotEmpty() }
+                ).joinToString(" · ")
+                Text(
+                    line.ifEmpty { state.packageName },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            // Quiet: an icon in the grey of the text beside it, the way the concept keeps
+            // secondary actions out of the row's way.
+            onWhatsNew?.let { showNotes ->
+                IconButton(onClick = showNotes) {
+                    Icon(
+                        Icons.Outlined.Info,
+                        contentDescription = stringResource(R.string.details_changelog),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            if (state.primaryAction != PrimaryAction.None) {
+                Spacer(Modifier.width(4.dp))
+                PrimaryActionButton(action = state.primaryAction, onClick = onPrimaryActionClick)
+            }
+        }
+        if (state.status.code in REPORTED_STATES) {
+            Text(
+                text = StatusTextResolver.resolve(LocalContext.current, state.status),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        if (state.progress != null || state.transferInfo != null || state.status.code == StatusCode.DOWNLOADING) {
+            TransferProgress(progress = state.progress, transferInfo = state.transferInfo)
         }
     }
 }

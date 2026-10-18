@@ -1,6 +1,16 @@
 package dev.wystore.ui.updates
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.text.font.FontWeight
+import dev.wystore.ui.components.HubGroupTitle
+import dev.wystore.ui.components.HubHeader
+import dev.wystore.ui.components.HubHeaderPill
+import dev.wystore.ui.components.HubNote
+import dev.wystore.ui.components.HubPanel
+import dev.wystore.ui.components.groupPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size
@@ -144,90 +154,98 @@ fun UpdatesScreen(
         }
     }
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.updates_title)) },
-                actions = {
-                    // The only way to ask for a check used to be the Library tab, which is not
-                    // where anyone looks for it.
-                    TextButton(onClick = onCheckUpdates, enabled = updateCheckTask?.running != true) {
-                        Text(
-                            stringResource(
-                                when {
-                                    updateCheckTask?.running == true -> R.string.library_checking
-                                    installsWhatItFinds -> R.string.updates_check_and_install
-                                    else -> R.string.updates_check_now
-                                }
-                            )
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        }
-    ) { contentPadding ->
+    // Wy Hub's screen: no top bar - an accent line and a large plain title - then one panel saying
+    // how things stand, then the lists. Rows of a list sit in one panel, so the list is laid out
+    // without the gap that used to stand between every card; sections keep theirs.
+    Column(modifier = modifier.fillMaxSize()) {
+        HubHeader(
+            title = stringResource(R.string.updates_title),
+            eyebrow = "Wy Store",
+            trailing = {
+                // The only way to ask for a check used to be the Library tab, which is not where
+                // anyone looks for it.
+                HubHeaderPill(
+                    text = stringResource(
+                        when {
+                            updateCheckTask?.running == true -> R.string.library_checking
+                            installsWhatItFinds -> R.string.updates_check_and_install
+                            else -> R.string.updates_check_now
+                        }
+                    ),
+                    onClick = onCheckUpdates,
+                    enabled = updateCheckTask?.running != true
+                )
+            }
+        )
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 4.dp,
+                top = 10.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
-            ),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            )
         ) {
+            updateCheckTask?.takeIf { it.active }?.let { task ->
+                item { Box(Modifier.padding(bottom = 12.dp)) { UpdateCheckStatusCard(task) } }
+            }
+
             item {
-                Text(
-                    stringResource(R.string.updates_intro),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                UpdatesHero(
+                    summary = lastUpdateCheck,
+                    ready = pendingUpdates.size,
+                    waiting = actionableQueue.size,
+                    onOpenApp = onOpenPackage,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
 
-            updateCheckTask?.takeIf { it.active }?.let { task ->
-                item { UpdateCheckStatusCard(task) }
-            }
-
-            lastUpdateCheck?.let { summary ->
-                item { LastUpdateCheckCard(summary, onOpenApp = onOpenPackage) }
+            item {
+                HubNote(
+                    text = stringResource(R.string.updates_intro),
+                    icon = Icons.Outlined.Info,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
             }
 
             if (actionableQueue.isNotEmpty()) {
                 item {
                     val canStart = actionableQueue.any { it.status == InstallQueueStatus.QUEUED }
-                    SectionHeader(
+                    HubGroupTitle(
                         title = stringResource(R.string.updates_queue_title, actionableQueue.size),
-                        actionLabel = if (canStart) stringResource(R.string.updates_queue_start) else null,
-                        onActionClick = if (canStart) onStartQueue else null
+                        meta = if (canStart) stringResource(R.string.updates_queue_start) else null,
+                        onMetaClick = if (canStart) onStartQueue else null,
+                        modifier = Modifier.padding(bottom = 10.dp)
                     )
                 }
                 items(actionableQueue, key = { "queue:${it.id}" }) { item ->
-                    QueueItemCard(
-                        item = item,
-                        iconUrl = packageIcons[item.packageName],
-                        onRetry = { onQueueRetry(item.id) },
-                        onCancel = { onQueueCancel(item.id) },
-                        onSkip = { onQueueSkip(item.id) },
-                        onDownload = { onQueueDownload(item.id) },
-                        onDiscard = { onQueueDiscard(item.id) },
-                        onReplace = { onQueueReplace(item) },
-                        onSourceFailureHelp = onSourceFailureHelp,
-                        onConfirmUnverifiedSource = { onConfirmUnverifiedSource(item.packageName) },
-                        canReplace = dev.wystore.updates.ReplaceOfferPolicy.offersReplace(
-                            errorCode = item.errorCode,
-                            detail = item.detail,
-                            appInstalled = installed.any { it.packageName == item.packageName }
-                        ),
-                        onPause = { onQueuePause(item.id) },
-                        onResume = { onQueueResume(item.id) },
-                        onShowInstallDialog = { onShowInstallDialog(item.id) },
-                        onCancelAwaitingInstall = { onCancelAwaitingInstall(item.id) },
-                        onOpen = { onOpenAppPage(item.packageName, item.label, item.githubRepository) },
-                        onWhatsNew = { onWhatsNew(item.packageName, item.label, item.githubRepository) }
-                    )
+                    Box(Modifier.padding(bottom = 10.dp)) {
+                        QueueItemCard(
+                            item = item,
+                            iconUrl = packageIcons[item.packageName],
+                            onRetry = { onQueueRetry(item.id) },
+                            onCancel = { onQueueCancel(item.id) },
+                            onSkip = { onQueueSkip(item.id) },
+                            onDownload = { onQueueDownload(item.id) },
+                            onDiscard = { onQueueDiscard(item.id) },
+                            onReplace = { onQueueReplace(item) },
+                            onSourceFailureHelp = onSourceFailureHelp,
+                            onConfirmUnverifiedSource = { onConfirmUnverifiedSource(item.packageName) },
+                            canReplace = dev.wystore.updates.ReplaceOfferPolicy.offersReplace(
+                                errorCode = item.errorCode,
+                                detail = item.detail,
+                                appInstalled = installed.any { it.packageName == item.packageName }
+                            ),
+                            onPause = { onQueuePause(item.id) },
+                            onResume = { onQueueResume(item.id) },
+                            onShowInstallDialog = { onShowInstallDialog(item.id) },
+                            onCancelAwaitingInstall = { onCancelAwaitingInstall(item.id) },
+                            onOpen = { onOpenAppPage(item.packageName, item.label, item.githubRepository) },
+                            onWhatsNew = { onWhatsNew(item.packageName, item.label, item.githubRepository) }
+                        )
+                    }
                 }
+                item { Spacer(Modifier.height(10.dp)) }
             }
 
             // An install waiting on Android's dialog has its card in the queue above, with its
@@ -238,30 +256,38 @@ fun UpdatesScreen(
                     // Installing everything already downloaded lived on Home, and in the Library it
                     // lived in a label only. This is the screen those downloads are listed on, so it
                     // was the one place the action was missing.
-                    SectionHeader(
+                    HubGroupTitle(
                         title = stringResource(R.string.updates_ready_title, readyUpdates.size),
-                        actionLabel = stringResource(R.string.updates_install_all),
-                        onActionClick = onUpdateAll
+                        meta = stringResource(R.string.updates_install_all),
+                        onMetaClick = onUpdateAll,
+                        modifier = Modifier.padding(bottom = 10.dp)
                     )
                 }
                 items(readyUpdates, key = { "pending:${it.listKey}" }) { pending ->
-                    PendingUpdateCard(
-                        update = pending,
-                        installing = queue.rowFor(pending.packageName)?.status == InstallQueueStatus.INSTALLING,
-                        iconUrl = packageIcons[pending.packageName],
-                        onInstallPending = onInstallPending,
-                        onDiscardPending = onDiscardPending,
-                        onOpen = { onOpenAppPage(pending.packageName, pending.label, pending.githubRepository) },
-                        onWhatsNew = { onWhatsNew(pending.packageName, pending.label, pending.githubRepository) }
-                    )
+                    Box(Modifier.padding(bottom = 10.dp)) {
+                        PendingUpdateCard(
+                            update = pending,
+                            installing = queue.rowFor(pending.packageName)?.status == InstallQueueStatus.INSTALLING,
+                            iconUrl = packageIcons[pending.packageName],
+                            onInstallPending = onInstallPending,
+                            onDiscardPending = onDiscardPending,
+                            onOpen = { onOpenAppPage(pending.packageName, pending.label, pending.githubRepository) },
+                            onWhatsNew = { onWhatsNew(pending.packageName, pending.label, pending.githubRepository) }
+                        )
+                    }
                 }
+                item { Spacer(Modifier.height(10.dp)) }
             }
 
             if (orderedManaged.isNotEmpty()) {
                 item {
-                    SectionHeader(title = stringResource(R.string.updates_managed_title, orderedManaged.size))
+                    HubGroupTitle(
+                        title = stringResource(R.string.updates_managed_group),
+                        meta = orderedManaged.size.toString(),
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
                 }
-                items(orderedManaged, key = { it.packageName }) { managedApp ->
+                itemsIndexed(orderedManaged, key = { _, app -> app.packageName }) { index, managedApp ->
                     val local = installedByPackage[managedApp.packageName]
                     val pending = pendingByPackage[managedApp.packageName]
                     UpdateStatusRow(
@@ -278,7 +304,8 @@ fun UpdatesScreen(
                             if (pending != null) onInstallPending(pending.packageName)
                             else onOpen(managedApp)
                         },
-                        onWhatsNew = { onWhatsNew(managedApp.packageName, managedApp.label, null) }
+                        onWhatsNew = { onWhatsNew(managedApp.packageName, managedApp.label, null) },
+                        groupPosition = groupPosition(index, orderedManaged.size)
                     )
                 }
             } else if (pendingUpdates.isEmpty()) {
@@ -291,6 +318,111 @@ fun UpdatesScreen(
                 }
             }
         }
+    }
+}
+
+/**
+ * How things stand, in one sentence and one ring - the panel every Wy Hub screen opens with.
+ *
+ * It replaces the "last check" card, which led with a heading ("Last background check") and left
+ * the answer to its third line.
+ */
+@Composable
+private fun UpdatesHero(
+    summary: UpdateCheckSummary?,
+    ready: Int,
+    waiting: Int,
+    onOpenApp: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    HubPanel(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    when {
+                        ready > 0 -> stringResource(R.string.updates_hero_ready, ready)
+                        waiting > 0 -> stringResource(R.string.updates_hero_waiting, waiting)
+                        summary != null && summary.problems > 0 ->
+                            stringResource(R.string.updates_hero_problems, summary.problems)
+                        else -> stringResource(R.string.home_all_up_to_date)
+                    },
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium)
+                )
+                summary?.let {
+                    Text(
+                        stringResource(
+                            if (it.manual) R.string.updates_hero_checked_manual else R.string.updates_hero_checked,
+                            it.checked,
+                            it.total,
+                            formatCheckTime(it.finishedAt)
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            summary?.takeIf { it.total > 0 }?.let {
+                Spacer(Modifier.width(14.dp))
+                CheckRing(checked = it.checked, total = it.total)
+            }
+        }
+        summary?.let { ProblemLines(it, onOpenApp) }
+    }
+}
+
+/** The concept's ring: how much of what is looked after the last check reached. */
+@Composable
+private fun CheckRing(checked: Int, total: Int) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(64.dp)) {
+        CircularProgressIndicator(
+            progress = { (checked.toFloat() / total).coerceIn(0f, 1f) },
+            modifier = Modifier.fillMaxSize(),
+            strokeWidth = 7.dp,
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+        )
+        Text(
+            "$checked/$total",
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+        )
+    }
+}
+
+/**
+ * Which apps the check could not handle, and why. A count is not something anyone can act on: it
+ * does not say which apps, nor whether they are unreachable now or cannot be updated from here.
+ */
+@Composable
+private fun ProblemLines(summary: UpdateCheckSummary, onOpenApp: (String) -> Unit) {
+    summary.problemApps.take(PROBLEMS_SHOWN).forEach { problem ->
+        // A signature the source does not vouch for is answered on the app's page and nowhere
+        // else, so the line that reports it leads there.
+        val answerable = problem.reason == CheckProblemReason.SIGNATURE_CHANGED
+        Text(
+            stringResource(
+                when (problem.reason) {
+                    CheckProblemReason.SIGNATURE_CHANGED -> R.string.check_problem_signature
+                    CheckProblemReason.NOT_IN_SOURCE -> R.string.check_problem_not_in_source
+                    CheckProblemReason.UNREACHABLE -> R.string.check_problem_unreachable
+                },
+                problem.label
+            ),
+            modifier = if (answerable) {
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpenApp(problem.packageName) }
+                    .padding(vertical = 4.dp)
+            } else Modifier,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error
+        )
+    }
+    if (summary.problemApps.size > PROBLEMS_SHOWN) {
+        Text(
+            stringResource(R.string.check_problem_more, summary.problemApps.size - PROBLEMS_SHOWN),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -388,92 +520,6 @@ fun PendingUpdateCard(
                     contentDescription = stringResource(R.string.updates_discard_pending),
                     modifier = Modifier.size(20.dp),
                     tint = onContainer
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun LastUpdateCheckCard(
-    summary: UpdateCheckSummary,
-    onOpenApp: (String) -> Unit = {}
-) {
-    WyCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                stringResource(
-                    if (summary.manual) R.string.updates_last_check_manual
-                    else R.string.updates_last_check_background
-                ),
-                style = MaterialTheme.typography.titleSmall
-            )
-            Text(formatCheckTime(summary.finishedAt), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
-                when (UpdateCheckReport.outcome(summary.updates, summary.problems)) {
-                    CheckOutcome.UP_TO_DATE ->
-                        stringResource(R.string.check_result_up_to_date, summary.checked)
-                    CheckOutcome.UPDATES_FOUND ->
-                        stringResource(R.string.check_result_updates, summary.checked, summary.updates)
-                    CheckOutcome.PROBLEMS -> stringResource(
-                        R.string.check_result_problems,
-                        summary.checked,
-                        summary.updates,
-                        summary.problems
-                    )
-                },
-                style = MaterialTheme.typography.bodySmall
-            )
-            if (summary.total > 0) {
-                Text(
-                    stringResource(
-                        R.string.updates_check_counts,
-                        summary.checked,
-                        summary.total,
-                        summary.updates,
-                        summary.problems
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            // A count is not something anyone can act on. Which apps, and whether they could not
-            // be reached just now or cannot be updated from here at all - those are different
-            // problems with different answers, and the card used to give the same number to both.
-            summary.problemApps.take(PROBLEMS_SHOWN).forEach { problem ->
-                // A signature the source does not vouch for is answered on the app's page and
-                // nowhere else, so the line that reports it leads there. Naming a problem the
-                // screen gives no way to act on is how an app quietly stops updating.
-                val answerable = problem.reason == CheckProblemReason.SIGNATURE_CHANGED
-                Text(
-                    stringResource(
-                        when (problem.reason) {
-                            CheckProblemReason.SIGNATURE_CHANGED -> R.string.check_problem_signature
-                            CheckProblemReason.NOT_IN_SOURCE -> R.string.check_problem_not_in_source
-                            CheckProblemReason.UNREACHABLE -> R.string.check_problem_unreachable
-                        },
-                        problem.label
-                    ),
-                    modifier = if (answerable) {
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { onOpenApp(problem.packageName) }
-                            .padding(vertical = 4.dp)
-                    } else {
-                        Modifier
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-            if (summary.problemApps.size > PROBLEMS_SHOWN) {
-                Text(
-                    stringResource(
-                        R.string.check_problem_more,
-                        summary.problemApps.size - PROBLEMS_SHOWN
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

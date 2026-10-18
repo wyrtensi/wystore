@@ -375,8 +375,6 @@
     <string name="updates_managed_title">Прийняті застосунки (%1$d)</string>
     <string name="updates_managed_empty">Поки немає прийнятих застосунків. Виберіть застосунки в «Моїх» або встановіть із каталогу.</string>
     <string name="updates_downloaded_version">Версія %1$s</string>
-    <string name="updates_last_check_manual">Остання ручна перевірка</string>
-    <string name="updates_last_check_background">Остання фонова перевірка</string>
     <string name="updates_check_counts">Перевірено %1$d з %2$d · оновлень: %3$d · проблем: %4$d</string>
     <string name="common_skip">Пропустити</string>
     <string name="vm_update_check_failed">Перевірка оновлень не вдалася</string>
@@ -809,4 +807,10 @@
     <string name="library_all_accepted_title">Усі застосунки прийнято</string>
     <string name="library_all_accepted_message">Wy Store вже стежить за оновленнями всіх застосунків на телефоні.</string>
     <string name="library_filter_empty_message">Виберіть інший фільтр.</string>
+    <string name="updates_managed_group">Прийняті застосунки</string>
+    <string name="updates_hero_ready">Готові до встановлення: %1$d</string>
+    <string name="updates_hero_waiting">У черзі: %1$d</string>
+    <string name="updates_hero_problems">Не вдалося перевірити: %1$d</string>
+    <string name="updates_hero_checked">Фонова перевірка: %1$d з %2$d · %3$s</string>
+    <string name="updates_hero_checked_manual">Перевірено: %1$d з %2$d · %3$s</string>
 </resources>

@@ -375,8 +375,6 @@
     <string name="updates_managed_title">Принятые приложения (%1$d)</string>
     <string name="updates_managed_empty">Пока нет принятых приложений. Выберите приложения в «Моих» или установите из каталога.</string>
     <string name="updates_downloaded_version">Версия %1$s</string>
-    <string name="updates_last_check_manual">Последняя ручная проверка</string>
-    <string name="updates_last_check_background">Последняя фоновая проверка</string>
     <string name="updates_check_counts">Проверено %1$d из %2$d · обновлений: %3$d · проблем: %4$d</string>
     <string name="common_skip">Пропустить</string>
     <string name="vm_update_check_failed">Проверка обновлений не удалась</string>
@@ -809,4 +807,10 @@
     <string name="library_all_accepted_title">Все приложения приняты</string>
     <string name="library_all_accepted_message">Wy Store уже следит за обновлениями всех приложений на телефоне.</string>
     <string name="library_filter_empty_message">Выберите другой фильтр.</string>
+    <string name="updates_managed_group">Принятые приложения</string>
+    <string name="updates_hero_ready">Готовы к установке: %1$d</string>
+    <string name="updates_hero_waiting">В очереди: %1$d</string>
+    <string name="updates_hero_problems">Не удалось проверить: %1$d</string>
+    <string name="updates_hero_checked">Фоновая проверка: %1$d из %2$d · %3$s</string>
+    <string name="updates_hero_checked_manual">Проверено: %1$d из %2$d · %3$s</string>
 </resources>

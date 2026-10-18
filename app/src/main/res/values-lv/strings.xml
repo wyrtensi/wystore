@@ -375,8 +375,6 @@
     <string name="updates_managed_title">Pieņemtās lietotnes (%1$d)</string>
     <string name="updates_managed_empty">Pagaidām nav pieņemtu lietotņu. Izvēlies lietotnes sadaļā „Manas” vai instalē tās no kataloga.</string>
     <string name="updates_downloaded_version">Versija %1$s</string>
-    <string name="updates_last_check_manual">Pēdējā manuālā pārbaude</string>
-    <string name="updates_last_check_background">Pēdējā fona pārbaude</string>
     <string name="updates_check_counts">Pārbaudīts %1$d no %2$d · atjauninājumi: %3$d · problēmas: %4$d</string>
     <string name="common_skip">Izlaist</string>
     <string name="vm_update_check_failed">Atjauninājumu pārbaude neizdevās</string>
@@ -809,4 +807,10 @@
     <string name="library_all_accepted_title">Visas lietotnes ir pieņemtas</string>
     <string name="library_all_accepted_message">Wy Store jau seko visu tālruņa lietotņu atjauninājumiem.</string>
     <string name="library_filter_empty_message">Izvēlies citu filtru.</string>
+    <string name="updates_managed_group">Pieņemtās lietotnes</string>
+    <string name="updates_hero_ready">Gatavas instalēšanai: %1$d</string>
+    <string name="updates_hero_waiting">Rindā: %1$d</string>
+    <string name="updates_hero_problems">Neizdevās pārbaudīt: %1$d</string>
+    <string name="updates_hero_checked">Fona pārbaude: %1$d no %2$d · %3$s</string>
+    <string name="updates_hero_checked_manual">Pārbaudītas: %1$d no %2$d · %3$s</string>
 </resources>

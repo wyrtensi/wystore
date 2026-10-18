@@ -375,8 +375,6 @@
     <string name="updates_managed_title">Прынятыя праграмы (%1$d)</string>
     <string name="updates_managed_empty">Пакуль няма прынятых праграм. Выберыце праграмы ў «Маіх» або ўсталюйце іх з каталога.</string>
     <string name="updates_downloaded_version">Версія %1$s</string>
-    <string name="updates_last_check_manual">Апошняя ручная праверка</string>
-    <string name="updates_last_check_background">Апошняя фонавая праверка</string>
     <string name="updates_check_counts">Праверана %1$d з %2$d · абнаўленняў: %3$d · праблем: %4$d</string>
     <string name="common_skip">Прапусціць</string>
     <string name="vm_update_check_failed">Праверка абнаўленняў не ўдалася</string>
@@ -809,4 +807,10 @@
     <string name="library_all_accepted_title">Усе праграмы прынятыя</string>
     <string name="library_all_accepted_message">Wy Store ужо сочыць за абнаўленнямі ўсіх праграм на тэлефоне.</string>
     <string name="library_filter_empty_message">Выберыце іншы фільтр.</string>
+    <string name="updates_managed_group">Прынятыя праграмы</string>
+    <string name="updates_hero_ready">Гатовы да ўсталявання: %1$d</string>
+    <string name="updates_hero_waiting">У чарзе: %1$d</string>
+    <string name="updates_hero_problems">Не ўдалося праверыць: %1$d</string>
+    <string name="updates_hero_checked">Фонавая праверка: %1$d з %2$d · %3$s</string>
+    <string name="updates_hero_checked_manual">Праверана: %1$d з %2$d · %3$s</string>
 </resources>

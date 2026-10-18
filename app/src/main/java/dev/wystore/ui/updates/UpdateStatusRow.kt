@@ -21,7 +21,8 @@ fun UpdateStatusRow(
     onOpen: () -> Unit,
     onAction: () -> Unit,
     modifier: Modifier = Modifier,
-    onWhatsNew: (() -> Unit)? = null
+    onWhatsNew: (() -> Unit)? = null,
+    groupPosition: dev.wystore.ui.components.GroupPosition? = null
 ) {
     val state = PackageUiStateReducer.reduce(
         installed = installed,
@@ -39,6 +40,7 @@ fun UpdateStatusRow(
         onRowClick = onOpen,
         onPrimaryActionClick = onAction,
         modifier = modifier,
-        onWhatsNew = onWhatsNew
+        onWhatsNew = onWhatsNew,
+        groupPosition = groupPosition
     )
 }

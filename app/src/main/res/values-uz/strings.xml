@@ -375,8 +375,6 @@
     <string name="updates_managed_title">Qabul qilingan ilovalar (%1$d)</string>
     <string name="updates_managed_empty">Hozircha qabul qilingan ilovalar yoʻq. Ilovalarim boʻlimidan ilova tanlang yoki katalogdan oʻrnating.</string>
     <string name="updates_downloaded_version">%1$s versiyasi</string>
-    <string name="updates_last_check_manual">Soʻnggi qoʻlda tekshiruv</string>
-    <string name="updates_last_check_background">Soʻnggi fon tekshiruvi</string>
     <string name="updates_check_counts">Tekshirildi: %1$d / %2$d · yangilanishlar: %3$d · muammolar: %4$d</string>
     <string name="common_skip">Oʻtkazib yuborish</string>
     <string name="vm_update_check_failed">Yangilanishlarni tekshirib boʻlmadi</string>
@@ -809,4 +807,10 @@
     <string name="library_all_accepted_title">Barcha ilovalar qabul qilingan</string>
     <string name="library_all_accepted_message">Wy Store telefondagi barcha ilovalarning yangilanishlarini kuzatib boradi.</string>
     <string name="library_filter_empty_message">Boshqa filtrni tanlang.</string>
+    <string name="updates_managed_group">Qabul qilingan ilovalar</string>
+    <string name="updates_hero_ready">Oʻrnatishga tayyor: %1$d</string>
+    <string name="updates_hero_waiting">Navbatda: %1$d</string>
+    <string name="updates_hero_problems">Tekshirib boʻlmadi: %1$d</string>
+    <string name="updates_hero_checked">Fon tekshiruvi: %2$d tadan %1$d · %3$s</string>
+    <string name="updates_hero_checked_manual">Tekshirildi: %2$d tadan %1$d · %3$s</string>
 </resources>

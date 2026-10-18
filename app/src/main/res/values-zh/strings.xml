@@ -375,8 +375,6 @@
     <string name="updates_managed_title">已接管的应用（%1$d）</string>
     <string name="updates_managed_empty">还没有已接管的应用。在「我的应用」里选择应用，或从目录安装。</string>
     <string name="updates_downloaded_version">版本 %1$s</string>
-    <string name="updates_last_check_manual">上次手动检查</string>
-    <string name="updates_last_check_background">上次后台检查</string>
     <string name="updates_check_counts">已检查 %1$d / %2$d · 更新：%3$d · 问题：%4$d</string>
     <string name="common_skip">跳过</string>
     <string name="vm_update_check_failed">更新检查失败</string>
@@ -809,4 +807,10 @@
     <string name="library_all_accepted_title">所有应用都已接管</string>
     <string name="library_all_accepted_message">Wy Store 已在为这台手机上的所有应用检查更新。</string>
     <string name="library_filter_empty_message">请选择其他筛选。</string>
+    <string name="updates_managed_group">已接管的应用</string>
+    <string name="updates_hero_ready">可安装：%1$d</string>
+    <string name="updates_hero_waiting">队列中：%1$d</string>
+    <string name="updates_hero_problems">无法检查：%1$d</string>
+    <string name="updates_hero_checked">后台检查：%1$d / %2$d · %3$s</string>
+    <string name="updates_hero_checked_manual">已检查：%1$d / %2$d · %3$s</string>
 </resources>

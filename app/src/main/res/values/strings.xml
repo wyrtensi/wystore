@@ -375,8 +375,6 @@
     <string name="updates_managed_title">Accepted apps (%1$d)</string>
     <string name="updates_managed_empty">No accepted apps yet. Pick apps in Library or install them from the catalogue.</string>
     <string name="updates_downloaded_version">Version %1$s</string>
-    <string name="updates_last_check_manual">Last manual check</string>
-    <string name="updates_last_check_background">Last background check</string>
     <string name="updates_check_counts">Checked %1$d of %2$d · updates: %3$d · problems: %4$d</string>
     <string name="common_skip">Skip</string>
     <string name="vm_update_check_failed">Update check failed</string>
@@ -809,4 +807,10 @@
     <string name="library_all_accepted_title">Every app is accepted</string>
     <string name="library_all_accepted_message">Wy Store already looks after the updates of every app on this phone.</string>
     <string name="library_filter_empty_message">Pick another filter.</string>
+    <string name="updates_managed_group">Accepted apps</string>
+    <string name="updates_hero_ready">Ready to install: %1$d</string>
+    <string name="updates_hero_waiting">In the queue: %1$d</string>
+    <string name="updates_hero_problems">Unreachable: %1$d</string>
+    <string name="updates_hero_checked">Background check: %1$d of %2$d · %3$s</string>
+    <string name="updates_hero_checked_manual">Checked: %1$d of %2$d · %3$s</string>
 </resources>
