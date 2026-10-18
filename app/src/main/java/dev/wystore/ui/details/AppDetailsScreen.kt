@@ -1,5 +1,6 @@
 package dev.wystore.ui.details
 
+import dev.wystore.ui.components.color
 import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.CategoryPill
@@ -290,15 +291,6 @@ fun AppDetailsScreen(
                                 }
                             )
                         }
-                        if (deviceTooOld && requiredSdk != null) {
-                            add(
-                                stringResource(
-                                    R.string.details_incompatible,
-                                    AndroidSdkCompatibility.label(requiredSdk),
-                                    AndroidSdkCompatibility.label(Build.VERSION.SDK_INT)
-                                )
-                            )
-                        }
                         if (rootAvailable == false) add(stringResource(R.string.details_no_root))
                     }
                     Surface(
@@ -310,6 +302,21 @@ fun AppDetailsScreen(
                             Modifier.padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
+                            // The reason Install is greyed out, so it goes first and in the
+                            // failure colour: in grey after "Not installed" it read as one more
+                            // remark rather than as why nothing on the page works.
+                            if (deviceTooOld && requiredSdk != null) {
+                                Text(
+                                    stringResource(
+                                        R.string.details_incompatible,
+                                        AndroidSdkCompatibility.label(requiredSdk),
+                                        AndroidSdkCompatibility.label(Build.VERSION.SDK_INT)
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = dev.wystore.ui.components.StatusTone.FAILED.color()
+                                        ?: MaterialTheme.colorScheme.error
+                                )
+                            }
                             notes.forEach {
                                 Text(
                                     it,
