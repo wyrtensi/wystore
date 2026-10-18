@@ -68,10 +68,11 @@ import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.AppIcon
+import dev.wystore.ui.components.RowButtonPadding
+import dev.wystore.ui.components.listingLine
 import dev.wystore.ui.components.CategoryPill
 import dev.wystore.ui.components.EmptyState
 import dev.wystore.ui.components.Loading
-import dev.wystore.ui.components.RatingPill
 import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.SectionHeader
 import dev.wystore.ui.components.WyCard
@@ -352,10 +353,11 @@ fun SearchCard(
                 )
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    // Two lines, as on Home: catalogue names run long and one line cut them mid-word.
                     Text(
                         app.name,
                         style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                     app.publisher.takeIf { it.isNotBlank() }?.let {
@@ -367,14 +369,16 @@ fun SearchCard(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    // A flow rather than a row: on a narrow screen the category drops under the
-                    // rating instead of being squeezed down to "Объ...".
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        app.rating?.let { RatingPill(it, app.ratingCount) }
-                        app.categories.firstOrNull()?.let { CategoryPill(it) }
+                    // The same line Home shows under a name. The coloured rating pill and the boxed
+                    // section here made one app look like two different things on two screens.
+                    listingLine(app.rating, app.categories.firstOrNull()).takeIf { it.isNotEmpty() }?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
                 // The action stays on the title line: the card keeps one row of chrome instead of
@@ -389,7 +393,8 @@ fun SearchCard(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onInstallPending(app.packageName)
-                            }
+                            },
+                            contentPadding = RowButtonPadding
                         ) {
                             Text(
                                 stringResource(
@@ -399,18 +404,21 @@ fun SearchCard(
                             )
                         }
                     } else if (installed == null) {
-                        Button(
+                        // Outlined, as in every other list: see AppRow.
+                        OutlinedButton(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onQuickInstall(app.packageName)
-                            }
+                            },
+                            contentPadding = RowButtonPadding
                         ) { Text(stringResource(R.string.common_install), maxLines = 1) }
                     } else {
                         FilledTonalButton(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onLaunch(installed.packageName)
-                            }
+                            },
+                            contentPadding = RowButtonPadding
                         ) { Text(stringResource(R.string.common_open), maxLines = 1) }
                     }
                 }

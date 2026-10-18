@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -113,13 +113,7 @@ fun AppRow(
                     }
                     // A catalogue row says what a store listing says - rating and section. The
                     // package name stays for rows the catalogue knows nothing about.
-                    val category = state.category?.let { slug ->
-                        CategoryLabels.stringRes(slug)?.let { stringResource(it) } ?: CategoryLabels.humanize(slug)
-                    }
-                    val listing = listOfNotNull(
-                        state.rating?.let { "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it) },
-                        category
-                    ).joinToString(" · ")
+                    val listing = listingLine(state.rating, state.category)
                     Text(
                         text = listing.ifEmpty { state.packageName },
                         style = MaterialTheme.typography.labelSmall,
@@ -205,15 +199,35 @@ fun AppRow(
 }
 
 /**
+ * What a store listing says under the name: rating and section, "★ 4,7 · Финансы". Empty when the
+ * catalogue states neither. Shared by every list that shows a catalogue app, so Home and Search
+ * stop describing the same app in two different ways.
+ */
+@Composable
+fun listingLine(rating: Double?, categorySlug: String?): String {
+    val category = categorySlug?.let { slug ->
+        CategoryLabels.stringRes(slug)?.let { stringResource(it) } ?: CategoryLabels.humanize(slug)
+    }
+    return listOfNotNull(
+        rating?.let { "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it) },
+        category
+    ).joinToString(" · ")
+}
+
+/**
  * The one action a row offers. Filled for the step the user is expected to take, tonal for the
  * ones that merely acknowledge a state the app is already in.
+ *
+ * Install is outlined: a catalogue list is a column of apps that are not installed, and a filled
+ * button on every one of them made ten identical bright buttons in a row, pushed the names onto
+ * two lines and left nothing to tell the update waiting for the user from an offer.
  */
 @Composable
 private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
-    val contentPadding = ButtonDefaults.ContentPadding
+    val contentPadding = RowButtonPadding
     val sizing = Modifier.defaultMinSize(minWidth = 76.dp, minHeight = 40.dp)
     when (action) {
-        PrimaryAction.Install -> Button(onClick, sizing, contentPadding = contentPadding) {
+        PrimaryAction.Install -> OutlinedButton(onClick, sizing, contentPadding = contentPadding) {
             Text(stringResource(R.string.common_install), maxLines = 1)
         }
         PrimaryAction.Update -> Button(onClick, sizing, contentPadding = contentPadding) {
@@ -250,6 +264,9 @@ private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
         PrimaryAction.None -> Unit
     }
 }
+
+/** Narrower than the default, so a long name keeps its room beside the button. */
+val RowButtonPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 18.dp, vertical = 8.dp)
 
 /**
  * States worth a line of their own. "Installed" and the idle states say nothing the row does not
