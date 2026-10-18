@@ -240,12 +240,12 @@ private fun AppGroupRowContent(
     implicitSource: String?,
     onWhatsNew: (() -> Unit)?
 ) {
-    Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AppIcon(
                 model = state.iconUrl,
                 contentDescription = null,
-                size = 44.dp,
+                size = 40.dp,
                 fallbackPackageName = state.packageName
             )
             Spacer(Modifier.width(12.dp))
@@ -275,10 +275,11 @@ private fun AppGroupRowContent(
             // Quiet: an icon in the grey of the text beside it, the way the concept keeps
             // secondary actions out of the row's way.
             onWhatsNew?.let { showNotes ->
-                IconButton(onClick = showNotes) {
+                IconButton(onClick = showNotes, modifier = Modifier.size(40.dp)) {
                     Icon(
                         Icons.Outlined.Info,
                         contentDescription = stringResource(R.string.details_changelog),
+                        modifier = Modifier.size(19.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

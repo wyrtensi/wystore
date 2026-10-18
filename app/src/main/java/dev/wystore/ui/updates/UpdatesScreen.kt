@@ -182,7 +182,7 @@ fun UpdatesScreen(
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 10.dp,
+                top = 8.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
             )
         ) {
@@ -196,7 +196,7 @@ fun UpdatesScreen(
                     ready = pendingUpdates.size,
                     waiting = actionableQueue.size,
                     onOpenApp = onOpenPackage,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
 
@@ -204,7 +204,7 @@ fun UpdatesScreen(
                 HubNote(
                     text = stringResource(R.string.updates_intro),
                     icon = Icons.Outlined.Info,
-                    modifier = Modifier.padding(bottom = 20.dp)
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
 
@@ -215,7 +215,7 @@ fun UpdatesScreen(
                         title = stringResource(R.string.updates_queue_title, actionableQueue.size),
                         meta = if (canStart) stringResource(R.string.updates_queue_start) else null,
                         onMetaClick = if (canStart) onStartQueue else null,
-                        modifier = Modifier.padding(bottom = 10.dp)
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
                 items(actionableQueue, key = { "queue:${it.id}" }) { item ->
@@ -260,7 +260,7 @@ fun UpdatesScreen(
                         title = stringResource(R.string.updates_ready_title, readyUpdates.size),
                         meta = stringResource(R.string.updates_install_all),
                         onMetaClick = onUpdateAll,
-                        modifier = Modifier.padding(bottom = 10.dp)
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
                 items(readyUpdates, key = { "pending:${it.listKey}" }) { pending ->
@@ -284,7 +284,7 @@ fun UpdatesScreen(
                     HubGroupTitle(
                         title = stringResource(R.string.updates_managed_group),
                         meta = orderedManaged.size.toString(),
-                        modifier = Modifier.padding(bottom = 10.dp)
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
                 itemsIndexed(orderedManaged, key = { _, app -> app.packageName }) { index, managedApp ->
@@ -373,11 +373,13 @@ private fun UpdatesHero(
 /** The concept's ring: how much of what is looked after the last check reached. */
 @Composable
 private fun CheckRing(checked: Int, total: Int) {
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(64.dp)) {
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(56.dp)) {
         CircularProgressIndicator(
             progress = { (checked.toFloat() / total).coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxSize(),
-            strokeWidth = 7.dp,
+            strokeWidth = 5.dp,
+            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
+            gapSize = 4.dp,
             color = MaterialTheme.colorScheme.primary,
             trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
         )

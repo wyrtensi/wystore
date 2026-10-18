@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -72,7 +73,7 @@ fun HubHeader(
         modifier = modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(start = ScreenPadding, end = ScreenPadding, top = 18.dp, bottom = 6.dp),
+            .padding(start = ScreenPadding, end = ScreenPadding, top = 8.dp, bottom = 2.dp),
         verticalAlignment = Alignment.Bottom
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -89,8 +90,8 @@ fun HubHeader(
                 title,
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontWeight = FontWeight.Medium,
-                    fontSize = 32.sp,
-                    lineHeight = 38.sp,
+                    fontSize = 30.sp,
+                    lineHeight = 36.sp,
                     letterSpacing = (-0.5).sp
                 ),
                 maxLines = 1,
@@ -125,8 +126,8 @@ fun HubHeaderPill(text: String, onClick: () -> Unit, enabled: Boolean = true) {
     ) {
         Text(
             text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
-            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+            style = MaterialTheme.typography.labelMedium,
             maxLines = 1
         )
     }
@@ -151,17 +152,22 @@ fun HubPanel(
             .fillMaxWidth()
             .clip(shape)
             .background(Brush.verticalGradient(listOf(colors.surfaceContainerHigh, colors.surfaceContainerLow)))
-            // The concept's panels catch a little of their meaning's colour in one corner.
-            .background(
-                Brush.linearGradient(
-                    listOf(tint.copy(alpha = if (hub) 0.14f else 0.08f), Color.Transparent),
-                    end = androidx.compose.ui.geometry.Offset(700f, 500f)
+            // The concept's panels catch a little of their meaning's colour low in one corner - a
+            // wash, not a fill: stronger, it read as a brown card.
+            .drawWithContent {
+                drawRect(
+                    Brush.radialGradient(
+                        listOf(tint.copy(alpha = if (!hub) 0.08f else if (colors.surface.luminance() < 0.5f) 0.15f else 0.09f), Color.Transparent),
+                        center = androidx.compose.ui.geometry.Offset(0f, size.height),
+                        radius = size.width * 0.75f
+                    )
                 )
-            )
+                drawContent()
+            }
             .then(if (hub) Modifier.border(1.dp, colors.outlineVariant, shape) else Modifier)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
         content = content
     )
 }
@@ -178,7 +184,7 @@ fun HubGroupTitle(
         Text(
             title,
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, fontSize = 18.sp),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, fontSize = 17.sp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -323,10 +329,10 @@ fun HubNote(
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .then(if (LocalHubStyle.current) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape) else Modifier)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(12.dp))
         Text(
             text,
