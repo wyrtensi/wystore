@@ -585,7 +585,12 @@ fun QueueItemCard(
                 // buttons and would not fit a third on a compact phone. Not on a failed row: its line
                 // is the reason for the failure, which needs the width, and its page is a tap away.
                 if (onWhatsNew != null && !failed) {
-                    TextButton(onClick = onWhatsNew) {
+                    TextButton(
+                        onClick = onWhatsNew,
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
                         Text(
                             stringResource(R.string.details_changelog),
                             style = MaterialTheme.typography.labelMedium,

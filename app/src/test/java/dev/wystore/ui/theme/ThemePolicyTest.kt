@@ -58,4 +58,15 @@ class ThemePolicyTest {
         assertEquals(named.size, named.map { it.tag }.toSet().size)
         assertEquals(named.size, named.map { it.endonym }.toSet().size)
     }
+
+    @Test
+    fun theBrandTypefaceIsOnlyUsedWhereItHasEveryLetter() {
+        listOf("en", "ru", "be", "uk", "lv", "RU").forEach {
+            org.junit.Assert.assertTrue(it, ThemePolicy.brandFontCovers(it))
+        }
+        // Kazakh, Uzbek and Chinese letters are missing from Manrope.
+        listOf("kk", "uz", "zh", "").forEach {
+            org.junit.Assert.assertFalse(it, ThemePolicy.brandFontCovers(it))
+        }
+    }
 }

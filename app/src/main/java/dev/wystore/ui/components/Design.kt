@@ -168,6 +168,10 @@ fun WyCard(
         },
         shape = MaterialTheme.shapes.large,
         color = containerColor,
+        // Wy Hub's cards stand off the page by a hairline, not by a lighter fill.
+        border = if (dev.wystore.ui.theme.LocalHubStyle.current) {
+            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        } else null,
         content = content
     )
 }

@@ -183,7 +183,7 @@ data class StoreSettings(
     val deviceType: dev.wystore.settings.DeviceType = dev.wystore.settings.DeviceType.AUTO,
     val tvCatalog: dev.wystore.settings.TvCatalog = dev.wystore.settings.TvCatalog.TV,
     val language: dev.wystore.settings.AppLanguage = dev.wystore.settings.AppLanguage.SYSTEM,
-    val dynamicColorEnabled: Boolean = true,
+    val dynamicColorEnabled: Boolean = false,
     val githubEnabled: Boolean = true,
     val readyNotificationsEnabled: Boolean = true,
     val errorNotificationsEnabled: Boolean = true,

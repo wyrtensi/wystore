@@ -48,7 +48,10 @@ fun FloatingNavigationBar(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainer,
-        shadowElevation = 4.dp
+        shadowElevation = 4.dp,
+        border = if (dev.wystore.ui.theme.LocalHubStyle.current) {
+            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        } else null
     ) {
         Row(
             modifier = Modifier
@@ -142,7 +145,14 @@ private fun RowScope.Destination(
                 autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 12.sp)
             )
         },
-        colors = NavigationBarItemDefaults.colors(
+        // Wy Hub marks the open tab in its accent: an orange icon on a dark orange pill.
+        colors = if (dev.wystore.ui.theme.LocalHubStyle.current) NavigationBarItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.primary,
+            selectedTextColor = MaterialTheme.colorScheme.onSurface,
+            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ) else NavigationBarItemDefaults.colors(
             selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
             selectedTextColor = MaterialTheme.colorScheme.onSurface,
             indicatorColor = MaterialTheme.colorScheme.secondaryContainer,

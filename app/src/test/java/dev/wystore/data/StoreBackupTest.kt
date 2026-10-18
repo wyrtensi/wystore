@@ -87,7 +87,8 @@ class StoreBackupTest {
         assertEquals(7, restored.settings.artifactRetentionDays)
         assertEquals(dev.wystore.settings.ThemeMode.SYSTEM, restored.settings.themeMode)
         assertEquals(dev.wystore.settings.AppLanguage.SYSTEM, restored.settings.language)
-        assertEquals(true, restored.settings.dynamicColorEnabled)
+        // The default: Wy Store's own palette, the wallpaper's colours one switch away.
+        assertEquals(false, restored.settings.dynamicColorEnabled)
         assertEquals(true, restored.settings.githubEnabled)
     }
 

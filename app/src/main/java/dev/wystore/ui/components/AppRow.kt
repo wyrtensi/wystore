@@ -176,7 +176,11 @@ fun AppRow(
                     onWhatsNew?.let { showNotes ->
                         TextButton(
                             onClick = showNotes,
-                            modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 40.dp)
+                            modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 40.dp),
+                            // Grey: in the accent it was the brightest thing on every accepted row.
+                            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         ) { Text(stringResource(R.string.details_changelog)) }
                     }
                     if (secondaryClick != null) TextButton(

@@ -52,7 +52,8 @@ data class AppSettings(
     val deviceType: DeviceType = DeviceType.AUTO,
     val tvCatalog: TvCatalog = TvCatalog.TV,
     val language: AppLanguage = AppLanguage.SYSTEM,
-    val dynamicColorEnabled: Boolean = true,
+    // Off: the app's own look is Wy Hub's. The wallpaper's colours are still one switch away.
+    val dynamicColorEnabled: Boolean = false,
     val githubEnabled: Boolean = true,
     val readyNotificationsEnabled: Boolean = true,
     val errorNotificationsEnabled: Boolean = true,
