@@ -1,5 +1,6 @@
 package dev.wystore.ui.github
 
+import dev.wystore.ui.components.bleedToScreenEdges
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -490,7 +491,11 @@ fun GitHubAppScreen(
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionHeader(title = stringResource(R.string.github_screenshots))
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        LazyRow(
+                            modifier = Modifier.bleedToScreenEdges(),
+                            contentPadding = PaddingValues(horizontal = ScreenPadding),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
                             items(screenshots, key = { it }) { url ->
                                 AsyncImage(
                                     model = url,

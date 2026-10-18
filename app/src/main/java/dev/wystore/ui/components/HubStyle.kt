@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -31,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -73,45 +76,49 @@ fun HubHeader(
     insetStatusBar: Boolean = true,
     trailing: (@Composable RowScope.() -> Unit)? = null
 ) {
-    Row(
+    // The pill shares the eyebrow's line, so the title has the whole width under it. Beside the
+    // title, a long pill ("Check and install") left a compact phone "Обновл..." for a title.
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .then(if (insetStatusBar) Modifier.statusBarsPadding() else Modifier)
             .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = 2.dp),
-        verticalAlignment = Alignment.Bottom
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            eyebrow?.let {
-                Text(
-                    it,
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+        if (eyebrow != null || trailing != null) Row(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 34.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                title,
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 31.sp,
-                    lineHeight = 37.sp,
-                    letterSpacing = (-0.5).sp
-                ),
+                eyebrow.orEmpty(),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            subtitle?.let {
-                Text(
-                    it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            if (trailing != null) {
+                Spacer(Modifier.width(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, content = trailing)
             }
         }
-        if (trailing != null) {
-            Spacer(Modifier.width(12.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, content = trailing)
+        Text(
+            title,
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontWeight = FontWeight.Medium,
+                fontSize = 31.sp,
+                lineHeight = 37.sp,
+                letterSpacing = (-0.5).sp
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        subtitle?.let {
+            Text(
+                it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -317,6 +324,50 @@ fun HubWideButton(
         }
     }
 }
+
+/**
+ * Whether the screen is narrow enough that row controls give their padding to the text: a compact
+ * phone at a large font size left a name two words wide between an icon and three buttons.
+ */
+@Composable
+fun isNarrowScreen(): Boolean =
+    androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 420
+
+/** Padding of a row's button: narrower on a narrow screen. */
+@Composable
+fun rowButtonPadding(): androidx.compose.foundation.layout.PaddingValues =
+    if (isNarrowScreen()) androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 8.dp)
+    else androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+
+/**
+ * Lets a horizontal rail run to the screen's edges from inside a list with side margins: the cards
+ * then leave the screen at its edge instead of being sliced off at the margin, a strip short of
+ * it, which read as cut-offs. Give the rail the same [margin] as content padding, so its first card
+ * still lines up with everything above it.
+ */
+fun Modifier.bleedToScreenEdges(margin: androidx.compose.ui.unit.Dp = ScreenPadding): Modifier =
+    layout { measurable, constraints ->
+        val extra = margin.roundToPx() * 2
+        val width = constraints.maxWidth + extra
+        val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
+        layout(constraints.maxWidth, placeable.height) { placeable.place(-extra / 2, 0) }
+    }
+
+/**
+ * Fades the top of a list into the page under a header that stays put, so rows scrolled up under
+ * it dissolve rather than end on a hard line across a card.
+ */
+fun Modifier.fadingTopEdge(length: androidx.compose.ui.unit.Dp = 20.dp): Modifier =
+    graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+        .drawWithContent {
+            drawContent()
+            val fade = length.toPx()
+            drawRect(
+                brush = Brush.verticalGradient(0f to Color.Transparent, fade to Color.Black, startY = 0f, endY = fade),
+                size = Size(size.width, fade),
+                blendMode = androidx.compose.ui.graphics.BlendMode.DstIn
+            )
+        }
 
 /** The thin single-line panel with a coloured icon: a note the screen wants read once. */
 @Composable

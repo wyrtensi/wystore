@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.text.font.FontWeight
 import dev.wystore.ui.components.HubGroupTitle
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubHeader
 import dev.wystore.ui.components.HubHeaderPill
 import dev.wystore.ui.components.HubNote
@@ -180,11 +181,12 @@ fun UpdatesScreen(
             }
         )
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().fadingTopEdge(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 8.dp,
+                // As deep as the fade, so at rest nothing sits in it.
+                top = 20.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
             )
         ) {
@@ -456,9 +458,31 @@ private fun PendingUpdateRow(
     onOpen: () -> Unit,
     onWhatsNew: () -> Unit
 ) {
+    val narrow = dev.wystore.ui.components.isNarrowScreen()
+    val notes: @Composable () -> Unit = {
+        IconButton(onClick = onWhatsNew, modifier = Modifier.size(if (narrow) 30.dp else 40.dp)) {
+            Icon(
+                Icons.Outlined.Info,
+                contentDescription = stringResource(R.string.details_changelog),
+                modifier = Modifier.size(19.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+    // A downloaded APK used to be a one-way street: install it or live with it.
+    val discard: @Composable () -> Unit = {
+        IconButton(onClick = { onDiscardPending(update.packageName) }, modifier = Modifier.size(if (narrow) 30.dp else 40.dp)) {
+            Icon(
+                imageVector = Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.updates_discard_pending),
+                modifier = Modifier.size(19.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
     dev.wystore.ui.components.HubGroupRow(position = position, onClick = onOpen) {
         Row(
-            modifier = Modifier.padding(start = 12.dp, end = 4.dp, top = 9.dp, bottom = 9.dp),
+            modifier = Modifier.padding(start = 12.dp, end = if (narrow) 10.dp else 4.dp, top = 9.dp, bottom = 9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AppIcon(model = iconUrl, contentDescription = null, size = 40.dp, fallbackPackageName = update.packageName)
@@ -467,42 +491,37 @@ private fun PendingUpdateRow(
                 Text(
                     update.label.ifBlank { update.packageName },
                     style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                dev.wystore.ui.components.HubTag(
-                    dev.wystore.ui.components.shortVersionName(update.versionName) ?: update.versionName
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    dev.wystore.ui.components.HubTag(
+                        dev.wystore.ui.components.shortVersionName(update.versionName) ?: update.versionName,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    // On a narrow screen the two small controls move under the name, so the name is
+                    // not left two words wide between them and the button.
+                    if (narrow) {
+                        Spacer(Modifier.width(6.dp))
+                        notes()
+                        discard()
+                    }
+                }
             }
-            IconButton(onClick = onWhatsNew, modifier = Modifier.size(40.dp)) {
-                Icon(
-                    Icons.Outlined.Info,
-                    contentDescription = stringResource(R.string.details_changelog),
-                    modifier = Modifier.size(19.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            if (!narrow) notes()
             // Grey: "Install all" in the panel above is the step the screen is asking for, and a
             // column of accent buttons under it shouted the same thing four times.
             FilledTonalButton(
                 onClick = { onInstallPending(update.packageName) },
                 enabled = !installing,
-                contentPadding = dev.wystore.ui.components.RowButtonPadding
+                contentPadding = dev.wystore.ui.components.rowButtonPadding()
             ) {
                 Text(
                     stringResource(if (installing) R.string.common_installing else R.string.common_install),
                     maxLines = 1
                 )
             }
-            // A downloaded APK used to be a one-way street: install it or live with it.
-            IconButton(onClick = { onDiscardPending(update.packageName) }, modifier = Modifier.size(40.dp)) {
-                Icon(
-                    imageVector = Icons.Outlined.Close,
-                    contentDescription = stringResource(R.string.updates_discard_pending),
-                    modifier = Modifier.size(19.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            if (!narrow) discard()
         }
     }
 }
@@ -597,7 +616,7 @@ fun QueueItemCard(
                 // Beside the name, quiet, as on every other row. Not on a failed row, whose page is
                 // a tap away and whose line below is about the failure.
                 if (onWhatsNew != null && !failed) {
-                    IconButton(onClick = onWhatsNew, modifier = Modifier.size(40.dp)) {
+                    IconButton(onClick = onWhatsNew, modifier = Modifier.size(if (dev.wystore.ui.components.isNarrowScreen()) 32.dp else 40.dp)) {
                         Icon(
                             Icons.Outlined.Info,
                             contentDescription = stringResource(R.string.details_changelog),

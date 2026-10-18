@@ -1,5 +1,6 @@
 package dev.wystore.ui.github
 
+import dev.wystore.ui.components.bleedToScreenEdges
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -221,7 +222,11 @@ fun GitHubScreen(
                     .entries.sortedByDescending { it.value }
                     .map { it.key }
                 if (sections.size > 1) item {
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LazyRow(
+                        modifier = Modifier.bleedToScreenEdges(),
+                        contentPadding = PaddingValues(horizontal = ScreenPadding),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         item {
                             FilterChip(
                                 selected = section == null,

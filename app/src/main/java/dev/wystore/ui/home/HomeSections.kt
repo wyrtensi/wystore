@@ -1,5 +1,8 @@
 package dev.wystore.ui.home
 
+import androidx.compose.foundation.layout.PaddingValues
+import dev.wystore.ui.components.ScreenPadding
+import dev.wystore.ui.components.bleedToScreenEdges
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -236,7 +239,11 @@ fun CategoriesSection(
                 val seen = mutableSetOf<String>()
                 tiles.map { it.iconUrl == null || seen.add(it.iconUrl) }
             }
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            LazyRow(
+                modifier = Modifier.bleedToScreenEdges(),
+                contentPadding = PaddingValues(horizontal = ScreenPadding),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 itemsIndexed(tiles, key = { _, category -> category.slug }) { index, category ->
                     CategoryTile(
                         category = category,

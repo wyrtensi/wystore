@@ -1,5 +1,6 @@
 package dev.wystore.ui.library
 
+import dev.wystore.ui.components.bleedToScreenEdges
 import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -333,7 +334,8 @@ fun LibraryScreen(
                 // pushing the list itself below the fold. It gets the whole width: sharing the row
                 // with a button cut the last chip in half at that button's edge.
                 LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.bleedToScreenEdges(),
+                    contentPadding = PaddingValues(horizontal = ScreenPadding),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(LibrarySort.entries, key = { it.name }) { option ->

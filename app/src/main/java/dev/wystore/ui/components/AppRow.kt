@@ -249,11 +249,13 @@ private fun AppGroupRowContent(
                 fallbackPackageName = state.packageName
             )
             Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                // Up to two lines: catalogue names run long, and on a compact phone one line left
+                // "VK Муз..." of them.
                 Text(
                     state.label,
                     style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
                 val source = state.sourceProvenance
@@ -273,11 +275,10 @@ private fun AppGroupRowContent(
                 val shownVersion = version.takeIf { state.rating == null && category == null }
                 // Facts in faint tags, the rating as plain text beside them: a line of grey words
                 // separated by dots was hard to take in at a glance.
-                if (statusText != null || shownVersion != null || source != null || category != null || state.rating != null) Row(
+                if (shownVersion != null || source != null || category != null || state.rating != null) Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    statusText?.let { HubTag(it, tint = MaterialTheme.colorScheme.primary) }
                     shownVersion?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
                     source?.let { HubTag(it) }
                     state.rating?.let {
@@ -288,9 +289,7 @@ private fun AppGroupRowContent(
                             maxLines = 1
                         )
                     }
-                    // The state matters more than the section while there is one; squeezed beside it
-                    // the section came out as "Р...".
-                    category?.takeIf { statusText == null }?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
+                    category?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
                 } else Text(
                     state.packageName,
                     style = MaterialTheme.typography.bodySmall,
@@ -298,11 +297,14 @@ private fun AppGroupRowContent(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                // A third line for the state, when there is one. Squeezed into the line of facts it
+                // and the section cut each other down to "Готово к..." and "Р...".
+                statusText?.let { HubTag(it, tint = MaterialTheme.colorScheme.primary) }
             }
             // Quiet: an icon in the grey of the text beside it, the way the concept keeps
             // secondary actions out of the row's way.
             onWhatsNew?.let { showNotes ->
-                IconButton(onClick = showNotes, modifier = Modifier.size(40.dp)) {
+                IconButton(onClick = showNotes, modifier = Modifier.size(if (isNarrowScreen()) 32.dp else 40.dp)) {
                     Icon(
                         Icons.Outlined.Info,
                         contentDescription = stringResource(R.string.details_changelog),
@@ -357,7 +359,7 @@ fun listingLine(rating: Double?, categorySlug: String?): String {
  */
 @Composable
 private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
-    val contentPadding = RowButtonPadding
+    val contentPadding = rowButtonPadding()
     val sizing = Modifier.defaultMinSize(minWidth = 76.dp, minHeight = 40.dp)
     when (action) {
         PrimaryAction.Install -> OutlinedButton(onClick, sizing, contentPadding = contentPadding) {
@@ -397,9 +399,6 @@ private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
         PrimaryAction.None -> Unit
     }
 }
-
-/** Narrower than the default, so a long name keeps its room beside the button. */
-val RowButtonPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 18.dp, vertical = 8.dp)
 
 /**
  * States worth a line of their own. "Installed" and the idle states say nothing the row does not

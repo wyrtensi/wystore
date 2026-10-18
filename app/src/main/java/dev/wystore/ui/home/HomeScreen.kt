@@ -1,5 +1,6 @@
 package dev.wystore.ui.home
 
+import dev.wystore.ui.components.bleedToScreenEdges
 import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -169,7 +170,11 @@ fun HomeScreen(
                         val rail = remember(githubPicks) {
                             GitHubCatalog.homeRail(githubPicks, HOME_GITHUB_PICKS)
                         }
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        LazyRow(
+                            modifier = Modifier.bleedToScreenEdges(),
+                            contentPadding = PaddingValues(horizontal = ScreenPadding),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
                             items(rail, key = { it.slug }) { entry ->
                                 GitHubPickTile(
                                     iconUrl = entry.iconUrl,

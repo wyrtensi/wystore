@@ -68,7 +68,7 @@ import dev.wystore.data.PendingUpdate
 import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.AppIcon
-import dev.wystore.ui.components.RowButtonPadding
+import dev.wystore.ui.components.rowButtonPadding
 import dev.wystore.ui.components.listingLine
 import dev.wystore.ui.components.CategoryPill
 import dev.wystore.ui.components.EmptyState
@@ -394,7 +394,7 @@ fun SearchCard(
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onInstallPending(app.packageName)
                             },
-                            contentPadding = RowButtonPadding
+                            contentPadding = rowButtonPadding()
                         ) {
                             Text(
                                 stringResource(
@@ -410,7 +410,7 @@ fun SearchCard(
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onQuickInstall(app.packageName)
                             },
-                            contentPadding = RowButtonPadding
+                            contentPadding = rowButtonPadding()
                         ) { Text(stringResource(R.string.common_install), maxLines = 1) }
                     } else {
                         FilledTonalButton(
@@ -418,7 +418,7 @@ fun SearchCard(
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onLaunch(installed.packageName)
                             },
-                            contentPadding = RowButtonPadding
+                            contentPadding = rowButtonPadding()
                         ) { Text(stringResource(R.string.common_open), maxLines = 1) }
                     }
                 }

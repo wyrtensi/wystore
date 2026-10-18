@@ -1,5 +1,6 @@
 package dev.wystore.ui.details
 
+import dev.wystore.ui.components.bleedToScreenEdges
 import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.clickable
@@ -479,7 +480,11 @@ fun AppDetailsScreen(
                             title = stringResource(R.string.details_screenshots),
                             subtitle = stringResource(R.string.details_screenshots_hint)
                         )
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        LazyRow(
+                            modifier = Modifier.bleedToScreenEdges(),
+                            contentPadding = PaddingValues(horizontal = ScreenPadding),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
                             items(app.screenshots, key = { it }) { url ->
                                 AsyncImage(
                                     model = url,
