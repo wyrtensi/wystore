@@ -69,6 +69,11 @@ import dev.wystore.data.StoreCategory
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.SectionHeader
 import dev.wystore.ui.components.WyCard
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
+import dev.wystore.ui.components.HubPanel
+import dev.wystore.ui.components.HubWideButton
+import dev.wystore.ui.theme.LocalHubStyle
 
 @Composable
 fun PersistentSearchBar(
@@ -76,17 +81,18 @@ fun PersistentSearchBar(
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // A capsule of grey glass with the hairline, the concept's control shape.
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSearchClick),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
+        onClick = onSearchClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(percent = 50),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = if (LocalHubStyle.current) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 15.dp),
+                .padding(horizontal = 18.dp, vertical = 13.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -114,8 +120,9 @@ fun PersistentSearchBar(
 /**
  * The one thing Home has to answer at a glance: is anything waiting to be updated.
  *
- * Both states share a layout — a leading status icon, a headline and a caption — so the card does
- * not visibly change shape when updates appear; only its colour and its actions do.
+ * The Wy Hub panel: a sentence and a glyph in a tile, with the accent button only when there is
+ * something to install. It used to turn the whole card the accent's container colour, which on the
+ * dark palette was a brown block at the top of the store.
  */
 @Composable
 fun UpdateHeroSection(
@@ -125,85 +132,56 @@ fun UpdateHeroSection(
     modifier: Modifier = Modifier
 ) {
     val hasUpdates = pendingUpdates.isNotEmpty()
-    val container = if (hasUpdates) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
-    }
-    val onContainer = if (hasUpdates) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
-
-    WyCard(modifier = modifier.fillMaxWidth(), containerColor = container) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+    val accent = if (hasUpdates) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    HubPanel(
+        modifier = modifier,
+        tint = if (hasUpdates) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        onClick = onOpenUpdates
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(accent.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(onContainer.copy(alpha = 0.10f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = if (hasUpdates) Icons.Outlined.Refresh else Icons.Outlined.CheckCircle,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp),
-                        tint = onContainer
-                    )
-                }
-                Spacer(Modifier.width(14.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(
-                            if (hasUpdates) R.string.home_updates_available else R.string.home_all_up_to_date
-                        ),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = onContainer
-                    )
-                    Text(
-                        text = if (hasUpdates) {
-                            stringResource(R.string.home_ready_to_install_count, pendingUpdates.size)
-                        } else {
-                            stringResource(R.string.home_background_checks)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = onContainer.copy(alpha = 0.75f)
-                    )
-                }
+                Icon(
+                    imageVector = if (hasUpdates) Icons.Outlined.Refresh else Icons.Outlined.CheckCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = accent
+                )
             }
-
-            if (hasUpdates) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = onUpdateAll,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = onContainer,
-                            contentColor = container
-                        )
-                    ) {
-                        Text(stringResource(R.string.home_update_all), maxLines = 1)
-                    }
-                    TextButton(
-                        onClick = onOpenUpdates,
-                        colors = ButtonDefaults.textButtonColors(contentColor = onContainer)
-                    ) {
-                        Text(stringResource(R.string.home_updates_list), maxLines = 1)
-                    }
-                }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = stringResource(
+                        if (hasUpdates) R.string.home_updates_available else R.string.home_all_up_to_date
+                    ),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
+                )
+                Text(
+                    text = if (hasUpdates) {
+                        stringResource(R.string.home_ready_to_install_count, pendingUpdates.size)
+                    } else {
+                        stringResource(R.string.home_background_checks)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+        }
+        if (hasUpdates) {
+            Spacer(Modifier.height(4.dp))
+            HubWideButton(
+                text = stringResource(R.string.home_update_all),
+                onClick = onUpdateAll,
+                primary = true
+            )
         }
     }
 }

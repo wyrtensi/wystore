@@ -132,7 +132,6 @@
     <string name="home_all_up_to_date">All apps are up to date</string>
     <string name="home_ready_to_install_count">Ready to install: %1$d</string>
     <string name="home_background_checks">Wy Store checks for updates in the background</string>
-    <string name="home_updates_list">List</string>
     <string name="home_update_all">Update all</string>
     <string name="home_categories_title">Categories</string>
     <string name="home_categories_all">All</string>

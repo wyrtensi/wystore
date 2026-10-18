@@ -132,7 +132,6 @@
     <string name="home_all_up_to_date">所有应用均为最新</string>
     <string name="home_ready_to_install_count">可以安装：%1$d</string>
     <string name="home_background_checks">Wy Store 会在后台检查更新</string>
-    <string name="home_updates_list">列表</string>
     <string name="home_update_all">全部更新</string>
     <string name="home_categories_title">分类</string>
     <string name="home_categories_all">全部</string>

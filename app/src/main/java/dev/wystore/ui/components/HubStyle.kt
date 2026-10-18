@@ -67,13 +67,17 @@ fun HubHeader(
     modifier: Modifier = Modifier,
     eyebrow: String? = null,
     subtitle: String? = null,
+    /** The screen's side margin; none when the header sits in a list that already has one. */
+    horizontalPadding: androidx.compose.ui.unit.Dp = ScreenPadding,
+    /** False when the screen already stands clear of the status bar, as a scrolling one must. */
+    insetStatusBar: Boolean = true,
     trailing: (@Composable RowScope.() -> Unit)? = null
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(start = ScreenPadding, end = ScreenPadding, top = 8.dp, bottom = 2.dp),
+            .then(if (insetStatusBar) Modifier.statusBarsPadding() else Modifier)
+            .padding(start = horizontalPadding, end = horizontalPadding, top = 8.dp, bottom = 2.dp),
         verticalAlignment = Alignment.Bottom
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {

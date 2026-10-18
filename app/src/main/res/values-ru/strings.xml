@@ -132,7 +132,6 @@
     <string name="home_all_up_to_date">Все приложения обновлены</string>
     <string name="home_ready_to_install_count">Готово к установке: %1$d</string>
     <string name="home_background_checks">Wy Store проверяет обновления в фоне</string>
-    <string name="home_updates_list">Список</string>
     <string name="home_update_all">Обновить все</string>
     <string name="home_categories_title">Категории</string>
     <string name="home_categories_all">Все</string>

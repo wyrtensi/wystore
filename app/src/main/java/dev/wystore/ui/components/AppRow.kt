@@ -263,13 +263,22 @@ private fun AppGroupRowContent(
                 val category = state.category?.let { slug ->
                     CategoryLabels.stringRes(slug)?.let { stringResource(it) } ?: CategoryLabels.humanize(slug)
                 }
+                // What is happening to the app, as a coloured tag at the head of the line rather
+                // than a sentence under the row; a failure keeps its sentence, below.
+                val reported = state.status.code in REPORTED_STATES
+                val failure = state.status.code in FAILURE_STATES
+                val statusText = if (reported && !failure) StatusTextResolver.resolve(LocalContext.current, state.status) else null
+                // A catalogue row is told by its rating and section, an installed one by its
+                // version; with both, the section was cut down to "Развлече...".
+                val shownVersion = version.takeIf { state.rating == null && category == null }
                 // Facts in faint tags, the rating as plain text beside them: a line of grey words
                 // separated by dots was hard to take in at a glance.
-                if (version != null || source != null || category != null || state.rating != null) Row(
+                if (statusText != null || shownVersion != null || source != null || category != null || state.rating != null) Row(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    version?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
+                    statusText?.let { HubTag(it, tint = MaterialTheme.colorScheme.primary) }
+                    shownVersion?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
                     source?.let { HubTag(it) }
                     state.rating?.let {
                         Text(
@@ -279,7 +288,9 @@ private fun AppGroupRowContent(
                             maxLines = 1
                         )
                     }
-                    category?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
+                    // The state matters more than the section while there is one; squeezed beside it
+                    // the section came out as "Р...".
+                    category?.takeIf { statusText == null }?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
                 } else Text(
                     state.packageName,
                     style = MaterialTheme.typography.bodySmall,
@@ -305,11 +316,11 @@ private fun AppGroupRowContent(
                 PrimaryActionButton(action = state.primaryAction, onClick = onPrimaryActionClick)
             }
         }
-        if (state.status.code in REPORTED_STATES) {
+        if (state.status.code in FAILURE_STATES) {
             Text(
                 text = StatusTextResolver.resolve(LocalContext.current, state.status),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.error,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -409,4 +420,13 @@ private val REPORTED_STATES = setOf(
     StatusCode.FAILED_SOURCE_UNCONFIRMED,
     StatusCode.FAILED_GENERIC,
     StatusCode.CANCELLED
+)
+
+/** States that are a failure: told by a red sentence, not a tag. */
+private val FAILURE_STATES = setOf(
+    StatusCode.FAILED_NETWORK,
+    StatusCode.FAILED_STORAGE,
+    StatusCode.FAILED_SIGNATURE,
+    StatusCode.FAILED_SOURCE_UNCONFIRMED,
+    StatusCode.FAILED_GENERIC
 )

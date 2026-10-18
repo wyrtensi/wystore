@@ -7,12 +7,18 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import dev.wystore.ui.components.HubHeader
+import dev.wystore.ui.components.groupPosition
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -87,42 +93,36 @@ fun HomeScreen(
     onConfirmUnverifiedSource: (String) -> Unit = {},
     onLaunch: (String) -> Unit = {}
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                // The wordmark sits left with its tagline under it, the way a store front reads,
-                // rather than as a lone centred word.
-                title = {
-                    Column {
-                        Text("Wy Store", style = MaterialTheme.typography.headlineSmall)
-                        Text(
-                            stringResource(R.string.home_tagline),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
-        }
-    ) { contentPadding ->
+    // The Wy Hub screen: the wordmark as a large plain title with the tagline under it, no top bar;
+    // then the search pill, the panel saying whether anything waits, and the shelves.
+    // Clear of the status bar as a whole, so the shelves scroll under nothing rather than under
+    // the clock and the icons.
+    Column(modifier = modifier.fillMaxSize().statusBarsPadding()) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding()),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 4.dp,
+                top = 0.dp,
                 bottom = 24.dp + LocalBottomBarInset.current
-            ),
-            verticalArrangement = Arrangement.spacedBy(SectionSpacing)
+            )
         ) {
+            // Part of the list, so on the longest screen of the app the wordmark scrolls away with
+            // the shelves instead of holding the top of every one of them.
+            item {
+                HubHeader(
+                    title = "Wy Store",
+                    subtitle = stringResource(R.string.home_tagline),
+                    horizontalPadding = 0.dp,
+                    insetStatusBar = false,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+            }
             item {
                 PersistentSearchBar(
                     query = searchQuery,
-                    onSearchClick = onSearchClick
+                    onSearchClick = onSearchClick,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
 
@@ -130,7 +130,8 @@ fun HomeScreen(
                 UpdateHeroSection(
                     pendingUpdates = pendingUpdates,
                     onUpdateAll = onUpdateAll,
-                    onOpenUpdates = onUpdatesClick
+                    onOpenUpdates = onUpdatesClick,
+                    modifier = Modifier.padding(bottom = SectionSpacing)
                 )
             }
 
@@ -143,7 +144,8 @@ fun HomeScreen(
                     previews = categoryPreviews,
                     onNeedPreview = onNeedCategoryPreview,
                     githubEnabled = githubPicks.isNotEmpty(),
-                    onGitHubClick = onOpenGitHub
+                    onGitHubClick = onOpenGitHub,
+                    modifier = Modifier.padding(bottom = SectionSpacing)
                 )
             }
 
@@ -152,7 +154,10 @@ fun HomeScreen(
             if (githubPicks.isNotEmpty()) {
                 item {
                     val installedPackages = remember(installed) { installed.mapTo(HashSet()) { it.packageName } }
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(
+                        modifier = Modifier.padding(bottom = SectionSpacing),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         SectionHeader(
                             title = stringResource(R.string.home_github_title),
                             subtitle = stringResource(R.string.home_github_hint),
@@ -185,12 +190,13 @@ fun HomeScreen(
             item {
                 SectionHeader(
                     title = stringResource(R.string.home_featured_title),
-                    subtitle = if (catalogStale) stringResource(R.string.home_catalog_stale) else null
+                    subtitle = if (catalogStale) stringResource(R.string.home_catalog_stale) else null,
+                    modifier = Modifier.padding(bottom = 10.dp)
                 )
             }
 
             if (featuredApps.isNotEmpty()) {
-                items(featuredApps, key = { it.packageName }) { app ->
+                itemsIndexed(featuredApps, key = { _, app -> app.packageName }) { index, app ->
                     // Home used to reduce with the catalogue entry alone, so an app that was already
                     // installed, downloading or ready to install still offered "Install" here while
                     // every other screen showed its real state.
@@ -217,7 +223,9 @@ fun HomeScreen(
                                 RowAction.Nothing -> Unit
                             }
                         },
-                        implicitSource = "RuStore"
+                        implicitSource = "RuStore",
+                        // One panel of rows, as in Wy Hub, instead of a card per app.
+                        groupPosition = groupPosition(index, featuredApps.size)
                     )
                 }
             } else {
