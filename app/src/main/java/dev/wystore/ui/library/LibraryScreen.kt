@@ -1,5 +1,6 @@
 package dev.wystore.ui.library
 
+import dev.wystore.ui.components.HubTextAction
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Box
@@ -43,7 +44,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -492,7 +492,7 @@ private fun LibraryGroupHeader(
             )
         }
         action?.let { (label, onClick) ->
-            TextButton(onClick = onClick) { Text(label, maxLines = 1) }
+            HubTextAction(onClick = onClick) { Text(label, maxLines = 1) }
         }
     }
 }

@@ -1,5 +1,6 @@
 package dev.wystore.ui.search
 
+import dev.wystore.ui.components.HubTextAction
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -45,7 +46,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -548,7 +548,7 @@ fun SearchCard(
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        TextButton(
+                        HubTextAction(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onQuickInstall(app.packageName)

@@ -1,5 +1,8 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.HubTextAction
+import dev.wystore.ui.components.DialogButton
+import dev.wystore.ui.components.HubAlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -22,7 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TextButton
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -567,7 +568,7 @@ fun SettingsScreen(
             // The standing disclaimer, reachable from Settings as well as from every install page.
             SourceDisclaimer(sourceLine = stringResource(R.string.disclaimer_sources_both))
 
-            TextButton(
+            HubTextAction(
                 onClick = { showPrivacyDialog = true },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
@@ -577,11 +578,11 @@ fun SettingsScreen(
     }
 
     if (showPrivacyDialog) {
-        AlertDialog(
+        HubAlertDialog(
             onDismissRequest = { showPrivacyDialog = false },
             title = { Text(stringResource(R.string.settings_privacy_title)) },
             text = { Text(stringResource(R.string.settings_privacy_text)) },
-            confirmButton = { TextButton(onClick = { showPrivacyDialog = false }) { Text(stringResource(R.string.common_got_it)) } }
+            confirmButton = { DialogButton(onClick = { showPrivacyDialog = false }) { Text(stringResource(R.string.common_got_it)) } }
         )
     }
 

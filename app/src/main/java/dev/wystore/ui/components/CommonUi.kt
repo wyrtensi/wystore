@@ -26,7 +26,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -271,7 +270,7 @@ fun OperationProgress(
                         horizontalArrangement = Arrangement.End
                     ) {
                         onRetry?.let {
-                            TextButton(onClick = it) { Text(stringResource(R.string.common_retry)) }
+                            HubTextAction(onClick = it) { Text(stringResource(R.string.common_retry)) }
                             Spacer(Modifier.width(4.dp))
                         }
                         onConfirmUnverifiedSource?.let {

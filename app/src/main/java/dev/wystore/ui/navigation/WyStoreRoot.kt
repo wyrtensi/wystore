@@ -1,5 +1,7 @@
 package dev.wystore.ui.navigation
 
+import dev.wystore.ui.components.DialogButton
+import dev.wystore.ui.components.HubAlertDialog
 import dev.wystore.githubRowFor
 import dev.wystore.rowFor
 import androidx.activity.compose.BackHandler
@@ -15,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -482,17 +483,17 @@ fun WyStoreRoot(
     }
 
     if (installDialog) {
-        AlertDialog(
+        HubAlertDialog(
             onDismissRequest = { installDialog = false },
             title = { Text(stringResource(R.string.dialog_install_existing_title)) },
             text = { Text(stringResource(R.string.dialog_install_existing_text)) },
             confirmButton = {
-                TextButton(onClick = {
+                DialogButton(primary = true, onClick = {
                     installDialog = false
                     viewModel.installSelected()
                 }) { Text(stringResource(R.string.common_continue)) }
             },
-            dismissButton = { TextButton(onClick = { installDialog = false }) { Text(stringResource(R.string.common_cancel)) } }
+            dismissButton = { DialogButton(onClick = { installDialog = false }) { Text(stringResource(R.string.common_cancel)) } }
         )
     }
 
@@ -511,7 +512,7 @@ fun WyStoreRoot(
     }
 
     replaceDialog?.let { (installedApp, catalogApp) ->
-        AlertDialog(
+        HubAlertDialog(
             onDismissRequest = { replaceDialog = null },
             title = { Text(stringResource(R.string.dialog_replace_title)) },
             text = {
@@ -525,7 +526,7 @@ fun WyStoreRoot(
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
+                DialogButton(primary = true, onClick = {
                     // Recorded first: the uninstall dialog takes the screen and may outlive this
                     // process, and the install has to survive that trip.
                     viewModel.confirmReplaceInstall(installedApp.packageName, catalogApp.name)
@@ -534,14 +535,14 @@ fun WyStoreRoot(
                 }) { Text(stringResource(R.string.dialog_replace_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { replaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
+                DialogButton(onClick = { replaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
 
     queueReplaceDialog?.let { item ->
         val installedVersion = state.installed.firstOrNull { it.packageName == item.packageName }?.versionName
-        AlertDialog(
+        HubAlertDialog(
             onDismissRequest = { queueReplaceDialog = null },
             title = { Text(stringResource(R.string.dialog_replace_title)) },
             text = {
@@ -555,45 +556,45 @@ fun WyStoreRoot(
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
+                DialogButton(primary = true, onClick = {
                     viewModel.confirmReplaceFromQueue(item)
                     queueReplaceDialog = null
                     viewModel.uninstall(item.packageName)
                 }) { Text(stringResource(R.string.dialog_replace_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { queueReplaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
+                DialogButton(onClick = { queueReplaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
 
     forceDialog?.let { target ->
-        AlertDialog(
+        HubAlertDialog(
             onDismissRequest = { forceDialog = null },
             title = { Text(stringResource(R.string.dialog_force_title)) },
             text = { Text(stringResource(R.string.dialog_force_text, target.label)) },
             confirmButton = {
-                TextButton(onClick = {
+                DialogButton(primary = true, onClick = {
                     viewModel.updateManaged(target.copy(forceWyStore = true))
                     forceDialog = null
                 }) { Text(stringResource(R.string.dialog_force_confirm)) }
             },
-            dismissButton = { TextButton(onClick = { forceDialog = null }) { Text(stringResource(R.string.common_cancel)) } }
+            dismissButton = { DialogButton(onClick = { forceDialog = null }) { Text(stringResource(R.string.common_cancel)) } }
         )
     }
 
     githubInstallDialog?.let { asset ->
-        AlertDialog(
+        HubAlertDialog(
             onDismissRequest = { githubInstallDialog = null },
             title = { Text(stringResource(R.string.dialog_github_install_title)) },
             text = { Text(stringResource(R.string.dialog_github_install_text, asset.name)) },
             confirmButton = {
-                TextButton(onClick = {
+                DialogButton(primary = true, onClick = {
                     githubInstallDialog = null
                     viewModel.installGitHubAsset(asset)
                 }) { Text(stringResource(R.string.common_install)) }
             },
-            dismissButton = { TextButton(onClick = { githubInstallDialog = null }) { Text(stringResource(R.string.common_cancel)) } }
+            dismissButton = { DialogButton(onClick = { githubInstallDialog = null }) { Text(stringResource(R.string.common_cancel)) } }
         )
     }
 }

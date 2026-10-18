@@ -1,5 +1,6 @@
 package dev.wystore.ui.library
 
+import dev.wystore.ui.components.HubTextAction
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,7 +78,7 @@ fun BackupNudge(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = {
+                HubTextAction(onClick = {
                     prefs.edit { putBoolean(key, true) }
                     dismissed = true
                 }) { Text(stringResource(R.string.library_backup_later), maxLines = 1) }

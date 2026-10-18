@@ -1,5 +1,8 @@
 package dev.wystore.ui.library
 
+import dev.wystore.ui.components.HubTextAction
+import dev.wystore.ui.components.DialogButton
+import dev.wystore.ui.components.HubAlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,13 +14,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +57,7 @@ fun AdoptionDialog(
     onDismiss: () -> Unit
 ) {
     val fromGoogle = prompt.app.source == InstallSource.GOOGLE_PLAY
-    AlertDialog(
+    HubAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(stringResource(if (fromGoogle) R.string.adopt_google_title else R.string.dialog_adopt_title))
@@ -93,7 +94,7 @@ fun AdoptionDialog(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
-                        TextButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+                        HubTextAction(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
                     }
 
                     prompt.options.isEmpty() -> Text(
@@ -127,7 +128,7 @@ fun AdoptionDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            DialogButton(onClick = onDismiss) {
                 Text(stringResource(if (prompt.waiting > 0) R.string.adopt_skip else R.string.common_cancel))
             }
         }
@@ -160,7 +161,7 @@ private fun GitHubLinkSection(prompt: AdoptionPrompt, onGitHub: (String) -> Unit
     var open by rememberSaveable(prompt.app.packageName) { mutableStateOf(prompt.options.isEmpty()) }
     var link by rememberSaveable(prompt.app.packageName) { mutableStateOf("") }
     if (!open) {
-        TextButton(onClick = { open = true }) { Text(stringResource(R.string.adopt_github_link_open)) }
+        DialogButton(onClick = { open = true }) { Text(stringResource(R.string.adopt_github_link_open)) }
         return
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

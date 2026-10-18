@@ -1,11 +1,12 @@
 package dev.wystore.ui.navigation
 
+import dev.wystore.ui.components.DialogButton
+import dev.wystore.ui.components.HubAlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -80,7 +81,7 @@ fun SharedRootDialogs(
     // lets the button stay responsive and the setting stay true.
     if (state.meteredDownloadPrompt) {
         var always by rememberSaveable { mutableStateOf(false) }
-        AlertDialog(
+        HubAlertDialog(
             onDismissRequest = viewModel::cancelMeteredDownload,
             title = { Text(stringResource(R.string.metered_download_title)) },
             text = {
@@ -98,12 +99,12 @@ fun SharedRootDialogs(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { viewModel.confirmMeteredDownload(always) }) {
+                DialogButton(primary = true, onClick = { viewModel.confirmMeteredDownload(always) }) {
                     Text(stringResource(R.string.metered_download_confirm))
                 }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::cancelMeteredDownload) {
+                DialogButton(onClick = viewModel::cancelMeteredDownload) {
                     Text(stringResource(R.string.common_cancel))
                 }
             }
@@ -114,12 +115,12 @@ fun SharedRootDialogs(
     // in the UI ever read it, so smart mode silently did nothing.
     val offeredNext by viewModel.offeredNext.collectAsState()
     offeredNext?.let { next ->
-        AlertDialog(
+        HubAlertDialog(
             onDismissRequest = viewModel::queueDismissOfferedNext,
             title = { Text(stringResource(R.string.offer_next_title)) },
             text = { Text(stringResource(R.string.offer_next_body, next.label.ifBlank { next.packageName })) },
             confirmButton = {
-                TextButton(onClick = {
+                DialogButton(primary = true, onClick = {
                     val activity = context as? android.app.Activity
                     if (activity != null) {
                         viewModel.queueAcceptNext(UserConfirmedInstaller(activity))
@@ -129,7 +130,7 @@ fun SharedRootDialogs(
                 }) { Text(stringResource(R.string.offer_next_accept)) }
             },
             dismissButton = {
-                TextButton(onClick = viewModel::queueDismissOfferedNext) {
+                DialogButton(onClick = viewModel::queueDismissOfferedNext) {
                     Text(stringResource(R.string.offer_next_dismiss))
                 }
             }

@@ -372,6 +372,89 @@ fun Modifier.fadingTopEdge(length: androidx.compose.ui.unit.Dp = 20.dp): Modifie
             )
         }
 
+/**
+ * A dialog the Wy Hub way: the panel radius, the hairline, and its buttons as pills - see
+ * [DialogButton]. Material's own drew a squarer card with a row of accent text links, the one
+ * place left where the old look showed through.
+ */
+@Composable
+fun HubAlertDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    dismissButton: (@Composable () -> Unit)? = null,
+    icon: (@Composable () -> Unit)? = null,
+    title: (@Composable () -> Unit)? = null,
+    text: (@Composable () -> Unit)? = null,
+    properties: androidx.compose.ui.window.DialogProperties = androidx.compose.ui.window.DialogProperties()
+) {
+    val shape = RoundedCornerShape(28.dp)
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismissRequest,
+        // Wide pills, one under the other, the step first: side by side two of them did not fit a
+        // dialog's width, and Material stepped them into a staircase.
+        confirmButton = {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                confirmButton()
+                dismissButton?.invoke()
+            }
+        },
+        modifier = modifier.then(
+            if (LocalHubStyle.current) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape) else Modifier
+        ),
+        dismissButton = null,
+        icon = icon,
+        title = title,
+        text = text,
+        shape = shape,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 0.dp,
+        properties = properties
+    )
+}
+
+/**
+ * A dialog's button: the accent pill for the step the dialog is asking about, a grey one for
+ * the way out and for anything that only closes it.
+ */
+@Composable
+fun DialogButton(
+    onClick: () -> Unit,
+    primary: Boolean = false,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit
+) {
+    val wide = Modifier.fillMaxWidth().heightIn(min = 46.dp)
+    if (primary) {
+        androidx.compose.material3.Button(onClick = onClick, modifier = wide, enabled = enabled, content = content)
+    } else {
+        androidx.compose.material3.FilledTonalButton(onClick = onClick, modifier = wide, enabled = enabled, content = content)
+    }
+}
+
+/**
+ * A secondary action as a small grey capsule - "Retry", "Later", "Show all" - where a line of
+ * accent text used to stand. Takes the arguments a text button did, so it replaces one in place;
+ * [colors] and [contentPadding] are accepted and left to the capsule's own.
+ */
+@Composable
+fun HubTextAction(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    @Suppress("UNUSED_PARAMETER") colors: androidx.compose.material3.ButtonColors? = null,
+    @Suppress("UNUSED_PARAMETER") contentPadding: androidx.compose.foundation.layout.PaddingValues? = null,
+    content: @Composable RowScope.() -> Unit
+) {
+    androidx.compose.material3.FilledTonalButton(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = 36.dp),
+        enabled = enabled,
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+        content = content
+    )
+}
+
 /** The thin single-line panel with a coloured icon: a note the screen wants read once. */
 @Composable
 fun HubNote(

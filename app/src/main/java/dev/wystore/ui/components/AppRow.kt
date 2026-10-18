@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -193,7 +192,7 @@ private fun AppRowContent(
                     // Quiet, like the secondary action beside it: the row's own button is the step to
                     // take, this only answers what the version on offer brings.
                     onWhatsNew?.let { showNotes ->
-                        TextButton(
+                        HubTextAction(
                             onClick = showNotes,
                             modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 40.dp),
                             // Grey: in the accent it was the brightest thing on every accepted row.
@@ -202,7 +201,7 @@ private fun AppRowContent(
                             )
                         ) { Text(stringResource(R.string.details_changelog)) }
                     }
-                    if (secondaryClick != null) TextButton(
+                    if (secondaryClick != null) HubTextAction(
                         onClick = secondaryClick,
                         modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 40.dp)
                     ) {

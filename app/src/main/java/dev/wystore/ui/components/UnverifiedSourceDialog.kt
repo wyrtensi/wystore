@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,7 +41,7 @@ fun UnverifiedSourceDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    HubAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.unverified_source_title)) },
         text = {
@@ -60,7 +58,7 @@ fun UnverifiedSourceDialog(
                 // Folded away rather than dropped: the four ordinary explanations are what make
                 // this answerable at all, but they are four sentences on top of a decision.
                 var reasonsShown by rememberSaveable { mutableStateOf(false) }
-                TextButton(
+                HubTextAction(
                     onClick = { reasonsShown = !reasonsShown },
                     contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)
                 ) {
@@ -82,12 +80,12 @@ fun UnverifiedSourceDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
+            DialogButton(primary = true, onClick = onConfirm) {
                 Text(stringResource(R.string.unverified_source_accept))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+            DialogButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
         }
     )
 }

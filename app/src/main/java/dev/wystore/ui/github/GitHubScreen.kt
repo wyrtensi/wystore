@@ -1,5 +1,6 @@
 package dev.wystore.ui.github
 
+import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.bleedToScreenEdges
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -202,7 +202,7 @@ fun GitHubScreen(
                     GitHubReleaseCard(release, onOpen)
                 }
                 if (releases.size > RELEASES_SHOWN) item {
-                    TextButton(onClick = { showAllReleases = !showAllReleases }) {
+                    HubTextAction(onClick = { showAllReleases = !showAllReleases }) {
                         Text(
                             if (showAllReleases) stringResource(R.string.github_hide_releases)
                             else stringResource(R.string.github_all_releases, releases.size)

@@ -1,5 +1,6 @@
 package dev.wystore.ui.github
 
+import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.bleedToScreenEdges
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.foundation.layout.height
@@ -423,7 +423,7 @@ fun GitHubAppScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (state.apkAssets.size > 1) {
-                            TextButton(
+                            HubTextAction(
                                 onClick = { showAllAssets = !showAllAssets },
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
                             ) {

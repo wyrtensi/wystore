@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.switchRow
 import android.content.Intent
 import android.os.Build
@@ -25,7 +26,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -167,7 +167,7 @@ fun NotificationSettingsScreen(
                         )
                         channels.forEachIndexed { index, (channelId, labelRes) ->
                             if (index > 0) WyDivider(modifier = Modifier.padding(horizontal = 14.dp))
-                            TextButton(
+                            HubTextAction(
                                 onClick = { openChannelSettings(context, channelId) },
                                 modifier = Modifier.fillMaxWidth()
                             ) {

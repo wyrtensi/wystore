@@ -1,5 +1,8 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.HubTextAction
+import dev.wystore.ui.components.DialogButton
+import dev.wystore.ui.components.HubAlertDialog
 import dev.wystore.ui.components.switchRow
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -12,14 +15,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -118,14 +119,14 @@ fun BackupSettingsSection(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f)
                     )
-                    TextButton(onClick = {
+                    HubTextAction(onClick = {
                         backupLocation.forget()
                         keptCurrent = false
                     }) { Text(stringResource(R.string.backup_forget)) }
                 }
             }
 
-            TextButton(
+            HubTextAction(
                 onClick = {
                     textBackupContent = onExportJson()
                     showTextBackupDialog = true
@@ -139,7 +140,7 @@ fun BackupSettingsSection(
 
     if (showTextBackupDialog) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-        AlertDialog(
+        HubAlertDialog(
             onDismissRequest = { showTextBackupDialog = false },
             title = { Text(stringResource(R.string.backup_dialog_title)) },
             text = {
@@ -183,7 +184,7 @@ fun BackupSettingsSection(
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
+                DialogButton(primary = true, onClick = {
                     if (textBackupContent.isNotBlank()) {
                         haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                         onRestoreJson(textBackupContent, mergeMode)
@@ -191,7 +192,7 @@ fun BackupSettingsSection(
                     }
                 }) { Text(stringResource(R.string.backup_restore)) }
             },
-            dismissButton = { TextButton(onClick = { showTextBackupDialog = false }) { Text(stringResource(R.string.common_close)) } }
+            dismissButton = { DialogButton(onClick = { showTextBackupDialog = false }) { Text(stringResource(R.string.common_close)) } }
         )
     }
 }

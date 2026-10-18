@@ -2,8 +2,8 @@
     <string name="app_name">Wy Store</string>
     <string name="nav_home">Главная</string>
     <string name="nav_search">Поиск</string>
-    <string name="nav_updates">Обновления</string>
-    <string name="nav_library">Мои</string>
+    <string name="nav_updates">Апдейты</string>
+    <string name="nav_library">Приложения</string>
     <string name="nav_settings">Настройки</string>
 
     <string name="notif_downloading_title">Скачивание %1$s</string>
@@ -201,7 +201,7 @@
     <string name="github_install_apk">Установить APK</string>
     <string name="github_release_no_apk">В этом релизе нет файлов .apk.</string>
 
-    <string name="library_title">Мои</string>
+    <string name="library_title">Приложения</string>
     <string name="library_checking">Проверяем</string>
     <string name="library_install_count">Установить (%1$d)</string>
     <string name="library_check_and_install">Проверить и установить</string>
@@ -372,7 +372,7 @@
     <string name="updates_install_all">Установить все</string>
     <string name="updates_ready_title">Готовы к установке (%1$d)</string>
     <string name="updates_managed_title">Принятые приложения (%1$d)</string>
-    <string name="updates_managed_empty">Пока нет принятых приложений. Выберите приложения в «Моих» или установите из каталога.</string>
+    <string name="updates_managed_empty">Пока нет принятых приложений. Выберите приложения во вкладке «Приложения» или установите из каталога.</string>
     <string name="updates_check_counts">Проверено %1$d из %2$d · обновлений: %3$d · проблем: %4$d</string>
     <string name="common_skip">Пропустить</string>
     <string name="vm_update_check_failed">Проверка обновлений не удалась</string>

@@ -5,7 +5,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -79,7 +78,7 @@ fun SourceFailureDialog(
         }
     }
 
-    AlertDialog(
+    HubAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.source_failure_title)) },
         text = {
@@ -127,7 +126,7 @@ fun SourceFailureDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) }
+            DialogButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) }
         }
     )
 }

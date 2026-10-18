@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,7 +31,7 @@ fun WhatsNewDialog(
     onOpenPage: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    HubAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.details_changelog)) },
         text = {
@@ -89,10 +88,10 @@ fun WhatsNewDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) }
+            DialogButton(onClick = onOpenPage) { Text(stringResource(R.string.library_open_page)) }
         },
         dismissButton = {
-            TextButton(onClick = onOpenPage) { Text(stringResource(R.string.library_open_page)) }
+            DialogButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) }
         }
     )
 }

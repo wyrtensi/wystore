@@ -1,5 +1,6 @@
 package dev.wystore.ui.details
 
+import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.bleedToScreenEdges
 import android.content.Intent
 import android.os.Build
@@ -38,7 +39,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -385,7 +385,7 @@ fun AppDetailsScreen(
                                                 // asked for. Without it the app is stuck: the check
                                                 // skips it, and no other control here acts on it.
                                                 if (!canUpdate) {
-                                                    TextButton(
+                                                    HubTextAction(
                                                         onClick = { onConfirmUnverifiedSource(app.packageName) },
                                                         enabled = !busy,
                                                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
@@ -418,7 +418,7 @@ fun AppDetailsScreen(
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                        TextButton(
+                                        HubTextAction(
                                             onClick = runInstall,
                                             enabled = !busy,
                                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
@@ -438,7 +438,7 @@ fun AppDetailsScreen(
                                         )
                                         // The same offer the library makes for a Google-installed
                                         // app, made wherever the install cannot happen in place.
-                                        TextButton(
+                                        HubTextAction(
                                             onClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                                 onReplace()
@@ -569,7 +569,7 @@ fun AppDetailsScreen(
                 }
                 if (remaining > 0 || canLoadMoreReviews || shownReviews > REVIEW_PAGE) {
                     item {
-                        TextButton(
+                        HubTextAction(
                             onClick = {
                                 when {
                                     remaining > 0 ->
@@ -656,7 +656,7 @@ fun AppDetailsScreen(
                             .clip(MaterialTheme.shapes.large),
                         contentScale = ContentScale.Fit
                     )
-                    TextButton(
+                    HubTextAction(
                         onClick = { screenshotPreview = null },
                         modifier = Modifier.align(Alignment.End)
                     ) { Text(stringResource(R.string.common_close)) }

@@ -1,5 +1,6 @@
 package dev.wystore.ui.updates
 
+import dev.wystore.ui.components.HubTextAction
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -44,7 +45,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.foundation.layout.Column
@@ -668,7 +668,7 @@ fun QueueItemCard(
                 }
             }
             if (sourceProblem) {
-                TextButton(
+                HubTextAction(
                     onClick = onSourceFailureHelp,
                     modifier = Modifier.align(Alignment.End)
                 ) { Text(stringResource(R.string.source_failure_help)) }
