@@ -10,7 +10,20 @@ wystore.ru {
 		-Server
 	}
 
-	reverse_proxy wystore-web:80
+	# The visit counter (shared GoatCounter, see rusinternet deploy/server/stats)
+	# is reached through the site itself. Only the script and the count endpoint
+	# pass; the dashboard stays on stats.wyrtensi.ru.
+	@counter path /stats/count /stats/count.js
+	handle @counter {
+		uri strip_prefix /stats
+		reverse_proxy goatcounter:8080 {
+			header_up Host stats.wyrtensi.ru
+		}
+	}
+
+	handle {
+		reverse_proxy wystore-web:80
+	}
 
 	log {
 		output stdout
