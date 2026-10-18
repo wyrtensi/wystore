@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dev.wystore.R
 import dev.wystore.data.CatalogRepository
+import dev.wystore.data.CategoryIconIndex
 import dev.wystore.data.StoreApp
 import dev.wystore.localization.SourceTextResolver
 import kotlinx.coroutines.Job
@@ -25,7 +26,9 @@ data class TvCatalogUiState(
      * Empty until then, and whenever it could not be loaded - the TV list stands on its own.
      */
     val phoneApps: List<StoreApp> = emptyList(),
-    val phoneLoading: Boolean = false
+    val phoneLoading: Boolean = false,
+    /** The source's category icons by category slug and title; see [CategoryIconIndex]. */
+    val categoryIcons: Map<String, String> = emptyMap()
 )
 
 /**
@@ -51,6 +54,19 @@ class TvCatalogViewModel(
 
     init {
         load(forceRefresh = false)
+        loadCategoryIcons()
+    }
+
+    /** Only the tiles' pictures: a failure leaves them with their fallback glyph. */
+    private fun loadCategoryIcons() {
+        viewModelScope.launch {
+            runCatching { catalogRepository.cachedCategories() }.getOrNull()
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { cached -> _uiState.update { it.copy(categoryIcons = CategoryIconIndex.of(cached)) } }
+            runCatching { catalogRepository.categories() }.getOrNull()?.value
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { fresh -> _uiState.update { it.copy(categoryIcons = CategoryIconIndex.of(fresh)) } }
+        }
     }
 
     fun retry() {

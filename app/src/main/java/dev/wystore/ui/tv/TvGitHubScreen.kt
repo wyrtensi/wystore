@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.ui.components.fadingTopEdge
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -132,11 +133,12 @@ fun TvGitHubAppScreen(
         androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides TvMinimalBringIntoViewSpec
     ) {
         LazyColumn(
-            modifier = modifier.fillMaxSize(),
+            // Rows scrolled up under the menu dissolve instead of ending on a hard line across a card.
+            modifier = modifier.fillMaxSize().fadingTopEdge(TvTopFade),
             contentPadding = PaddingValues(
                 start = TvOverscanHorizontal,
                 end = TvOverscanHorizontal,
-                top = 8.dp,
+                top = TvTopFade,
                 bottom = TvOverscanVertical + 48.dp
             ),
             verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -234,8 +236,8 @@ fun TvGitHubAppScreen(
                     TvSectionTitle(stringResource(R.string.github_screenshots))
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(20.dp),
-                        contentPadding = PaddingValues(12.dp),
-                        modifier = Modifier.height(300.dp).tvRowEdges()
+                        contentPadding = TvRowContentPadding,
+                        modifier = Modifier.height(300.dp).tvBleed().tvRowEdges()
                     ) {
                         items(screenshots, key = { it }) { url ->
                             val shape = M3Theme.shapes.large

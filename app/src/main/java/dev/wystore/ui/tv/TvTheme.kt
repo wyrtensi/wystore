@@ -11,6 +11,9 @@ import androidx.tv.material3.lightColorScheme
 
 /** Distance from the screen edges a TV may cut off: 48dp at the sides, 27dp top and bottom. */
 val TvOverscanHorizontal = 48.dp
+
+/** How deep the top of a scrolling TV screen fades under the menu; also its top padding. */
+val TvTopFade = 16.dp
 val TvOverscanVertical = 27.dp
 
 /**

@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.color
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -111,11 +112,12 @@ fun TvDetailsScreen(
         androidx.compose.foundation.gestures.LocalBringIntoViewSpec provides TvMinimalBringIntoViewSpec
     ) {
         LazyColumn(
-            modifier = modifier.fillMaxSize(),
+            // Rows scrolled up under the menu dissolve instead of ending on a hard line across a card.
+            modifier = modifier.fillMaxSize().fadingTopEdge(TvTopFade),
             contentPadding = PaddingValues(
                 start = TvOverscanHorizontal,
                 end = TvOverscanHorizontal,
-                top = 8.dp,
+                top = TvTopFade,
                 bottom = TvOverscanVertical + 48.dp
             ),
             verticalArrangement = Arrangement.spacedBy(28.dp)
@@ -261,8 +263,8 @@ fun TvDetailsScreen(
                     TvSectionTitle(stringResource(R.string.details_screenshots))
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(20.dp),
-                        contentPadding = PaddingValues(12.dp),
-                        modifier = Modifier.height(300.dp).tvRowEdges()
+                        contentPadding = TvRowContentPadding,
+                        modifier = Modifier.height(300.dp).tvBleed().tvRowEdges()
                     ) {
                         itemsIndexed(app.screenshots, key = { index, url -> "$index-$url" }) { index, url ->
                             Card(
@@ -290,9 +292,9 @@ fun TvDetailsScreen(
                     TvSectionTitle(stringResource(R.string.details_reviews))
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(20.dp),
-                        contentPadding = PaddingValues(12.dp),
+                        contentPadding = TvRowContentPadding,
                         verticalAlignment = Alignment.Top,
-                        modifier = Modifier.tvRowEdges()
+                        modifier = Modifier.tvBleed().tvRowEdges()
                     ) {
                         itemsIndexed(app.reviews, key = { index, review -> "$index-${review.author}" }) { _, review ->
                             val shape = androidx.compose.material3.MaterialTheme.shapes.large

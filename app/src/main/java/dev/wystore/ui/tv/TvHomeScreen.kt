@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.color
 import dev.wystore.rowFor
 import androidx.compose.foundation.layout.Arrangement
@@ -171,11 +172,12 @@ fun TvHomeScreen(
 
     LazyColumn(
         state = listState,
-        modifier = modifier.fillMaxSize(),
+        // Rows scrolled up under the menu dissolve instead of ending on a hard line across a card.
+            modifier = modifier.fillMaxSize().fadingTopEdge(TvTopFade),
         contentPadding = PaddingValues(
             start = TvOverscanHorizontal,
             end = TvOverscanHorizontal,
-            top = 8.dp,
+            top = TvTopFade,
             bottom = TvOverscanVertical + 48.dp
         ),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -235,14 +237,18 @@ fun TvHomeScreen(
                 TvSectionTitle(stringResource(R.string.home_categories_title))
                 LazyRow(
                     state = rowStates.getOrPut("categories") { LazyListState() },
-                    modifier = Modifier.tvRowEdges(),
+                    modifier = Modifier.tvBleed().tvRowEdges(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(12.dp)
+                    contentPadding = TvRowContentPadding
                 ) {
                     itemsIndexed(categoryRows, key = { _, row -> row.key }) { index, row ->
                         TvCategoryTile(
                             title = row.shownTitle().orEmpty(),
                             accent = index,
+                            iconUrl = dev.wystore.data.CategoryIconIndex.lookup(catalog.categoryIcons, row.category),
+                            // What the source has no section for on a TV is a game genre, or the
+                            // row that gathers the small categories.
+                            fallbackIcon = if (row.category == OTHER_CATEGORY) R.drawable.ic_category_other else R.drawable.ic_category_games,
                             modifier = if (index == 0) Modifier.focusRequester(firstTileFocus) else Modifier,
                             previewIcons = row.apps.mapNotNull { it.iconUrl?.takeIf(String::isNotBlank) },
                             onClick = {
@@ -285,9 +291,9 @@ fun TvHomeScreen(
                     )
                     LazyRow(
                         state = rowStates.getOrPut("github") { LazyListState() },
-                        modifier = Modifier.fillMaxWidth().height(TvGitHubRowHeight).tvRowEdges(),
+                        modifier = Modifier.fillMaxWidth().height(TvGitHubRowHeight).tvBleed().tvRowEdges(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(12.dp)
+                        contentPadding = TvRowContentPadding
                     ) {
                         itemsIndexed(githubEntries, key = { _, entry -> entry.slug }) { _, entry ->
                             TvGitHubCard(
@@ -380,10 +386,10 @@ private fun TvAppRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(TvRowHeight)
-            .tvRowEdges(),
+            .tvBleed().tvRowEdges(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         // Room for the focused card to grow without being clipped at either end.
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
+        contentPadding = TvRowContentPadding
     ) {
         itemsIndexed(apps, key = { _, app -> app.packageName }) { index, app ->
             var cardModifier: Modifier = Modifier

@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.ui.components.fadingTopEdge
 import android.content.Intent
 import android.speech.RecognizerIntent
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -189,11 +190,12 @@ fun TvSearchScreen(
 
     LazyColumn(
         state = listState,
-        modifier = modifier.fillMaxSize(),
+        // Rows scrolled up under the menu dissolve instead of ending on a hard line across a card.
+            modifier = modifier.fillMaxSize().fadingTopEdge(TvTopFade),
         contentPadding = PaddingValues(
             start = TvOverscanHorizontal,
             end = TvOverscanHorizontal,
-            top = 8.dp,
+            top = TvTopFade,
             bottom = TvOverscanVertical + 48.dp
         ),
         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -354,9 +356,9 @@ private fun TvGitHubResultRow(
 ) {
     LazyRow(
         state = state,
-        modifier = Modifier.fillMaxWidth().height(TvRowHeight).tvRowEdges(),
+        modifier = Modifier.fillMaxWidth().height(TvRowHeight).tvBleed().tvRowEdges(),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
-        contentPadding = PaddingValues(12.dp)
+        contentPadding = TvRowContentPadding
     ) {
         itemsIndexed(entries, key = { _, entry -> entry.slug }) { index, entry ->
             TvGitHubCard(
@@ -382,9 +384,9 @@ private fun TvResultRow(
 ) {
     LazyRow(
         state = state,
-        modifier = Modifier.fillMaxWidth().height(TvRowHeight).tvRowEdges(),
+        modifier = Modifier.fillMaxWidth().height(TvRowHeight).tvBleed().tvRowEdges(),
         horizontalArrangement = Arrangement.spacedBy(20.dp),
-        contentPadding = PaddingValues(12.dp)
+        contentPadding = TvRowContentPadding
     ) {
         itemsIndexed(apps, key = { _, app -> app.packageName }) { index, app ->
             TvAppCard(

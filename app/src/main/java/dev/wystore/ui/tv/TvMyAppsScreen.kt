@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.ui.components.fadingTopEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -80,11 +81,12 @@ fun TvMyAppsScreen(
 
     LazyColumn(
         state = listState,
-        modifier = modifier.fillMaxSize(),
+        // Rows scrolled up under the menu dissolve instead of ending on a hard line across a card.
+            modifier = modifier.fillMaxSize().fadingTopEdge(TvTopFade),
         contentPadding = PaddingValues(
             start = TvOverscanHorizontal,
             end = TvOverscanHorizontal,
-            top = 8.dp,
+            top = TvTopFade,
             bottom = TvOverscanVertical + 48.dp
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp)

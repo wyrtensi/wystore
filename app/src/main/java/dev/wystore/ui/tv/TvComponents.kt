@@ -1,5 +1,6 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.ui.components.bleedToScreenEdges
 import dev.wystore.ui.components.color
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -92,6 +93,17 @@ suspend fun focusRowStart(state: LazyListState, first: FocusRequester): Boolean 
 }
 
 private const val ROW_START_ATTEMPTS = 5
+
+/**
+ * A row of cards out to the screen's edges, as the phone's rails are. Inside the overscan margin a
+ * row ended on a hard vertical line through the next card; out to the edge it runs off the screen.
+ * The row's first card stays where it was through [TvRowContentPadding], and the focused card keeps
+ * clear of the edge, where a TV may crop, through the bring-into-view margin.
+ */
+fun Modifier.tvBleed(): Modifier = bleedToScreenEdges(TvOverscanHorizontal)
+
+/** Room for a focused card to grow, plus the overscan margin the row now runs through. */
+val TvRowContentPadding = PaddingValues(horizontal = 12.dp + TvOverscanHorizontal, vertical = 12.dp)
 
 /**
  * Keeps left and right inside a row of cards.

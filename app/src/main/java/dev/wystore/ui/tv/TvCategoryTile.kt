@@ -1,5 +1,9 @@
 package dev.wystore.ui.tv
 
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,6 +42,10 @@ fun TvCategoryTile(
     accent: Int,
     previewIcons: List<String>,
     onClick: () -> Unit,
+    /** The source's icon for the category, drawn as the phone's tiles draw it. */
+    iconUrl: String? = null,
+    /** A glyph of the app's own for a category the source has no icon for, such as a game genre. */
+    fallbackIcon: Int? = null,
     modifier: Modifier = Modifier
 ) {
     val (container, onContainer) = categoryTone(accent)
@@ -59,6 +67,29 @@ fun TvCategoryTile(
         )
     ) {
         Box(Modifier.background(Brush.verticalGradient(listOf(container, lerp(container, scrim, 0.14f))))) {
+            // The phone's watermark: the section's glyph in the tile's ink, half out of the corner.
+            // The TV tiles were the only ones without it.
+            val glyph = Modifier
+                .align(androidx.compose.ui.Alignment.BottomEnd)
+                .offset(x = 16.dp, y = 14.dp)
+                .size(72.dp)
+                .rotate(-8f)
+                .alpha(0.18f)
+            if (iconUrl != null) {
+                coil.compose.AsyncImage(
+                    model = iconUrl,
+                    contentDescription = null,
+                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(onContainer),
+                    modifier = glyph
+                )
+            } else if (fallbackIcon != null) {
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(fallbackIcon),
+                    contentDescription = null,
+                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(onContainer),
+                    modifier = glyph
+                )
+            }
             Column(
                 Modifier
                     .fillMaxWidth()
