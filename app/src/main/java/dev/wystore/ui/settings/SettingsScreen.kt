@@ -1,5 +1,8 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.HubPageHeader
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Refresh
 import dev.wystore.ui.components.HubChoiceChip
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -84,7 +87,9 @@ private enum class SettingsSubScreen {
     LANGUAGE,
     NOTIFICATIONS,
     SOURCES,
-    ABOUT
+    ABOUT,
+    UPDATES,
+    STORAGE
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -198,124 +203,12 @@ fun SettingsScreen(
                 onBack = { subScreen = null }
             )
         }
-        SettingsSubScreen.ABOUT -> {
-            AboutSettingsScreen(
-                settings = editedSettings,
-                status = selfUpdate,
-                versionName = BuildConfig.VERSION_NAME,
-                versionCode = BuildConfig.VERSION_CODE.toLong(),
-                onUpdateSettings = {
-                    editedSettings = it
-                    onSave(it)
-                },
-                onCheck = onCheckSelfUpdate,
-                onInstall = onInstallSelfUpdate,
-                onBack = { subScreen = null },
-                queueItem = selfUpdateQueueItem,
-                pendingUpdate = selfUpdatePending,
-                onInstallDownloaded = onInstallDownloadedSelfUpdate,
-                onCancelDownload = onCancelSelfUpdateDownload
-            )
-        }
-        }
-        }
-        return
-    }
-
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            HubHeader(title = stringResource(R.string.settings_title), eyebrow = "Wy Store")
-        }
-    ) { contentPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding())
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    start = ScreenPadding,
-                    end = ScreenPadding,
-                    top = 4.dp,
-                    bottom = 28.dp + LocalBottomBarInset.current
-                ),
-            verticalArrangement = Arrangement.spacedBy(SectionSpacing)
+        // The update behaviour and the storage used to follow the menu on this one page, a screen
+        // and a half of paragraphs under it; each is a section of its own now, like the others.
+        SettingsSubScreen.UPDATES -> SettingsSubPage(
+            title = stringResource(R.string.settings_hub_updates_title),
+            onBack = { subScreen = null }
         ) {
-            // One grouped list rather than six separate cards: the destinations read as a menu,
-            // which is what they are.
-            WyCard(modifier = Modifier.fillMaxWidth()) {
-                Column {
-                    SettingsHubRow(
-                        title = stringResource(R.string.settings_hub_permissions_title),
-                        icon = Icons.Outlined.Lock,
-                        tint = Color(0xFF6FCF97),
-                        subtitle = stringResource(R.string.settings_hub_permissions_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.PERMISSIONS },
-                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.PERMISSIONS))
-                    )
-                    SettingsHubDivider()
-                    SettingsHubRow(
-                        title = stringResource(R.string.settings_hub_appearance_title),
-                        icon = Icons.Outlined.Face,
-                        tint = Color(0xFFBB6BD9),
-                        subtitle = stringResource(R.string.settings_hub_appearance_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.APPEARANCE },
-                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.APPEARANCE))
-                    )
-                    SettingsHubDivider()
-                    SettingsHubRow(
-                        title = stringResource(R.string.settings_hub_language_title),
-                        icon = Icons.Outlined.Place,
-                        tint = Color(0xFF56CCF2),
-                        subtitle = stringResource(R.string.settings_hub_language_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.LANGUAGE },
-                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.LANGUAGE))
-                    )
-                    SettingsHubDivider()
-                    SettingsHubRow(
-                        title = stringResource(R.string.settings_hub_notifications_title),
-                        icon = Icons.Outlined.Notifications,
-                        tint = Color(0xFFF66C3F),
-                        subtitle = stringResource(R.string.settings_hub_notifications_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.NOTIFICATIONS },
-                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.NOTIFICATIONS))
-                    )
-                    SettingsHubDivider()
-                    SettingsHubRow(
-                        title = stringResource(R.string.settings_hub_sources_title),
-                        icon = Icons.Outlined.Build,
-                        tint = Color(0xFFF2C94C),
-                        subtitle = stringResource(R.string.settings_hub_sources_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.SOURCES },
-                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.SOURCES))
-                    )
-                    // The GitHub Releases screen had no reachable entry point anywhere in the app.
-                    if (editedSettings.githubEnabled) {
-                        SettingsHubDivider()
-                        SettingsHubRow(
-                            title = "GitHub Releases",
-                            icon = Icons.Outlined.Add,
-                            tint = Color(0xFFFFA37F),
-                            subtitle = if (githubCount > 0) {
-                                stringResource(R.string.settings_hub_github_subtitle_count, githubCount)
-                            } else {
-                                stringResource(R.string.settings_hub_github_subtitle_empty)
-                            },
-                            onClick = onOpenGitHub
-                        )
-                    }
-                    SettingsHubDivider()
-                    SettingsHubRow(
-                        title = stringResource(R.string.settings_hub_about_title),
-                        icon = Icons.Outlined.Info,
-                        tint = Color(0xFFA9ABB1),
-                        subtitle = stringResource(R.string.settings_hub_about_subtitle),
-                        onClick = { subScreen = SettingsSubScreen.ABOUT },
-                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.ABOUT))
-                    )
-                }
-            }
-
             SettingsGroup(
                 title = stringResource(R.string.settings_background_title),
                 subtitle = stringResource(R.string.settings_background_hint)
@@ -525,6 +418,11 @@ fun SettingsScreen(
                 }
             }
 
+        }
+        SettingsSubScreen.STORAGE -> SettingsSubPage(
+            title = stringResource(R.string.settings_hub_storage_title),
+            onBack = { subScreen = null }
+        ) {
             // Storage and retention. These drive QueueRepository.cleanupWithSettings; they used to
             // be rendered as read-only text, so the user could not change either bound.
             SettingsGroup(
@@ -588,6 +486,148 @@ fun SettingsScreen(
                 onExportJson = onExportJson,
                 onRestoreJson = onRestoreJson
             )
+
+        }
+        SettingsSubScreen.ABOUT -> {
+            AboutSettingsScreen(
+                settings = editedSettings,
+                status = selfUpdate,
+                versionName = BuildConfig.VERSION_NAME,
+                versionCode = BuildConfig.VERSION_CODE.toLong(),
+                onUpdateSettings = {
+                    editedSettings = it
+                    onSave(it)
+                },
+                onCheck = onCheckSelfUpdate,
+                onInstall = onInstallSelfUpdate,
+                onBack = { subScreen = null },
+                queueItem = selfUpdateQueueItem,
+                pendingUpdate = selfUpdatePending,
+                onInstallDownloaded = onInstallDownloadedSelfUpdate,
+                onCancelDownload = onCancelSelfUpdateDownload
+            )
+        }
+        }
+        }
+        return
+    }
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            HubHeader(title = stringResource(R.string.settings_title), eyebrow = "Wy Store")
+        }
+    ) { contentPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = contentPadding.calculateTopPadding())
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    start = ScreenPadding,
+                    end = ScreenPadding,
+                    top = 4.dp,
+                    bottom = 28.dp + LocalBottomBarInset.current
+                ),
+            verticalArrangement = Arrangement.spacedBy(SectionSpacing)
+        ) {
+            // What Wy Store does on its own, first: it is what people come to Settings to change.
+            WyCard(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    SettingsHubRow(
+                        title = stringResource(R.string.settings_hub_updates_title),
+                        icon = Icons.Outlined.Refresh,
+                        tint = Color(0xFFF66C3F),
+                        subtitle = stringResource(R.string.settings_hub_updates_subtitle),
+                        onClick = { subScreen = SettingsSubScreen.UPDATES },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.UPDATES))
+                    )
+                    SettingsHubDivider()
+                    SettingsHubRow(
+                        title = stringResource(R.string.settings_hub_storage_title),
+                        icon = Icons.Outlined.Share,
+                        tint = Color(0xFF6CC7F0),
+                        subtitle = stringResource(R.string.settings_hub_storage_subtitle),
+                        onClick = { subScreen = SettingsSubScreen.STORAGE },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.STORAGE))
+                    )
+                }
+            }
+
+            // One grouped list rather than six separate cards: the destinations read as a menu,
+            // which is what they are.
+            WyCard(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    SettingsHubRow(
+                        title = stringResource(R.string.settings_hub_permissions_title),
+                        icon = Icons.Outlined.Lock,
+                        tint = Color(0xFF6FCF97),
+                        subtitle = stringResource(R.string.settings_hub_permissions_subtitle),
+                        onClick = { subScreen = SettingsSubScreen.PERMISSIONS },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.PERMISSIONS))
+                    )
+                    SettingsHubDivider()
+                    SettingsHubRow(
+                        title = stringResource(R.string.settings_hub_appearance_title),
+                        icon = Icons.Outlined.Face,
+                        tint = Color(0xFFBB6BD9),
+                        subtitle = stringResource(R.string.settings_hub_appearance_subtitle),
+                        onClick = { subScreen = SettingsSubScreen.APPEARANCE },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.APPEARANCE))
+                    )
+                    SettingsHubDivider()
+                    SettingsHubRow(
+                        title = stringResource(R.string.settings_hub_language_title),
+                        icon = Icons.Outlined.Place,
+                        tint = Color(0xFF56CCF2),
+                        subtitle = stringResource(R.string.settings_hub_language_subtitle),
+                        onClick = { subScreen = SettingsSubScreen.LANGUAGE },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.LANGUAGE))
+                    )
+                    SettingsHubDivider()
+                    SettingsHubRow(
+                        title = stringResource(R.string.settings_hub_notifications_title),
+                        icon = Icons.Outlined.Notifications,
+                        tint = Color(0xFFF66C3F),
+                        subtitle = stringResource(R.string.settings_hub_notifications_subtitle),
+                        onClick = { subScreen = SettingsSubScreen.NOTIFICATIONS },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.NOTIFICATIONS))
+                    )
+                    SettingsHubDivider()
+                    SettingsHubRow(
+                        title = stringResource(R.string.settings_hub_sources_title),
+                        icon = Icons.Outlined.Build,
+                        tint = Color(0xFFF2C94C),
+                        subtitle = stringResource(R.string.settings_hub_sources_subtitle),
+                        onClick = { subScreen = SettingsSubScreen.SOURCES },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.SOURCES))
+                    )
+                    // The GitHub Releases screen had no reachable entry point anywhere in the app.
+                    if (editedSettings.githubEnabled) {
+                        SettingsHubDivider()
+                        SettingsHubRow(
+                            title = "GitHub Releases",
+                            icon = Icons.Outlined.Add,
+                            tint = Color(0xFFFFA37F),
+                            subtitle = if (githubCount > 0) {
+                                stringResource(R.string.settings_hub_github_subtitle_count, githubCount)
+                            } else {
+                                stringResource(R.string.settings_hub_github_subtitle_empty)
+                            },
+                            onClick = onOpenGitHub
+                        )
+                    }
+                    SettingsHubDivider()
+                    SettingsHubRow(
+                        title = stringResource(R.string.settings_hub_about_title),
+                        icon = Icons.Outlined.Info,
+                        tint = Color(0xFFA9ABB1),
+                        subtitle = stringResource(R.string.settings_hub_about_subtitle),
+                        onClick = { subScreen = SettingsSubScreen.ABOUT },
+                        modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.ABOUT))
+                    )
+                }
+            }
 
             // The standing disclaimer, reachable from Settings as well as from every install page.
             SourceDisclaimer(sourceLine = stringResource(R.string.disclaimer_sources_both))
@@ -706,5 +746,29 @@ private fun SettingsChoiceRow(label: String, content: @Composable () -> Unit) {
         ) {
             content()
         }
+    }
+}
+
+/** A settings section of its own: the page header and its groups in one scrolling column. */
+@Composable
+private fun SettingsSubPage(
+    title: String,
+    onBack: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Scaffold(
+        topBar = {
+            HubPageHeader(title = title, eyebrow = stringResource(R.string.settings_title), onBack = onBack)
+        }
+    ) { contentPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = contentPadding.calculateTopPadding())
+                .verticalScroll(rememberScrollState())
+                .padding(start = ScreenPadding, end = ScreenPadding, top = 8.dp, bottom = 28.dp + LocalBottomBarInset.current),
+            verticalArrangement = Arrangement.spacedBy(SectionSpacing),
+            content = content
+        )
     }
 }

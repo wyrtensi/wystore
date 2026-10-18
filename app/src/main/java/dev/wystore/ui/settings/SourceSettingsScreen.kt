@@ -1,5 +1,7 @@
 package dev.wystore.ui.settings
 
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.foundation.clickable
 import dev.wystore.ui.components.HubPageHeader
 import dev.wystore.ui.components.switchRow
 import androidx.compose.foundation.layout.Arrangement
@@ -68,16 +70,21 @@ fun SourceSettingsScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("RuStore", style = MaterialTheme.typography.titleMedium)
+            // A panel per source, each named by its own coloured tag.
+            dev.wystore.ui.components.WyCard(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            dev.wystore.ui.components.HubTag("RuStore", tint = dev.wystore.ui.components.sourceTint("RuStore"))
             Text(
                 stringResource(R.string.sources_rustore_description),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            }
+            }
 
-            HorizontalDivider()
-
-            Text("GitHub Releases", style = MaterialTheme.typography.titleMedium)
+            dev.wystore.ui.components.WyCard(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            dev.wystore.ui.components.HubTag("GitHub Releases", tint = dev.wystore.ui.components.sourceTint("GitHub"))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -93,6 +100,8 @@ fun SourceSettingsScreen(
                     )
                 }
                 Switch(checked = settings.githubEnabled, onCheckedChange = null)
+            }
+            }
             }
         }
     }

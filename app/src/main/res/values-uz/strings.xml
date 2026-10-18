@@ -817,4 +817,8 @@
     <string name="appearance_accent_title">Urgʻu rangi</string>
     <string name="appearance_accent_text">Tugmalar, ochiq yorliq va jarayon shu rangda.</string>
     <string name="appearance_accent_dynamic">Fon rasmi ranglari yoqilgan, urgʻuni ular tanlaydi.</string>
+    <string name="settings_hub_updates_title">Yangilanishlar</string>
+    <string name="settings_hub_updates_subtitle">Fon tekshiruvi, soʻramasdan oʻrnatish, navbat</string>
+    <string name="settings_hub_storage_title">Xotira va nusxa</string>
+    <string name="settings_hub_storage_subtitle">Yuklamalarni qancha saqlash, eksport va import</string>
 </resources>

@@ -817,4 +817,8 @@
     <string name="appearance_accent_title">Accent colour</string>
     <string name="appearance_accent_text">Buttons, the open tab and progress are drawn in it.</string>
     <string name="appearance_accent_dynamic">The wallpaper\'s colours are on, so they choose the accent.</string>
+    <string name="settings_hub_updates_title">Updates</string>
+    <string name="settings_hub_updates_subtitle">Background checks, installing without asking, the queue</string>
+    <string name="settings_hub_storage_title">Storage and backup</string>
+    <string name="settings_hub_storage_subtitle">How long downloads are kept, export and import</string>
 </resources>

@@ -817,4 +817,8 @@
     <string name="appearance_accent_title">Колір акценту</string>
     <string name="appearance_accent_text">У цьому кольорі кнопки, відкрита вкладка й прогрес.</string>
     <string name="appearance_accent_dynamic">Увімкнено кольори шпалер, тому акцент обирають вони.</string>
+    <string name="settings_hub_updates_title">Оновлення</string>
+    <string name="settings_hub_updates_subtitle">Фонова перевірка, встановлення без питань, черга</string>
+    <string name="settings_hub_storage_title">Сховище й копія</string>
+    <string name="settings_hub_storage_subtitle">Скільки зберігати завантаження, експорт та імпорт</string>
 </resources>

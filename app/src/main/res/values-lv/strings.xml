@@ -817,4 +817,8 @@
     <string name="appearance_accent_title">Akcenta krāsa</string>
     <string name="appearance_accent_text">Šajā krāsā ir pogas, atvērtā cilne un progress.</string>
     <string name="appearance_accent_dynamic">Ieslēgtas fona attēla krāsas, tāpēc akcentu izvēlas tās.</string>
+    <string name="settings_hub_updates_title">Atjauninājumi</string>
+    <string name="settings_hub_updates_subtitle">Fona pārbaude, instalēšana bez jautājumiem, rinda</string>
+    <string name="settings_hub_storage_title">Krātuve un kopija</string>
+    <string name="settings_hub_storage_subtitle">Cik ilgi glabāt lejupielādes, eksports un imports</string>
 </resources>

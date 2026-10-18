@@ -1,5 +1,7 @@
 package dev.wystore.ui.settings
 
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.foundation.clickable
 import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubPageHeader
 import dev.wystore.ui.components.HubTextAction
@@ -163,14 +165,24 @@ fun NotificationSettingsScreen(
                         )
                         channels.forEachIndexed { index, (channelId, labelRes) ->
                             if (index > 0) WyDivider(modifier = Modifier.padding(horizontal = 14.dp))
-                            HubTextAction(
-                                onClick = { openChannelSettings(context, channelId) },
-                                modifier = Modifier.fillMaxWidth()
+                            // Rows of a menu leading to the system's own screen, with the chevron that
+                            // says so - not a column of buttons.
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { openChannelSettings(context, channelId) }
+                                    .padding(horizontal = 14.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
                                     stringResource(labelRes),
                                     modifier = Modifier.weight(1f),
                                     style = MaterialTheme.typography.bodyMedium
+                                )
+                                Icon(
+                                    Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }

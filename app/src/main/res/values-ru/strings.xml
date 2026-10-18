@@ -817,4 +817,8 @@
     <string name="appearance_accent_title">Цвет акцента</string>
     <string name="appearance_accent_text">В этом цвете кнопки, открытая вкладка и прогресс.</string>
     <string name="appearance_accent_dynamic">Включены цвета обоев, поэтому акцент выбирают они.</string>
+    <string name="settings_hub_updates_title">Обновления</string>
+    <string name="settings_hub_updates_subtitle">Фоновая проверка, установка без вопросов, очередь</string>
+    <string name="settings_hub_storage_title">Хранилище и копия</string>
+    <string name="settings_hub_storage_subtitle">Сколько хранить загрузки, экспорт и импорт</string>
 </resources>

@@ -817,4 +817,8 @@
     <string name="appearance_accent_title">Екпін түсі</string>
     <string name="appearance_accent_text">Батырмалар, ашық қойынды және үдеріс осы түспен.</string>
     <string name="appearance_accent_dynamic">Тұсқағаз түстері қосулы, сондықтан екпінді солар таңдайды.</string>
+    <string name="settings_hub_updates_title">Жаңартулар</string>
+    <string name="settings_hub_updates_subtitle">Фондық тексеру, сұрамай орнату, кезек</string>
+    <string name="settings_hub_storage_title">Сақтау және көшірме</string>
+    <string name="settings_hub_storage_subtitle">Жүктеулерді қанша сақтау, экспорт және импорт</string>
 </resources>
