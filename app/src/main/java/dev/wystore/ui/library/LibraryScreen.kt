@@ -1,5 +1,6 @@
 package dev.wystore.ui.library
 
+import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubTextAction
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Spacer
@@ -40,7 +41,6 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -363,7 +363,7 @@ fun LibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(LibrarySort.entries, key = { it.name }) { option ->
-                        FilterChip(
+                        HubChoiceChip(
                             selected = sort == option,
                             onClick = { sort = option },
                             label = { Text(stringResource(option.labelRes)) }

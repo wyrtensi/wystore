@@ -814,4 +814,7 @@
     <string name="library_hero_title">Пад наглядам: %1$d з %2$d</string>
     <string name="library_hero_pick">Выбраць, што прыняць</string>
     <string name="permissions_hero_title">Гатова: %1$d з %2$d</string>
+    <string name="appearance_accent_title">Колер акцэнту</string>
+    <string name="appearance_accent_text">У гэтым колеры кнопкі, адкрытая ўкладка і прагрэс.</string>
+    <string name="appearance_accent_dynamic">Уключаны колеры шпалер, таму акцэнт выбіраюць яны.</string>
 </resources>

@@ -814,4 +814,7 @@
     <string name="library_hero_title">Бақылауда: %2$d ішінен %1$d</string>
     <string name="library_hero_pick">Не қабылдауды таңдау</string>
     <string name="permissions_hero_title">Дайын: %2$d ішінен %1$d</string>
+    <string name="appearance_accent_title">Екпін түсі</string>
+    <string name="appearance_accent_text">Батырмалар, ашық қойынды және үдеріс осы түспен.</string>
+    <string name="appearance_accent_dynamic">Тұсқағаз түстері қосулы, сондықтан екпінді солар таңдайды.</string>
 </resources>

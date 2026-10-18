@@ -1,5 +1,18 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.WyDivider
+import dev.wystore.settings.AccentPreset
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubPageHeader
 import dev.wystore.ui.components.switchRow
 import android.os.Build
@@ -18,7 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -77,69 +89,132 @@ fun AppearanceSettingsScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(stringResource(R.string.appearance_theme_title), style = MaterialTheme.typography.titleMedium)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(
-                    selected = settings.themeMode == ThemeMode.SYSTEM,
-                    onClick = { onUpdateSettings(settings.copy(themeMode = ThemeMode.SYSTEM)) },
-                    label = { Text(stringResource(R.string.appearance_theme_system)) }
-                )
-                FilterChip(
-                    selected = settings.themeMode == ThemeMode.LIGHT,
-                    onClick = { onUpdateSettings(settings.copy(themeMode = ThemeMode.LIGHT)) },
-                    label = { Text(stringResource(R.string.appearance_theme_light)) }
-                )
-                FilterChip(
-                    selected = settings.themeMode == ThemeMode.DARK,
-                    onClick = { onUpdateSettings(settings.copy(themeMode = ThemeMode.DARK)) },
-                    label = { Text(stringResource(R.string.appearance_theme_dark)) }
-                )
+            // One panel per question, as the concept groups its settings.
+            SettingsPanel {
+                Text(stringResource(R.string.appearance_theme_title), style = MaterialTheme.typography.titleMedium)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(
+                        ThemeMode.SYSTEM to R.string.appearance_theme_system,
+                        ThemeMode.LIGHT to R.string.appearance_theme_light,
+                        ThemeMode.DARK to R.string.appearance_theme_dark
+                    ).forEach { (mode, label) ->
+                        HubChoiceChip(
+                            selected = settings.themeMode == mode,
+                            onClick = { onUpdateSettings(settings.copy(themeMode = mode)) },
+                            label = { Text(stringResource(label)) }
+                        )
+                    }
+                }
             }
 
-            HorizontalDivider()
-
-            DeviceTypeSection(
-                selected = settings.deviceType,
-                onSelect = { onUpdateSettings(settings.copy(deviceType = it)) }
-            )
-
-            // Only where the TV interface is the one showing: a phone has no use for it.
-            if (DeviceProfilePolicy.resolve(settings.deviceType, deviceTraits) == DeviceProfile.TV) {
-                TvCatalogSection(
-                    selected = settings.tvCatalog,
-                    onSelect = { onUpdateSettings(settings.copy(tvCatalog = it)) }
+            val wallpaperColours = settings.dynamicColorEnabled && Build.VERSION.SDK_INT >= 31
+            SettingsPanel {
+                Text(stringResource(R.string.appearance_accent_title), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(
+                        if (wallpaperColours) R.string.appearance_accent_dynamic else R.string.appearance_accent_text
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
-
-            HorizontalDivider()
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .switchRow(settings.dynamicColorEnabled, enabled = Build.VERSION.SDK_INT >= 31) {
-                        onUpdateSettings(settings.copy(dynamicColorEnabled = it))
-                    },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(R.string.appearance_dynamic_color), style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        stringResource(
-                            if (Build.VERSION.SDK_INT >= 31) R.string.appearance_dynamic_color_on
-                            else R.string.appearance_dynamic_color_unavailable
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                AccentSwatches(
+                    selected = settings.accent,
+                    enabled = !wallpaperColours,
+                    onSelect = { onUpdateSettings(settings.copy(accent = it)) }
+                )
+                WyDivider()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .switchRow(settings.dynamicColorEnabled, enabled = Build.VERSION.SDK_INT >= 31) {
+                            onUpdateSettings(settings.copy(dynamicColorEnabled = it))
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.appearance_dynamic_color), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            stringResource(
+                                if (Build.VERSION.SDK_INT >= 31) R.string.appearance_dynamic_color_on
+                                else R.string.appearance_dynamic_color_unavailable
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = settings.dynamicColorEnabled,
+                        enabled = Build.VERSION.SDK_INT >= 31,
+                        onCheckedChange = null
                     )
                 }
-                Switch(
-                    checked = settings.dynamicColorEnabled,
-                    enabled = Build.VERSION.SDK_INT >= 31,
-                    onCheckedChange = null
+            }
+
+            SettingsPanel {
+                DeviceTypeSection(
+                    selected = settings.deviceType,
+                    onSelect = { onUpdateSettings(settings.copy(deviceType = it)) }
                 )
+                // Only where the TV interface is the one showing: a phone has no use for it.
+                if (DeviceProfilePolicy.resolve(settings.deviceType, deviceTraits) == DeviceProfile.TV) {
+                    TvCatalogSection(
+                        selected = settings.tvCatalog,
+                        onSelect = { onUpdateSettings(settings.copy(tvCatalog = it)) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** A panel of related settings: a card with the hairline, its parts spaced as one group. */
+@Composable
+private fun SettingsPanel(content: @Composable ColumnScope.() -> Unit) {
+    dev.wystore.ui.components.WyCard(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
+    }
+}
+
+/**
+ * The accent presets as round swatches; the chosen one is ringed and ticked. Dimmed while the
+ * wallpaper's colours are on, since then they decide the accent instead.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AccentSwatches(selected: AccentPreset, enabled: Boolean, onSelect: (AccentPreset) -> Unit) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        AccentPreset.entries.forEach { preset ->
+            val colour = androidx.compose.ui.graphics.Color(preset.argb)
+            val chosen = preset == selected
+            val circle = androidx.compose.foundation.shape.CircleShape
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(circle)
+                    .then(if (chosen) Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, circle) else Modifier)
+                    .padding(if (chosen) 4.dp else 0.dp)
+                    .clip(circle)
+                    .background(if (enabled) colour else colour.copy(alpha = 0.35f))
+                    .clickable(enabled = enabled, role = androidx.compose.ui.semantics.Role.RadioButton) { onSelect(preset) }
+                    .semantics { contentDescription = preset.name.lowercase() },
+                contentAlignment = Alignment.Center
+            ) {
+                if (chosen) {
+                    Icon(
+                        Icons.Outlined.Check,
+                        contentDescription = null,
+                        tint = androidx.compose.ui.graphics.Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
     }
@@ -174,7 +249,7 @@ fun DeviceTypeSection(
                 DeviceType.PHONE to R.string.appearance_device_phone,
                 DeviceType.TV to R.string.appearance_device_tv
             ).forEach { (type, label) ->
-                FilterChip(
+                HubChoiceChip(
                     selected = selected == type,
                     onClick = { onSelect(type) },
                     label = { Text(stringResource(label)) }
@@ -204,8 +279,7 @@ fun TvCatalogSection(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        HorizontalDivider()
-        Spacer(Modifier.height(8.dp))
+        WyDivider()
         Text(stringResource(R.string.appearance_tv_catalog_title), style = MaterialTheme.typography.titleMedium)
         Text(
             stringResource(R.string.appearance_tv_catalog_text),
@@ -221,7 +295,7 @@ fun TvCatalogSection(
                 TvCatalog.PHONE to R.string.appearance_tv_catalog_phone,
                 TvCatalog.BOTH to R.string.appearance_tv_catalog_both
             ).forEach { (catalog, label) ->
-                FilterChip(
+                HubChoiceChip(
                     selected = selected == catalog,
                     onClick = { onSelect(catalog) },
                     label = { Text(stringResource(label)) }

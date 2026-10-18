@@ -1,5 +1,6 @@
 package dev.wystore.ui.details
 
+import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.CategoryPill
 import dev.wystore.ui.components.HubPanel
@@ -31,7 +32,6 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.core.net.toUri
@@ -721,7 +721,7 @@ private fun ReviewBreakdown(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
+                HubChoiceChip(
                     selected = selected == null,
                     onClick = { onSelect(null) },
                     label = { Text(stringResource(R.string.details_reviews_all)) }
@@ -729,7 +729,7 @@ private fun ReviewBreakdown(
                 // Only the stars somebody actually gave: a chip that can only ever be empty is a
                 // dead end dressed as a choice.
                 distribution.filter { it.second > 0 }.forEach { (stars, _) ->
-                    FilterChip(
+                    HubChoiceChip(
                         selected = selected == stars,
                         onClick = { onSelect(if (selected == stars) null else stars) },
                         label = { Text("$stars") },

@@ -12,6 +12,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.graphics.Color
 import dev.wystore.settings.AppSettings
 
 @Composable
@@ -35,8 +36,8 @@ fun WyStoreTheme(
         tv && isDark -> TvDarkColorScheme.withSeparatedSurfaces()
         tv -> TvLightColorScheme.withSeparatedSurfaces()
         // The phone's own look is Wy Hub's; see HubDarkColorScheme for why it is not widened.
-        isDark -> HubDarkColorScheme
-        else -> HubLightColorScheme
+        isDark -> hubDarkColorScheme(Color(settings.accent.argb))
+        else -> hubLightColorScheme(Color(settings.accent.argb))
     }
     val language = LocalConfiguration.current.locales[0].language
     val typography = remember(language, tv) {
@@ -48,7 +49,7 @@ fun WyStoreTheme(
         )
     }
 
-    val hub = colorScheme === HubDarkColorScheme || colorScheme === HubLightColorScheme
+    val hub = !tv && !useDynamic
     CompositionLocalProvider(LocalHubStyle provides hub) {
         MaterialTheme(
             colorScheme = colorScheme,

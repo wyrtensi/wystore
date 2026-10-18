@@ -814,4 +814,7 @@
     <string name="library_hero_title">Nazoratda: %2$d tadan %1$d</string>
     <string name="library_hero_pick">Nimani qabul qilishni tanlash</string>
     <string name="permissions_hero_title">Tayyor: %2$d tadan %1$d</string>
+    <string name="appearance_accent_title">Urgʻu rangi</string>
+    <string name="appearance_accent_text">Tugmalar, ochiq yorliq va jarayon shu rangda.</string>
+    <string name="appearance_accent_dynamic">Fon rasmi ranglari yoqilgan, urgʻuni ular tanlaydi.</string>
 </resources>

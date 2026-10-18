@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.HubChoiceChip
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
@@ -30,7 +31,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -321,7 +321,7 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.settings_background_hint)
             ) {
                 SettingsChoiceRow(label = stringResource(R.string.settings_network)) {
-                    FilterChip(
+                    HubChoiceChip(
                         selected = editedSettings.wifiOnly,
                         onClick = {
                             editedSettings = editedSettings.copy(wifiOnly = true, allowMobileData = false)
@@ -329,7 +329,7 @@ fun SettingsScreen(
                         },
                         label = { Text("Wi‑Fi") }
                     )
-                    FilterChip(
+                    HubChoiceChip(
                         selected = editedSettings.allowMobileData,
                         onClick = {
                             editedSettings = editedSettings.copy(wifiOnly = false, allowMobileData = true)
@@ -342,7 +342,7 @@ fun SettingsScreen(
                 // Both sets are already merged into what the catalogue returns, so this decides
                 // which of them a screen draws rather than what is fetched.
                 SettingsChoiceRow(label = stringResource(R.string.settings_sections)) {
-                    FilterChip(
+                    HubChoiceChip(
                         selected = editedSettings.sourceCategories,
                         onClick = {
                             editedSettings = editedSettings.copy(sourceCategories = true)
@@ -350,7 +350,7 @@ fun SettingsScreen(
                         },
                         label = { Text("RuStore") }
                     )
-                    FilterChip(
+                    HubChoiceChip(
                         selected = !editedSettings.sourceCategories,
                         onClick = {
                             editedSettings = editedSettings.copy(sourceCategories = false)
@@ -362,7 +362,7 @@ fun SettingsScreen(
 
                 SettingsChoiceRow(label = stringResource(R.string.settings_interval)) {
                     listOf(6L, 12L, 24L).forEach { hours ->
-                        FilterChip(
+                        HubChoiceChip(
                             selected = editedSettings.updateIntervalHours == hours,
                             onClick = {
                                 editedSettings = editedSettings.copy(updateIntervalHours = hours)
@@ -506,7 +506,7 @@ fun SettingsScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    FilterChip(
+                    HubChoiceChip(
                         selected = editedSettings.queueMode == QueueMode.SMART_PROMPTS,
                         onClick = {
                             editedSettings = editedSettings.copy(queueMode = QueueMode.SMART_PROMPTS)
@@ -514,7 +514,7 @@ fun SettingsScreen(
                         },
                         label = { Text(stringResource(R.string.settings_queue_mode_smart)) }
                     )
-                    FilterChip(
+                    HubChoiceChip(
                         selected = editedSettings.queueMode == QueueMode.MANUAL_ONE_BY_ONE,
                         onClick = {
                             editedSettings = editedSettings.copy(queueMode = QueueMode.MANUAL_ONE_BY_ONE)
@@ -547,7 +547,7 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf(3, 7, 14, 30).forEach { days ->
-                        FilterChip(
+                        HubChoiceChip(
                             selected = editedSettings.artifactRetentionDays == days,
                             onClick = {
                                 editedSettings = editedSettings.copy(artifactRetentionDays = days)
@@ -567,7 +567,7 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf(512, 1_024, 2_048, 4_096).forEach { megabytes ->
-                        FilterChip(
+                        HubChoiceChip(
                             selected = editedSettings.artifactStorageLimitMb == megabytes,
                             onClick = {
                                 editedSettings = editedSettings.copy(artifactStorageLimitMb = megabytes)

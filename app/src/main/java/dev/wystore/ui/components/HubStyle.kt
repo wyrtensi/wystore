@@ -523,6 +523,45 @@ fun HubRoundIconButton(
     }
 }
 
+/**
+ * One choice of a set - Wi-Fi or any network, light or dark - as the concept's segmented pills:
+ * the chosen one filled with the accent, the rest grey glass. Takes FilterChip's arguments, so it
+ * stands in for one in place; Material's outlined chips read as form fields.
+ */
+@Composable
+fun HubChoiceChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    leadingIcon: (@Composable () -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null
+) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.heightIn(min = 38.dp),
+        shape = RoundedCornerShape(percent = 50),
+        color = if (selected) colors.primary else colors.secondaryContainer,
+        contentColor = if (selected) colors.onPrimary else colors.onSecondaryContainer,
+        border = if (selected) null else hairline()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            leadingIcon?.invoke()
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalTextStyle provides MaterialTheme.typography.labelLarge
+            ) { label() }
+            trailingIcon?.invoke()
+        }
+    }
+}
+
 /** The thin single-line panel with a coloured icon: a note the screen wants read once. */
 @Composable
 fun HubNote(

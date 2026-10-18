@@ -39,6 +39,7 @@ internal object SettingsCodec {
     val KEY_TV_CATALOG = stringPreferencesKey("tv_catalog")
     val KEY_LANGUAGE = stringPreferencesKey("language")
     val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+    val KEY_ACCENT = stringPreferencesKey("accent")
     val KEY_GITHUB_ENABLED = booleanPreferencesKey("github_enabled")
     val KEY_READY_NOTIFICATIONS = booleanPreferencesKey("ready_notifications")
     val KEY_ERROR_NOTIFICATIONS = booleanPreferencesKey("error_notifications")
@@ -92,6 +93,9 @@ internal object SettingsCodec {
                 runCatching { AppLanguage.valueOf(raw) }.getOrNull()
             } ?: defaults.language,
             dynamicColorEnabled = prefs[KEY_DYNAMIC_COLOR] ?: defaults.dynamicColorEnabled,
+            accent = prefs[KEY_ACCENT]?.let { raw ->
+                runCatching { AccentPreset.valueOf(raw) }.getOrNull()
+            } ?: defaults.accent,
             githubEnabled = prefs[KEY_GITHUB_ENABLED] ?: defaults.githubEnabled,
             readyNotificationsEnabled = prefs[KEY_READY_NOTIFICATIONS]
                 ?: defaults.readyNotificationsEnabled,
@@ -150,6 +154,7 @@ internal object SettingsCodec {
         prefs.put(KEY_TV_CATALOG, updated.tvCatalog.name, current.tvCatalog.name)
         prefs.put(KEY_LANGUAGE, updated.language.name, current.language.name)
         prefs.put(KEY_DYNAMIC_COLOR, updated.dynamicColorEnabled, current.dynamicColorEnabled)
+        prefs.put(KEY_ACCENT, updated.accent.name, current.accent.name)
         prefs.put(KEY_GITHUB_ENABLED, updated.githubEnabled, current.githubEnabled)
         prefs.put(
             KEY_READY_NOTIFICATIONS,

@@ -54,6 +54,7 @@ data class AppSettings(
     val language: AppLanguage = AppLanguage.SYSTEM,
     // Off: the app's own look is Wy Hub's. The wallpaper's colours are still one switch away.
     val dynamicColorEnabled: Boolean = false,
+    val accent: AccentPreset = AccentPreset.ORANGE,
     val githubEnabled: Boolean = true,
     val readyNotificationsEnabled: Boolean = true,
     val errorNotificationsEnabled: Boolean = true,
@@ -107,6 +108,7 @@ fun AppSettings.toStoreSettings(): StoreSettings = StoreSettings(
     tvCatalog = tvCatalog,
     language = language,
     dynamicColorEnabled = dynamicColorEnabled,
+    accent = accent,
     githubEnabled = githubEnabled,
     readyNotificationsEnabled = readyNotificationsEnabled,
     errorNotificationsEnabled = errorNotificationsEnabled,
@@ -141,6 +143,7 @@ fun StoreSettings.toAppSettings(): AppSettings = AppSettings(
     tvCatalog = tvCatalog,
     language = language,
     dynamicColorEnabled = dynamicColorEnabled,
+    accent = accent,
     githubEnabled = githubEnabled,
     readyNotificationsEnabled = readyNotificationsEnabled,
     errorNotificationsEnabled = errorNotificationsEnabled,

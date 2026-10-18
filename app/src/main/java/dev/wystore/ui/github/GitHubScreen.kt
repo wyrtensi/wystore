@@ -1,5 +1,6 @@
 package dev.wystore.ui.github
 
+import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubHeader
 import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.bleedToScreenEdges
@@ -23,7 +24,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -152,7 +152,7 @@ fun GitHubScreen(
                 Spacer(Modifier.padding(top = 4.dp))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     repositories.forEach { repo ->
-                        FilterChip(
+                        HubChoiceChip(
                             selected = repo == activeRepository,
                             onClick = { input = repo.url; onLoad(repo.url) },
                             label = { Text(repo.displayName) },
@@ -226,14 +226,14 @@ fun GitHubScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         item {
-                            FilterChip(
+                            HubChoiceChip(
                                 selected = section == null,
                                 onClick = { section = null },
                                 label = { Text(stringResource(R.string.library_filter_all)) }
                             )
                         }
                         items(sections, key = { it }) { slug ->
-                            FilterChip(
+                            HubChoiceChip(
                                 selected = section == slug,
                                 onClick = { section = if (section == slug) null else slug },
                                 label = {

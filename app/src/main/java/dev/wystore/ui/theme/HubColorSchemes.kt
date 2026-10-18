@@ -3,6 +3,7 @@ package dev.wystore.ui.theme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 
 /**
  * The Wy Hub look: near-black glass, one orange accent, cards told apart from the page by a
@@ -15,7 +16,30 @@ import androidx.compose.ui.graphics.Color
  * The page is graphite rather than the concept's near-black #0E0E0E: on a whole screen of it the
  * black read as a hole, and the cards on it as the only lit thing.
  */
-val HubDarkColorScheme = darkColorScheme(
+/** The dark Wy Hub palette in [accent]: see [dev.wystore.settings.AccentPreset]. */
+fun hubDarkColorScheme(accent: Color) = HubDarkColorScheme.copy(
+    primary = accent,
+    // White on every accent: the presets are chosen so it reads, see AccentPresetTest.
+    onPrimary = Color.White,
+    primaryContainer = lerp(HubDarkColorScheme.surface, accent, 0.30f),
+    onPrimaryContainer = lerp(accent, Color.White, 0.62f),
+    inversePrimary = lerp(accent, Color.White, 0.3f),
+    secondary = lerp(accent, Color.White, 0.42f),
+    surfaceTint = accent
+)
+
+/** The light Wy Hub palette in [accent]. */
+fun hubLightColorScheme(accent: Color) = HubLightColorScheme.copy(
+    primary = accent,
+    onPrimary = Color.White,
+    primaryContainer = lerp(Color.White, accent, 0.16f),
+    onPrimaryContainer = lerp(accent, Color.Black, 0.55f),
+    inversePrimary = lerp(accent, Color.White, 0.45f),
+    secondary = lerp(accent, Color.Black, 0.2f),
+    surfaceTint = accent
+)
+
+private val HubDarkColorScheme = darkColorScheme(
     primary = Color(0xFFF66C3F),
     onPrimary = Color(0xFF1C0A03),
     primaryContainer = Color(0xFF4A2416),
@@ -68,7 +92,7 @@ val HubDarkColorScheme = darkColorScheme(
  * with a hairline on a warm page - with the accent darkened until text on it and of it passes
  * contrast on a light background.
  */
-val HubLightColorScheme = lightColorScheme(
+private val HubLightColorScheme = lightColorScheme(
     primary = Color(0xFFC4501F),
     onPrimary = Color(0xFFFFFFFF),
     primaryContainer = Color(0xFFFFDCCD),

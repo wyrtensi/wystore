@@ -1,5 +1,6 @@
 package dev.wystore.ui.search
 
+import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubTextAction
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -50,7 +51,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -212,7 +212,7 @@ fun SearchScreen(
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         SearchSources.entries.forEach { option ->
-                            FilterChip(
+                            HubChoiceChip(
                                 selected = sources == option,
                                 onClick = { onSourcesChange(option) },
                                 label = {

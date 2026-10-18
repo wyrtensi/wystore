@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubPageHeader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -79,7 +79,7 @@ fun LanguageSettingsScreen(
                 // own per-app settings never passes through this screen.
                 val chosen = AppLocaleController.inForce(settings.language)
                 AppLanguage.entries.forEach { language ->
-                    FilterChip(
+                    HubChoiceChip(
                         selected = chosen == language,
                         onClick = {
                             AppLocaleController.apply(language)

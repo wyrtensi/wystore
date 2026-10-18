@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubPageHeader
 import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.switchRow
@@ -20,7 +21,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -225,7 +225,7 @@ private fun HourPicker(label: String, selected: Int, onSelect: (Int) -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items((0..23).toList(), key = { it }) { hour ->
-                FilterChip(
+                HubChoiceChip(
                     selected = hour == selected,
                     onClick = { onSelect(hour) },
                     label = { Text(stringResource(R.string.notifications_hour_value, hour)) }

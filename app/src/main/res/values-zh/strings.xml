@@ -814,4 +814,7 @@
     <string name="library_hero_title">已接管：%1$d / %2$d</string>
     <string name="library_hero_pick">选择要接管的应用</string>
     <string name="permissions_hero_title">已就绪：%1$d / %2$d</string>
+    <string name="appearance_accent_title">强调色</string>
+    <string name="appearance_accent_text">按钮、当前标签和进度使用此颜色。</string>
+    <string name="appearance_accent_dynamic">已启用壁纸颜色，强调色由其决定。</string>
 </resources>

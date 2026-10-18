@@ -184,6 +184,7 @@ data class StoreSettings(
     val tvCatalog: dev.wystore.settings.TvCatalog = dev.wystore.settings.TvCatalog.TV,
     val language: dev.wystore.settings.AppLanguage = dev.wystore.settings.AppLanguage.SYSTEM,
     val dynamicColorEnabled: Boolean = false,
+    val accent: dev.wystore.settings.AccentPreset = dev.wystore.settings.AccentPreset.ORANGE,
     val githubEnabled: Boolean = true,
     val readyNotificationsEnabled: Boolean = true,
     val errorNotificationsEnabled: Boolean = true,

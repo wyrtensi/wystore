@@ -814,4 +814,7 @@
     <string name="library_hero_title">Looked after: %1$d of %2$d</string>
     <string name="library_hero_pick">Choose what to accept</string>
     <string name="permissions_hero_title">Ready: %1$d of %2$d</string>
+    <string name="appearance_accent_title">Accent colour</string>
+    <string name="appearance_accent_text">Buttons, the open tab and progress are drawn in it.</string>
+    <string name="appearance_accent_dynamic">The wallpaper\'s colours are on, so they choose the accent.</string>
 </resources>

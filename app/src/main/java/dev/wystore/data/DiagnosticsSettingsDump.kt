@@ -32,6 +32,7 @@ object DiagnosticsSettingsDump {
         "tvCatalog" to settings.tvCatalog.name,
         "language" to settings.language.name,
         "dynamicColorEnabled" to settings.dynamicColorEnabled.toString(),
+        "accent" to settings.accent.name,
         "githubEnabled" to settings.githubEnabled.toString(),
         "readyNotificationsEnabled" to settings.readyNotificationsEnabled.toString(),
         "errorNotificationsEnabled" to settings.errorNotificationsEnabled.toString(),

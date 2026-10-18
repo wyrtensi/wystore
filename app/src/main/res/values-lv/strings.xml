@@ -814,4 +814,7 @@
     <string name="library_hero_title">Uzraudzībā: %1$d no %2$d</string>
     <string name="library_hero_pick">Izvēlēties, ko pieņemt</string>
     <string name="permissions_hero_title">Gatavas: %1$d no %2$d</string>
+    <string name="appearance_accent_title">Akcenta krāsa</string>
+    <string name="appearance_accent_text">Šajā krāsā ir pogas, atvērtā cilne un progress.</string>
+    <string name="appearance_accent_dynamic">Ieslēgtas fona attēla krāsas, tāpēc akcentu izvēlas tās.</string>
 </resources>

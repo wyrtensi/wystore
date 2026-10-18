@@ -814,4 +814,7 @@
     <string name="library_hero_title">Под присмотром: %1$d из %2$d</string>
     <string name="library_hero_pick">Выбрать, что принять</string>
     <string name="permissions_hero_title">Готово: %1$d из %2$d</string>
+    <string name="appearance_accent_title">Цвет акцента</string>
+    <string name="appearance_accent_text">В этом цвете кнопки, открытая вкладка и прогресс.</string>
+    <string name="appearance_accent_dynamic">Включены цвета обоев, поэтому акцент выбирают они.</string>
 </resources>
