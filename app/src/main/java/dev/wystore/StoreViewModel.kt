@@ -1001,7 +1001,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun reportInstallStarted(packageName: String) {
-        val label = pendingUpdate(packageName)?.label ?: packageName
+        // By the time Android takes the install the ready row may be gone from the state, and the
+        // message named the app by its package: "Confirm installation of ru.rutube.app".
+        val label = pendingUpdate(packageName)?.label?.takeIf { it.isNotBlank() } ?: labelFor(packageName)
         _state.update { it.copy(message = getApplication<Application>().getString(R.string.msg_install_started, label)) }
     }
 
@@ -1017,7 +1019,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun discardUnverifiablePendingUpdate(packageName: String) {
         abandonCurrentBatchInstall()
-        val label = pendingUpdate(packageName)?.label ?: packageName
+        val label = pendingUpdate(packageName)?.label?.takeIf { it.isNotBlank() } ?: labelFor(packageName)
         viewModelScope.launch {
             withContext(Dispatchers.IO) { queueRepository.remove(packageName) }
             withContext(Dispatchers.IO) { PendingUpdateNotifier(getApplication()).refresh() }
