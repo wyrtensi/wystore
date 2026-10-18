@@ -45,7 +45,9 @@ fun AppRow(
      * The source every row of the list comes from, when the list is one source's. Its badge then
      * says nothing the section title has not: "Popular on RuStore" put "RuStore" on every row.
      */
-    implicitSource: String? = null
+    implicitSource: String? = null,
+    /** Shows the source's notes for the version it offers; the row only offers it when given. */
+    onWhatsNew: (() -> Unit)? = null
 ) {
     WyCard(
         modifier = modifier
@@ -167,16 +169,24 @@ fun AppRow(
                 )
             }
 
-            if (state.secondaryAction != null &&
-                state.secondaryAction != SecondaryAction.None &&
-                onSecondaryActionClick != null
-            ) {
+            val secondaryClick = onSecondaryActionClick?.takeIf {
+                state.secondaryAction != null && state.secondaryAction != SecondaryAction.None
+            }
+            if (secondaryClick != null || onWhatsNew != null) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(
-                        onClick = onSecondaryActionClick,
+                    // Quiet, like the secondary action beside it: the row's own button is the step to
+                    // take, this only answers what the version on offer brings.
+                    onWhatsNew?.let { showNotes ->
+                        TextButton(
+                            onClick = showNotes,
+                            modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 40.dp)
+                        ) { Text(stringResource(R.string.details_changelog)) }
+                    }
+                    if (secondaryClick != null) TextButton(
+                        onClick = secondaryClick,
                         modifier = Modifier.defaultMinSize(minWidth = 48.dp, minHeight = 40.dp)
                     ) {
                         Text(
@@ -184,7 +194,7 @@ fun AppRow(
                                 SecondaryAction.Cancel -> stringResource(R.string.common_cancel)
                                 SecondaryAction.Retry -> stringResource(R.string.common_retry)
                                 SecondaryAction.CheckUpdate -> stringResource(R.string.common_check)
-                                SecondaryAction.None -> ""
+                                SecondaryAction.None, null -> ""
                             }
                         )
                     }

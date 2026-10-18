@@ -391,7 +391,8 @@ fun TvApp(
                                     lastOpened = app.packageName
                                     // The GitHub page, as from Home, or the catalogue page.
                                     viewModel.openAppPage(app.packageName, app.label)
-                                }
+                                },
+                                onWhatsNew = viewModel::showWhatsNew
                             )
                             // The phone's settings, as they are: every option stays reachable on a
                             // TV, including the device type for anyone the detection got wrong.

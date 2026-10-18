@@ -30,6 +30,7 @@ import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
 import dev.wystore.InstallQueueStatus
 import dev.wystore.R
+import dev.wystore.data.GitHubRepository
 import dev.wystore.data.ManagedApp
 import dev.wystore.localization.StatusTextResolver
 import dev.wystore.ui.components.AppIcon
@@ -58,7 +59,12 @@ fun TvMyAppsScreen(
     onUpdateAll: () -> Unit,
     onCancel: (String) -> Unit,
     onOpenManaged: (ManagedApp) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /**
+     * The source's notes for a waiting update: package, name and the repository a GitHub row
+     * names. A row here had no way to its page, and so none to what the update brings.
+     */
+    onWhatsNew: (String, String, GitHubRepository?) -> Unit = { _, _, _ -> }
 ) {
     val context = LocalContext.current
     val active = remember(packages) { packages.activeQueue }
@@ -114,7 +120,8 @@ fun TvMyAppsScreen(
                     state = state,
                     iconUrl = packageIcons[item.packageName],
                     actions = actions,
-                    onCancel = { onCancel(item.id) }.takeIf { item.status != InstallQueueStatus.INSTALLING }
+                    onCancel = { onCancel(item.id) }.takeIf { item.status != InstallQueueStatus.INSTALLING },
+                    onWhatsNew = { onWhatsNew(item.packageName, item.label, item.githubRepository) }
                 )
             }
             items(pendingOnly, key = { "p-${it.listKey}" }) { pending ->
@@ -124,7 +131,13 @@ fun TvMyAppsScreen(
                     managed = packages.managed.firstOrNull { it.packageName == pending.packageName },
                     resources = context.resources
                 )
-                TvPackageRow(state = state, iconUrl = packageIcons[pending.packageName], actions = actions, onCancel = null)
+                TvPackageRow(
+                    state = state,
+                    iconUrl = packageIcons[pending.packageName],
+                    actions = actions,
+                    onCancel = null,
+                    onWhatsNew = { onWhatsNew(pending.packageName, pending.label, pending.githubRepository) }
+                )
             }
         }
 
@@ -174,7 +187,8 @@ private fun TvPackageRow(
     state: PackageUiState,
     iconUrl: String?,
     actions: TvPackageActions,
-    onCancel: (() -> Unit)?
+    onCancel: (() -> Unit)?,
+    onWhatsNew: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     Row(
@@ -204,6 +218,13 @@ private fun TvPackageRow(
                 text = label,
                 onClick = { actions.perform(state) },
                 enabled = state.primaryAction != PrimaryAction.Installing
+            )
+        }
+        onWhatsNew?.let { showNotes ->
+            TvSecondaryButton(
+                text = stringResource(R.string.details_changelog),
+                onClick = showNotes,
+                modifier = Modifier.padding(start = 16.dp)
             )
         }
         if (onCancel != null) {

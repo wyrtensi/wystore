@@ -195,6 +195,35 @@ fun TvDetailsScreen(
                 }
             }
 
+            // The phone page has always shown what changed in the version on offer; the TV page
+            // had no way to it at all.
+            app.changelog?.takeIf { it.notes.isNotBlank() }?.let { changelog ->
+                item(key = "changelog") {
+                    TvSectionTitle(stringResource(R.string.details_changelog))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().focusable(),
+                        shape = androidx.compose.material3.MaterialTheme.shapes.large,
+                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            val meta = listOfNotNull(
+                                changelog.versionName?.takeIf { it.isNotBlank() }
+                                    ?.let { stringResource(R.string.whats_new_version, it) },
+                                changelog.publishedAt?.takeIf { it.isNotBlank() }
+                            ).joinToString(" · ")
+                            if (meta.isNotEmpty()) {
+                                Text(
+                                    meta,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Text(changelog.notes, style = MaterialTheme.typography.bodyLarge, maxLines = 12)
+                        }
+                    }
+                }
+            }
+
             val description = app.fullDescription.ifBlank { app.shortDescription }
             if (description.isNotBlank()) {
                 item(key = "description") {

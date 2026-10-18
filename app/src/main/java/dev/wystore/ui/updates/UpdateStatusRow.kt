@@ -20,7 +20,8 @@ fun UpdateStatusRow(
     installingItem: InstallQueueItem? = null,
     onOpen: () -> Unit,
     onAction: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onWhatsNew: (() -> Unit)? = null
 ) {
     val state = PackageUiStateReducer.reduce(
         installed = installed,
@@ -37,6 +38,7 @@ fun UpdateStatusRow(
         state = if (installer != null) state.copy(sourceProvenance = installer) else state,
         onRowClick = onOpen,
         onPrimaryActionClick = onAction,
-        modifier = modifier
+        modifier = modifier,
+        onWhatsNew = onWhatsNew
     )
 }

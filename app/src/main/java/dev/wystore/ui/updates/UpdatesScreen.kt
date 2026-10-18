@@ -277,7 +277,8 @@ fun UpdatesScreen(
                         onAction = {
                             if (pending != null) onInstallPending(pending.packageName)
                             else onOpen(managedApp)
-                        }
+                        },
+                        onWhatsNew = { onWhatsNew(managedApp.packageName, managedApp.label, null) }
                     )
                 }
             } else if (pendingUpdates.isEmpty()) {
