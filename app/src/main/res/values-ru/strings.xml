@@ -374,7 +374,6 @@
     <string name="updates_ready_title">Готовы к установке (%1$d)</string>
     <string name="updates_managed_title">Принятые приложения (%1$d)</string>
     <string name="updates_managed_empty">Пока нет принятых приложений. Выберите приложения в «Моих» или установите из каталога.</string>
-    <string name="updates_downloaded_version">Версия %1$s</string>
     <string name="updates_check_counts">Проверено %1$d из %2$d · обновлений: %3$d · проблем: %4$d</string>
     <string name="common_skip">Пропустить</string>
     <string name="vm_update_check_failed">Проверка обновлений не удалась</string>

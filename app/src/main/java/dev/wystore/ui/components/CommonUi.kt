@@ -336,11 +336,10 @@ fun AwaitingConfirmationActions(
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
     ) {
-        OutlinedButton(onClick = onCancelInstall) { Text(stringResource(R.string.common_cancel)) }
+        androidx.compose.material3.FilledTonalButton(onClick = onCancelInstall) { Text(stringResource(R.string.common_cancel)) }
         if (item.canShowDialogAgain) {
-            Spacer(Modifier.width(4.dp))
             Button(onClick = onShowInstallDialog) { Text(stringResource(R.string.queue_show_install_dialog)) }
         }
     }

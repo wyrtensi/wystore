@@ -374,7 +374,6 @@
     <string name="updates_ready_title">Oʻrnatishga tayyor (%1$d)</string>
     <string name="updates_managed_title">Qabul qilingan ilovalar (%1$d)</string>
     <string name="updates_managed_empty">Hozircha qabul qilingan ilovalar yoʻq. Ilovalarim boʻlimidan ilova tanlang yoki katalogdan oʻrnating.</string>
-    <string name="updates_downloaded_version">%1$s versiyasi</string>
     <string name="updates_check_counts">Tekshirildi: %1$d / %2$d · yangilanishlar: %3$d · muammolar: %4$d</string>
     <string name="common_skip">Oʻtkazib yuborish</string>
     <string name="vm_update_check_failed">Yangilanishlarni tekshirib boʻlmadi</string>

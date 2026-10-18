@@ -374,7 +374,6 @@
     <string name="updates_ready_title">Гатовыя да ўсталявання (%1$d)</string>
     <string name="updates_managed_title">Прынятыя праграмы (%1$d)</string>
     <string name="updates_managed_empty">Пакуль няма прынятых праграм. Выберыце праграмы ў «Маіх» або ўсталюйце іх з каталога.</string>
-    <string name="updates_downloaded_version">Версія %1$s</string>
     <string name="updates_check_counts">Праверана %1$d з %2$d · абнаўленняў: %3$d · праблем: %4$d</string>
     <string name="common_skip">Прапусціць</string>
     <string name="vm_update_check_failed">Праверка абнаўленняў не ўдалася</string>

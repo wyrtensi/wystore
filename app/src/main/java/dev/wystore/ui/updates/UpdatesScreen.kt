@@ -38,6 +38,7 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
@@ -469,12 +470,8 @@ private fun PendingUpdateRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    stringResource(R.string.updates_downloaded_version, update.versionName),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                dev.wystore.ui.components.HubTag(
+                    dev.wystore.ui.components.shortVersionName(update.versionName) ?: update.versionName
                 )
             }
             IconButton(onClick = onWhatsNew, modifier = Modifier.size(40.dp)) {
@@ -485,7 +482,9 @@ private fun PendingUpdateRow(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Button(
+            // Grey: "Install all" in the panel above is the step the screen is asking for, and a
+            // column of accent buttons under it shouted the same thing four times.
+            FilledTonalButton(
                 onClick = { onInstallPending(update.packageName) },
                 enabled = !installing,
                 contentPadding = dev.wystore.ui.components.RowButtonPadding
@@ -551,13 +550,10 @@ fun QueueItemCard(
     // more line on the row rather than a banner: it belongs to this app, not to the whole screen.
     val sourceProblem = failed &&
         dev.wystore.updates.SourceFailurePolicy.looksLikeSourceProblem(item.errorCode)
+    // One surface for every state. A failed row used to be an error-coloured block; the Wy Hub
+    // way is a coloured word, so the failure is told by its line rather than by painting the card.
     WyCard(
         modifier = Modifier.fillMaxWidth(),
-        containerColor = if (failed) {
-            MaterialTheme.colorScheme.errorContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
         onClick = onOpen
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -576,13 +572,37 @@ fun QueueItemCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if (item.label.isNotBlank() && item.label != item.packageName) {
-                        Text(
-                            item.packageName,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                    // The version waiting, and where the row stands, in tags. A stopped row's state is
+                    // the sentence below instead: a reason does not fit in a tag.
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+                        dev.wystore.ui.components.shortVersionName(item.versionName)?.let {
+                            dev.wystore.ui.components.HubTag(it)
+                        }
+                        if (!failed) {
+                            dev.wystore.ui.components.HubTag(
+                                queueStatusLabel(item),
+                                modifier = Modifier.weight(1f, fill = false),
+                                tint = when (item.status) {
+                                    InstallQueueStatus.DOWNLOADING,
+                                    InstallQueueStatus.RESOLVING,
+                                    InstallQueueStatus.VERIFYING,
+                                    InstallQueueStatus.INSTALLING -> MaterialTheme.colorScheme.primary
+                                    InstallQueueStatus.PAUSED -> MaterialTheme.colorScheme.tertiary
+                                    else -> null
+                                }
+                            )
+                        }
+                    }
+                }
+                // Beside the name, quiet, as on every other row. Not on a failed row, whose page is
+                // a tap away and whose line below is about the failure.
+                if (onWhatsNew != null && !failed) {
+                    IconButton(onClick = onWhatsNew, modifier = Modifier.size(40.dp)) {
+                        Icon(
+                            Icons.Outlined.Info,
+                            contentDescription = stringResource(R.string.details_changelog),
+                            modifier = Modifier.size(19.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -598,34 +618,13 @@ fun QueueItemCard(
                     }
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            if (failed) Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     queueStatusLabel(item),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (failed) {
-                        MaterialTheme.colorScheme.onErrorContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
+                    color = MaterialTheme.colorScheme.error
                 )
-                // On the status line rather than among the actions below, which already hold two
-                // buttons and would not fit a third on a compact phone. Not on a failed row: its line
-                // is the reason for the failure, which needs the width, and its page is a tap away.
-                if (onWhatsNew != null && !failed) {
-                    TextButton(
-                        onClick = onWhatsNew,
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    ) {
-                        Text(
-                            stringResource(R.string.details_changelog),
-                            style = MaterialTheme.typography.labelMedium,
-                            maxLines = 1
-                        )
-                    }
-                }
                 // The reasons, reachable without pressing the button that answers the question.
                 if (unconfirmed) {
                     IconButton(onClick = onConfirmUnverifiedSource) {
@@ -641,7 +640,12 @@ fun QueueItemCard(
                     progress = { progress.fraction },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.extraSmall)
+                        .height(6.dp)
+                        .clip(MaterialTheme.shapes.extraSmall),
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    strokeCap = androidx.compose.ui.graphics.StrokeCap.Round,
+                    gapSize = 0.dp,
+                    drawStopIndicator = {}
                 )
                 if (item.status == InstallQueueStatus.DOWNLOADING) {
                     dev.wystore.ui.components.TransferProgressText(
@@ -664,44 +668,41 @@ fun QueueItemCard(
                 )
             } else Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                // Grey pills for the way out, the accent for the step the row is waiting on - the
+                // concept's pair, instead of a text button beside an outlined one beside a filled one.
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
             ) {
                 when {
                     unconfirmed -> {
-                        TextButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
-                        Spacer(Modifier.width(4.dp))
+                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
                         Button(onClick = onConfirmUnverifiedSource) {
                             Text(stringResource(R.string.unverified_source_confirm))
                         }
                     }
                     needsReplace -> {
-                        TextButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
-                        Spacer(Modifier.width(4.dp))
+                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
                         Button(onClick = onReplace) { Text(stringResource(R.string.queue_replace)) }
                     }
                     stopped -> Button(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
                     // An item merely waiting in line can be started on its own, rather than only
                     // by starting the whole queue.
                     item.status == InstallQueueStatus.QUEUED -> {
-                        TextButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
-                        Spacer(Modifier.width(4.dp))
+                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
                         Button(onClick = onDownload) { Text(stringResource(R.string.queue_download_now)) }
                     }
                     // A transfer running now can be stopped without losing what it has fetched.
                     item.status == InstallQueueStatus.DOWNLOADING -> {
-                        OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
-                        Spacer(Modifier.width(4.dp))
-                        Button(onClick = onPause) { Text(stringResource(R.string.common_pause)) }
+                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
+                        // Nothing is asked of the user while it runs, so neither button is the accent.
+                        FilledTonalButton(onClick = onPause) { Text(stringResource(R.string.common_pause)) }
                     }
                     item.status == InstallQueueStatus.PAUSED -> {
-                        OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
-                        Spacer(Modifier.width(4.dp))
+                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
                         Button(onClick = onResume) { Text(stringResource(R.string.common_resume)) }
                     }
                     else -> {
-                        TextButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
-                        Spacer(Modifier.width(4.dp))
-                        OutlinedButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
+                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
+                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
                     }
                 }
             }

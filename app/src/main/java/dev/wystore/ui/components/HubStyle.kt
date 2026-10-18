@@ -342,6 +342,31 @@ fun HubNote(
     }
 }
 
+/**
+ * A faint tag behind a secondary fact - a version, who installed the app, its section - so the
+ * eye can find it in a row of grey text without it competing with the name. [tint] colours it for
+ * a fact that is a state, as the concept's status pills are.
+ */
+@Composable
+fun HubTag(text: String, modifier: Modifier = Modifier, tint: Color? = null) {
+    val colors = MaterialTheme.colorScheme
+    val dark = colors.surface.luminance() < 0.5f
+    Text(
+        text,
+        modifier = modifier
+            .clip(RoundedCornerShape(7.dp))
+            .background(
+                tint?.copy(alpha = if (dark) 0.16f else 0.12f)
+                    ?: colors.onSurface.copy(alpha = if (dark) 0.07f else 0.05f)
+            )
+            .padding(horizontal = 7.dp, vertical = 2.dp),
+        style = MaterialTheme.typography.labelMedium,
+        color = tint ?: colors.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
+}
+
 @Composable
 private fun hairline(): BorderStroke? =
     if (LocalHubStyle.current) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null

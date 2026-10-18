@@ -374,7 +374,6 @@
     <string name="updates_ready_title">Готові до встановлення (%1$d)</string>
     <string name="updates_managed_title">Прийняті застосунки (%1$d)</string>
     <string name="updates_managed_empty">Поки немає прийнятих застосунків. Виберіть застосунки в «Моїх» або встановіть із каталогу.</string>
-    <string name="updates_downloaded_version">Версія %1$s</string>
     <string name="updates_check_counts">Перевірено %1$d з %2$d · оновлень: %3$d · проблем: %4$d</string>
     <string name="common_skip">Пропустити</string>
     <string name="vm_update_check_failed">Перевірка оновлень не вдалася</string>

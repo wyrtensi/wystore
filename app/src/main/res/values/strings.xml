@@ -374,7 +374,6 @@
     <string name="updates_ready_title">Ready to install (%1$d)</string>
     <string name="updates_managed_title">Accepted apps (%1$d)</string>
     <string name="updates_managed_empty">No accepted apps yet. Pick apps in Library or install them from the catalogue.</string>
-    <string name="updates_downloaded_version">Version %1$s</string>
     <string name="updates_check_counts">Checked %1$d of %2$d · updates: %3$d · problems: %4$d</string>
     <string name="common_skip">Skip</string>
     <string name="vm_update_check_failed">Update check failed</string>

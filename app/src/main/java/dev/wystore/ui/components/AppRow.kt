@@ -259,13 +259,29 @@ private fun AppGroupRowContent(
                 val source = state.sourceProvenance
                     ?.takeUnless { implicitSource != null && it.equals(implicitSource, ignoreCase = true) }
                     ?.let { sourceDisplayName(it) }
-                val line = listOfNotNull(
-                    shortVersionName(state.versionName),
-                    source,
-                    listingLine(state.rating, state.category).takeIf { it.isNotEmpty() }
-                ).joinToString(" · ")
-                Text(
-                    line.ifEmpty { state.packageName },
+                val version = shortVersionName(state.versionName)
+                val category = state.category?.let { slug ->
+                    CategoryLabels.stringRes(slug)?.let { stringResource(it) } ?: CategoryLabels.humanize(slug)
+                }
+                // Facts in faint tags, the rating as plain text beside them: a line of grey words
+                // separated by dots was hard to take in at a glance.
+                if (version != null || source != null || category != null || state.rating != null) Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    version?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
+                    source?.let { HubTag(it) }
+                    state.rating?.let {
+                        Text(
+                            "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                    category?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
+                } else Text(
+                    state.packageName,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
