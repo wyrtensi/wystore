@@ -10,12 +10,12 @@ wystore.ru {
 		-Server
 	}
 
-	# The visit counter (shared GoatCounter, see rusinternet deploy/server/stats)
+	# The visit counter (shared GoatCounter, see wyrtensi/stats deploy/server)
 	# is reached through the site itself. Only the script and the count endpoint
 	# pass; the dashboard stays on stats.wyrtensi.ru.
 	@counter path /stats/count /stats/count.js
 	handle @counter {
-		uri strip_prefix /stats
+		uri replace /stats/ /admin/
 		reverse_proxy goatcounter:8080 {
 			header_up Host stats.wyrtensi.ru
 		}
@@ -25,8 +25,20 @@ wystore.ru {
 		reverse_proxy wystore-web:80
 	}
 
+	# Access log without IP addresses (and without forwarded-for or cookie
+	# headers); stats.wyrtensi.ru counts bots from these lines by User-Agent.
 	log {
 		output stdout
-		format console
+		format filter {
+			wrap console
+			fields {
+				request>remote_ip delete
+				request>client_ip delete
+				request>remote_port delete
+				request>headers>X-Forwarded-For delete
+				request>headers>X-Real-Ip delete
+				request>headers>Cookie delete
+			}
+		}
 	}
 }
