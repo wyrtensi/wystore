@@ -11,13 +11,15 @@ Branch `design/wy-hub-style`. Rules taken from the Wy Hub concept (wy-hub-legacy
 - Every check below is done in dark and light, on the regular phone and the compact one
   (sw393dp, font scale 1.15), in Russian, and once in Kazakh for the system-font fallback.
 
+`[~]` restyled in code, not yet looked at on a device in every state listed.
+
 ## Global
 
 - [x] Palette, Manrope, radii, hairline (theme)
 - [x] Bottom bar: capsule, tab pill holding icon and name, one label size for all
 - [x] Faint tags for version / installer / section
 - [ ] Snackbar and the "waiting for Android" banner over the last rows
-- [x] Dialogs: what's new, metered network, unverified source, adoption, GitHub install, replace,
+- [~] Dialogs: what's new, metered network, unverified source, adoption, GitHub install, replace,
       force Wy Store, offer next, source failure
 
 ## Updates
@@ -32,15 +34,15 @@ Branch `design/wy-hub-style`. Rules taken from the Wy Hub concept (wy-hub-legacy
 ## Home
 
 - [x] Header and the updates panel: nothing pending / N ready / queue running
-- [x] Catalogue loading, failed (retry), stale
-- [x] Categories rail, GitHub rail (installed mark, GitHub switched off)
+- [~] Catalogue loading, failed (retry), stale
+- [~] Categories rail, GitHub rail (installed mark, GitHub switched off)
 - [x] RuStore list as one group; row states: not installed, installed, update, downloading,
       paused, ready, installing, failed, unverified source
 
 ## Search
 
 - [x] Start state, sources chips, the search button and the note
-- [x] Results: RuStore group, GitHub group; loading; nothing found; source error / rate limit;
+- [~] Results: RuStore group, GitHub group; loading; nothing found; source error / rate limit;
       load more
 - [ ] Inline progress and failure on a result
 
@@ -48,7 +50,7 @@ Branch `design/wy-hub-style`. Rules taken from the Wy Hub concept (wy-hub-legacy
 
 - [x] Header, search field, filter chips
 - [x] Accepted and not accepted as groups; collapse
-- [x] Expanded row: facts, auto-update and force switches, frozen, missing from RuStore,
+- [~] Expanded row: facts, auto-update and force switches, frozen, missing from RuStore,
       update available, actions
 - [ ] Selection: long press, select all, accept many, batch progress
 - [ ] Backup nudge, export, import
@@ -56,11 +58,11 @@ Branch `design/wy-hub-style`. Rules taken from the Wy Hub concept (wy-hub-legacy
 
 ## App page (RuStore) and GitHub page
 
-- [x] Not installed, installed and current, update, downloading, paused, ready, awaiting dialog,
+- [~] Not installed, installed and current, update, downloading, paused, ready, awaiting dialog,
       failed
 - [ ] Takeover in place, replace (signature / older in catalogue), source unconfirmed
 - [ ] Incompatible Android, no root note
-- [x] Facts, what's new, description, screenshots viewer, reviews and "load all"
+- [~] Facts, what's new, description, screenshots viewer, reviews and "load all"
 
 ## Settings
 
