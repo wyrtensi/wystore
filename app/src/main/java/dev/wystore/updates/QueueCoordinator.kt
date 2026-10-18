@@ -7,7 +7,6 @@ import dev.wystore.data.StoreRepository
 import dev.wystore.permissions.PermissionRepository
 import dev.wystore.permissions.PermissionSnapshot
 import dev.wystore.updates.model.QueueAction
-import dev.wystore.updates.model.QueueErrorCode
 import dev.wystore.updates.model.QueueItemSnapshot
 import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.flow.Flow
@@ -192,7 +191,7 @@ class QueueCoordinator(
         repository.reconcileInstallResult(
             id = id,
             success = success,
-            errorCode = QueueErrorCode.INSTALL_FAILED,
+            errorCode = InstallRefusal.codeFor(status = null, message = message),
             errorDetail = message
         )
         if (success) {

@@ -87,12 +87,15 @@ class LegacyInstallHandover(context: Context) {
                 success = false,
                 errorCode = QueueErrorCode.INSTALL_CANCELED
             )
-            is LegacyInstallOutcome.Failed -> repository.reconcileInstallResult(
-                id = queueId,
-                success = false,
-                errorCode = QueueErrorCode.INSTALL_FAILED,
-                errorDetail = LegacyInstallOutcome.describe(outcome.installResult)
-            )
+            is LegacyInstallOutcome.Failed -> LegacyInstallOutcome.describe(outcome.installResult).let { detail ->
+                repository.reconcileInstallResult(
+                    id = queueId,
+                    success = false,
+                    // The described code carries the INSTALL_FAILED_* name the refusal is told by.
+                    errorCode = InstallRefusal.codeFor(status = null, message = detail),
+                    errorDetail = detail
+                )
+            }
         }
         runCatching { QueuePump.startNext(appContext) }
     }

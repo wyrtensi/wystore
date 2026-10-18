@@ -805,4 +805,5 @@
     <string name="whats_new_version">版本 %1$s</string>
     <string name="whats_new_empty">来源没有说明此版本的更新内容。</string>
     <string name="whats_new_failed">无法加载更新内容。请检查网络连接后重试。</string>
+    <string name="queue_error_install_conflict">此应用已以其他签名安装在手机上，可能位于其他配置文件中（工作资料、Shelter、第二空间）。请删除该副本后重试</string>
 </resources>

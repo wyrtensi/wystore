@@ -22,6 +22,7 @@ object QueueErrorStrings {
         QueueErrorCode.PERMISSION -> R.string.queue_error_permission
         QueueErrorCode.INSTALL_CANCELED -> R.string.queue_error_install_canceled
         QueueErrorCode.INSTALL_FAILED -> R.string.queue_error_install_failed
+        QueueErrorCode.INSTALL_CONFLICT -> R.string.queue_error_install_conflict
         QueueErrorCode.ARTIFACT_MISSING -> R.string.queue_error_artifact_missing
         QueueErrorCode.TIMEOUT -> R.string.queue_error_timeout
         QueueErrorCode.DOWNGRADE -> R.string.queue_error_downgrade

@@ -805,4 +805,5 @@
     <string name="whats_new_version">%1$s нұсқасы</string>
     <string name="whats_new_empty">Дереккөз бұл нұсқада не жаңа екенін жазбаған.</string>
     <string name="whats_new_failed">Не жаңа екенін жүктеу мүмкін болмады. Қосылымды тексеріп, қайталап көріңіз.</string>
+    <string name="queue_error_install_conflict">Бұл қолданба телефонда басқа қолтаңбамен орнатылған, мүмкін басқа профильде (жұмыс, Shelter, екінші кеңістік). Сол көшірмені жойып, қайталаңыз</string>
 </resources>

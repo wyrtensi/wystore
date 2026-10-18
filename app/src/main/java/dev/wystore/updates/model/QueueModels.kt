@@ -43,6 +43,12 @@ enum class QueueErrorCode {
     PERMISSION,
     INSTALL_CANCELED,
     INSTALL_FAILED,
+
+    /**
+     * Android refused because the same package is already on the phone signed with another key,
+     * often in another profile where this one cannot see it. See [dev.wystore.updates.InstallRefusal].
+     */
+    INSTALL_CONFLICT,
     ARTIFACT_MISSING,
     TIMEOUT,
 

@@ -805,4 +805,5 @@
     <string name="whats_new_version">Version %1$s</string>
     <string name="whats_new_empty">The source did not say what is new in this version.</string>
     <string name="whats_new_failed">Could not load what is new. Check the connection and try again.</string>
+    <string name="queue_error_install_conflict">This app is already on the phone signed with another key, perhaps in another profile (work, Shelter, a second space). Remove that copy and try again</string>
 </resources>

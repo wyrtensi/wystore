@@ -186,7 +186,7 @@ class InstallResultReceiver : BroadcastReceiver() {
                     } else repository.reconcileInstallResult(
                         id = queueId,
                         success = false,
-                        errorCode = QueueErrorCode.INSTALL_FAILED,
+                        errorCode = InstallRefusal.codeFor(status, message),
                         errorDetail = message ?: "PackageInstaller reported failure"
                     )
                 }
