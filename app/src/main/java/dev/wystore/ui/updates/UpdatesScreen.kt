@@ -10,6 +10,7 @@ import dev.wystore.ui.components.HubHeader
 import dev.wystore.ui.components.HubHeaderPill
 import dev.wystore.ui.components.HubNote
 import dev.wystore.ui.components.HubPanel
+import dev.wystore.ui.components.HubWideButton
 import dev.wystore.ui.components.groupPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -196,6 +197,7 @@ fun UpdatesScreen(
                     ready = pendingUpdates.size,
                     waiting = actionableQueue.size,
                     onOpenApp = onOpenPackage,
+                    onInstallAll = onUpdateAll,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
@@ -256,27 +258,26 @@ fun UpdatesScreen(
                     // Installing everything already downloaded lived on Home, and in the Library it
                     // lived in a label only. This is the screen those downloads are listed on, so it
                     // was the one place the action was missing.
+                    // "Install all" is the panel's button above; a second one here was the same
+                    // action twice on one screen.
                     HubGroupTitle(
                         title = stringResource(R.string.updates_ready_title, readyUpdates.size),
-                        meta = stringResource(R.string.updates_install_all),
-                        onMetaClick = onUpdateAll,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
-                items(readyUpdates, key = { "pending:${it.listKey}" }) { pending ->
-                    Box(Modifier.padding(bottom = 10.dp)) {
-                        PendingUpdateCard(
-                            update = pending,
-                            installing = queue.rowFor(pending.packageName)?.status == InstallQueueStatus.INSTALLING,
-                            iconUrl = packageIcons[pending.packageName],
-                            onInstallPending = onInstallPending,
-                            onDiscardPending = onDiscardPending,
-                            onOpen = { onOpenAppPage(pending.packageName, pending.label, pending.githubRepository) },
-                            onWhatsNew = { onWhatsNew(pending.packageName, pending.label, pending.githubRepository) }
-                        )
-                    }
+                itemsIndexed(readyUpdates, key = { _, it -> "pending:${it.listKey}" }) { index, pending ->
+                    PendingUpdateRow(
+                        update = pending,
+                        position = groupPosition(index, readyUpdates.size),
+                        installing = queue.rowFor(pending.packageName)?.status == InstallQueueStatus.INSTALLING,
+                        iconUrl = packageIcons[pending.packageName],
+                        onInstallPending = onInstallPending,
+                        onDiscardPending = onDiscardPending,
+                        onOpen = { onOpenAppPage(pending.packageName, pending.label, pending.githubRepository) },
+                        onWhatsNew = { onWhatsNew(pending.packageName, pending.label, pending.githubRepository) }
+                    )
                 }
-                item { Spacer(Modifier.height(10.dp)) }
+                item { Spacer(Modifier.height(18.dp)) }
             }
 
             if (orderedManaged.isNotEmpty()) {
@@ -333,6 +334,7 @@ private fun UpdatesHero(
     ready: Int,
     waiting: Int,
     onOpenApp: (String) -> Unit,
+    onInstallAll: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     HubPanel(modifier = modifier) {
@@ -361,12 +363,22 @@ private fun UpdatesHero(
                     )
                 }
             }
-            summary?.takeIf { it.total > 0 }?.let {
+            // The ring is about the check, so it stands beside a sentence about the check. Beside
+            // "ready to install: 3" it read as "3 of 8" and said nothing about the three.
+            summary?.takeIf { it.total > 0 && ready == 0 && waiting == 0 }?.let {
                 Spacer(Modifier.width(14.dp))
                 CheckRing(checked = it.checked, total = it.total)
             }
         }
         summary?.let { ProblemLines(it, onOpenApp) }
+        if (ready > 0) {
+            Spacer(Modifier.height(4.dp))
+            HubWideButton(
+                text = stringResource(R.string.updates_install_all),
+                onClick = onInstallAll,
+                primary = true
+            )
+        }
     }
 }
 
@@ -428,84 +440,55 @@ private fun ProblemLines(summary: UpdateCheckSummary, onOpenApp: (String) -> Uni
     }
 }
 
+/**
+ * A downloaded update as one row of the "ready to install" group. The card it replaces was a
+ * block of the accent's container colour per app, which in a list of three filled half the screen.
+ */
 @Composable
-fun PendingUpdateCard(
+private fun PendingUpdateRow(
     update: PendingUpdate,
-    iconUrl: String? = null,
-    /** Already being handed to Android or installed by it, so Install is not offered again. */
-    installing: Boolean = false,
+    position: dev.wystore.ui.components.GroupPosition,
+    installing: Boolean,
+    iconUrl: String?,
     onInstallPending: (String) -> Unit,
-    onDiscardPending: (String) -> Unit = {},
-    /** The app's page. A downloaded update could not be tapped through to it, nor to its notes. */
-    onOpen: () -> Unit = {},
-    onWhatsNew: (() -> Unit)? = null
+    onDiscardPending: (String) -> Unit,
+    onOpen: () -> Unit,
+    onWhatsNew: () -> Unit
 ) {
-    val onContainer = MaterialTheme.colorScheme.onPrimaryContainer
-    WyCard(
-        modifier = Modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-        onClick = onOpen
-    ) {
+    dev.wystore.ui.components.HubGroupRow(position = position, onClick = onOpen) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(start = 12.dp, end = 4.dp, top = 9.dp, bottom = 9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AppIcon(
-                model = iconUrl,
-                contentDescription = null,
-                size = 44.dp,
-                fallbackPackageName = update.packageName
-            )
+            AppIcon(model = iconUrl, contentDescription = null, size = 40.dp, fallbackPackageName = update.packageName)
             Spacer(Modifier.width(12.dp))
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     update.label.ifBlank { update.packageName },
                     style = MaterialTheme.typography.titleSmall,
-                    color = onContainer,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                // One line, and only the version. The screen's own text above already says that
-                // Android asks for confirmation; repeated under every card on a narrow screen it
-                // wrapped into four lines of the same sentence.
                 Text(
                     stringResource(R.string.updates_downloaded_version, update.versionName),
                     style = MaterialTheme.typography.bodySmall,
-                    color = onContainer.copy(alpha = 0.8f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                // Under the version it is about, and as quiet as the line above: the install
-                // button is the card's action, this only answers what the install brings.
-                onWhatsNew?.let { showNotes ->
-                    TextButton(
-                        onClick = showNotes,
-                        modifier = Modifier.height(32.dp),
-                        contentPadding = PaddingValues(horizontal = 0.dp),
-                        colors = ButtonDefaults.textButtonColors(contentColor = onContainer)
-                    ) {
-                        Text(
-                            stringResource(R.string.details_changelog),
-                            style = MaterialTheme.typography.labelMedium,
-                            maxLines = 1
-                        )
-                    }
-                }
             }
-            Spacer(Modifier.width(10.dp))
+            IconButton(onClick = onWhatsNew, modifier = Modifier.size(40.dp)) {
+                Icon(
+                    Icons.Outlined.Info,
+                    contentDescription = stringResource(R.string.details_changelog),
+                    modifier = Modifier.size(19.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Button(
                 onClick = { onInstallPending(update.packageName) },
                 enabled = !installing,
-                // Tighter than the default so the name and the version keep their room on a narrow
-                // screen once the discard button is standing next to it.
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = onContainer,
-                    contentColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                contentPadding = dev.wystore.ui.components.RowButtonPadding
             ) {
                 Text(
                     stringResource(if (installing) R.string.common_installing else R.string.common_install),
@@ -513,15 +496,12 @@ fun PendingUpdateCard(
                 )
             }
             // A downloaded APK used to be a one-way street: install it or live with it.
-            IconButton(
-                onClick = { onDiscardPending(update.packageName) },
-                modifier = Modifier.size(36.dp)
-            ) {
+            IconButton(onClick = { onDiscardPending(update.packageName) }, modifier = Modifier.size(40.dp)) {
                 Icon(
                     imageVector = Icons.Outlined.Close,
                     contentDescription = stringResource(R.string.updates_discard_pending),
-                    modifier = Modifier.size(20.dp),
-                    tint = onContainer
+                    modifier = Modifier.size(19.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

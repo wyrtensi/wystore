@@ -11,6 +11,9 @@ import androidx.compose.ui.graphics.Color
  * Values from the Wy Hub concept. Its cards sit only a few points of lightness above the page and
  * rely on the 1dp light outline to read as cards, so these schemes are not passed through
  * [withSeparatedSurfaces]: widened, the containers turned grey and the hairline stopped mattering.
+ *
+ * The page is graphite rather than the concept's near-black #0E0E0E: on a whole screen of it the
+ * black read as a hole, and the cards on it as the only lit thing.
  */
 val HubDarkColorScheme = darkColorScheme(
     primary = Color(0xFFF66C3F),
@@ -22,7 +25,7 @@ val HubDarkColorScheme = darkColorScheme(
     secondary = Color(0xFFFFA37F),
     onSecondary = Color(0xFF2B1206),
     // Quiet buttons ("Move", "Done" in the concept): grey glass, not tinted.
-    secondaryContainer = Color(0xFF2C2D32),
+    secondaryContainer = Color(0xFF31323A),
     onSecondaryContainer = Color(0xFFF3F3F1),
 
     tertiary = Color(0xFFF2C94C),
@@ -35,20 +38,20 @@ val HubDarkColorScheme = darkColorScheme(
     errorContainer = Color(0xFF4A1C17),
     onErrorContainer = Color(0xFFFFDAD4),
 
-    background = Color(0xFF0E0E0E),
+    background = Color(0xFF15161A),
     onBackground = Color(0xFFF3F3F1),
-    surface = Color(0xFF0E0E0E),
+    surface = Color(0xFF15161A),
     onSurface = Color(0xFFF3F3F1),
-    surfaceVariant = Color(0xFF2A2B30),
+    surfaceVariant = Color(0xFF2E2F35),
     onSurfaceVariant = Color(0xFFA9ABB1),
 
-    surfaceDim = Color(0xFF0E0E0E),
-    surfaceBright = Color(0xFF34353A),
-    surfaceContainerLowest = Color(0xFF0A0A0A),
-    surfaceContainerLow = Color(0xFF1B1C1F),
-    surfaceContainer = Color(0xFF202125),
-    surfaceContainerHigh = Color(0xFF26272B),
-    surfaceContainerHighest = Color(0xFF2E2F34),
+    surfaceDim = Color(0xFF15161A),
+    surfaceBright = Color(0xFF3A3B41),
+    surfaceContainerLowest = Color(0xFF101114),
+    surfaceContainerLow = Color(0xFF202126),
+    surfaceContainer = Color(0xFF25262B),
+    surfaceContainerHigh = Color(0xFF2B2C32),
+    surfaceContainerHighest = Color(0xFF33343A),
 
     surfaceTint = Color(0xFFF66C3F),
     inverseSurface = Color(0xFFF3F3F1),

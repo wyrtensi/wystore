@@ -28,7 +28,7 @@
 
     <string name="msg_settings_saved">Налаштування збережено</string>
     <string name="msg_install_permission_required">Дозвольте Wy Store встановлювати застосунки, і встановлення продовжиться</string>
-    <string name="msg_install_started">Підтверди встановлення %1$s у системному вікні</string>
+    <string name="msg_install_started">Підтвердьте встановлення %1$s у системному вікні</string>
     <string name="msg_install_not_started">Встановлення не запущено</string>
     <string name="msg_install_artifact_missing">Завантажене оновлення більше недоступне</string>
     <string name="msg_install_reverify_failed">APK не пройшов повторну перевірку перед встановленням</string>
@@ -36,7 +36,7 @@
     <string name="msg_install_launch_failed">Не вдалося відкрити системне встановлення</string>
     <string name="msg_install_split_refused">Застосунок доступний лише частинами, а встановлювач на цьому пристрої приймає один APK</string>
     <string name="msg_install_no_confirm_dialog">Android не відкрив вікно підтвердження встановлення</string>
-    <string name="msg_install_needs_redownload">%1$s збережено старою версією Wy Store, і перевірити його неможливо. Завантаж заново.</string>
+    <string name="msg_install_needs_redownload">%1$s збережено старою версією Wy Store, і перевірити його неможливо. Завантажте заново.</string>
     <string name="msg_search_failed">Не вдалося виконати пошук</string>
     <string name="msg_details_failed">Не вдалося відкрити картку</string>
     <string name="msg_github_open_repo_first">Спершу відкрийте репозиторій GitHub</string>
