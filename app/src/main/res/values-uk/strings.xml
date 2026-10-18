@@ -821,4 +821,5 @@
     <string name="settings_hub_updates_subtitle">Фонова перевірка, встановлення без питань, черга</string>
     <string name="settings_hub_storage_title">Сховище й копія</string>
     <string name="settings_hub_storage_subtitle">Скільки зберігати завантаження, експорт та імпорт</string>
+    <string name="search_failed_title">Не вдалося виконати пошук у RuStore</string>
 </resources>

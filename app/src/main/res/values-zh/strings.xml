@@ -821,4 +821,5 @@
     <string name="settings_hub_updates_subtitle">后台检查、免确认安装、队列</string>
     <string name="settings_hub_storage_title">存储与备份</string>
     <string name="settings_hub_storage_subtitle">下载保留时长、导出与导入</string>
+    <string name="search_failed_title">无法在 RuStore 中搜索</string>
 </resources>

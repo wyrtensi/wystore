@@ -93,7 +93,9 @@ fun TvSearchScreen(
     startVoice: Boolean = false,
     onVoiceStarted: () -> Unit = {},
     /** The result last opened - a package name or a GitHub key - to return the focus to after Back. */
-    restoreFocusTo: String? = null
+    restoreFocusTo: String? = null,
+    /** Why the RuStore search failed, so it is not told as "nothing found". */
+    rustoreError: String? = null
 ) {
     val focusManager = LocalFocusManager.current
     val trimmed = query.trim()
@@ -324,6 +326,11 @@ fun TvSearchScreen(
                     )
                     rustoreSearching || trimmed.length >= MIN_SOURCE_QUERY && !rustoreQuery.equals(trimmed, ignoreCase = true) ->
                         Text(stringResource(R.string.vm_searching), style = MaterialTheme.typography.bodyLarge)
+                    rustoreError != null && rustoreQuery.equals(trimmed, ignoreCase = true) -> Text(
+                        stringResource(R.string.search_failed_title) + ". " + rustoreError,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
                     else -> Text(stringResource(R.string.search_empty_title), style = MaterialTheme.typography.bodyLarge)
                 }
             }

@@ -311,6 +311,11 @@ data class StoreUiState(
     val rootAvailable: Boolean? = null,
     val busy: Boolean = false,
     val searching: Boolean = false,
+    /**
+     * Why the last search has no results, when it failed. Told only by a snackbar, a search made
+     * without a network left the screen saying "nothing found" for an app RuStore does have.
+     */
+    val searchError: String? = null,
     val detailsLoading: Boolean = false,
     val operation: String? = null,
     val downloadProgress: DownloadProgress? = null,
@@ -541,6 +546,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 it.copy(
                     query = trimmed,
                     searching = true,
+                    searchError = null,
                     operation = string(R.string.vm_searching),
                     message = null,
                     // Local, so GitHub matches appear immediately rather than after the network.
@@ -562,7 +568,10 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                         it.copy(
                             searching = false,
                             operation = null,
-                            message = error.message ?: string(R.string.vm_search_failed)
+                            // The results on screen belong to the query before this one.
+                            search = null,
+                            searchError = SourceTextResolver.describe(getApplication(), error)
+                                ?: string(R.string.vm_search_failed)
                         )
                     }
                 }
@@ -583,6 +592,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             it.copy(
                 query = trimmed,
                 searching = false,
+                searchError = null,
                 operation = null,
                 search = null,
                 githubSearchResults = if (trimmed.isBlank()) {
@@ -603,7 +613,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     fun clearSearch() {
         searchJob?.cancel()
         _state.update {
-            it.copy(query = "", search = null, searching = false, operation = null, githubSearchResults = emptyList())
+            it.copy(query = "", search = null, searching = false, searchError = null, operation = null, githubSearchResults = emptyList())
         }
     }
 

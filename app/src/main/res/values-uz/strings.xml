@@ -821,4 +821,5 @@
     <string name="settings_hub_updates_subtitle">Fon tekshiruvi, soʻramasdan oʻrnatish, navbat</string>
     <string name="settings_hub_storage_title">Xotira va nusxa</string>
     <string name="settings_hub_storage_subtitle">Yuklamalarni qancha saqlash, eksport va import</string>
+    <string name="search_failed_title">RuStore’da qidirib boʻlmadi</string>
 </resources>

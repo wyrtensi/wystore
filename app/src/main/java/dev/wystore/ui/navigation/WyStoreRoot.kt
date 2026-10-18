@@ -357,6 +357,7 @@ fun WyStoreRoot(
                         onQuickInstall = viewModel::quickInstall,
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
                         onLaunch = viewModel::launchInstalledApp,
+                        error = state.searchError,
                         onClear = viewModel::clearSearch
                     )
                     WyStoreDestination.GitHub -> GitHubScreen(

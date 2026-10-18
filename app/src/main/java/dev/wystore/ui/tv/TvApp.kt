@@ -367,6 +367,7 @@ fun TvApp(
                                 rustoreQuery = state.query,
                                 rustoreResults = state.search?.apps.orEmpty(),
                                 rustoreSearching = state.searching,
+                                rustoreError = state.searchError,
                                 packages = packages,
                                 fieldFocus = contentFocus,
                                 takeFocus = takeFocus,

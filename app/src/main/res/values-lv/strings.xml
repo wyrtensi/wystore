@@ -821,4 +821,5 @@
     <string name="settings_hub_updates_subtitle">Fona pārbaude, instalēšana bez jautājumiem, rinda</string>
     <string name="settings_hub_storage_title">Krātuve un kopija</string>
     <string name="settings_hub_storage_subtitle">Cik ilgi glabāt lejupielādes, eksports un imports</string>
+    <string name="search_failed_title">Neizdevās meklēt RuStore</string>
 </resources>

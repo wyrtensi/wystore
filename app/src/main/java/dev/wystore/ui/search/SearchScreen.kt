@@ -1,5 +1,6 @@
 package dev.wystore.ui.search
 
+import androidx.compose.material.icons.outlined.Warning
 import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubTextAction
@@ -121,6 +122,8 @@ fun SearchScreen(
     onInstallPending: (String) -> Unit = {},
     onConfirmUnverifiedSource: (String) -> Unit = {},
     onLaunch: (String) -> Unit,
+    /** Why the last search came back with nothing, when it failed rather than found nothing. */
+    error: String? = null,
     /** Forgets the query along with the field, so Home does not go on showing it. */
     onClear: () -> Unit = {}
 ) {
@@ -254,7 +257,17 @@ fun SearchScreen(
 
             if (!busy && !hasResults) {
                 item {
-                    if (query.isBlank()) {
+                    if (error != null && sources.includesRuStore) {
+                        // A failure is not "nothing found": RuStore was not reached, and the way
+                        // out is to try again, not to shorten the query.
+                        EmptyState(
+                            icon = Icons.Outlined.Warning,
+                            title = stringResource(R.string.search_failed_title),
+                            message = error,
+                            actionLabel = stringResource(R.string.common_retry),
+                            onActionClick = runSearch
+                        )
+                    } else if (query.isBlank()) {
                         EmptyState(
                             icon = Icons.Outlined.Search,
                             title = stringResource(R.string.search_start_title),
