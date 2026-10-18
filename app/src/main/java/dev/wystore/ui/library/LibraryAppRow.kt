@@ -1,5 +1,6 @@
 package dev.wystore.ui.library
 
+import dev.wystore.ui.components.color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -129,6 +130,14 @@ fun LibraryAppRow(
                         )
                         installerShortLabel(app).let {
                             dev.wystore.ui.components.HubTag(it, tint = dev.wystore.ui.components.sourceTint(it))
+                        }
+                        // Frozen is said on the row itself: folded, a frozen app looked like any
+                        // other, with an Open that could not open it.
+                        if (app.frozen) {
+                            dev.wystore.ui.components.HubTag(
+                                stringResource(R.string.library_frozen_short),
+                                tint = dev.wystore.ui.components.StatusTone.PAUSED.color()
+                            )
                         }
                     }
                 }

@@ -1,5 +1,7 @@
 package dev.wystore.ui.library
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.DialogButton
 import dev.wystore.ui.components.HubAlertDialog
@@ -220,13 +222,10 @@ private fun OptionRow(
         )
     }
     Surface(
-        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).clickable(onClick = onPick),
-        shape = MaterialTheme.shapes.medium,
-        color = if (leading) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        }
+        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).clickable(onClick = onPick),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
@@ -259,10 +258,16 @@ private fun OptionRow(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            // The step as a pill, the accent for the one recommended: a line of accent text read
+            // as a link to somewhere else rather than as the answer to the dialog.
             Text(
                 action,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(percent = 50))
+                    .background(if (leading) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer)
+                    .padding(horizontal = 14.dp, vertical = 7.dp),
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
+                color = if (leading) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
                 maxLines = 1
             )
         }

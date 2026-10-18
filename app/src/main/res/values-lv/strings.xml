@@ -822,4 +822,5 @@
     <string name="settings_hub_storage_title">Krātuve un kopija</string>
     <string name="settings_hub_storage_subtitle">Cik ilgi glabāt lejupielādes, eksports un imports</string>
     <string name="search_failed_title">Neizdevās meklēt RuStore</string>
+    <string name="library_frozen_short">Iesaldēta</string>
 </resources>

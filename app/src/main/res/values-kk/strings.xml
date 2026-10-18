@@ -822,4 +822,5 @@
     <string name="settings_hub_storage_title">Сақтау және көшірме</string>
     <string name="settings_hub_storage_subtitle">Жүктеулерді қанша сақтау, экспорт және импорт</string>
     <string name="search_failed_title">RuStore-да іздеу мүмкін болмады</string>
+    <string name="library_frozen_short">Мұздатылған</string>
 </resources>

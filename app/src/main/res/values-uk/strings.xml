@@ -822,4 +822,5 @@
     <string name="settings_hub_storage_title">Сховище й копія</string>
     <string name="settings_hub_storage_subtitle">Скільки зберігати завантаження, експорт та імпорт</string>
     <string name="search_failed_title">Не вдалося виконати пошук у RuStore</string>
+    <string name="library_frozen_short">Заморожено</string>
 </resources>
