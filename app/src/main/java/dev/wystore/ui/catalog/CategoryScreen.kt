@@ -20,7 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -183,13 +183,13 @@ fun CategoryScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        OutlinedButton(onClick = onPreviousPage, enabled = state.canGoBack) { Text(stringResource(R.string.common_back)) }
+                        FilledTonalButton(onClick = onPreviousPage, enabled = state.canGoBack) { Text(stringResource(R.string.common_back)) }
                         Text(
                             state.lastPage?.let { stringResource(R.string.catalog_page_of, state.page, it) } ?: stringResource(R.string.catalog_page, state.page),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        OutlinedButton(onClick = onNextPage, enabled = state.canGoForward) { Text(stringResource(R.string.common_next)) }
+                        FilledTonalButton(onClick = onNextPage, enabled = state.canGoForward) { Text(stringResource(R.string.common_next)) }
                     }
                 }
             }

@@ -1,5 +1,10 @@
 package dev.wystore.ui.github
 
+import dev.wystore.ui.components.HubPanel
+import dev.wystore.ui.components.FactTiles
+import dev.wystore.ui.components.fadingTopEdge
+import dev.wystore.ui.components.HubPageHeader
+import dev.wystore.ui.components.HubRoundIconButton
 import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.bleedToScreenEdges
 import androidx.compose.foundation.layout.Arrangement
@@ -26,7 +31,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -137,22 +141,20 @@ fun GitHubAppScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = { Text(entry?.title.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back)
-                        )
-                    }
-                },
+            HubPageHeader(
+                // The page's kind, as on a RuStore page: the name and the repository are in the panel
+                // under it, and repeated up here they read three times on one screen.
+                title = stringResource(R.string.details_title),
+                eyebrow = "GitHub",
+                onBack = onBack,
                 actions = {
                     // The same affordance as a RuStore page: both sources behave alike.
                     entry?.let { catalogEntry ->
                         val subject = stringResource(R.string.github_share_subject, catalogEntry.title)
                         val chooserTitle = stringResource(R.string.details_share_chooser)
-                        IconButton(
+                        HubRoundIconButton(
+                            icon = Icons.Outlined.Share,
+                            contentDescription = stringResource(R.string.details_share),
                             onClick = {
                                 shareLink(
                                     context = context,
@@ -161,26 +163,21 @@ fun GitHubAppScreen(
                                     chooserTitle = chooserTitle
                                 )
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Share,
-                                contentDescription = stringResource(R.string.details_share)
-                            )
-                        }
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                }
             )
         }
     ) { contentPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = contentPadding.calculateTopPadding()),
+                .padding(top = contentPadding.calculateTopPadding())
+                .fadingTopEdge(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 4.dp,
+                top = 16.dp,
                 bottom = 28.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -195,80 +192,67 @@ fun GitHubAppScreen(
                 return@LazyColumn
             }
 
+            // Who and what, and its tags, in one glass panel, as on a RuStore page.
             item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AppIcon(
-                        model = state.info?.avatarUrl ?: entry.iconUrl,
-                        contentDescription = null,
-                        size = 72.dp
-                    )
-                    Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                        Text(
-                            entry.title,
-                            style = MaterialTheme.typography.headlineSmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+                HubPanel {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AppIcon(
+                            model = state.info?.avatarUrl ?: entry.iconUrl,
+                            contentDescription = null,
+                            size = 72.dp
                         )
-                        Text(
-                            entry.repository.displayName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
-
-            item {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    CategoryPill("GitHub")
-                    state.info?.license?.let { CategoryPill(it) }
-                    entry.categories.forEach { CategoryPill(it) }
-                }
-            }
-
-            // Facts row: the same "what am I about to install" summary the RuStore page shows.
-            item {
-                WyCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        val release = state.latestRelease
-                        GitHubFact(
-                            stringResource(R.string.github_fact_version),
-                            release?.tagName ?: stringResource(R.string.github_fact_unknown)
-                        )
-                        GitHubFact(
-                            stringResource(R.string.github_fact_published),
-                            release?.publishedAt?.take(10) ?: stringResource(R.string.github_fact_unknown)
-                        )
-                        // The size shown must be the build the Install button will actually fetch.
-                        GitHubFact(
-                            stringResource(R.string.github_fact_size),
-                            state.recommendedAsset(deviceAbis)?.let { formatSize(it.sizeBytes) }
-                                ?: stringResource(R.string.github_fact_unknown)
-                        )
-                        state.info?.stars?.let { GitHubFact(stringResource(R.string.github_fact_stars), it.toString()) }
-                        installedApp?.let {
-                            GitHubFact(stringResource(R.string.github_fact_installed), it.versionName)
-                            GitHubFact(
-                                stringResource(R.string.github_fact_owner),
-                                installerLabel(it)
-                            )
-                        }
-
-                        if (state.info?.archived == true) {
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             Text(
-                                stringResource(R.string.github_archived),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error
+                                entry.title,
+                                style = MaterialTheme.typography.headlineSmall,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                entry.repository.displayName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
+                    Spacer(Modifier.height(4.dp))
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        CategoryPill("GitHub")
+                        state.info?.license?.let { CategoryPill(it) }
+                        entry.categories.forEach { CategoryPill(it) }
+                    }
+                    if (state.info?.archived == true) {
+                        Text(
+                            stringResource(R.string.github_archived),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
+            }
+
+            // The same "what am I about to install" summary the RuStore page shows, as tiles.
+            item {
+                val release = state.latestRelease
+                val unknown = stringResource(R.string.github_fact_unknown)
+                FactTiles(
+                    listOfNotNull(
+                        stringResource(R.string.github_fact_version) to (release?.tagName ?: unknown),
+                        stringResource(R.string.github_fact_published) to (release?.publishedAt?.take(10) ?: unknown),
+                        // The size shown must be the build the Install button will actually fetch.
+                        stringResource(R.string.github_fact_size) to
+                            (state.recommendedAsset(deviceAbis)?.let { formatSize(it.sizeBytes) } ?: unknown),
+                        state.info?.stars?.let { stringResource(R.string.github_fact_stars) to it.toString() },
+                        installedApp?.let { stringResource(R.string.github_fact_installed) to it.versionName },
+                        installedApp?.let { stringResource(R.string.github_fact_owner) to installerLabel(it) }
+                    )
+                )
             }
 
             when {
@@ -368,7 +352,7 @@ fun GitHubAppScreen(
                                 // one wanted - it is just no longer the thing the page pushes.
                                 // When another installer owns the app, the same action is the only
                                 // way to hand its updates to Wy Store, so it says so.
-                                OutlinedButton(
+                                FilledTonalButton(
                                     onClick = { onInstallAsset(recommended) },
                                     modifier = Modifier.weight(1f)
                                 ) {
@@ -455,7 +439,7 @@ fun GitHubAppScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                OutlinedButton(onClick = { onInstallAsset(asset) }) {
+                                FilledTonalButton(onClick = { onInstallAsset(asset) }) {
                                     Text(stringResource(R.string.common_install))
                                 }
                             }
@@ -528,7 +512,7 @@ fun GitHubAppScreen(
 
             if (state.releases.size > 1) {
                 item {
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = { showAllReleases = !showAllReleases },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -585,20 +569,3 @@ fun GitHubAppScreen(
     }
 }
 
-@Composable
-private fun GitHubFact(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-        Text(
-            label,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.width(12.dp))
-        Text(
-            value,
-            style = MaterialTheme.typography.labelLarge,
-            textAlign = TextAlign.End
-        )
-    }
-}

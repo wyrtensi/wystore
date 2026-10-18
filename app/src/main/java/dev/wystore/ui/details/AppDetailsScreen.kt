@@ -1,5 +1,10 @@
 package dev.wystore.ui.details
 
+import dev.wystore.ui.components.fadingTopEdge
+import dev.wystore.ui.components.CategoryPill
+import dev.wystore.ui.components.HubPanel
+import dev.wystore.ui.components.HubRoundIconButton
+import dev.wystore.ui.components.HubPageHeader
 import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.bleedToScreenEdges
 import android.content.Intent
@@ -156,20 +161,16 @@ fun AppDetailsScreen(
     }
 
     Scaffold(topBar = {
-        TopAppBar(
-            title = { Text(stringResource(R.string.details_title)) },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = stringResource(R.string.common_back)
-                    )
-                }
-            },
+        HubPageHeader(
+            title = stringResource(R.string.details_title),
+            eyebrow = "RuStore",
+            onBack = onBack,
             actions = {
                 val shareSubject = stringResource(R.string.details_share_subject, app.name)
                 val chooserTitle = stringResource(R.string.details_share_chooser)
-                IconButton(
+                HubRoundIconButton(
+                    icon = Icons.Outlined.Share,
+                    contentDescription = stringResource(R.string.details_share),
                     onClick = {
                         shareLink(
                             context = context,
@@ -178,32 +179,29 @@ fun AppDetailsScreen(
                             chooserTitle = chooserTitle
                         )
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Share,
-                        contentDescription = stringResource(R.string.details_share)
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+            }
         )
     }) { contentPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()),
+            modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding()).fadingTopEdge(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
-                top = 4.dp,
+                top = 16.dp,
                 bottom = 28.dp + LocalBottomBarInset.current
             ),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             item {
+                // The concept's detail page: who and what, the one-line pitch and the one button,
+                // in a single glass panel instead of loose lines on the page.
+                HubPanel {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AppIcon(
                         model = app.iconUrl,
                         contentDescription = stringResource(R.string.common_app_icon, app.name),
-                        size = 84.dp
+                        size = 76.dp
                     )
                     Spacer(Modifier.width(14.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -225,18 +223,15 @@ fun AppDetailsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             app.rating?.let { RatingPill(it, app.ratingCount) }
-                            SourceLabel(text = "RuStore")
+                            app.categories.firstOrNull()?.let { CategoryPill(it) }
                         }
                     }
                 }
-            }
-
-            app.shortDescription.takeIf { it.isNotBlank() }?.let { summary ->
-                item { Text(summary, style = MaterialTheme.typography.bodyMedium) }
-            }
-
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                app.shortDescription.takeIf { it.isNotBlank() }?.let { summary ->
+                    Spacer(Modifier.height(6.dp))
+                    Text(summary, style = MaterialTheme.typography.bodyMedium)
+                }
+                Spacer(Modifier.height(8.dp))
                     if (installed == null) {
                         Button(
                             onClick = runInstall,

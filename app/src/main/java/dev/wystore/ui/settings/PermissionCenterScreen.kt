@@ -24,7 +24,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -150,7 +150,7 @@ fun PermissionCenterScreen(
                         stringResource(R.string.permissions_notifications_text),
                         style = MaterialTheme.typography.bodySmall
                     )
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = {
                             val action = NotificationPermissionPolicy.actionForRequest(
                                 granted = notificationsEnabled,
@@ -193,7 +193,7 @@ fun PermissionCenterScreen(
                         stringResource(R.string.permissions_unknown_sources_text),
                         style = MaterialTheme.typography.bodySmall
                     )
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = {
                             context.openUnknownSourcesSettings()
                         },
@@ -221,7 +221,7 @@ fun PermissionCenterScreen(
                         stringResource(R.string.permissions_background_text),
                         style = MaterialTheme.typography.bodySmall
                     )
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = {
                             val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                             context.startActivity(intent)
@@ -248,7 +248,7 @@ fun PermissionCenterScreen(
                             stringResource(R.string.permissions_vendor_text),
                             style = MaterialTheme.typography.bodySmall
                         )
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = { runCatching { context.startActivity(intent) } },
                             modifier = Modifier.align(Alignment.End)
                         ) {
@@ -279,7 +279,7 @@ fun PermissionCenterScreen(
                         stringResource(R.string.permissions_root_text),
                         style = MaterialTheme.typography.bodySmall
                     )
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = onCheckRoot,
                         modifier = Modifier.align(Alignment.End)
                     ) {

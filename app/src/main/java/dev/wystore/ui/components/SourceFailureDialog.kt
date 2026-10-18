@@ -6,7 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -97,16 +97,16 @@ fun SourceFailureDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (status is SelfUpdateStatus.Available) {
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = onInstallSelfUpdate,
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(stringResource(R.string.about_install)) }
                 }
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = { saveReport.launch(REPORT_FILE_NAME) },
                     modifier = Modifier.fillMaxWidth()
                 ) { Text(stringResource(R.string.source_failure_save_report)) }
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = {
                         runCatching {
                             context.startActivity(

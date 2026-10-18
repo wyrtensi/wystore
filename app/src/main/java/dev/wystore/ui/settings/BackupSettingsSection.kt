@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -84,7 +84,7 @@ fun BackupSettingsSection(
             )
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                         // One name, not a timestamped snapshot: this file is kept current from
@@ -96,7 +96,7 @@ fun BackupSettingsSection(
                 ) {
                     Text(stringResource(R.string.backup_export))
                 }
-                OutlinedButton(
+                FilledTonalButton(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                         importLauncher.launch(arrayOf("application/json", "*/*"))
@@ -158,7 +158,7 @@ fun BackupSettingsSection(
                         Switch(checked = mergeMode, onCheckedChange = null)
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = {
                                 val clip = ClipData.newPlainText("Wy Store Backup", textBackupContent)
                                 clipboard?.setPrimaryClip(clip)
@@ -168,7 +168,7 @@ fun BackupSettingsSection(
                         ) {
                             Text(stringResource(R.string.backup_copy))
                         }
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = {
                                 val text = clipboard?.primaryClip?.getItemAt(0)?.text?.toString().orEmpty()
                                 if (text.isNotBlank()) {

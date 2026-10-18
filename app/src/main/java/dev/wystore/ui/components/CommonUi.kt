@@ -168,43 +168,42 @@ fun ReviewCard(review: StoreReview) {
 fun DetailFacts(app: StoreApp) {
     val noData = stringResource(R.string.common_no_data)
     val notSpecified = stringResource(R.string.common_not_specified)
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (app.categories.isNotEmpty()) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // The first section is in the page's panel already; only the others are added here.
+        val more = app.categories.drop(1)
+        if (more.isNotEmpty()) {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                app.categories.forEach { CategoryPill(it) }
+                more.forEach { CategoryPill(it) }
             }
         }
-        // A two-column table rather than a paragraph of "Label: value" sentences, so the values
-        // line up and the eye can run down them.
+        // Tiles of label over value, two to a row, as the concept lays out its facts. The rating
+        // is left out: it stands in the panel at the top of the page, and here it was the same
+        // number twice.
+        val facts = listOfNotNull(
+            stringResource(R.string.details_label_version) to "${app.versionName} (${app.versionCode})",
+            stringResource(R.string.details_label_updated) to (formatStoreDate(app.updatedAt) ?: noData),
+            stringResource(R.string.details_label_size) to formatSize(app.sizeBytes),
+            stringResource(R.string.details_label_min_android) to
+                stringResource(R.string.details_min_android_value, app.minAndroidVersion ?: notSpecified),
+            app.downloadsText?.let { stringResource(R.string.details_label_downloads) to formatDownloads(it) }
+        )
+        FactTiles(facts)
+        // The fingerprint is a check rather than a fact about the app, and too long for a tile.
         WyCard(modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FactRow(
-                    stringResource(R.string.details_label_version),
-                    "${app.versionName} (${app.versionCode})"
-                )
-                FactRow(stringResource(R.string.details_label_updated), formatStoreDate(app.updatedAt) ?: noData)
-                FactRow(stringResource(R.string.details_label_size), formatSize(app.sizeBytes))
-                FactRow(
-                    stringResource(R.string.details_label_min_android),
-                    stringResource(R.string.details_min_android_value, app.minAndroidVersion ?: notSpecified)
-                )
-                app.rating?.let {
-                    val rating = DecimalFormat("0.0").format(it)
-                    FactRow(
-                        stringResource(R.string.details_label_rating),
-                        app.ratingCount?.let { count ->
-                            stringResource(R.string.details_rating_value, rating, formatCountInFull(count))
-                        } ?: rating
-                    )
-                }
-                app.downloadsText?.let { FactRow(stringResource(R.string.details_label_downloads), formatDownloads(it)) }
-                WyDivider()
-                FactRow(
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
                     stringResource(R.string.details_label_fingerprint),
-                    app.signatureHint ?: notSpecified
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    app.signatureHint ?: notSpecified,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                    )
                 )
                 Text(
                     stringResource(R.string.details_fingerprint_note),
@@ -212,6 +211,41 @@ fun DetailFacts(app: StoreApp) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+    }
+}
+
+/** Facts as tiles, two to a row: label over value, the concept's way of laying them out. */
+@Composable
+fun FactTiles(facts: List<Pair<String, String>>) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        facts.chunked(2).forEach { pair ->
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                pair.forEach { (label, value) -> FactTile(label, value, Modifier.weight(1f)) }
+                if (pair.size == 1) Spacer(Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+/** One fact as the concept's tile: the label small and grey, the value under it in weight. */
+@Composable
+private fun FactTile(label: String, value: String, modifier: Modifier = Modifier) {
+    WyCard(modifier = modifier) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                value,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

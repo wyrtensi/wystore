@@ -51,21 +51,9 @@ fun sourceDisplayName(raw: String): String = when (raw.uppercase()) {
 
 @Composable
 fun SourceLabel(text: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraSmall,
-        color = MaterialTheme.colorScheme.secondaryContainer
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            // A source is a word. Squeezed, it used to wrap into a column of letters.
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
+    // A faint tag, as every secondary fact is now. A source is a word; squeezed, the old badge
+    // wrapped into a column of letters, and the tag keeps to one line.
+    HubTag(text, modifier)
 }
 
 /**

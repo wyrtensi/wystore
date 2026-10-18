@@ -20,7 +20,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -138,7 +138,7 @@ fun AboutSettingsScreen(
                     FactRow(stringResource(R.string.about_version), "$versionName ($versionCode)")
                     FactRow(stringResource(R.string.about_source), SelfUpdateChecker.PROJECT_URL)
                     WyDivider()
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = {
                             runCatching {
                                 context.startActivity(
@@ -148,7 +148,7 @@ fun AboutSettingsScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(stringResource(R.string.about_source)) }
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = {
                             runCatching {
                                 context.startActivity(
@@ -158,7 +158,7 @@ fun AboutSettingsScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(stringResource(R.string.about_disclaimer_link)) }
-                    OutlinedButton(
+                    FilledTonalButton(
                         onClick = {
                             runCatching {
                                 context.startActivity(
@@ -275,7 +275,7 @@ fun AboutSettingsScreen(
                         }
                         // Changing your mind used to mean leaving for the Updates tab.
                         if (working && queueItem != null) {
-                            OutlinedButton(
+                            FilledTonalButton(
                                 onClick = { onCancelDownload(queueItem.id) },
                                 modifier = Modifier.fillMaxWidth()
                             ) { Text(stringResource(R.string.common_cancel)) }
@@ -345,9 +345,9 @@ private fun DiagnosticsButton() {
     var notice by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
 
-    OutlinedButton(
+    FilledTonalButton(
         onClick = {
-            if (busy) return@OutlinedButton
+            if (busy) return@FilledTonalButton
             busy = true
             scope.launch {
                 notice = runCatching {

@@ -17,16 +17,8 @@ fun StateBadge(
     containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer
 ) {
-    Text(
-        text = text,
-        color = contentColor,
-        modifier = modifier
-            .background(containerColor, MaterialTheme.shapes.extraSmall)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        style = MaterialTheme.typography.labelMedium,
-        // A badge is a word, never a paragraph. Given too little room it used to wrap into a
-        // column of single letters and drag the row it sits in out of shape.
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
-    )
+    // A faint tag; a badge given colours of its own keeps them as its tint, so a state still reads
+    // as that state. A badge is a word: the tag keeps it to one line.
+    val default = containerColor == MaterialTheme.colorScheme.secondaryContainer
+    HubTag(text, modifier, tint = if (default) null else contentColor)
 }

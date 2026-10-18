@@ -518,7 +518,7 @@ fun SearchCard(
                             color = MaterialTheme.colorScheme.error
                         )
                         Spacer(Modifier.width(8.dp))
-                        OutlinedButton(
+                        FilledTonalButton(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onQuickInstall(app.packageName)
