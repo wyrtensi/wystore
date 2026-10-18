@@ -202,7 +202,7 @@
     <string name="github_install_apk">Instalēt APK</string>
     <string name="github_release_no_apk">Šajā laidienā nav .apk failu.</string>
 
-    <string name="library_title">Bibliotēka</string>
+    <string name="library_title">Manas</string>
     <string name="library_checking">Pārbauda</string>
     <string name="library_install_count">Instalēt (%1$d)</string>
     <string name="library_check_and_install">Pārbaudīt un instalēt</string>
@@ -373,7 +373,7 @@
     <string name="updates_install_all">Instalēt visas</string>
     <string name="updates_ready_title">Gatavas instalēšanai (%1$d)</string>
     <string name="updates_managed_title">Pieņemtās lietotnes (%1$d)</string>
-    <string name="updates_managed_empty">Pagaidām nav pieņemtu lietotņu. Izvēlies lietotnes Bibliotēkā vai instalē tās no kataloga.</string>
+    <string name="updates_managed_empty">Pagaidām nav pieņemtu lietotņu. Izvēlies lietotnes sadaļā „Manas” vai instalē tās no kataloga.</string>
     <string name="updates_downloaded_version">Versija %1$s</string>
     <string name="updates_last_check_manual">Pēdējā manuālā pārbaude</string>
     <string name="updates_last_check_background">Pēdējā fona pārbaude</string>

@@ -202,7 +202,7 @@
     <string name="github_install_apk">Усталяваць APK</string>
     <string name="github_release_no_apk">У гэтым рэлізе няма файлаў .apk.</string>
 
-    <string name="library_title">Бібліятэка</string>
+    <string name="library_title">Мае</string>
     <string name="library_checking">Правяраем</string>
     <string name="library_install_count">Усталяваць (%1$d)</string>
     <string name="library_check_and_install">Праверыць і ўсталяваць</string>
@@ -373,7 +373,7 @@
     <string name="updates_install_all">Усталяваць усе</string>
     <string name="updates_ready_title">Гатовыя да ўсталявання (%1$d)</string>
     <string name="updates_managed_title">Прынятыя праграмы (%1$d)</string>
-    <string name="updates_managed_empty">Пакуль няма прынятых праграм. Выберыце праграмы ў Бібліятэцы або ўсталюйце іх з каталога.</string>
+    <string name="updates_managed_empty">Пакуль няма прынятых праграм. Выберыце праграмы ў «Маіх» або ўсталюйце іх з каталога.</string>
     <string name="updates_downloaded_version">Версія %1$s</string>
     <string name="updates_last_check_manual">Апошняя ручная праверка</string>
     <string name="updates_last_check_background">Апошняя фонавая праверка</string>

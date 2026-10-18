@@ -202,7 +202,7 @@
     <string name="github_install_apk">APK орнату</string>
     <string name="github_release_no_apk">Бұл релизде .apk файлдары жоқ.</string>
 
-    <string name="library_title">Кітапхана</string>
+    <string name="library_title">Менікі</string>
     <string name="library_checking">Тексерілуде</string>
     <string name="library_install_count">Орнату (%1$d)</string>
     <string name="library_check_and_install">Тексеріп, орнату</string>
@@ -373,7 +373,7 @@
     <string name="updates_install_all">Бәрін орнату</string>
     <string name="updates_ready_title">Орнатуға дайын (%1$d)</string>
     <string name="updates_managed_title">Қабылданған қолданбалар (%1$d)</string>
-    <string name="updates_managed_empty">Әзірге қабылданған қолданба жоқ. Кітапханадан қолданба таңдаңыз немесе каталогтан орнатыңыз.</string>
+    <string name="updates_managed_empty">Әзірге қабылданған қолданба жоқ. «Менікі» бөлімінен қолданба таңдаңыз немесе каталогтан орнатыңыз.</string>
     <string name="updates_downloaded_version">%1$s нұсқасы</string>
     <string name="updates_last_check_manual">Соңғы қолмен тексеру</string>
     <string name="updates_last_check_background">Соңғы фондық тексеру</string>
