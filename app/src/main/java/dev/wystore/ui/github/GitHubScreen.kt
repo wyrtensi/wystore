@@ -1,5 +1,6 @@
 package dev.wystore.ui.github
 
+import dev.wystore.ui.components.HubHeader
 import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.bleedToScreenEdges
 import androidx.compose.foundation.layout.Arrangement
@@ -97,10 +98,7 @@ fun GitHubScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = { Text("GitHub Releases") },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+            HubHeader(title = "GitHub Releases", eyebrow = "GitHub")
         }
     ) { contentPadding ->
         LazyColumn(

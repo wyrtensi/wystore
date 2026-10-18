@@ -1,5 +1,18 @@
 package dev.wystore.ui.settings
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Face
+import androidx.compose.material.icons.outlined.Lock
+import dev.wystore.ui.components.HubHeader
 import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.DialogButton
 import dev.wystore.ui.components.HubAlertDialog
@@ -212,10 +225,7 @@ fun SettingsScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+            HubHeader(title = stringResource(R.string.settings_title), eyebrow = "Wy Store")
         }
     ) { contentPadding ->
         Column(
@@ -237,6 +247,8 @@ fun SettingsScreen(
                 Column {
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_permissions_title),
+                        icon = Icons.Outlined.Lock,
+                        tint = Color(0xFF6FCF97),
                         subtitle = stringResource(R.string.settings_hub_permissions_subtitle),
                         onClick = { subScreen = SettingsSubScreen.PERMISSIONS },
                         modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.PERMISSIONS))
@@ -244,6 +256,8 @@ fun SettingsScreen(
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_appearance_title),
+                        icon = Icons.Outlined.Face,
+                        tint = Color(0xFFBB6BD9),
                         subtitle = stringResource(R.string.settings_hub_appearance_subtitle),
                         onClick = { subScreen = SettingsSubScreen.APPEARANCE },
                         modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.APPEARANCE))
@@ -251,6 +265,8 @@ fun SettingsScreen(
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_language_title),
+                        icon = Icons.Outlined.Place,
+                        tint = Color(0xFF56CCF2),
                         subtitle = stringResource(R.string.settings_hub_language_subtitle),
                         onClick = { subScreen = SettingsSubScreen.LANGUAGE },
                         modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.LANGUAGE))
@@ -258,6 +274,8 @@ fun SettingsScreen(
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_notifications_title),
+                        icon = Icons.Outlined.Notifications,
+                        tint = Color(0xFFF66C3F),
                         subtitle = stringResource(R.string.settings_hub_notifications_subtitle),
                         onClick = { subScreen = SettingsSubScreen.NOTIFICATIONS },
                         modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.NOTIFICATIONS))
@@ -265,6 +283,8 @@ fun SettingsScreen(
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_sources_title),
+                        icon = Icons.Outlined.Build,
+                        tint = Color(0xFFF2C94C),
                         subtitle = stringResource(R.string.settings_hub_sources_subtitle),
                         onClick = { subScreen = SettingsSubScreen.SOURCES },
                         modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.SOURCES))
@@ -274,6 +294,8 @@ fun SettingsScreen(
                         SettingsHubDivider()
                         SettingsHubRow(
                             title = "GitHub Releases",
+                            icon = Icons.Outlined.Add,
+                            tint = Color(0xFFFFA37F),
                             subtitle = if (githubCount > 0) {
                                 stringResource(R.string.settings_hub_github_subtitle_count, githubCount)
                             } else {
@@ -285,6 +307,8 @@ fun SettingsScreen(
                     SettingsHubDivider()
                     SettingsHubRow(
                         title = stringResource(R.string.settings_hub_about_title),
+                        icon = Icons.Outlined.Info,
+                        tint = Color(0xFFA9ABB1),
                         subtitle = stringResource(R.string.settings_hub_about_subtitle),
                         onClick = { subScreen = SettingsSubScreen.ABOUT },
                         modifier = Modifier.focusRequester(hubFocus.getValue(SettingsSubScreen.ABOUT))
@@ -596,15 +620,30 @@ private fun SettingsHubRow(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    tint: Color = MaterialTheme.colorScheme.primary
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // The concept's menu rows lead with a coloured glyph in a dark tile.
+        icon?.let {
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                    .background(tint.copy(alpha = 0.14f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(it, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+            }
+            Spacer(Modifier.width(14.dp))
+        }
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -628,7 +667,7 @@ private fun SettingsHubRow(
 /** The hairline between two menu rows, inset past the text so the group reads as one block. */
 @Composable
 private fun SettingsHubDivider() {
-    WyDivider(modifier = Modifier.padding(start = 16.dp))
+    WyDivider(modifier = Modifier.padding(start = 66.dp, end = 16.dp))
 }
 
 /** A titled block of related settings, boxed so the screen is not one long undivided column. */

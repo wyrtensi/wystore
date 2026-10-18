@@ -1,5 +1,6 @@
 package dev.wystore.ui.settings
 
+import dev.wystore.ui.components.HubPageHeader
 import dev.wystore.ui.components.switchRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,17 +51,12 @@ fun SourceSettingsScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_hub_sources_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            // The concept's page header: a round back button, where the page belongs as the
+            // accent line, the title in plain weight.
+            HubPageHeader(
+                title = stringResource(R.string.settings_hub_sources_title),
+                eyebrow = stringResource(R.string.settings_title),
+                onBack = onBack
             )
         }
     ) { contentPadding ->

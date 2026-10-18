@@ -1,5 +1,6 @@
 package dev.wystore.ui.home
 
+import dev.wystore.ui.components.HubPageHeader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -71,17 +72,12 @@ fun AllCategoriesScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.categories_all_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            // The concept's page header: a round back button, where the page belongs as the
+            // accent line, the title in plain weight.
+            HubPageHeader(
+                title = stringResource(R.string.categories_all_title),
+                eyebrow = "RuStore",
+                onBack = onBack
             )
         }
     ) { contentPadding ->

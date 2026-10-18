@@ -1,5 +1,6 @@
 package dev.wystore.ui.github
 
+import dev.wystore.ui.components.HubPageHeader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -50,17 +51,12 @@ fun GitHubReleaseDetailsScreen(
     onCancelInstall: (String) -> Unit = {}
 ) {
     Scaffold(topBar = {
-        TopAppBar(
-            title = { Text(stringResource(R.string.github_release_title)) },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = stringResource(R.string.common_back)
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+        // The concept's page header: a round back button, where the page belongs as the
+        // accent line, the title in plain weight.
+        HubPageHeader(
+            title = stringResource(R.string.github_release_title),
+            eyebrow = "GitHub",
+            onBack = onBack
         )
     }) { contentPadding ->
         LazyColumn(
