@@ -261,10 +261,13 @@ fun CompactSettingSwitch(label: String, checked: Boolean, enabled: Boolean = tru
  * Makes a row with a switch one control: a tap on the label toggles it, and the remote's focus lights
  * the whole row. On the switch alone the focus was a halo around its thumb that a TV across the room
  * did not show. The switch inside is given `onCheckedChange = null`, so it is not a second stop.
+ *
+ * No rounded clip: the label starts at the row's edge, so the corner rounding cut the first letter
+ * of its first and last line - the "E" of "Enable", the "G" of "GitHub Releases".
  */
 @Composable
 fun Modifier.switchRow(checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit): Modifier =
-    clip(MaterialTheme.shapes.small).toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
+    toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
 
 @Composable
 fun Loading(operation: String? = null) {
