@@ -164,14 +164,7 @@ private fun AppRowContent(
                 Text(
                     text = StatusTextResolver.resolve(LocalContext.current, state.status),
                     style = MaterialTheme.typography.labelMedium,
-                    color = when (state.status.code) {
-                        StatusCode.FAILED_NETWORK,
-                        StatusCode.FAILED_STORAGE,
-                        StatusCode.FAILED_SIGNATURE,
-                        StatusCode.FAILED_SOURCE_UNCONFIRMED,
-                        StatusCode.FAILED_GENERIC -> MaterialTheme.colorScheme.error
-                        else -> MaterialTheme.colorScheme.primary
-                    },
+                    color = StatusTones.of(state.status.code).color() ?: MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -299,7 +292,7 @@ private fun AppGroupRowContent(
                 )
                 // A third line for the state, when there is one. Squeezed into the line of facts it
                 // and the section cut each other down to "Готово к..." and "Р...".
-                statusText?.let { HubTag(it, tint = MaterialTheme.colorScheme.primary) }
+                statusText?.let { HubTag(it, tint = StatusTones.of(state.status.code).color()) }
             }
             // Quiet: an icon in the grey of the text beside it, the way the concept keeps
             // secondary actions out of the row's way.
@@ -422,10 +415,4 @@ private val REPORTED_STATES = setOf(
 )
 
 /** States that are a failure: told by a red sentence, not a tag. */
-private val FAILURE_STATES = setOf(
-    StatusCode.FAILED_NETWORK,
-    StatusCode.FAILED_STORAGE,
-    StatusCode.FAILED_SIGNATURE,
-    StatusCode.FAILED_SOURCE_UNCONFIRMED,
-    StatusCode.FAILED_GENERIC
-)
+private val FAILURE_STATES = StatusCode.entries.filter { StatusTones.of(it) == StatusTone.FAILED }.toSet()

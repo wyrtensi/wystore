@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.text.font.FontWeight
 import dev.wystore.ui.components.HubGroupTitle
+import dev.wystore.ui.components.color
 import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubHeader
 import dev.wystore.ui.components.HubHeaderPill
@@ -601,14 +602,7 @@ fun QueueItemCard(
                             dev.wystore.ui.components.HubTag(
                                 queueStatusLabel(item),
                                 modifier = Modifier.weight(1f, fill = false),
-                                tint = when (item.status) {
-                                    InstallQueueStatus.DOWNLOADING,
-                                    InstallQueueStatus.RESOLVING,
-                                    InstallQueueStatus.VERIFYING,
-                                    InstallQueueStatus.INSTALLING -> MaterialTheme.colorScheme.primary
-                                    InstallQueueStatus.PAUSED -> MaterialTheme.colorScheme.tertiary
-                                    else -> null
-                                }
+                                tint = dev.wystore.ui.components.StatusTones.of(item.status, item.awaitingConfirmation).color()
                             )
                         }
                     }
