@@ -237,7 +237,7 @@ fun TvHomeScreen(
                 ) {
                     itemsIndexed(categoryRows, key = { _, row -> row.key }) { index, row ->
                         TvCategoryTile(
-                            title = row.title.orEmpty(),
+                            title = row.shownTitle().orEmpty(),
                             accent = index,
                             modifier = if (index == 0) Modifier.focusRequester(firstTileFocus) else Modifier,
                             previewIcons = row.apps.mapNotNull { it.iconUrl?.takeIf(String::isNotBlank) },
@@ -262,7 +262,7 @@ fun TvHomeScreen(
         // scrolled away and lost the focus.
         rows.forEachIndexed { index, row ->
             item(key = row.key) {
-                row.title?.let { TvSectionTitle(it) }
+                row.shownTitle()?.let { TvSectionTitle(it) }
                 TvAppRow(
                     state = rowStates.getOrPut(row.key) { LazyListState() },
                     apps = row.apps,
@@ -404,3 +404,14 @@ private val TvGitHubRowHeight = 196.dp
 private const val MIN_CATEGORY_SIZE = 3
 private const val MIN_CATEGORY_TILES = 2
 private const val OTHER_CATEGORY = "\u0000other"
+
+/**
+ * A category row's name in the interface language. The catalogue's sections arrive as slugs, so
+ * the row showed "entertainment" and "tools" as its title; game genres keep the name they came with.
+ */
+@Composable
+private fun TvHomeRow.shownTitle(): String? =
+    category?.takeIf { it != OTHER_CATEGORY }?.let { slug ->
+        dev.wystore.ui.components.CategoryLabels.stringRes(slug)?.let { stringResource(it) }
+            ?: dev.wystore.ui.components.CategoryLabels.humanize(slug)
+    } ?: title

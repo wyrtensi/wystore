@@ -268,7 +268,14 @@ fun TvAppCard(
                     content = MaterialTheme.colorScheme.onTertiary
                 )
             } else {
-                TvBadge(app.primaryCategory() ?: stringResource(R.string.source_rustore))
+                // A slug since the catalogue's sections were turned into slugs; the badge read
+                // "entertainment" under every card in a Russian interface.
+                TvBadge(
+                    app.primaryCategory()?.let { slug ->
+                        dev.wystore.ui.components.CategoryLabels.stringRes(slug)?.let { stringResource(it) }
+                            ?: dev.wystore.ui.components.CategoryLabels.humanize(slug)
+                    } ?: stringResource(R.string.source_rustore)
+                )
             }
         }
     }
