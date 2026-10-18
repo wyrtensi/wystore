@@ -284,9 +284,12 @@ data class UpdateCheckProblem(
     val reason: CheckProblemReason
 )
 
+/**
+ * The last check, as numbers. The sentence describing it is made when it is shown: written down
+ * at check time, it stayed in the language the app had then, under a screen in another one.
+ */
 data class UpdateCheckSummary(
     val finishedAt: Long,
-    val detail: String,
     val checked: Int,
     val total: Int,
     val updates: Int,

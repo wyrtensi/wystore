@@ -634,7 +634,6 @@
     <string name="root_error_invalid_package">Некорректное имя пакета.</string>
     <string name="root_error_timeout">Root-команда выполнялась слишком долго и была остановлена.</string>
     <string name="root_error_unavailable">Root недоступен.</string>
-    <string name="check_completed">Проверка завершена</string>
     <string name="check_result_up_to_date">Проверено: %1$d — всё актуально</string>
     <string name="check_result_updates">Проверено: %1$d — обновлений: %2$d</string>
     <string name="check_result_problems">Проверено: %1$d — обновлений: %2$d, с проблемами: %3$d</string>

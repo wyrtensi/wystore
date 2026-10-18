@@ -44,6 +44,8 @@ import dev.wystore.InstallQueueItem
 import dev.wystore.InstallQueueStatus
 import dev.wystore.rowFor
 import dev.wystore.UpdateCheckTask
+import dev.wystore.background.CheckOutcome
+import dev.wystore.background.UpdateCheckReport
 import dev.wystore.data.CheckProblemReason
 import dev.wystore.data.GitHubRepository
 import dev.wystore.data.InstalledApp
@@ -406,7 +408,21 @@ fun LastUpdateCheckCard(
                 style = MaterialTheme.typography.titleSmall
             )
             Text(formatCheckTime(summary.finishedAt), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(summary.detail, style = MaterialTheme.typography.bodySmall)
+            Text(
+                when (UpdateCheckReport.outcome(summary.updates, summary.problems)) {
+                    CheckOutcome.UP_TO_DATE ->
+                        stringResource(R.string.check_result_up_to_date, summary.checked)
+                    CheckOutcome.UPDATES_FOUND ->
+                        stringResource(R.string.check_result_updates, summary.checked, summary.updates)
+                    CheckOutcome.PROBLEMS -> stringResource(
+                        R.string.check_result_problems,
+                        summary.checked,
+                        summary.updates,
+                        summary.problems
+                    )
+                },
+                style = MaterialTheme.typography.bodySmall
+            )
             if (summary.total > 0) {
                 Text(
                     stringResource(

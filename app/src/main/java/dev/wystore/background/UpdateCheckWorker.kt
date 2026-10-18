@@ -301,7 +301,6 @@ class UpdateCheckWorker(
             repository.saveLastUpdateCheck(
                 UpdateCheckSummary(
                     finishedAt = System.currentTimeMillis(),
-                    detail = detail,
                     checked = attempted,
                     total = managedApps.size,
                     updates = updatesFound,

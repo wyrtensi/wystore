@@ -127,7 +127,6 @@ class StoreRepository(private val context: Context) {
         if (finishedAt <= 0L) return null
         return UpdateCheckSummary(
             finishedAt = finishedAt,
-            detail = preferences.getString("last_update_check_detail", null) ?: context.getString(R.string.check_completed),
             checked = preferences.getInt("last_update_check_checked", 0),
             total = preferences.getInt("last_update_check_total", 0),
             updates = preferences.getInt("last_update_check_updates", 0),
@@ -147,7 +146,7 @@ class StoreRepository(private val context: Context) {
     fun saveLastUpdateCheck(summary: UpdateCheckSummary) {
         preferences.edit()
             .putLong("last_update_check_at", summary.finishedAt)
-            .putString("last_update_check_detail", summary.detail)
+            .remove("last_update_check_detail")
             .putInt("last_update_check_checked", summary.checked)
             .putInt("last_update_check_total", summary.total)
             .putInt("last_update_check_updates", summary.updates)
