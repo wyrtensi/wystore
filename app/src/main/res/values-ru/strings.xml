@@ -27,7 +27,7 @@
     <string name="channel_errors">Ошибки и важные действия</string>
 
     <string name="msg_settings_saved">Настройки сохранены</string>
-    <string name="msg_install_permission_required">Разреши Wy Store устанавливать приложения, затем установка продолжится</string>
+    <string name="msg_install_permission_required">Разрешите Wy Store устанавливать приложения, затем установка продолжится</string>
     <string name="msg_install_started">Подтверди установку %1$s в системном окне</string>
     <string name="msg_install_not_started">Установка не запущена</string>
     <string name="msg_install_artifact_missing">Скачанное обновление больше недоступно</string>
@@ -39,7 +39,7 @@
     <string name="msg_install_needs_redownload">%1$s сохранено старой версией Wy Store и не может быть проверено. Скачай заново.</string>
     <string name="msg_search_failed">Не удалось выполнить поиск</string>
     <string name="msg_details_failed">Не удалось открыть карточку</string>
-    <string name="msg_github_open_repo_first">Сначала открой репозиторий GitHub</string>
+    <string name="msg_github_open_repo_first">Сначала откройте репозиторий GitHub</string>
     <string name="msg_backup_exported">Резервная копия успешно экспортирована</string>
     <string name="msg_backup_restored">Резервная копия успешно восстановлена</string>
     <string name="msg_backup_restore_battery">Оптимизация батареи для приложения ещё включена: Настройки → Центр разрешений → «Фоновая активность».</string>
@@ -140,7 +140,7 @@
     <string name="home_categories_unavailable">Категории каталога недоступны</string>
 
     <string name="search_title">Найти приложение</string>
-    <string name="search_subtitle">Ищи по названию, банку, разработчику или package name</string>
+    <string name="search_subtitle">Ищите по названию, банку, разработчику или package name</string>
     <string name="search_field_placeholder">Поиск приложений и игр</string>
     <string name="search_clear">Очистить</string>
     <string name="search_action">Искать в RuStore</string>
@@ -175,7 +175,7 @@
     <string name="details_already_latest">У вас уже актуальная версия из этой карточки.</string>
     <string name="details_no_root">Root не выдан: установка доступна через системное подтверждение Android.</string>
     <string name="details_screenshots">Скриншоты</string>
-    <string name="details_screenshots_hint">Нажми, чтобы посмотреть полностью</string>
+    <string name="details_screenshots_hint">Нажмите, чтобы посмотреть полностью</string>
     <string name="details_reviews">Отзывы</string>
     <string name="details_reviews_all_shown">Показаны все %1$d отзыва с этой оценкой</string>
     <string name="details_reviews_all">Все</string>
@@ -252,7 +252,7 @@
     <string name="settings_hub_sources_title">Источники приложений</string>
     <string name="settings_hub_sources_subtitle">RuStore и GitHub Releases</string>
     <string name="settings_hub_github_subtitle_count">Репозиториев: %1$d</string>
-    <string name="settings_hub_github_subtitle_empty">Добавь репозиторий для установки APK</string>
+    <string name="settings_hub_github_subtitle_empty">Добавьте репозиторий для установки APK</string>
 
     <string name="settings_background_title">Фоновые обновления</string>
     <string name="settings_sections">Разделы каталога</string>
@@ -433,7 +433,7 @@
     <string name="home_github_title">Из GitHub</string>
     <string name="home_github_hint">Приложения с открытым кодом — установка прямо из релизов</string>
     <string name="queue_error_network">Ошибка сети</string>
-    <string name="queue_error_rate_limited">Источник ограничил запросы. Повтори позже</string>
+    <string name="queue_error_rate_limited">Источник ограничил запросы. Повторите позже</string>
     <string name="queue_error_source_changed">Источник изменил формат ответа</string>
     <string name="queue_error_storage_full">Недостаточно места в хранилище</string>
     <string name="queue_error_integrity">Скачанный файл не совпал с контрольной суммой источника</string>
@@ -481,7 +481,7 @@
     <string name="source_rustore">RuStore</string>
     <string name="source_github">GitHub</string>
     <string name="disclaimer_title">Отказ от ответственности</string>
-    <string name="disclaimer_body">Wy Store только скачивает файлы, опубликованные источником, и перед установкой проверяет имя пакета, версию и подпись. Приложения не проверяются, не модерируются и не рекомендуются: Wy Store не отвечает за их содержимое, работу и последствия использования. Установка — на твой страх и риск, соблюдение законодательства — твоя ответственность.</string>
+    <string name="disclaimer_body">Wy Store только скачивает файлы, опубликованные источником, и перед установкой проверяет имя пакета, версию и подпись. Приложения не проверяются, не модерируются и не рекомендуются: Wy Store не отвечает за их содержимое, работу и последствия использования. Установка — на ваш страх и риск, соблюдение законодательства — ваша ответственность.</string>
     <string name="disclaimer_source_rustore">Источник: RuStore. Wy Store не связан с RuStore.</string>
     <string name="disclaimer_source_github">Источник: релизы проекта на GitHub. Файлы публикует разработчик, а не Wy Store.</string>
     <string name="disclaimer_sources_both">Источники: RuStore и релизы на GitHub. Wy Store не связан ни с одним из них.</string>
@@ -675,7 +675,7 @@
     <string name="source_failure_update_available">Вышла более новая версия Wy Store: %1$s. Возможно, она уже понимает новый формат.</string>
     <string name="source_failure_no_update">Новее пока нет. Если дело в приложении, обновление выйдет — и выйдет быстрее, если о проблеме сообщить.</string>
     <string name="source_failure_save_report">Сохранить отчёт о диагностике</string>
-    <string name="source_failure_report_saved">Отчёт сохранён. Приложи его к сообщению.</string>
+    <string name="source_failure_report_saved">Отчёт сохранён. Приложите его к сообщению.</string>
     <string name="source_failure_help">Что делать?</string>
     <string name="category_adsandservices">Объявления и услуги</string>
     <string name="category_books">Книги</string>
@@ -702,7 +702,7 @@
     <string name="notif_action_install_all">Установить все</string>
     <string name="notif_action_open">Открыть</string>
     <string name="notif_error_line">%1$s — %2$s</string>
-    <string name="notif_errors_fix_hint">Открой Wy Store, чтобы решить, что с этим делать.</string>
+    <string name="notif_errors_fix_hint">Откройте Wy Store, чтобы решить, что с этим делать.</string>
     <string name="notif_ready_hint">APK скачан и проверен. Android спросит подтверждение.</string>
     <string name="details_incompatible">Нужен %1$s, на устройстве %2$s. Установить не получится.</string>
     <string name="source_other_short">Другое</string>
