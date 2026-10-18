@@ -1,6 +1,6 @@
 # Политика конфиденциальности Wy Store
 
-Обновлено: 9 сентября 2026 г. Приложение: **Wy Store** (`app.wystore`).
+Обновлено: 18 октября 2026 г. Приложение: **Wy Store** (`app.wystore`).
 Разработчик: wyrtensi, https://github.com/wyrtensi/wystore
 
 *[English version below](#privacy-policy)*
@@ -74,6 +74,13 @@ Wy Store не собирает персональные данные, не за�
 
 Приложение не предназначено для детей и не собирает данные о них — как и ни о ком другом.
 
+## Сайт wystore.ru
+
+Всё сказанное выше относится к приложению. Сайт wystore.ru считает просмотры страниц собственным
+счётчиком (GoatCounter на нашем сервере), без cookie и без сторонних сервисов. Счётчик не хранит
+IP-адреса; сохраняются только страница, источник перехода, страна, браузер и система. Статистика
+открыта: https://stats.wyrtensi.ru/.
+
 ## Изменения
 
 Актуальная версия документа лежит в репозитории проекта. Существенные изменения будут отмечены в
@@ -88,7 +95,7 @@ Wy Store не собирает персональные данные, не за�
 
 # Privacy Policy
 
-Updated: 9 September 2026. Application: **Wy Store** (`app.wystore`).
+Updated: 18 October 2026. Application: **Wy Store** (`app.wystore`).
 Developer: wyrtensi, https://github.com/wyrtensi/wystore
 
 ## Summary
@@ -158,6 +165,13 @@ on your command and saved where you point it. The app never uploads it.
 ## Children
 
 The app is not directed at children and collects no data about them — or about anyone else.
+
+## The wystore.ru website
+
+Everything above is about the app. The wystore.ru website counts page views with our own counter
+(GoatCounter on our server), without cookies or third-party services. The counter does not store IP
+addresses; only the page, the referrer, the country, the browser and the system are kept. The stats
+are public: https://stats.wyrtensi.ru/.
 
 ## Changes
 
