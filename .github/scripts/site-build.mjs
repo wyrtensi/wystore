@@ -2,7 +2,11 @@
 // deploy job may publish it. docs/ also holds repository material (plans,
 // store listing, README screenshots) that must not end up on wystore.ru, so
 // only the paths in PUBLIC are copied.
-import { cp, mkdir, readFile, readdir, rm, stat } from 'node:fs/promises';
+//
+// The app's version in each page's JSON-LD is written here from
+// app/build.gradle.kts. Kept by hand, it was missed on every release and told
+// search engines 0.2.1 until 0.4.1.
+import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
@@ -25,6 +29,10 @@ for (const name of await readdir(docs)) {
 }
 
 const problems = [];
+const gradle = await readFile(join(root, 'app', 'build.gradle.kts'), 'utf8');
+const version = gradle.match(/versionName\s*=\s*"([^"]+)"/)?.[1];
+if (!version) problems.push('app/build.gradle.kts: versionName not found');
+
 const sitemap = await readFile(join(dist, 'sitemap.xml'), 'utf8');
 const pages = [...sitemap.matchAll(/<loc>https:\/\/wystore\.ru(\/[^<]*)<\/loc>/g)].map((match) => match[1]);
 if (pages.length !== LANGS.length + 1) problems.push(`sitemap lists ${pages.length} pages, expected ${LANGS.length + 1}`);
@@ -35,7 +43,14 @@ for (const page of pages) {
     problems.push(`${page}: listed in the sitemap but dist has no index.html`);
     continue;
   }
-  const html = await readFile(file, 'utf8');
+  let html = await readFile(file, 'utf8');
+  const softwareVersion = /("softwareVersion":\s*)"[^"]*"/;
+  if (!softwareVersion.test(html)) {
+    problems.push(`${page}: no "softwareVersion" in its JSON-LD`);
+  } else if (version) {
+    html = html.replace(softwareVersion, `$1"${version}"`);
+    await writeFile(file, html);
+  }
   if (!html.includes(`<link rel="canonical" href="https://wystore.ru${page}">`)) problems.push(`${page}: canonical does not point at itself`);
   for (const other of pages) {
     if (!html.includes(`href="https://wystore.ru${other}"`)) problems.push(`${page}: no hreflang link to ${other}`);
@@ -54,4 +69,4 @@ if (problems.length > 0) {
   for (const problem of problems) console.error(`- ${problem}`);
   process.exit(1);
 }
-console.log(`Site OK: ${pages.length} pages in dist/.`);
+console.log(`Site OK: ${pages.length} pages in dist/, app version ${version}.`);

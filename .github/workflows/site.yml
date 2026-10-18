@@ -9,6 +9,8 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      # The pages carry the app's version, written in at build time.
+      - 'app/build.gradle.kts'
       - '.github/workflows/site.yml'
       - '.github/scripts/site-*.mjs'
   workflow_dispatch:

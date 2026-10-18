@@ -23,11 +23,10 @@ is visible (`wystore-verify`, `wystore-device`).
    - the closing "Файлы релиза" note, in every version section (the release body is built from the
      section alone): the two APKs, `wystore-X.Y.Z.apk` and `wystore.apk`, are the same build with the
      same signature, either one will do. Copy the wording from the previous section.
-2. **Bump** `versionCode` (+1) and `versionName` in `app/build.gradle.kts`, and the site's
-   `"softwareVersion"` in the JSON-LD of all eight pages (`docs/index.html`, `docs/*/index.html`)
-   to the same `X.Y.Z` - its `downloadUrl` points at the latest release, and nothing else updates
-   it: it sat at 0.2.1 until 0.4.1. Set `<lastmod>` in `docs/sitemap.xml` to the release date.
-   Pushing `docs/` deploys the site (`.github/workflows/site.yml`).
+2. **Bump** `versionCode` (+1) and `versionName` in `app/build.gradle.kts`. The site's
+   `"softwareVersion"` follows by itself: `.github/scripts/site-build.mjs` writes `versionName` into
+   the JSON-LD of every page, and pushing `app/build.gradle.kts` or `docs/` redeploys the site
+   (`.github/workflows/site.yml`). Set `<lastmod>` in `docs/sitemap.xml` to the release date.
 3. `python tools/verify.py --release` - must end with `VERIFY OK`.
 4. Commit (`Version X.Y.Z, with its changelog`), then tag `vX.Y.Z` on that commit.
 5. Push the branch and the tag only when the user said to publish.
