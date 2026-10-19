@@ -126,7 +126,9 @@ fun TvDetailsScreen(
                 // The phone page's parts, side by side for a wide screen: who and what on the left with
                 // the one button, the facts in a card on the right.
                 Row(horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.Top) {
-                    Column(Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // The phone's hero: who and what, the state and the one step, in a glass panel
+                    // washed with the accent. Loose on the page it read as a form.
+                    TvGlassPanel(Modifier.weight(1.3f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             AppIcon(model = app.iconUrl, contentDescription = null, size = 112.dp, fallbackPackageName = app.packageName)
                             Column(Modifier.padding(start = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -140,12 +142,18 @@ fun TvDetailsScreen(
                                     Text(app.publisher, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    // The source in its own colour, as on the phone's tags.
-                                    val rustore = dev.wystore.ui.components.sourceTint("RuStore")
-                                    TvBadge(
+                                    // The phone's faint tags: rating in yellow, the section, the source
+                                    // in its own colour.
+                                    app.rating?.let { rating ->
+                                        dev.wystore.ui.components.HubTag(
+                                            "★ " + String.format(java.util.Locale.getDefault(), "%.1f", rating),
+                                            tint = dev.wystore.ui.components.StatusTone.PAUSED.color()
+                                        )
+                                    }
+                                    app.primaryCategory()?.let { dev.wystore.ui.components.CategoryPill(it) }
+                                    dev.wystore.ui.components.HubTag(
                                         stringResource(R.string.source_rustore),
-                                        container = rustore?.copy(alpha = 0.16f) ?: MaterialTheme.colorScheme.secondaryContainer,
-                                        content = rustore ?: MaterialTheme.colorScheme.onSecondaryContainer
+                                        tint = dev.wystore.ui.components.sourceTint("RuStore")
                                     )
                                     if (forPhone) {
                                         TvBadge(
@@ -186,7 +194,8 @@ fun TvDetailsScreen(
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape = androidx.compose.material3.MaterialTheme.shapes.large,
-                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = tvPanelBorder()
                     ) {
                         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             TvFact(stringResource(R.string.details_label_version), app.versionName)
@@ -216,7 +225,8 @@ fun TvDetailsScreen(
                     Surface(
                         modifier = Modifier.fillMaxWidth().focusable(),
                         shape = androidx.compose.material3.MaterialTheme.shapes.large,
-                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = tvPanelBorder()
                     ) {
                         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             val meta = listOfNotNull(
@@ -246,7 +256,8 @@ fun TvDetailsScreen(
                     Surface(
                         modifier = Modifier.fillMaxWidth().focusable(),
                         shape = androidx.compose.material3.MaterialTheme.shapes.large,
-                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = tvPanelBorder()
                     ) {
                         Text(
                             description,

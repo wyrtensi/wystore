@@ -59,7 +59,7 @@ import dev.wystore.ui.theme.LocalHubStyle
  */
 
 /** Radius of a panel, and of the group a list of rows sits in. */
-private val PanelRadius = 22.dp
+val PanelRadius = 22.dp
 
 /**
  * A screen's opening: a small accent line naming where you are, then the title in a large plain
@@ -154,6 +154,10 @@ fun HubPanel(
     modifier: Modifier = Modifier,
     tint: Color = MaterialTheme.colorScheme.primary,
     onClick: (() -> Unit)? = null,
+    /** The TV's panels are read from across a room and take more room inside. */
+    contentPadding: androidx.compose.foundation.layout.PaddingValues =
+        androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+    spacing: androidx.compose.ui.unit.Dp = 6.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
@@ -178,8 +182,8 @@ fun HubPanel(
             }
             .then(if (hub) Modifier.border(1.dp, colors.outlineVariant, shape) else Modifier)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(contentPadding),
+        verticalArrangement = Arrangement.spacedBy(spacing),
         content = content
     )
 }

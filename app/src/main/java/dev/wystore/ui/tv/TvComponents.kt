@@ -182,6 +182,15 @@ fun tvCardBorder(shape: androidx.compose.ui.graphics.Shape = M3Theme.shapes.larg
         focusedBorder = tvFocusBorder(shape)
     )
 
+/**
+ * The hairline of a panel that takes no focus - facts, what's new, an empty list - as the phone's
+ * panels have. Without it they were flat grey slabs beside cards that had one.
+ */
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+fun tvPanelBorder(shape: androidx.compose.ui.graphics.Shape = M3Theme.shapes.large) =
+    Border(border = BorderStroke(1.dp, M3Theme.colorScheme.outlineVariant), inset = 0.dp, shape = shape)
+
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun tvFocusGlow(): Glow = Glow(
@@ -355,50 +364,51 @@ fun TvUpdateHero(
     modifier: Modifier = Modifier
 ) {
     val hasUpdates = readyCount > 0
-    val container = if (hasUpdates) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-    val onContainer = if (hasUpdates) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-    val shape = M3Theme.shapes.large
+    // The phone's glass panel, washed with the accent when something is waiting. It used to be
+    // filled with the accent's container colour, a brown slab on the graphite page.
+    val accent = M3Theme.colorScheme.primary
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(dev.wystore.ui.components.PanelRadius)
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().tvPointerClick(onClick = onClick),
         shape = ClickableSurfaceDefaults.shape(shape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
-        border = tvCardBorder(shape),
+        border = ClickableSurfaceDefaults.border(focusedBorder = tvFocusBorder(shape)),
         colors = ClickableSurfaceDefaults.colors(
-            containerColor = container,
-            contentColor = onContainer,
-            focusedContainerColor = container,
-            focusedContentColor = onContainer
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
+            focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent
         )
     ) {
-        Row(Modifier.padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(44.dp)
-                    .clip(M3Theme.shapes.medium)
-                    .background(onContainer.copy(alpha = 0.10f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = if (hasUpdates) Icons.Outlined.Refresh else Icons.Outlined.CheckCircle,
-                    contentDescription = null,
-                    modifier = Modifier.size(22.dp),
-                    tint = onContainer
-                )
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    stringResource(if (hasUpdates) R.string.home_updates_available else R.string.home_all_up_to_date),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = onContainer
-                )
-                Text(
-                    if (hasUpdates) stringResource(R.string.home_ready_to_install_count, readyCount)
-                    else stringResource(R.string.home_background_checks),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = onContainer.copy(alpha = 0.75f)
-                )
+        TvGlassPanel(tint = if (hasUpdates) accent else M3Theme.colorScheme.outline) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier
+                        .size(52.dp)
+                        .clip(M3Theme.shapes.medium)
+                        .background(accent.copy(alpha = 0.16f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (hasUpdates) Icons.Outlined.Refresh else Icons.Outlined.CheckCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(26.dp),
+                        tint = accent
+                    )
+                }
+                Spacer(Modifier.width(20.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        if (hasUpdates) stringResource(R.string.updates_hero_ready, readyCount)
+                        else stringResource(R.string.home_all_up_to_date),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        stringResource(R.string.home_background_checks),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
@@ -549,7 +559,8 @@ fun TvEmptyState(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = M3Theme.shapes.large,
-        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+        border = tvPanelBorder()
     ) {
         Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(

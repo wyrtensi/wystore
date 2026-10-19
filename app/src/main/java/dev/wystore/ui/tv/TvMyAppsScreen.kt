@@ -1,5 +1,12 @@
 package dev.wystore.ui.tv
 
+import dev.wystore.data.ManagedSource
+import dev.wystore.ui.components.sourceTint
+import dev.wystore.ui.components.groupPosition
+import dev.wystore.ui.components.HubTag
+import dev.wystore.ui.components.HubGroupRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import dev.wystore.ui.components.color
 import dev.wystore.ui.components.fadingTopEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -89,28 +96,53 @@ fun TvMyAppsScreen(
             top = TvTopFade,
             bottom = TvOverscanVertical + 48.dp
         ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        // Rows of a group are separate items and must touch; sections keep their gap through
+        // the titles' own padding.
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
+        // The phone's opening panel: how things stand in a sentence, and the step to take. Two bare
+        // buttons over a list was all the TV had.
         item(key = "header") {
-            Row(
-                Modifier.padding(top = 4.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                TvPrimaryButton(
-                    text = stringResource(if (checking) R.string.status_checking else R.string.updates_check_now),
-                    onClick = onCheckUpdates,
-                    enabled = !checking,
-                    modifier = Modifier.focusRequester(firstFocus)
+            val ready = active.size + pendingOnly.size
+            TvGlassPanel(modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)) {
+                Text(
+                    if (ready > 0) stringResource(R.string.updates_hero_ready, ready)
+                    else stringResource(R.string.home_all_up_to_date),
+                    style = MaterialTheme.typography.headlineSmall
                 )
-                if (active.isNotEmpty() || pendingOnly.isNotEmpty()) {
-                    TvSecondaryButton(text = stringResource(R.string.home_update_all), onClick = onUpdateAll)
+                Text(
+                    stringResource(R.string.home_background_checks),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                    if (ready > 0) {
+                        TvPrimaryButton(
+                            text = stringResource(R.string.home_update_all),
+                            onClick = onUpdateAll,
+                            modifier = Modifier.focusRequester(firstFocus)
+                        )
+                        TvSecondaryButton(
+                            text = stringResource(if (checking) R.string.status_checking else R.string.updates_check_now),
+                            onClick = onCheckUpdates,
+                            enabled = !checking
+                        )
+                    } else {
+                        TvPrimaryButton(
+                            text = stringResource(if (checking) R.string.status_checking else R.string.updates_check_now),
+                            onClick = onCheckUpdates,
+                            enabled = !checking,
+                            modifier = Modifier.focusRequester(firstFocus)
+                        )
+                    }
                 }
             }
         }
 
         if (active.isNotEmpty() || pendingOnly.isNotEmpty()) {
-            item(key = "ready-title") { TvSectionTitle(stringResource(R.string.tv_row_ready)) }
-            items(active, key = { "q-${it.id}" }) { item ->
+            item(key = "ready-title") { TvSectionTitle(stringResource(R.string.tv_row_ready), Modifier.padding(top = 20.dp)) }
+            val readyCount = active.size + pendingOnly.size
+            itemsIndexed(active, key = { _, it -> "q-${it.id}" }) { index, item ->
                 val state = PackageUiStateReducer.reduce(
                     queueItem = item,
                     installed = packages.installed.firstOrNull { it.packageName == item.packageName },
@@ -118,6 +150,7 @@ fun TvMyAppsScreen(
                     pendingUpdate = packages.pendingUpdates.firstOrNull { it.packageName == item.packageName },
                     resources = context.resources
                 )
+                HubGroupRow(position = groupPosition(index, readyCount)) {
                 TvPackageRow(
                     state = state,
                     iconUrl = packageIcons[item.packageName],
@@ -125,14 +158,16 @@ fun TvMyAppsScreen(
                     onCancel = { onCancel(item.id) }.takeIf { item.status != InstallQueueStatus.INSTALLING },
                     onWhatsNew = { onWhatsNew(item.packageName, item.label, item.githubRepository) }
                 )
+                }
             }
-            items(pendingOnly, key = { "p-${it.listKey}" }) { pending ->
+            itemsIndexed(pendingOnly, key = { _, it -> "p-${it.listKey}" }) { index, pending ->
                 val state = PackageUiStateReducer.reduce(
                     pendingUpdate = pending,
                     installed = packages.installed.firstOrNull { it.packageName == pending.packageName },
                     managed = packages.managed.firstOrNull { it.packageName == pending.packageName },
                     resources = context.resources
                 )
+                HubGroupRow(position = groupPosition(active.size + index, readyCount)) {
                 TvPackageRow(
                     state = state,
                     iconUrl = packageIcons[pending.packageName],
@@ -140,40 +175,36 @@ fun TvMyAppsScreen(
                     onCancel = null,
                     onWhatsNew = { onWhatsNew(pending.packageName, pending.label, pending.githubRepository) }
                 )
+                }
             }
         }
 
-        item(key = "managed-title") { TvSectionTitle(stringResource(R.string.tv_my_apps_managed)) }
+        item(key = "managed-title") { TvSectionTitle(stringResource(R.string.tv_my_apps_managed), Modifier.padding(top = 28.dp)) }
         if (packages.managed.isEmpty()) {
             item(key = "managed-empty") { TvEmptyState(stringResource(R.string.tv_my_apps_empty)) }
         } else {
-            items(packages.managed.sortedBy { it.label.lowercase() }, key = { "m-${it.packageName}" }) { app ->
+            val sorted = packages.managed.sortedBy { it.label.lowercase() }
+            // One panel of rows, as the phone lists them; a card per app made a column of slabs.
+            itemsIndexed(sorted, key = { _, app -> "m-${app.packageName}" }) { index, app ->
                 val installed = packages.installed.firstOrNull { it.packageName == app.packageName }
-                Surface(
-                    onClick = { onOpenManaged(app) },
-                    modifier = Modifier.fillMaxWidth().tvPointerClick { onOpenManaged(app) },
-                    shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(16.dp)),
-                    scale = ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
-                    border = tvCardBorder(),
-                    colors = ClickableSurfaceDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                TvGroupRow(position = groupPosition(index, sorted.size), onClick = { onOpenManaged(app) }) {
+                    AppIcon(
+                        model = packageIcons[app.packageName],
+                        contentDescription = null,
+                        size = 48.dp,
+                        fallbackPackageName = app.packageName
                     )
-                ) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        AppIcon(
-                            model = packageIcons[app.packageName],
-                            contentDescription = null,
-                            size = 48.dp,
-                            fallbackPackageName = app.packageName
+                    Column(Modifier.weight(1f).padding(start = 20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            app.label.ifBlank { app.packageName },
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
-                        Column(Modifier.padding(start = 20.dp)) {
-                            Text(app.label.ifBlank { app.packageName }, style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                installed?.versionName ?: stringResource(R.string.details_not_installed),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            HubTag(installed?.versionName ?: stringResource(R.string.details_not_installed))
+                            val source = if (app.source == ManagedSource.GITHUB) "GitHub" else "RuStore"
+                            HubTag(source, tint = sourceTint(source))
                         }
                     }
                 }
@@ -196,7 +227,7 @@ private fun TvPackageRow(
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(horizontal = 22.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AppIcon(model = iconUrl, contentDescription = null, size = 56.dp, fallbackPackageName = state.packageName)
@@ -210,7 +241,9 @@ private fun TvPackageRow(
             Text(
                 listOfNotNull(StatusTextResolver.resolve(context, state.status), state.transferInfo).joinToString(" · "),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                // In the phone's tones: ready green, paused yellow, failed red, the rest grey.
+                color = dev.wystore.ui.components.StatusTones.of(state.status.code).color()
+                    ?: MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
