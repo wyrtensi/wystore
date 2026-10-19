@@ -1,5 +1,7 @@
 package dev.wystore
 
+import android.os.Build
+import dev.wystore.data.AndroidSdkCompatibility
 import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
@@ -2103,14 +2105,34 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     fun quickInstall(packageName: String) {
         if (hasActiveQueueItem(packageName)) return
-        askOnMeteredNetwork {
-            clearTransientFailure(packageName)
-            val label = labelFor(packageName)
-            ManualInstallScheduler.enqueue(getApplication(), packageName, label, repository.settings())
-            _state.value = _state.value.copy(
-                message = if (label == packageName) string(R.string.vm_queued_generic)
-                else string(R.string.vm_queued_app, label)
-            )
+        viewModelScope.launch {
+            // A search result or a catalogue row does not say which Android the app needs, so a
+            // row offered Install for an app this device cannot run, queued it, and the failure
+            // came back from the download. The app's own entry says, and is usually cached by now;
+            // when it cannot be fetched the install goes ahead and the queue decides as before.
+            val required = runCatching { catalogRepository.details(packageName) }.getOrNull()
+                ?.let(AndroidSdkCompatibility::requiredSdk)
+            if (AndroidSdkCompatibility.tooOld(required, Build.VERSION.SDK_INT)) {
+                _state.update {
+                    it.copy(
+                        message = string(
+                            R.string.details_incompatible,
+                            AndroidSdkCompatibility.label(required!!),
+                            AndroidSdkCompatibility.label(Build.VERSION.SDK_INT)
+                        )
+                    )
+                }
+                return@launch
+            }
+            askOnMeteredNetwork {
+                clearTransientFailure(packageName)
+                val label = labelFor(packageName)
+                ManualInstallScheduler.enqueue(getApplication(), packageName, label, repository.settings())
+                _state.value = _state.value.copy(
+                    message = if (label == packageName) string(R.string.vm_queued_generic)
+                    else string(R.string.vm_queued_app, label)
+                )
+            }
         }
     }
 

@@ -34,4 +34,11 @@ class AndroidSdkCompatibilityTest {
         assertEquals(28, AndroidSdkCompatibility.sdkForRelease("9"))
         assertEquals("Android 9 (SDK 28)", AndroidSdkCompatibility.label(28))
     }
+
+    @Test
+    fun aMinimumAboveTheDeviceBlocksAndAnUnknownOneDoesNot() {
+        assertEquals(true, AndroidSdkCompatibility.tooOld(29, 28))
+        assertEquals(false, AndroidSdkCompatibility.tooOld(28, 28))
+        assertEquals(false, AndroidSdkCompatibility.tooOld(null, 21))
+    }
 }

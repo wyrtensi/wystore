@@ -137,9 +137,8 @@ fun AppDetailsScreen(
     // Most of what the catalogue carries needs a newer Android than this app's own minimum, and
     // the page used to offer "Install" all the same: the download ran to the end and the source
     // refused it. The requirement is on the page, so the answer belongs there too.
-    val requiredSdk = app.minSdkVersion
-        ?: app.minAndroidVersion?.let(AndroidSdkCompatibility::sdkForRelease)
-    val deviceTooOld = requiredSdk != null && Build.VERSION.SDK_INT < requiredSdk
+    val requiredSdk = AndroidSdkCompatibility.requiredSdk(app)
+    val deviceTooOld = AndroidSdkCompatibility.tooOld(requiredSdk, Build.VERSION.SDK_INT)
     val canUpdate = (installed == null || app.versionCode > installed.versionCode) &&
         !queueActive && !deviceTooOld
     val installLabel = stringResource(

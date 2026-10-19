@@ -1,8 +1,15 @@
 package dev.wystore.data
 
 object AndroidSdkCompatibility {
+    /** The API level an app needs: the source's own number, or the release it names ("Android 9"). */
+    fun requiredSdk(app: StoreApp): Int? = app.minSdkVersion ?: app.minAndroidVersion?.let(::sdkForRelease)
+
+    /** Whether the app's minimum is above the device; an unknown minimum is not held against it. */
+    fun tooOld(minSdkVersion: Int?, deviceSdkVersion: Int): Boolean =
+        minSdkVersion != null && minSdkVersion > deviceSdkVersion
+
     fun requireSupported(minSdkVersion: Int?, deviceSdkVersion: Int) {
-        if (minSdkVersion != null && minSdkVersion > deviceSdkVersion) {
+        if (minSdkVersion != null && tooOld(minSdkVersion, deviceSdkVersion)) {
             // The two version labels are the useful part and are language-neutral; the sentence
             // around them is built from resources where this surfaces.
             throw SourceFormatException(
