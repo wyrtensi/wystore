@@ -219,15 +219,21 @@ fun TvSectionTitle(text: String, modifier: Modifier = Modifier, subtitle: String
     }
 }
 
-/** The phone's source badge: a small tonal label that says where an app comes from. */
+/**
+ * The phone's tag: a small tonal label. A source's name takes the source's colour, as on the
+ * phone - "GitHub" under every GitHub card was grey here and violet there.
+ */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun TvBadge(
     text: String,
     modifier: Modifier = Modifier,
-    container: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.secondaryContainer,
-    content: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSecondaryContainer
+    container: androidx.compose.ui.graphics.Color? = null,
+    content: androidx.compose.ui.graphics.Color? = null
 ) {
+    val tint = dev.wystore.ui.components.sourceTint(text)
+    val container = container ?: tint?.copy(alpha = 0.16f) ?: MaterialTheme.colorScheme.secondaryContainer
+    val content = content ?: tint ?: MaterialTheme.colorScheme.onSecondaryContainer
     Text(
         text = text,
         color = content,

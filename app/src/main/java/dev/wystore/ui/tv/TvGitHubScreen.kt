@@ -145,7 +145,11 @@ fun TvGitHubAppScreen(
         ) {
             item(key = "header") {
                 Row(horizontalArrangement = Arrangement.spacedBy(32.dp), verticalAlignment = Alignment.Top) {
-                    Column(Modifier.weight(1.3f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    // The same glass hero as a RuStore page, washed with GitHub's violet.
+                    TvGlassPanel(
+                        Modifier.weight(1.3f),
+                        tint = dev.wystore.ui.components.sourceTint("GitHub") ?: M3Theme.colorScheme.primary
+                    ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             AppIcon(model = state.info?.avatarUrl ?: entry.iconUrl, contentDescription = null, size = 112.dp)
                             Column(Modifier.padding(start = 24.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -207,7 +211,8 @@ fun TvGitHubAppScreen(
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape = M3Theme.shapes.large,
-                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+                        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+                        border = tvPanelBorder()
                     ) {
                         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             val unknown = stringResource(R.string.github_fact_unknown)
@@ -347,7 +352,8 @@ private fun TvTextCard(text: AnnotatedString, maxLines: Int) {
     Surface(
         modifier = Modifier.fillMaxWidth().focusable(),
         shape = M3Theme.shapes.large,
-        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = SurfaceDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+        border = tvPanelBorder()
     ) {
         Text(text, style = MaterialTheme.typography.bodyLarge, maxLines = maxLines, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(24.dp))
     }
