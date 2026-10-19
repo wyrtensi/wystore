@@ -129,11 +129,11 @@
   --dim: #a9abb1;
   --faint: #7f8188;
   --rule: rgba(255, 255, 255, 0.11);
-  --accent: #cf4a1a;
-  --accent-hover: #de5a28;
+  --accent: #a85a38;
+  --accent-hover: #b8664a;
   --accent-ink: #ffffff;
-  --accent-text: #e07650;
-  --accent-wash: rgba(207, 74, 26, 0.16);
+  --accent-text: #d4896a;
+  --accent-wash: rgba(168, 90, 56, 0.16);
   --amber: #f2c94c;
 
   --sans: "Manrope", "Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
