@@ -262,12 +262,19 @@ fun CompactSettingSwitch(label: String, checked: Boolean, enabled: Boolean = tru
  * the whole row. On the switch alone the focus was a halo around its thumb that a TV across the room
  * did not show. The switch inside is given `onCheckedChange = null`, so it is not a second stop.
  *
- * No rounded clip: the label starts at the row's edge, so the corner rounding cut the first letter
- * of its first and last line - the "E" of "Enable", the "G" of "GitHub Releases".
+ * The press area reaches [SwitchRowReach] past the row on each side, into the card's padding, and
+ * the content is inset back by the same: clipped to the row itself, the corner rounding cut the
+ * first letter of the label's first and last line - the "E" of "Enable", the "G" of "GitHub
+ * Releases" - since the label starts at the row's edge.
  */
 @Composable
 fun Modifier.switchRow(checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit): Modifier =
-    toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
+    bleedToScreenEdges(SwitchRowReach)
+        .clip(MaterialTheme.shapes.small)
+        .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange)
+        .padding(horizontal = SwitchRowReach)
+
+private val SwitchRowReach = 8.dp
 
 @Composable
 fun Loading(operation: String? = null) {
