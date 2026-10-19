@@ -829,7 +829,7 @@ code {
   position: relative;
   height: min(100%, 760px);
   width: auto;
-  aspect-ratio: var(--shot, 560 / 1110);
+  aspect-ratio: 560 / 1210;
   padding: 9px;
   background: linear-gradient(155deg, #4a4b53 0%, #22232a 22%, #17181d 55%, #25262d 82%, #45464e 100%);
   border-radius: 36px;
@@ -1043,7 +1043,7 @@ html[data-scene="privacy"] .stagepane {
   .phone {
     height: auto;
     width: min(76vw, 330px);
-    aspect-ratio: var(--shot, 560 / 1110);
+    aspect-ratio: 560 / 1210;
     padding: 8px;
     border-radius: 32px;
   }
