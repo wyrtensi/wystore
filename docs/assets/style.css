@@ -322,18 +322,21 @@ code {
   color: var(--paper);
 }
 
-/* The GitHub button: a pill before the language menu, the mark alone on a phone */
+/* The GitHub button: a capsule before the language menu (same shape as on rusinternet.com),
+   the mark alone on a phone */
 
 .nav .gh {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
+  height: 37px;
   padding-inline: 12px;
   border: 1px solid var(--rule);
-  border-radius: 999px;
+  border-radius: 11px;
   background: var(--quiet);
   color: var(--paper);
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1;
 }
 
@@ -1311,7 +1314,7 @@ html:not(.js) .masthead {
   }
 
   .nav .gh {
-    width: 32px;
+    width: 37px;
     padding-inline: 0;
     justify-content: center;
   }
