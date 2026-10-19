@@ -24,7 +24,7 @@ for (const entry of PUBLIC) {
 }
 // Verification and IndexNow key files, and the images other sites already link to.
 for (const name of await readdir(docs)) {
-  if (/^(google[0-9a-f]+\.html|yandex_[0-9a-f]+\.html|[0-9a-f]{32}\.txt|logo\.png|app_icon\.png|banner[\w-]*\.png)$/.test(name)) {
+  if (/^(google[0-9a-f]+\.html|yandex_[0-9a-f]+\.html|[0-9a-f]{32}\.txt|logo[\w-]*\.png|app_icon\.png|banner[\w-]*\.png)$/.test(name)) {
     await cp(join(docs, name), join(dist, name));
   }
 }

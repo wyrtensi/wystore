@@ -150,6 +150,7 @@ class MainActivity : AppCompatActivity(), SystemInstallerHost {
 
     override fun onStop() {
         runCatching { unregisterReceiver(packageChangeReceiver) }
+        dev.wystore.settings.LauncherIconSwitcher.sync(this, StoreRepository(this).settings().accent)
         super.onStop()
     }
 

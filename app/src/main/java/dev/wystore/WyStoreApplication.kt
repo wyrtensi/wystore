@@ -124,6 +124,12 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
 
         val settingsRepository = SettingsRepository(this)
         settingsRepository.warmUp(applicationScope)
+        applicationScope.launch(Dispatchers.IO) {
+            dev.wystore.settings.LauncherIconSwitcher.sync(
+                this@WyStoreApplication,
+                settingsRepository.currentSettings().accent
+            )
+        }
 
         // The receiver above lives only as long as the process. A low-memory phone or TV can kill
         // Wy Store behind the uninstall dialog, the "removed" broadcast then reaches nobody, and the

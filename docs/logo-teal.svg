@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18 18 72 72" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gl-teal" x1="0" y1="18" x2="0" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2B2C32"/><stop offset="1" stop-color="#17181C"/>
+    </linearGradient>
+    <radialGradient id="wl-teal" cx="18" cy="90" r="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0E7C8C" stop-opacity="0.75"/>
+      <stop offset="0.55" stop-color="#0E7C8C" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#0E7C8C" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="18" y="18" width="72" height="72" rx="17" fill="url(#gl-teal)"/>
+  <rect x="18" y="18" width="72" height="72" rx="17" fill="url(#wl-teal)"/>
+  <rect x="18.35" y="18.35" width="71.3" height="71.3" rx="16.65" fill="none" stroke="#fff" stroke-opacity="0.14" stroke-width="0.7"/>
+  <g transform="translate(54 54) scale(1.18) translate(-54 -54)">
+    <path d="M27.05,36.74L35.17,63.42L39.85,63.31L43.98,50.19L48.39,63.53L52.97,63.25L55.25,55.2L59.06,62.6C58.1,64.9 56.5,66.5 53.95,66.96C52.6,67.3 51.9,70.8 52.91,71.31C56.4,71.6 60.4,70.3 61.6,67.9L72.67,44.64L67.23,44.85L61.57,57.7L56.83,49.92L59.06,40.77L54.0,40.77L50.24,53.56L46.32,40.94L41.92,40.72L37.67,53.56L32.88,36.85z" fill="#F3F3F1"/><rect x="69.9" y="58.6" width="4.9" height="4.9" rx="1.1" fill="rgba(255,255,255,0.28)"/><rect x="76.05" y="58.6" width="4.9" height="4.9" rx="1.1" fill="rgba(255,255,255,0.28)"/><rect x="69.9" y="64.8" width="4.9" height="4.9" rx="1.1" fill="rgba(255,255,255,0.28)"/><rect x="76.05" y="64.8" width="4.9" height="4.9" rx="1.1" fill="#28A3B5"/>
+  </g>
+</svg>
