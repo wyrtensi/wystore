@@ -1,6 +1,6 @@
 # Описание для публикации в сторонних магазинах
 
-Готовые тексты и данные для карточки Wy Store 0.2.0. Копировать как есть, при необходимости
+Готовые тексты и данные для карточки Wy Store 0.5.0. Копировать как есть, при необходимости
 подрезая под лимиты конкретной площадки.
 
 ## Основное
@@ -9,7 +9,7 @@
 |---|---|
 | Название | Wy Store |
 | Имя пакета | `app.wystore` |
-| Версия | 0.2.4 (versionCode 33) |
+| Версия | 0.5.0 (versionCode 44) |
 | Минимальная версия Android | 9.0 (API 28) |
 | Целевой API | 36 |
 | Категория | Инструменты / Утилиты |
@@ -46,9 +46,10 @@ Wy Store — магазин приложений для Android, который 
 • Каталог RuStore целиком: банки, госсервисы, маркетплейсы, доставка, транспорт, развлечения — с разделами, поиском, описаниями и скриншотами.
 • Релизы с GitHub вторым источником: открытые приложения, которых в магазинах не бывает. Свой репозиторий добавляется ссылкой.
 • Отзывы и оценки из RuStore с разбором по звёздам и фильтром: плохие отзывы можно прочитать, не листая все хорошие.
-• Библиотека установленного с фильтрами по источнику — обновление, запуск и удаление из одного списка.
+• Вкладка «Приложения»: всё установленное на телефоне, с фильтрами по источнику и значком установщика — обновление, запуск и удаление из одного списка.
+• Оформление Wy Hub на телефоне и телевизоре: графитовая тёмная тема, светлая и системная, девять цветов акцента на выбор, у каждого состояния свой цвет.
 • Резервная копия: настройки и списки приложений экспортируются в один файл и переносятся на новый телефон.
-• Android TV и Google TV: тот же APK, свой интерфейс под пульт и каталог RuStore для телевизоров.
+• Android TV и Google TV: тот же APK, свой интерфейс под пульт в том же оформлении и каталог RuStore для телевизоров.
 
 ОБНОВЛЕНИЯ, КОТОРЫЕ ПРИХОДЯТ САМИ
 
@@ -74,18 +75,18 @@ Wy Store — независимый проект с открытым исход�
 Исходный код и релизы: github.com/wyrtensi/wystore
 ```
 
-## Что нового (0.2.4)
+## Что нового (0.5.0)
 
 ```
-• На Android 9, 10 и 11 снова работают загрузки: раньше приложение вставало в очередь и не двигалось, а проверка обновлений отвечала «не удалась».
-• Загрузка не срывается, если система отказалась показать уведомление о её ходе.
-• Отчёт о диагностике стал подробнее: состояние фоновых задач, тип сети и механизм передачи.
-• Убрана лишняя цепочка связи с RuStore: приложение больше не выясняет служебный параметр отдельным обращением к нему.
-• Кнопка «Передать обновления Wy Store» наконец работает: раньше файл скачивался и молча отбрасывался на последнем шаге.
-• Если поставить поверх нельзя — версия в каталоге ниже установленной или другая подпись — приложение предлагает удалить и поставить заново, а не оставляет в тупике.
-• На странице проекта с GitHub открывается весь список релизов, а не только последний.
-• Приложения из встроенного каталога GitHub опознаются как установленные, и видно, кто отвечает за их обновления.
-• Кнопки на экранах GitHub перестали молчать после нажатия.
+• Новое оформление Wy Hub на телефоне и телевизоре: графитовая тёмная тема, шрифт Manrope, стеклянные панели, у каждого состояния свой цвет — готово, пауза, ждёт вас, ошибка.
+• Цвет акцента на выбор из девяти в «Внешнем виде».
+• Вкладка и экран называются «Приложения» на всех языках, а не «Мои» и «Библиотека».
+• Панель «Апдейтов» показывает ход проверки: «Проверено 2 из 7» и кольцо, которое заполняется.
+• На телевизоре у плиток разделов появились значки, ряды карточек уходят за края экрана, названия на карточках занимают до трёх строк.
+• Кнопка «Что нового» в очереди, у скачанных обновлений и у принятых приложений: описание изменений видно, не уходя со списка. Карточки в очереди открывают страницу приложения.
+• Загрузка не застывает, если пропала сеть: она встаёт в очередь и докачивается с того же места. Без сети поиск и разделы говорят «Нет связи с сервером» и предлагают повторить.
+• Приложение, которому нужен более новый Android, сразу говорит, какой именно, вместо сбоя при загрузке.
+• Страница приложения с приостановленной загрузкой предлагает «Возобновить», а отказ Android из-за копии с другой подписью объяснён словами.
 ```
 
 ## Теги
@@ -107,8 +108,8 @@ Wy Store — независимый проект с открытым исход�
 | `03-search.png` | Поиск по каталогу RuStore |
 | `04-app-page.png` | Карточка приложения: версия, размер, требуемый Android, отпечаток подписи |
 | `05-github.png` | Подборка проектов с GitHub |
-| `06-updates.png` | Обновления: отчёт проверки и принятые приложения |
-| `07-library.png` | Библиотека установленного |
+| `06-updates.png` | Апдейты: ход проверки, готовые к установке и принятые приложения |
+| `07-library.png` | Приложения: установленное на телефоне, принятые и не принятые |
 | `08-settings.png` | Настройки |
 
 Экрана с отзывами в наборе нет намеренно: он целиком состоит из оценок и попадает под запрет
@@ -122,7 +123,7 @@ Wy Store — независимый проект с открытым исход�
 
 ## Файлы релиза
 
-APK: `wystore-0.2.4.apk` (30,8 МБ), подписан тем же ключом, что и релизы на GitHub —
+APK: `wystore-0.5.0.apk`, подписан тем же ключом, что и релизы на GitHub —
 отпечаток сертификата SHA-256 `33dcb50061a08190f68bbee2d743be38ad4f7307d98dc18dd7e76719c815a258`.
 
 ---
@@ -145,9 +146,10 @@ WHAT IS INSIDE
 • The whole RuStore catalogue: banks, government services, marketplaces, delivery, transport, entertainment — with sections, search, descriptions and screenshots.
 • GitHub releases as a second source: open-source apps that stores do not carry. Any public repository can be added by URL.
 • RuStore reviews and ratings with a breakdown by star count and a filter, so the bad reviews can be read without scrolling past the good ones.
-• A library of installed apps with filters by source — update, open and uninstall from one list.
+• An Apps tab with everything installed on the phone, with filters by source and a badge saying who installed each app — update, open and uninstall from one list.
+• The Wy Hub look on phone and TV: a graphite dark theme, a light and a system one, nine accent colours to choose from, and a colour for every state.
 • Backup: settings and app lists export to a single file and move to a new phone.
-• Android TV and Google TV: the same APK, with its own remote-friendly interface and the RuStore TV catalogue.
+• Android TV and Google TV: the same APK, with its own remote-friendly interface in the same look and the RuStore TV catalogue.
 
 UPDATES THAT ARRIVE ON THEIR OWN
 
@@ -173,16 +175,16 @@ Wy Store is an independent open-source project (MIT licence). It is not affiliat
 Source code and releases: github.com/wyrtensi/wystore
 ```
 
-## What's new (0.2.4)
+## What's new (0.5.0)
 
 ```
-• Downloads work again on Android 9, 10 and 11: they used to join the queue and stay there, and checking for updates reported a failure.
-• A download no longer dies because the system refused to show its progress notification.
-• The diagnostics report says more: background task states, network type and transfer mechanism.
-• One redundant round trip to RuStore is gone: the app no longer works out a service parameter by asking RuStore for it.
-• "Hand updates to Wy Store" finally works: the file used to download and then be dropped without a word at the last step.
-• When nothing can install over the app — an older catalogue version or a different signing key — the app offers to uninstall and install again instead of leaving a dead end.
-• A GitHub project page opens its whole release list, not only the latest one.
-• Apps from the built-in GitHub catalogue are recognised as installed, and the page says who handles their updates.
-• Buttons on the GitHub screens stopped going silent when pressed.
+• The new Wy Hub look on phone and TV: a graphite dark theme, the Manrope typeface, glass panels, and a colour for every state — done, paused, waiting on you, error.
+• Accent colour: a choice of nine in Appearance.
+• The tab and the screen are called "Apps" in every language, instead of "My apps" and "Library".
+• The Updates panel shows how the check is going: "Checked 2 of 7" and a ring that fills up.
+• On the TV, section tiles have glyphs, rows of cards run off the edges of the screen, and card names take up to three lines.
+• A "What is new" button in the queue, on downloaded updates and on accepted apps: the changes are readable without leaving the list. Cards in the queue open the app's page.
+• A download no longer freezes when the network drops: it joins the queue and resumes from the same place. Without a network, search and sections say "No connection to the server" and offer a retry.
+• An app that needs a newer Android says which one straight away, instead of failing at the download.
+• The page of an app with a paused download offers "Resume", and Android's refusal over a copy with a different signature is explained in words.
 ```

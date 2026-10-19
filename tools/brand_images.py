@@ -10,8 +10,9 @@ with each other or with the launcher icon. Here the mark is the launcher icon's 
 to either is one edit and a rerun.
 
 Each picture is an HTML page rendered by headless Edge (or Chrome) - the same Manrope the site
-serves, real gradients - and then cut to size with Pillow. The banners carry no sentence, only
-the name and the two sources, so one picture serves every language.
+serves, real gradients - and then cut to size with Pillow. The banners carry no sentence: the
+name, the two sources, and badges for Android, Android TV and open source. Only the last badge
+has words, so there is a Russian and an English file of each and nothing more.
 """
 import argparse
 import os
@@ -53,6 +54,20 @@ INK = "#15161A"
 PAPER = "#F3F3F1"
 ACCENT = "#CF4A1A"
 ACCENT_TEXT = "#E07650"
+
+# The banners' badges: what it runs on, and that it is open. Android 9 is the app's minSdk 28.
+ANDROID = (
+    '<svg viewBox="3 5.5 18 14"><path fill-rule="evenodd" fill="currentColor" d="M4 18a8 8 0 0 1 16 0z'
+    'M8.2 14.2a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0zM13.6 14.2a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0-2.2 0z"/>'
+    '<path d="M7.6 10.6 5.8 7.4M16.4 10.6l1.8-3.2" stroke="currentColor" stroke-width="1.6" '
+    'stroke-linecap="round"/></svg>'
+)
+TV = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">'
+    '<rect x="2.9" y="4.4" width="18.2" height="12.6" rx="2.6"/><path d="M8.5 20.4h7"/></svg>'
+)
+GITHUB = '<svg viewBox="0 0 16 16"><path fill="currentColor" d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>'
+OPEN_SOURCE = {"ru": "Открытый код", "en": "Open source"}
 
 # A launcher shows the middle 72 of the 108 units, so that is the tile here too. Outside a
 # launcher nothing crops the layer, and the mark at launcher scale looked small in its tile;
@@ -108,13 +123,18 @@ def streaks(w, h, light, seed=7):
     return f'<svg class="field" viewBox="0 0 {w} {h}">{"".join(lines)}</svg>'
 
 
-def banner_html(w, h, light=False):
+def banner_html(w, h, light=False, lang=None):
     icon = round(h * 0.46)
     left = round(min(w * 0.09, h * 0.3))
     bg, fg = ("#F7F6F4", "#1B1B1D") if light else (INK, PAPER)
     eyebrow = "#C4501F" if light else ACCENT_TEXT
     glow = 0.22 if light else 0.42
     ghost = "rgba(0,0,0,0.05)" if light else "rgba(255,255,255,0.045)"
+    badges = "" if not lang else (
+        f'<div class="badges"><span class="badge">{ANDROID}Android 9+</span>'
+        f'<span class="badge">{TV}Android TV</span>'
+        f'<span class="badge open">{GITHUB}{OPEN_SOURCE[lang]}</span></div>'
+    )
     # The monogram again, huge and only outlined, leaving off the right edge.
     ghost_h = h * 1.5
     ghost_scale = ghost_h / 35
@@ -132,13 +152,21 @@ html, body {{ margin: 0; width: {w}px; height: {h}px; overflow: hidden; backgrou
 .text {{ font-family: Manrope; font-weight: 500; color: {fg}; }}
 .eyebrow {{ font-size: {h * 0.062}px; color: {eyebrow}; letter-spacing: 0.01em; margin-bottom: {h * 0.012}px; }}
 .name {{ font-size: {h * 0.205}px; line-height: 1; letter-spacing: -0.025em; white-space: nowrap; }}
+.badges {{ display: flex; gap: {h * 0.022}px; margin-top: {h * 0.06}px; }}
+.badge {{ display: flex; align-items: center; gap: {h * 0.016}px; height: {h * 0.09}px;
+  padding: 0 {h * 0.034}px 0 {h * 0.026}px; border-radius: 999px; font-size: {h * 0.043}px;
+  white-space: nowrap; color: {"#3A3B40" if light else "#D9DADD"};
+  background: {"rgba(236,234,231,0.92)" if light else "rgba(37,38,43,0.9)"};
+  border: 1px solid {"rgba(0,0,0,0.1)" if light else "rgba(255,255,255,0.13)"}; }}
+.badge svg {{ width: {h * 0.05}px; height: {h * 0.05}px; flex: none; }}
+.badge.open svg {{ color: {eyebrow}; }}
 </style></head><body>
 <div class="glow"></div>
 {streaks(w, h, light)}
 <svg class="ghost" viewBox="0 0 {w} {h}"><g transform="translate({w - ghost_h * 1.05:.1f} {h * 0.5 - ghost_h * 0.5:.1f}) scale({ghost_scale:.3f}) translate(-27 -36.7)">
   <path d="{MARK}" fill="none" stroke="{ghost}" stroke-width="{1.4 / ghost_scale:.3f}"/></g></svg>
 <div class="row"><div class="icon">{icon_svg("b")}</div>
-  <div class="text"><div class="eyebrow">RuStore · GitHub</div><div class="name">Wy Store</div></div></div>
+  <div class="text"><div class="eyebrow">RuStore · GitHub</div><div class="name">Wy Store</div>{badges}</div></div>
 </body></html>"""
 
 
@@ -222,7 +250,8 @@ def main():
                 ("og", 1200, 630, False), ("og-en", 1200, 630, False),
             ]:
                 folder = DOCS / "assets/img" if name.startswith("og") else DOCS
-                save(render(banner_html(w, h, light), w, h, Path(name), tmp), folder / f"{name}.png", opaque=True)
+                lang = "en" if "-en" in name else "ru"
+                save(render(banner_html(w, h, light, lang), w, h, Path(name), tmp), folder / f"{name}.png", opaque=True)
             save(render(banner_html(640, 360), 640, 360, Path("tv"), tmp),
                  RES / "drawable-xhdpi" / "tv_banner.png", opaque=True)
 

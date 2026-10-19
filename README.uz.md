@@ -32,9 +32,9 @@ Loyihaning oʻz serveri, akkauntlari, analitikasi va reklamasi yoʻq. Ilova faqa
 Wy Store RuStore bilan bogʻliq emas va uning nomidan ish koʻrmaydi: bu yerda RuStore — maʼlumot
 manbai. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
 
-| Bosh sahifa | Ilova sahifasi | Kutubxona |
+| Bosh sahifa | Ilova sahifasi | Ilovalar |
 |---|---|---|
-| ![Bosh sahifa](docs/screenshots/home.png) | ![Ilova sahifasi](docs/screenshots/app-page.png) | ![Kutubxona](docs/screenshots/library.png) |
+| ![Bosh sahifa](docs/screenshots/home.png) | ![Ilova sahifasi](docs/screenshots/app-page.png) | ![Ilovalar](docs/screenshots/library.png) |
 
 [Ekranlar boʻyicha tahlil](https://telegra.ph/Wy-Store-magazin-prilozhenij-kotoryj-ne-prosit-vojti-v-akkaunt-09-09) — ilova ishda qanday koʻrinishi va unda nima har doim ham ishlamasligi haqida (rus tilida).
 
@@ -52,11 +52,18 @@ manbai. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
   Wy Store oʻzi oʻrnatgan narsalar uchun Android 12 va undan yangi versiyalarda dialogsiz oʻrnatish
   mumkin, lekin kafolatlanmagan: tafsilotlar quyida.
 - **Yuklamalar navbati.** Bazada saqlanadi, qayta yuklanish va aloqa uzilishidan omon chiqadi,
-  yuklashni HTTP Range orqali uzilgan joyidan davom ettiradi.
+  yuklashni HTTP Range orqali uzilgan joyidan davom ettiradi. Tarmoq yoʻqolsa, yuklash darhol
+  navbatga turadi va tarmoq qaytganda davom etadi. Navbatdan va «Yangilanishlar» yorligʻidan ilova
+  sahifasini ochish mumkin, «Nima yangi» tugmasi esa taklif etilgan versiyada nima oʻzgargani
+  roʻyxatdan chiqmasdan koʻrsatadi.
+- **Tushunarli xabarlar.** Tarmoqsiz katalog va qidiruv «Hech narsa topilmadi» emas, «Server bilan
+  aloqa yoʻq» deb yozadi va qayta urinishni taklif qiladi. Yangiroq Android kerak boʻlgan ilovada
+  «Oʻrnatish» darhol qaysi versiya kerakligini aytadi.
 - **Sharhlar va baholar.** RuStore ilovalari uchun — reyting, yulduzlar soni boʻyicha taqsimot va
   baho boʻyicha filtr.
-- **Kutubxona.** Oʻrnatilgan ilovalar manba boʻyicha filtrlar bilan; yangilash va oʻchirish bitta
-  roʻyxatdan.
+- **Ilovalar.** Telefondagi hamma narsa bor yorliq: Wy Store qabul qilganlar tepada, qolganlari
+  pastda, har birida oʻrnatgich belgisi. Manba boʻyicha va «Qabul qilinmaganlar» filtrlari, bir
+  nechta ilovani birdan qabul qilish mumkin; yangilash va oʻchirish bitta roʻyxatdan.
 - **Zaxira nusxa.** Sozlamalar, qabul qilingan ilovalar va qoʻshilgan repozitoriylarni bitta JSON
   fayl bilan eksport va import qilish.
 - **Trafikni tejash.** Fondagi yuklamalar uchun «faqat Wi-Fi» rejimi; mobil internet orqali qoʻlda
@@ -71,27 +78,37 @@ manbai. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
   oʻrnatiladi; oʻrnatuvchi sifatida Wy Store yoziladi. Tafsilotlar —
   [adb orqali oʻrnatish](#adb-orqali-oʻrnatish-rootsiz) boʻlimida.
 - **Interfeys.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文.
-  Yorugʻ va qorongʻi mavzu, Material You.
+  Telefon va televizorda Wy Hub uslubi: qorongʻi mavzu qora emas, grafit rangda, yorugʻ va tizim
+  mavzusi ham bor; Manrope shrifti (qozoq, oʻzbek va xitoy tillarida — barcha harflari bor tizim
+  shrifti); har bir holatning oʻz rangi bor: yashil — tayyor, sariq — pauza, havorang — sizni
+  kutmoqda, qizil — xato.
+- **Urgʻu rangi.** **Sozlamalar → Tashqi koʻrinish** dagi toʻqqiztadan biri; tugmalar, ochiq yorliq va
+  jarayon shu rangda. Uning oʻrniga fon rasmi ranglarini (Material You, Android 12 va undan yangi)
+  yoqish mumkin — shunda urgʻuni ular tanlaydi.
 
 ## Android TV
 
-| Bosh sahifa | Ilova sahifasi | Mening ilovalarim |
+| Bosh sahifa | Ilova sahifasi | Ilovalar |
 |---|---|---|
-| ![Televizordagi bosh sahifa](docs/screenshots/tv/home.png) | ![Televizordagi ilova sahifasi](docs/screenshots/tv/app-page.png) | ![Televizordagi «Mening ilovalarim»](docs/screenshots/tv/my-apps.png) |
+| ![Televizordagi bosh sahifa](docs/screenshots/tv/home.png) | ![Televizordagi ilova sahifasi](docs/screenshots/tv/app-page.png) | ![Televizordagi «Ilovalar»](docs/screenshots/tv/my-apps.png) |
 
 Alohida yigʻma yoʻq: aynan shu APK Android 9 va undan yangi Android TV va Google TV ga oʻrnatiladi
 va televizor lancherida paydo boʻladi. Qurilma turi oʻzi aniqlanadi; agar pristavka telefon deb
 aniqlangan boʻlsa, turni **Sozlamalar → Tashqi koʻrinish → Qurilma turi** da qoʻlda tanlash mumkin
 (Avto, Telefon, Televizor).
 
-- **Pult bilan boshqarish.** Menyu yuqorida yorliqlar koʻrinishida — Asosiy, Qidiruv, Mening
-  ilovalarim, Sozlamalar; Wy Store nomi yonida «TV» belgisi turadi. «Orqaga» tugmasi tashqariga
+- **Pult bilan boshqarish.** Menyu yuqorida yorliqlar koʻrinishida — Asosiy, Qidiruv,
+  Ilovalar, Sozlamalar; Wy Store nomi yonida «TV» belgisi turadi. «Orqaga» tugmasi tashqariga
   olib chiqadi: kontentdan menyuga, menyudan Asosiy sahifaga, Asosiy sahifadan — chiqish. Qaytgandan
   keyin fokus ochilgan kartochkada turadi.
 - **Asosiy sahifa.** Yangilanishlar kartochkasi, boʻlim plitkalari, boʻlimlar boʻyicha qatorlar va
   «GitHub manbasidan» qatori. Televizorda bildirishnomalar yoʻq, shuning uchun oʻrnatish yoki
   yangilashga tayyor ilovalar Asosiy sahifaning yuqorisidagi qatorga yigʻilgan.
-- **Ilova sahifasi.** Televizor uchun skrinshotlar va sharhlar.
+- **Ilova sahifasi.** Televizor uchun skrinshotlar, sharhlar va «Nima yangi»; yuklash yoki
+  oʻrnatishni kutayotgan ilovalarda ham «Nima yangi» bor, u «Ilovalar» yorligʻida.
+- **Koʻrinish.** Telefondagi bilan bir xil Wy Hub, urgʻu rangini tanlash ham shunday: boʻlim
+  plitkalarida belgilar bor, kartochka qatorlari ekran chetigacha yetadi, kartochkalardagi nomlar
+  uch qatorgacha oladi.
 - **Qidiruv.** Matn yoki ovoz bilan. Natijalar — TV katalogidan, telefon katalogi yoqilgan boʻlsa,
   butun RuStore dan ham, shuningdek GitHub dan.
 - **Katalog.** RuStore da televizorlar uchun alohida katalog bor. **«Televizordagi katalog»**
@@ -242,7 +259,7 @@ Katalog, qidiruv va ilova sahifalari hech qachon root soʻramaydi.
 
 adb bor kompyuter Wy Store ga ilovalar roʻyxatini berishi mumkin: doʻkon ularni RuStore dan yuklab oladi
 va oʻzinikidek tekshiradi, oʻrnatishni esa kompyuterning oʻzi bajaradi — telefonda oynalarsiz va rootsiz.
-Ilovalarning oʻrnatgichi sifatida Wy Store qayd etiladi, ular kutubxonaga tushadi va keyin doʻkondan
+Ilovalarning oʻrnatgichi sifatida Wy Store qayd etiladi, ular «Ilovalar» yorligʻiga tushadi va keyin doʻkondan
 yangilanib boradi. Bu telefonni sozlaydigan agentlar va skriptlar uchun qulay.
 
 ```bash
@@ -318,7 +335,7 @@ Toʻliq matn — [PRIVACY.md](PRIVACY.md) faylida.
 | `INTERNET`, `ACCESS_NETWORK_STATE` | Katalog va APK larni yuklash, «faqat Wi-Fi» rejimi uchun tarmoq turini tekshirish |
 | `REQUEST_INSTALL_PACKAGES` | Yuklab olingan APK larni oʻrnatish |
 | `UPDATE_PACKAGES_WITHOUT_USER_ACTION`, `ENFORCE_UPDATE_OWNERSHIP` | Wy Store oʻzi oʻrnatgan narsalarni dialogsiz yangilash |
-| `REQUEST_DELETE_PACKAGES` | Ilovani kutubxonadan oʻchirish |
+| `REQUEST_DELETE_PACKAGES` | Ilovani «Ilovalar» roʻyxatidan oʻchirish |
 | `QUERY_ALL_PACKAGES` | Katalogni oʻrnatilganlari bilan solishtirish: versiyalar, holatlar, yangilanishlarni qidirish |
 | `POST_NOTIFICATIONS` | Topilgan yangilanishlar va yuklash jarayoni haqida bildirishnomalar |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`, `RUN_USER_INITIATED_JOBS` | Tizim yarim yoʻlda oʻldirmaydigan yuklash |
@@ -342,7 +359,8 @@ Endpointlar tahlili, HTTP 419 ning sababi va zaxira variantning xatti-harakati �
 
 - **Android 9.0 (API 28)** yoki undan yangisi. Bu Wy Store ning oʻz talabi; katalogdagi ilovalarga
   koʻpincha yangiroq versiya kerak boʻladi va u har birining sahifasida koʻrsatilgan — yuklab
-  olishdan oldin, keyin emas.
+  olishdan oldin, keyin emas. Yangiroq Android kerak boʻlgan ilovada «Oʻrnatish» ni bosish darhol
+  qaysi versiya kerakligini aytadi.
 - Nomaʼlum ilovalarni oʻrnatishga ruxsat: Android uni birinchi oʻrnatishda soʻraydi.
 - Root shart emas. Usiz tasdiqsiz oʻrnatish faqat yangilanishlar uchun, faqat Android 12 va undan
   yangisida va faqat uni Play Protect toʻxtatmaguncha mumkin. Root bilan hammasi Android oynalarisiz
@@ -413,7 +431,7 @@ Avval [CHANGELOG.md](CHANGELOG.md) ga yangi versiya raqami ostida yozuv, keyin t
 reliz matni shu boʻlimdan olinadi, yozuvsiz teg esa yigʻishni yiqitadi.
 
 ```bash
-git tag v0.2.0 && git push origin v0.2.0
+git tag v<versiya> && git push origin v<versiya>
 ```
 
 Relizni CI teg boʻyicha yigʻadi — [.github/workflows/release.yml](.github/workflows/release.yml).

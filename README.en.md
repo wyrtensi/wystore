@@ -35,9 +35,9 @@ itself ships in every language listed above.
 Wy Store is not affiliated with RuStore and does not act on its behalf: RuStore is a data source
 here. See [DISCLAIMER.md](DISCLAIMER.md).
 
-| Home | App page | Library |
+| Home | App page | Apps |
 |---|---|---|
-| ![Home](docs/screenshots/en/home.png) | ![App page](docs/screenshots/en/app-page.png) | ![Library](docs/screenshots/en/library.png) |
+| ![Home](docs/screenshots/en/home.png) | ![App page](docs/screenshots/en/app-page.png) | ![Apps](docs/screenshots/en/library.png) |
 
 [A walkthrough](https://telegra.ph/Wy-Store-magazin-prilozhenij-kotoryj-ne-prosit-vojti-v-akkaunt-09-09) — the app screen by screen, and what does not always work (in Russian).
 
@@ -55,11 +55,19 @@ here. See [DISCLAIMER.md](DISCLAIMER.md).
   without a dialog is possible on Android 12 and newer for what Wy Store installed itself — but it
   is not guaranteed; see below.
 - **Download queue.** Kept in a database, survives reboots and dropped connections, and resumes from
-  where it stopped using HTTP Range.
+  where it stopped using HTTP Range. If the network goes away, the download joins the queue at once
+  and carries on when the network returns. From the queue and from the Updates tab you can open
+  the app's page, and a "What is new" button shows what changed in the version on offer without
+  leaving the list.
+- **Plain error messages.** Without a network, the catalogue and search say "No connection to the
+  server" and offer a retry instead of "Nothing found". For an app that needs a newer Android,
+  "Install" says at once which one.
 - **Reviews and ratings.** For RuStore apps: the rating, a breakdown by star count and a filter by
   score.
-- **Library.** Installed apps with filters by source; update and uninstall from one list.
-- **Backup.** Export and import of settings, adopted apps and added repositories as a single JSON
+- **Apps.** A tab with everything on the phone: the apps Wy Store has accepted on top, the rest
+  below, each with a badge saying who installed it. Filters by source and "Not accepted", several
+  apps can be accepted at once; update and uninstall from one list.
+- **Backup.** Export and import of settings, accepted apps and added repositories as a single JSON
   file.
 - **Traffic control.** A Wi-Fi-only mode for background downloads; a manual download over mobile data
   asks for confirmation first.
@@ -70,26 +78,36 @@ here. See [DISCLAIMER.md](DISCLAIMER.md).
 - **Installs over adb for agents and scripts.** A computer hands Wy Store a list of packages; the
   store fetches and verifies them, and they install with no dialog on the phone and no root, with Wy
   Store as their installer. See [Installing over adb](#installing-over-adb-no-root) below.
-- **Interface.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文 —
-  light and dark themes, Material You.
+- **Interface.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文.
+  The Wy Hub look on phone and TV: the dark theme is graphite rather than black, with a light and a
+  system theme too; the Manrope typeface (Kazakh, Uzbek and Chinese keep the system typeface, which
+  has all their letters); every state has its own colour: green for done, yellow for paused, blue
+  for waiting on you, red for an error.
+- **Accent colour.** One of nine in **Settings → Appearance**; buttons, the open tab and progress
+  are drawn in it. Alternatively, turn on the wallpaper's colours (Material You, Android 12 and
+  newer), and they choose the accent.
 
 ## Android TV
 
-| Home | App page | My apps |
+| Home | App page | Apps |
 |---|---|---|
-| ![Home on a TV](docs/screenshots/tv/en/home.png) | ![App page on a TV](docs/screenshots/tv/en/app-page.png) | ![My apps on a TV](docs/screenshots/tv/en/my-apps.png) |
+| ![Home on a TV](docs/screenshots/tv/en/home.png) | ![App page on a TV](docs/screenshots/tv/en/app-page.png) | ![Apps on a TV](docs/screenshots/tv/en/my-apps.png) |
 
 There is no separate build: the same APK installs on Android TV and Google TV running Android 9 or
 newer and shows up in the TV launcher. The device type is detected automatically; if a set-top box
 is detected as a phone, pick the type by hand in **Settings → Appearance → Device type** (Auto,
 Phone, TV).
 
-- **Remote control.** A tab menu along the top — Home, Search, My apps, Settings — with a "TV" badge
+- **Remote control.** A tab menu along the top — Home, Search, Apps, Settings — with a "TV" badge
   next to the Wy Store name. Back leads outwards: from the content to the menu, from the menu to
   Home, and from Home out of the app. On return, focus sits on the card you opened.
 - **Home.** The updates card, section tiles, rows by section and a "From GitHub" row. A TV has no
   notifications, so apps ready to install or update are gathered in a row at the top of Home.
-- **App page.** TV screenshots and reviews.
+- **App page.** TV screenshots, reviews and "What is new"; apps waiting for a download or an install
+  have "What is new" too, on the Apps tab.
+- **Look.** The same Wy Hub as on the phone, with the same choice of accent colour: the section
+  tiles have glyphs, rows of cards run to the edges of the screen, and card names take up to three
+  lines.
 - **Search.** By text or by voice. Results come from the TV catalogue — and, if the phone catalogue
   is enabled, from all of RuStore — plus GitHub.
 - **Catalogue.** RuStore has a separate catalogue for TVs. The **"Catalogue on the TV"** setting:
@@ -135,7 +153,7 @@ different app, so this one update has to be installed by hand:
 1. In the old Wy Store: **Settings → Backup and transfer → Export**, save the file.
 2. Install the new APK.
 3. In the new Wy Store: **Settings → Backup and transfer → Import**, pick that file. Settings,
-   adopted apps and added GitHub repositories carry over.
+   accepted apps and added GitHub repositories carry over.
 4. Uninstall the old version, or two stores will chase the same updates.
 5. Grant the new app the battery optimisation exemption again, and confirm the update handover on
    the first update: both are tied to the application id and do not transfer.
@@ -237,7 +255,7 @@ The catalogue, search and app pages never ask for root.
 
 A computer with adb can hand Wy Store a list of apps. The store fetches them from RuStore and
 verifies them exactly as it does its own, and the computer installs them - with no dialog on the
-phone and no root. Wy Store is recorded as their installer, they appear in the library, and their
+phone and no root. Wy Store is recorded as their installer, they appear on the Apps tab, and their
 updates come from the store from then on. It is meant for agents and scripts that set a phone up.
 
 ```bash
@@ -310,7 +328,7 @@ The full text is in [PRIVACY.md](PRIVACY.md).
 | `INTERNET`, `ACCESS_NETWORK_STATE` | Fetching the catalogue and APKs, checking the network type for Wi-Fi-only mode |
 | `REQUEST_INSTALL_PACKAGES` | Installing downloaded APKs |
 | `UPDATE_PACKAGES_WITHOUT_USER_ACTION`, `ENFORCE_UPDATE_OWNERSHIP` | Updating what Wy Store installed without a dialog |
-| `REQUEST_DELETE_PACKAGES` | Uninstalling from the library |
+| `REQUEST_DELETE_PACKAGES` | Uninstalling from the Apps list |
 | `QUERY_ALL_PACKAGES` | Matching the catalogue against what is installed: versions, statuses, available updates |
 | `POST_NOTIFICATIONS` | Notifications about found updates and download progress |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`, `RUN_USER_INITIATED_JOBS` | Downloads the system will not kill halfway |
@@ -334,7 +352,7 @@ The endpoints, the reason behind HTTP 419 and the fallback behaviour are describ
 
 - **Android 9.0 (API 28)** or newer. That is Wy Store's own minimum; apps in the catalogue often
   need something newer, and each app's page states the version it needs before the download rather
-  than after.
+  than after. Pressing "Install" on an app that needs a newer Android says at once which one.
 - Permission to install unknown apps: Android asks for it on the first install.
 - Root is optional. Without it, installing without a confirmation is possible for updates only, on
   Android 12 and newer only, and only for as long as Play Protect does not stop it. With root
@@ -405,7 +423,7 @@ The entry in [CHANGELOG.md](CHANGELOG.md) under the new version number comes fir
 The GitHub release text is taken from that section, and a tag without an entry fails the build.
 
 ```bash
-git tag v0.2.0 && git push origin v0.2.0
+git tag v<version> && git push origin v<version>
 ```
 
 CI builds the release from the tag — [.github/workflows/release.yml](.github/workflows/release.yml).

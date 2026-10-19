@@ -35,9 +35,9 @@ ir pieejams visās iepriekš uzskaitītajās valodās.
 Wy Store nav saistīts ar RuStore un nedarbojas tā vārdā: RuStore šeit ir datu avots. Sk.
 [DISCLAIMER.md](DISCLAIMER.md).
 
-| Sākums | Lietotnes lapa | Bibliotēka |
+| Sākums | Lietotnes lapa | Lietotnes |
 |---|---|---|
-| ![Sākums](docs/screenshots/en/home.png) | ![Lietotnes lapa](docs/screenshots/en/app-page.png) | ![Bibliotēka](docs/screenshots/en/library.png) |
+| ![Sākums](docs/screenshots/en/home.png) | ![Lietotnes lapa](docs/screenshots/en/app-page.png) | ![Lietotnes](docs/screenshots/en/library.png) |
 
 [Apskats pa ekrāniem](https://telegra.ph/Wy-Store-magazin-prilozhenij-kotoryj-ne-prosit-vojti-v-akkaunt-09-09) — lietotne ekrānu pēc ekrāna un tas, kas tajā ne vienmēr strādā (krievu valodā).
 
@@ -55,11 +55,17 @@ Wy Store nav saistīts ar RuStore un nedarbojas tā vārdā: RuStore šeit ir da
   dialoga ir iespējama Android 12 un jaunākās versijās tam, ko Wy Store instalējis pats, — bet tā
   nav garantēta; sk. zemāk.
 - **Lejupielāžu rinda.** Glabājas datubāzē, pārdzīvo pārstartēšanu un savienojuma zudumu un
-  turpinās no pārtrauktās vietas, izmantojot HTTP Range.
+  turpinās no pārtrauktās vietas, izmantojot HTTP Range. Ja tīkls pazūd, lejupielāde uzreiz nonāk
+  rindā un turpinās, kad tīkls atgriežas. No rindas un cilnes „Atjauninājumi“ var atvērt lietotnes
+  lapu, bet poga „Kas jauns“ parāda, kas mainījies piedāvātajā versijā, neizejot no saraksta.
+- **Saprotami ziņojumi.** Bez tīkla katalogs un meklēšana raksta „Nav savienojuma ar serveri“ un
+  piedāvā mēģināt vēlreiz, nevis „Nekas nav atrasts“. Lietotnei, kurai vajag jaunāku Android,
+  „Instalēt“ uzreiz pasaka, kuru tieši.
 - **Atsauksmes un vērtējumi.** RuStore lietotnēm — reitings, sadalījums pa zvaigžņu skaitu un
   filtrs pēc vērtējuma.
-- **Bibliotēka.** Instalētās lietotnes ar filtriem pēc avota; atjaunināšana un atinstalēšana no
-  viena saraksta.
+- **Lietotnes.** Cilne ar visu, kas ir tālrunī: Wy Store pieņemtās augšā, pārējās zemāk, katrai
+  ir instalētāja atzīme. Filtri pēc avota un „Nepieņemtās“, vairākas lietotnes var pieņemt uzreiz;
+  atjaunināšana un atinstalēšana no viena saraksta.
 - **Rezerves kopija.** Iestatījumu, pārņemto lietotņu un pievienoto repozitoriju eksports un
   imports vienā JSON failā.
 - **Trafika kontrole.** Tikai Wi-Fi režīms fona lejupielādēm; manuāla lejupielāde pa mobilo
@@ -73,27 +79,36 @@ Wy Store nav saistīts ar RuStore un nedarbojas tā vārdā: RuStore šeit ir da
   instalētāju tiek ierakstīts Wy Store. Sīkāk sadaļā
   [Instalēšana caur adb](#instalēšana-caur-adb-bez-root).
 - **Interfeiss.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文 —
-  gaišā un tumšā tēma, Material You.
+  Wy Hub izskats tālrunī un televizorā: tumšā tēma ir grafīta, nevis melna, ir arī gaišā un
+  sistēmas tēma; Manrope burtveidols (kazahu, uzbeku un ķīniešu valodā — sistēmas burtveidols, kurā
+  ir visi burti); katram stāvoklim sava krāsa: zaļa — gatavs, dzeltena — pauze, zila — gaida jūs,
+  sarkana — kļūda.
+- **Akcenta krāsa.** Viena no deviņām sadaļā **Iestatījumi → Izskats**; šajā krāsā ir pogas, atvērtā
+  cilne un progress. Tās vietā var ieslēgt fona attēla krāsas (Material You, Android 12 un jaunāka),
+  un tad akcentu izvēlas tās.
 
 ## Android TV
 
-| Sākums | Lietotnes lapa | Manas lietotnes |
+| Sākums | Lietotnes lapa | Lietotnes |
 |---|---|---|
-| ![Sākums televizorā](docs/screenshots/tv/en/home.png) | ![Lietotnes lapa televizorā](docs/screenshots/tv/en/app-page.png) | ![Manas lietotnes televizorā](docs/screenshots/tv/en/my-apps.png) |
+| ![Sākums televizorā](docs/screenshots/tv/en/home.png) | ![Lietotnes lapa televizorā](docs/screenshots/tv/en/app-page.png) | ![Lietotnes televizorā](docs/screenshots/tv/en/my-apps.png) |
 
 Atsevišķa būvējuma nav: tas pats APK instalējas Android TV un Google TV ar Android 9 un jaunāku
 versiju un parādās televizora palaidējā. Ierīces veids tiek noteikts automātiski; ja televizora
 pierīce ir noteikta kā tālrunis, to var izvēlēties ar roku sadaļā **Iestatījumi → Izskats → Ierīces
 veids** (Automātiski, Tālrunis, Televizors).
 
-- **Vadība ar pulti.** Izvēlne ar cilnēm augšā — Sākums, Meklēt, Manas lietotnes, Iestatījumi;
+- **Vadība ar pulti.** Izvēlne ar cilnēm augšā — Sākums, Meklēt, Lietotnes, Iestatījumi;
   blakus Wy Store nosaukumam ir atzīme „TV“. Poga „Atpakaļ“ ved uz āru: no satura uz izvēlni, no
   izvēlnes uz Sākumu, no Sākuma — iziešana. Pēc atgriešanās fokuss ir uz tās kartītes, kas tika
   atvērta.
 - **Sākums.** Atjauninājumu kartīte, sadaļu elementi, rindas pa sadaļām un rinda „No GitHub“.
   Paziņojumu televizorā nav, tāpēc lietotnes, kas gatavas instalēšanai vai atjaunināšanai, ir
   savāktas rindā Sākuma augšā.
-- **Lietotnes lapa.** Ekrānuzņēmumi televizoram un atsauksmes.
+- **Lietotnes lapa.** Ekrānuzņēmumi televizoram, atsauksmes un „Kas jauns“; „Kas jauns“ ir arī
+  lietotnēm, kas gaida lejupielādi vai instalēšanu, cilnē „Lietotnes“.
+- **Izskats.** Tas pats Wy Hub, kas tālrunī, ar tādu pašu akcenta krāsas izvēli: sadaļu elementiem ir
+  ikonas, kartīšu rindas sniedzas līdz ekrāna malām, un nosaukumi uz kartītēm aizņem līdz trim rindām.
 - **Meklēšana.** Ar tekstu vai balsi. Rezultāti nāk no TV kataloga, bet, ja ieslēgts tālruņa
   katalogs, arī no visa RuStore, plus GitHub.
 - **Katalogs.** RuStore ir atsevišķs katalogs televizoriem. Iestatījums **„Katalogs televizorā“**:
@@ -246,7 +261,7 @@ Katalogs, meklēšana un lietotņu lapas root nepieprasa nekad.
 
 Dators ar adb var nodot Wy Store lietotņu sarakstu: veikals lejupielādē tās no RuStore un pārbauda
 tieši tā, kā savas, bet instalē tās pats dators — bez logiem telefonā un bez root. Kā instalētājs
-tiek ierakstīts Wy Store, lietotnes nonāk bibliotēkā, un turpmāk tās atjaunina veikals. Tas ir
+tiek ierakstīts Wy Store, lietotnes nonāk cilnē „Lietotnes“, un turpmāk tās atjaunina veikals. Tas ir
 domāts aģentiem un skriptiem, kas iestata telefonu.
 
 ```bash
@@ -320,7 +335,7 @@ Pilns teksts ir [PRIVACY.md](PRIVACY.md).
 | `INTERNET`, `ACCESS_NETWORK_STATE` | Kataloga un APK lejupielāde, tīkla veida pārbaude tikai Wi-Fi režīmam |
 | `REQUEST_INSTALL_PACKAGES` | Lejupielādēto APK instalēšana |
 | `UPDATE_PACKAGES_WITHOUT_USER_ACTION`, `ENFORCE_UPDATE_OWNERSHIP` | Tā atjaunināšana bez dialoga, ko Wy Store instalējis pats |
-| `REQUEST_DELETE_PACKAGES` | Atinstalēšana no bibliotēkas |
+| `REQUEST_DELETE_PACKAGES` | Atinstalēšana no saraksta „Lietotnes“ |
 | `QUERY_ALL_PACKAGES` | Kataloga salīdzināšana ar instalēto: versijas, statusi, pieejamie atjauninājumi |
 | `POST_NOTIFICATIONS` | Paziņojumi par atrastajiem atjauninājumiem un lejupielādes gaitu |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`, `RUN_USER_INITIATED_JOBS` | Lejupielādes, ko sistēma nenobeigs pusceļā |
@@ -344,7 +359,8 @@ Galapunkti, HTTP 419 iemesls un rezerves varianta uzvedība ir aprakstīti fail�
 
 - **Android 9.0 (API 28)** vai jaunāka. Tā ir paša Wy Store minimālā prasība; kataloga lietotnēm
   bieži vajag ko jaunāku, un katras lietotnes lapā nepieciešamā versija ir norādīta pirms
-  lejupielādes, nevis pēc tās.
+  lejupielādes, nevis pēc tās. Pieskāriens „Instalēt“ lietotnei, kurai vajag jaunāku Android, uzreiz
+  pasaka, kuru tieši.
 - Atļauja instalēt nezināmas lietotnes: Android to prasa pirmajā instalēšanā.
 - Root nav obligāts. Bez tā instalēšana bez apstiprinājuma ir iespējama tikai atjauninājumiem,
   tikai Android 12 un jaunākās versijās un tikai tik ilgi, kamēr to neaptur Play Protect. Ar root
@@ -415,7 +431,7 @@ Vispirms ieraksts [CHANGELOG.md](CHANGELOG.md) zem jaunās versijas numura, tika
 laidiena teksts tiek ņemts no šīs sadaļas, un tags bez ieraksta nogāž būvējumu.
 
 ```bash
-git tag v0.2.0 && git push origin v0.2.0
+git tag v<version> && git push origin v<version>
 ```
 
 Laidienu no taga būvē CI — [.github/workflows/release.yml](.github/workflows/release.yml).

@@ -25,13 +25,13 @@ Wy Store 是 RuStore 目录的 Android 客户端。它展示的应用和 RuStore
 
 项目没有服务端、没有账号、没有统计分析、没有广告。应用只访问 `rustore.ru`、`github.com` 以及这些服务自己分发文件所用的存储。
 
-这个目录面向俄罗斯的用户，所以其中大部分内容是俄语的；界面本身提供七种语言。
+这个目录面向俄罗斯的用户，所以其中大部分内容是俄语的；界面本身提供八种语言。
 
 Wy Store 与 RuStore 没有隶属关系，也不代表它行事：RuStore 在这里只是数据源。详见 [DISCLAIMER.md](DISCLAIMER.md)。
 
-| 主页 | 应用页面 | 库 |
+| 主页 | 应用页面 | 应用 |
 |---|---|---|
-| ![主页](docs/screenshots/en/home.png) | ![应用页面](docs/screenshots/en/app-page.png) | ![库](docs/screenshots/en/library.png) |
+| ![主页](docs/screenshots/en/home.png) | ![应用页面](docs/screenshots/en/app-page.png) | ![应用](docs/screenshots/en/library.png) |
 
 [逐屏介绍](https://telegra.ph/Wy-Store-magazin-prilozhenij-kotoryj-ne-prosit-vojti-v-akkaunt-09-09) —— 一个屏幕一个屏幕地看这个应用，以及其中哪些地方并不总是能正常工作（俄语）。
 
@@ -41,27 +41,30 @@ Wy Store 与 RuStore 没有隶属关系，也不代表它行事：RuStore 在这
 - **目录分区。** RuStore 的分区以磁贴形式出现在主页上，也有单独的全部分区页面。在设置里可以改用 Wy Store 自己的一套分区。
 - **安装前的 APK 检查。** 在文件交给安装器之前，会核对包名、versionCode、split-APK 组合是否完整以及签名证书。不一致就是拒绝，并说明原因。
 - **后台更新。** 按计划检查，并自动下载检查到的内容。在 Android 12 及更高版本上，对于 Wy Store 自己安装的应用，可以不弹对话框直接安装 —— 但这不是必然的，详见下文。
-- **下载队列。** 保存在数据库中，能挺过重启和断网，并用 HTTP Range 从中断的位置继续。
+- **下载队列。** 保存在数据库中，能挺过重启和断网，并用 HTTP Range 从中断的位置继续。网络断开时，下载会立刻进入队列，网络恢复后接着下载。在队列和「更新」标签页里可以打开应用页面，「更新内容」按钮会不离开列表就显示所提供版本改了什么。
+- **清楚的提示。** 没有网络时，目录和搜索会写「无法连接服务器」并提供重试，而不是「没有找到内容」。对于需要更新 Android 的应用，点「安装」会立刻说明需要哪个版本。
 - **评价与评分。** 对 RuStore 的应用：评分、按星级的分布，以及按评分的筛选。
-- **库。** 已安装的应用，可按来源筛选；在同一个列表里更新和卸载。
+- **应用。** 一个标签页，列出手机上的一切：Wy Store 已接管的在上面，其余在下面，每一项都有安装来源标记。可按来源和「未接管」筛选，也可以一次接管多个应用；在同一个列表里更新和卸载。
 - **备份。** 把设置、已接管的应用和已添加的仓库导出、导入为单个 JSON 文件。
 - **流量控制。** 后台下载的「仅 Wi-Fi」模式；通过移动数据手动下载时会先请求确认。
 - **Android TV。** 同一个 APK 可以在 Android TV 和 Google TV 上运行，有适合遥控器的专用界面和 RuStore 的电视目录。详见 [Android TV](#android-tv) 一节。
 - **可选的 root。** 授予 root 后，首次安装、更新和卸载都不会出现 Android 的窗口，在后台也一样。默认关闭；详见 [Root](#root) 一节。
 - **面向智能体和脚本的 adb 安装。** 电脑把软件包列表交给 Wy Store，商店下载并校验，随后在手机上无窗口、无需 root 地安装，安装来源记录为 Wy Store。详见 [通过 adb 安装](#通过-adb-安装无需-root) 一节。
-- **界面。** Русский、English、Українська、Беларуская、Қазақша、Oʻzbekcha、Latviešu、简体中文，浅色和深色主题，Material You。
+- **界面。** Русский、English、Українська、Беларуская、Қазақша、Oʻzbekcha、Latviešu、简体中文，手机和电视上都是 Wy Hub 风格：深色主题是石墨色而不是纯黑，也有浅色和跟随系统的主题；字体为 Manrope（哈萨克语、乌兹别克语和中文使用系统字体，它包含这些语言的所有字符）；每种状态都有自己的颜色：绿色表示完成，黄色表示暂停，浅蓝色表示等你处理，红色表示出错。
+- **强调色。** 在 **设置 → 外观** 里从九种颜色中选一种；按钮、当前标签和进度使用它。也可以改为打开壁纸取色（Material You，Android 12 及更高版本），这时强调色由壁纸决定。
 
 ## Android TV
 
-| 首页 | 应用页面 | 我的应用 |
+| 首页 | 应用页面 | 应用 |
 |---|---|---|
-| ![电视上的首页](docs/screenshots/tv/en/home.png) | ![电视上的应用页面](docs/screenshots/tv/en/app-page.png) | ![电视上的我的应用](docs/screenshots/tv/en/my-apps.png) |
+| ![电视上的首页](docs/screenshots/tv/en/home.png) | ![电视上的应用页面](docs/screenshots/tv/en/app-page.png) | ![电视上的应用](docs/screenshots/tv/en/my-apps.png) |
 
 没有单独的构建：同一个 APK 可以装在 Android 9 及更高版本的 Android TV 和 Google TV 上，并出现在电视的启动器里。设备类型会自动识别；如果电视盒子被识别成了手机，可以在 **设置 → 外观 → 设备类型**（自动、手机、电视）里手动选择。
 
-- **用遥控器操作。** 菜单是顶部的标签页 —— 首页、搜索、我的应用、设置；Wy Store 名称旁边有「电视」标记。「返回」键一层层往外走：从内容回到菜单，从菜单回到首页，在首页则退出。返回之后，焦点停在刚才打开的那张卡片上。
+- **用遥控器操作。** 菜单是顶部的标签页 —— 首页、搜索、应用、设置；Wy Store 名称旁边有「电视」标记。「返回」键一层层往外走：从内容回到菜单，从菜单回到首页，在首页则退出。返回之后，焦点停在刚才打开的那张卡片上。
 - **首页。** 更新卡片、分区磁贴、按分区排列的行，以及「来自 GitHub」一行。电视上没有通知，所以可以安装或更新的应用集中在首页顶部的一行里。
-- **应用页面。** 电视版截图和评价。
+- **应用页面。** 电视版截图、评价和「更新内容」；等待下载或安装的应用在「应用」标签页里也有「更新内容」。
+- **外观。** 与手机相同的 Wy Hub，强调色的选择也一样：分区磁贴带有图标，卡片行一直延伸到屏幕边缘，卡片上的名称最多占三行。
 - **搜索。** 可以打字，也可以用语音。结果来自电视目录；如果开启了手机目录，还来自整个 RuStore，外加 GitHub。
 - **目录。** RuStore 为电视提供单独的目录。**「电视上的目录」** 设置：「电视应用」（默认）、「手机应用」或「两者」。在「两者」模式下，手机应用单独成行，并标有「手机应用」：它们很多并不是为遥控器设计的。无论选哪一项，从任一目录安装的应用都会继续得到更新。
 - **GitHub。** 手机和电视上都有 GitHub 目录；可以在 **设置 → 应用来源** 里关闭。
@@ -169,7 +172,7 @@ root 不是必需的，默认关闭。开启方法：**设置 → 权限中心 �
 
 ### 通过 adb 安装（无需 root）
 
-装有 adb 的电脑可以把一份应用列表交给 Wy Store：商店从 RuStore 下载这些应用，并像校验自己的应用一样校验它们，安装则由电脑完成 —— 手机上不出现任何窗口，也不需要 root。Wy Store 会被记录为这些应用的安装来源，它们会出现在库里，之后由商店负责更新。这是为替手机做初始设置的智能体和脚本准备的。
+装有 adb 的电脑可以把一份应用列表交给 Wy Store：商店从 RuStore 下载这些应用，并像校验自己的应用一样校验它们，安装则由电脑完成 —— 手机上不出现任何窗口，也不需要 root。Wy Store 会被记录为这些应用的安装来源，它们会出现在「应用」标签页里，之后由商店负责更新。这是为替手机做初始设置的智能体和脚本准备的。
 
 ```bash
 python tools/wystore_adb_install.py ru.ozon.app.android ru.nspk.mirpay
@@ -225,7 +228,7 @@ Wy Store 校验的是分发过程，而不是应用本身。已安装的程序�
 | `INTERNET`、`ACCESS_NETWORK_STATE` | 获取目录和 APK，为「仅 Wi-Fi」模式检查网络类型 |
 | `REQUEST_INSTALL_PACKAGES` | 安装下载下来的 APK |
 | `UPDATE_PACKAGES_WITHOUT_USER_ACTION`、`ENFORCE_UPDATE_OWNERSHIP` | 不弹对话框更新 Wy Store 自己安装的应用 |
-| `REQUEST_DELETE_PACKAGES` | 从库里卸载 |
+| `REQUEST_DELETE_PACKAGES` | 从「应用」列表里卸载 |
 | `QUERY_ALL_PACKAGES` | 把目录和已安装的内容对应起来：版本、状态、可用更新 |
 | `POST_NOTIFICATIONS` | 关于找到的更新和下载进度的通知 |
 | `FOREGROUND_SERVICE`、`FOREGROUND_SERVICE_DATA_SYNC`、`RUN_USER_INITIATED_JOBS` | 系统不会中途杀掉的下载 |
@@ -242,7 +245,7 @@ Wy Store 校验的是分发过程，而不是应用本身。已安装的程序�
 
 ## 系统要求
 
-- **Android 9.0（API 28）**或更高版本。这是 Wy Store 自己的最低要求；目录里的应用往往需要更新的版本，而每个应用的页面都会在下载之前而不是之后写明它需要的版本。
+- **Android 9.0（API 28）**或更高版本。这是 Wy Store 自己的最低要求；目录里的应用往往需要更新的版本，而每个应用的页面都会在下载之前而不是之后写明它需要的版本。对需要更新 Android 的应用点「安装」，会立刻说明需要哪个版本。
 - 安装未知应用的权限：Android 会在首次安装时请求它。
 - root 是可选的。没有它时，不经确认的安装只对更新有效，只在 Android 12 及更高版本上有效，而且只在 Play Protect 不出手阻止的期间有效。有 root 时一切安装都不出现 Android 的窗口，首次安装也包括在内，卸载也可以选择不经确认。细节见「更新如何工作」。
 - **Android TV 和 Google TV**，Android 9 及更高版本 —— 用同一个 APK。电视上没有通知，可以安装的内容显示在首页上。
@@ -299,7 +302,7 @@ keytool -genkeypair -v -keystore outputs/wystore-release.jks -alias wystore -key
 先在 [CHANGELOG.md](CHANGELOG.md) 里写上新版本号下的条目，然后才打标签。GitHub release 的正文取自那一节，而没有对应条目的标签会让构建失败。
 
 ```bash
-git tag v0.2.0 && git push origin v0.2.0
+git tag v<version> && git push origin v<version>
 ```
 
 CI 会按标签构建 release —— [.github/workflows/release.yml](.github/workflows/release.yml)。仓库 secrets 里必须有 `WYSTORE_KEYSTORE_BASE64`（base64 形式的密钥文件）、`WYSTORE_KEYSTORE_PASSWORD`、`WYSTORE_KEY_ALIAS` 和 `WYSTORE_KEY_PASSWORD`。workflow 会验证 APK 已签名，没签名就失败。
