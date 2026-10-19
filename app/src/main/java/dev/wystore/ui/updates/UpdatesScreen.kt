@@ -48,6 +48,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Row
@@ -190,16 +192,29 @@ fun UpdatesScreen(
                 bottom = 24.dp + LocalBottomBarInset.current
             )
         ) {
-            item {
-                UpdatesHero(
-                    summary = lastUpdateCheck,
-                    checking = updateCheckTask?.takeIf { it.active },
-                    ready = pendingUpdates.size,
-                    waiting = actionableQueue.size,
-                    onOpenApp = onOpenPackage,
-                    onInstallAll = onUpdateAll,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+            // With no accepted apps the panel used to say "all up to date" with a full ring right
+            // above the empty state that says there is nothing here; now it steps aside.
+            val checkingTask = updateCheckTask?.takeIf { it.active }
+            val heroHeadline = UpdatesHeroPolicy.headline(
+                tracked = orderedManaged.size,
+                ready = pendingUpdates.size,
+                waiting = actionableQueue.size,
+                problems = lastUpdateCheck?.problems ?: 0,
+                checking = checkingTask != null
+            )
+            if (heroHeadline != null) {
+                item {
+                    UpdatesHero(
+                        headline = heroHeadline,
+                        summary = lastUpdateCheck,
+                        checking = checkingTask,
+                        ready = pendingUpdates.size,
+                        waiting = actionableQueue.size,
+                        onOpenApp = onOpenPackage,
+                        onInstallAll = onUpdateAll,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
             }
 
             item {
@@ -309,11 +324,13 @@ fun UpdatesScreen(
                         groupPosition = groupPosition(index, orderedManaged.size)
                     )
                 }
-            } else if (pendingUpdates.isEmpty()) {
+            } else if (UpdatesHeroPolicy.showsEmptyState(orderedManaged.size, pendingUpdates.size, actionableQueue.size)) {
                 item {
                     EmptyState(
                         icon = Icons.Outlined.CheckCircle,
-                        title = stringResource(R.string.home_all_up_to_date),
+                        // Not "all up to date": that was the panel's line, and with nothing accepted
+                        // it was untrue as well as repeated.
+                        title = stringResource(R.string.updates_managed_empty_title),
                         message = stringResource(R.string.updates_managed_empty)
                     )
                 }
@@ -330,6 +347,7 @@ fun UpdatesScreen(
  */
 @Composable
 private fun UpdatesHero(
+    headline: UpdatesHeroPolicy.Headline,
     summary: UpdateCheckSummary?,
     checking: UpdateCheckTask?,
     ready: Int,
@@ -342,14 +360,15 @@ private fun UpdatesHero(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    when {
-                        ready > 0 -> stringResource(R.string.updates_hero_ready, ready)
-                        waiting > 0 -> stringResource(R.string.updates_hero_waiting, waiting)
-                        summary != null && summary.problems > 0 ->
-                            stringResource(R.string.updates_hero_problems, summary.problems)
+                    when (headline) {
+                        UpdatesHeroPolicy.Headline.READY -> stringResource(R.string.updates_hero_ready, ready)
+                        UpdatesHeroPolicy.Headline.WAITING -> stringResource(R.string.updates_hero_waiting, waiting)
+                        UpdatesHeroPolicy.Headline.PROBLEMS ->
+                            stringResource(R.string.updates_hero_problems, summary?.problems ?: 0)
                         // "All up to date" while a check is still looking would be a guess.
-                        checking != null -> stringResource(UpdateCheckText.titleRes(checking.status))
-                        else -> stringResource(R.string.home_all_up_to_date)
+                        UpdatesHeroPolicy.Headline.CHECKING ->
+                            stringResource(UpdateCheckText.titleRes(checking?.status.orEmpty()))
+                        UpdatesHeroPolicy.Headline.UP_TO_DATE -> stringResource(R.string.home_all_up_to_date)
                     },
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium)
                 )
@@ -492,7 +511,10 @@ private fun PendingUpdateRow(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     dev.wystore.ui.components.HubTag(
                         dev.wystore.ui.components.shortVersionName(update.versionName) ?: update.versionName,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier.weight(1f, fill = false),
+                        // Every row in this group is downloaded and ready; the tag was grey, so
+                        // Updates was the one screen where "ready" did not read as ready.
+                        tint = dev.wystore.ui.components.StatusTone.READY.color()
                     )
                     // On a narrow screen the two small controls move under the name, so the name is
                     // not left two words wide between them and the button.
@@ -528,6 +550,7 @@ fun formatCheckTime(time: Long): String =
  * One durable queue row with the actions its state actually allows. Retry is only meaningful once
  * the item has stopped, and cancel only while it is still moving.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun QueueItemCard(
     item: InstallQueueItem,
@@ -588,14 +611,18 @@ fun QueueItemCard(
                     )
                     // The version waiting, and where the row stands, in tags. A stopped row's state is
                     // the sentence below instead: a reason does not fit in a tag.
-                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Wraps rather than cuts: the awaiting-confirmation tag lost its end beside the
+                    // version tag on the compact phone.
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         dev.wystore.ui.components.shortVersionName(item.versionName)?.let {
                             dev.wystore.ui.components.HubTag(it)
                         }
                         if (!failed) {
                             dev.wystore.ui.components.HubTag(
                                 queueStatusLabel(item),
-                                modifier = Modifier.weight(1f, fill = false),
                                 tint = dev.wystore.ui.components.StatusTones.of(item.status, item.awaitingConfirmation).color()
                             )
                         }
@@ -673,43 +700,46 @@ fun QueueItemCard(
                     onShowInstallDialog = onShowInstallDialog,
                     onCancelInstall = onCancelAwaitingInstall
                 )
-            } else Row(
+            } else FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 // Grey pills for the way out, the accent for the step the row is waiting on - the
                 // concept's pair, instead of a text button beside an outlined one beside a filled one.
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                // A flow, not a Row: "Download now" beside "Skip" did not fit the compact phone and
+                // wrapped inside its own button; now the second button drops to a line of its own.
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 when {
                     unconfirmed -> {
-                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry), maxLines = 1) }
                         Button(onClick = onConfirmUnverifiedSource) {
-                            Text(stringResource(R.string.unverified_source_confirm))
+                            Text(stringResource(R.string.unverified_source_confirm), maxLines = 1)
                         }
                     }
                     needsReplace -> {
-                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
-                        Button(onClick = onReplace) { Text(stringResource(R.string.queue_replace)) }
+                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry), maxLines = 1) }
+                        Button(onClick = onReplace) { Text(stringResource(R.string.queue_replace), maxLines = 1) }
                     }
-                    stopped -> Button(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+                    stopped -> Button(onClick = onRetry) { Text(stringResource(R.string.common_retry), maxLines = 1) }
                     // An item merely waiting in line can be started on its own, rather than only
                     // by starting the whole queue.
                     item.status == InstallQueueStatus.QUEUED -> {
-                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
-                        Button(onClick = onDownload) { Text(stringResource(R.string.queue_download_now)) }
+                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip), maxLines = 1) }
+                        Button(onClick = onDownload) { Text(stringResource(R.string.queue_download_now), maxLines = 1) }
                     }
                     // A transfer running now can be stopped without losing what it has fetched.
                     item.status == InstallQueueStatus.DOWNLOADING -> {
-                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
+                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel), maxLines = 1) }
                         // Nothing is asked of the user while it runs, so neither button is the accent.
-                        FilledTonalButton(onClick = onPause) { Text(stringResource(R.string.common_pause)) }
+                        FilledTonalButton(onClick = onPause) { Text(stringResource(R.string.common_pause), maxLines = 1) }
                     }
                     item.status == InstallQueueStatus.PAUSED -> {
-                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
-                        Button(onClick = onResume) { Text(stringResource(R.string.common_resume)) }
+                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel), maxLines = 1) }
+                        Button(onClick = onResume) { Text(stringResource(R.string.common_resume), maxLines = 1) }
                     }
                     else -> {
-                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip)) }
-                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel)) }
+                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip), maxLines = 1) }
+                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel), maxLines = 1) }
                     }
                 }
             }

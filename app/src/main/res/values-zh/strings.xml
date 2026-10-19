@@ -372,7 +372,7 @@
     <string name="updates_install_all">全部安装</string>
     <string name="updates_ready_title">可以安装（%1$d）</string>
     <string name="updates_managed_title">已接管的应用（%1$d）</string>
-    <string name="updates_managed_empty">还没有已接管的应用。在「应用」里选择应用，或从目录安装。</string>
+    <string name="updates_managed_empty">在「应用」里选择应用，或从目录安装。它们的更新会显示在这里。</string>
     <string name="updates_check_counts">已检查 %1$d / %2$d · 更新：%3$d · 问题：%4$d</string>
     <string name="common_skip">跳过</string>
     <string name="vm_update_check_failed">更新检查失败</string>
@@ -829,4 +829,5 @@
     <string name="search_start_rustore_message">输入名称或包名后开始搜索：仅查询 RuStore。</string>
     <string name="search_start_github_title">搜索 GitHub 目录</string>
     <string name="search_start_github_message">来自 GitHub 发布的开源应用，输入时即时匹配。</string>
+    <string name="updates_managed_empty_title">还没有已接管的应用</string>
 </resources>

@@ -372,7 +372,7 @@
     <string name="updates_install_all">Barchasini oʻrnatish</string>
     <string name="updates_ready_title">Oʻrnatishga tayyor (%1$d)</string>
     <string name="updates_managed_title">Qabul qilingan ilovalar (%1$d)</string>
-    <string name="updates_managed_empty">Hozircha qabul qilingan ilovalar yoʻq. «Ilovalar» yorligʻidan ilova tanlang yoki katalogdan oʻrnating.</string>
+    <string name="updates_managed_empty">«Ilovalar» yorligʻidan ilova tanlang yoki katalogdan oʻrnating. Ularning yangilanishlari shu yerda chiqadi.</string>
     <string name="updates_check_counts">Tekshirildi: %1$d / %2$d · yangilanishlar: %3$d · muammolar: %4$d</string>
     <string name="common_skip">Oʻtkazib yuborish</string>
     <string name="vm_update_check_failed">Yangilanishlarni tekshirib boʻlmadi</string>
@@ -829,4 +829,5 @@
     <string name="search_start_rustore_message">Nom yoki paket nomini kiriting va qidiruvni boshlang: faqat RuStore soʻraladi.</string>
     <string name="search_start_github_title">GitHub katalogidan qidirish</string>
     <string name="search_start_github_message">GitHub relizlaridagi ochiq kodli ilovalar, yozish davomida topiladi.</string>
+    <string name="updates_managed_empty_title">Hozircha qabul qilingan ilovalar yoʻq</string>
 </resources>

@@ -372,7 +372,7 @@
     <string name="updates_install_all">Install all</string>
     <string name="updates_ready_title">Ready to install (%1$d)</string>
     <string name="updates_managed_title">Accepted apps (%1$d)</string>
-    <string name="updates_managed_empty">No accepted apps yet. Pick apps on the Apps tab or install them from the catalogue.</string>
+    <string name="updates_managed_empty">Pick apps on the Apps tab or install them from the catalogue. Updates for them will appear here.</string>
     <string name="updates_check_counts">Checked %1$d of %2$d · updates: %3$d · problems: %4$d</string>
     <string name="common_skip">Skip</string>
     <string name="vm_update_check_failed">Update check failed</string>
@@ -829,4 +829,5 @@
     <string name="search_start_rustore_message">Type a name or a package name and start the search: only RuStore is asked.</string>
     <string name="search_start_github_title">Search the GitHub catalogue</string>
     <string name="search_start_github_message">Open-source apps from GitHub releases, matched as you type.</string>
+    <string name="updates_managed_empty_title">No accepted apps yet</string>
 </resources>

@@ -372,7 +372,7 @@
     <string name="updates_install_all">Бәрін орнату</string>
     <string name="updates_ready_title">Орнатуға дайын (%1$d)</string>
     <string name="updates_managed_title">Қабылданған қолданбалар (%1$d)</string>
-    <string name="updates_managed_empty">Әзірге қабылданған қолданба жоқ. «Қолданбалар» қойындысынан қолданба таңдаңыз немесе каталогтан орнатыңыз.</string>
+    <string name="updates_managed_empty">«Қолданбалар» қойындысынан қолданба таңдаңыз немесе каталогтан орнатыңыз. Олардың жаңартулары осында шығады.</string>
     <string name="updates_check_counts">%2$d ішінен %1$d тексерілді · жаңарту: %3$d · мәселе: %4$d</string>
     <string name="common_skip">Өткізу</string>
     <string name="vm_update_check_failed">Жаңартуды тексеру сәтсіз аяқталды</string>
@@ -829,4 +829,5 @@
     <string name="search_start_rustore_message">Атауын не пакет атын енгізіп, іздеуді бастаңыз: тек RuStore сұралады.</string>
     <string name="search_start_github_title">GitHub каталогынан іздеу</string>
     <string name="search_start_github_message">GitHub релиздеріндегі ашық кодты қолданбалар, енгізген сайын табылады.</string>
+    <string name="updates_managed_empty_title">Әзірге қабылданған қолданба жоқ</string>
 </resources>

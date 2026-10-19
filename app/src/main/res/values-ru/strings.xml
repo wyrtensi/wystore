@@ -372,7 +372,7 @@
     <string name="updates_install_all">Установить все</string>
     <string name="updates_ready_title">Готовы к установке (%1$d)</string>
     <string name="updates_managed_title">Принятые приложения (%1$d)</string>
-    <string name="updates_managed_empty">Пока нет принятых приложений. Выберите приложения во вкладке «Приложения» или установите из каталога.</string>
+    <string name="updates_managed_empty">Выберите приложения во вкладке «Приложения» или установите из каталога. Обновления для них появятся здесь.</string>
     <string name="updates_check_counts">Проверено %1$d из %2$d · обновлений: %3$d · проблем: %4$d</string>
     <string name="common_skip">Пропустить</string>
     <string name="vm_update_check_failed">Проверка обновлений не удалась</string>
@@ -829,4 +829,5 @@
     <string name="search_start_rustore_message">Введите название или имя пакета и запустите поиск: спрашиваем только RuStore.</string>
     <string name="search_start_github_title">Поиск по каталогу GitHub</string>
     <string name="search_start_github_message">Приложения с открытым кодом из релизов GitHub, подбираются по мере ввода.</string>
+    <string name="updates_managed_empty_title">Пока нет принятых приложений</string>
 </resources>
