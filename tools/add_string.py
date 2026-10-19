@@ -78,7 +78,9 @@ def main():
         content = path.read_text(encoding="utf-8")
         for key, texts in entries.items():
             line = f'    <string name="{key}">{encode(texts[lang])}</string>'
-            existing = re.compile(rf'^\s*<string name="{key}"[^>]*>.*?</string>\s*$', re.M)
+            # Spaces and tabs only around the line: \s also matches newlines, and took the blank
+            # lines that separate groups of strings with it.
+            existing = re.compile(rf'^[ \t]*<string name="{key}"[^>]*>.*?</string>[ \t]*$', re.M)
             if existing.search(content):
                 if not args.replace:
                     print(f"nothing more written: {key} already exists in {path.parent.name} (use --replace)")
