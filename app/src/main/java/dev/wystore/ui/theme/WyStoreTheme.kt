@@ -1,5 +1,9 @@
 package dev.wystore.ui.theme
 
+import androidx.core.view.WindowCompat
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.runtime.SideEffect
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +50,20 @@ fun WyStoreTheme(
             family = if (ThemePolicy.brandFontCovers(language)) Manrope else FontFamily.Default,
             step = if (tv) 0 else 1
         )
+    }
+
+    // enableEdgeToEdge() picks the bar icons' colour from the system's dark mode, not from the
+    // theme chosen here: a light Wy Store on a phone in dark mode drew a white clock and battery on
+    // its light page, where they could not be read. The icons follow the app's own theme.
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !isDark
+                isAppearanceLightNavigationBars = !isDark
+            }
+        }
     }
 
     val hub = !useDynamic
