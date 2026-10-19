@@ -2,7 +2,7 @@
 """Drive Wy Store on a phone or an emulator over adb: read the screen, tap by text, screenshot.
 
     python tools/adb_ui.py texts
-    python tools/adb_ui.py "tap:^Library$" sleep:2 "tap:^Not accepted$" shot:library
+    python tools/adb_ui.py "tap:^Apps$" sleep:2 "tap:^Not accepted$" shot:library
     python tools/adb_ui.py -s emulator-5554 launch sleep:3 shot:home
 
 Steps run in order:

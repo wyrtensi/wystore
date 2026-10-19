@@ -33,7 +33,7 @@ user may be using it while you work. Every rule below follows from that.
 `tools/adb_ui.py` (run `python tools/adb_ui.py -h`):
 
 ```
-python tools/adb_ui.py launch sleep:3 "tap:^Library$" sleep:2 texts
+python tools/adb_ui.py launch sleep:3 "tap:^Apps$" sleep:2 texts
 python tools/adb_ui.py "expect:^Not accepted" "tap:^Select$" shot:selection
 python tools/adb_ui.py -s <serial> ...      # when more than one device is attached
 ```

@@ -3,7 +3,7 @@
     <string name="nav_home">Басты</string>
     <string name="nav_search">Іздеу</string>
     <string name="nav_updates">Жаңартулар</string>
-    <string name="nav_library">Менікі</string>
+    <string name="nav_library">Қолданбалар</string>
     <string name="nav_settings">Параметрлер</string>
 
     <string name="notif_downloading_title">%1$s жүктелуде</string>
@@ -201,7 +201,7 @@
     <string name="github_install_apk">APK орнату</string>
     <string name="github_release_no_apk">Бұл релизде .apk файлдары жоқ.</string>
 
-    <string name="library_title">Менікі</string>
+    <string name="library_title">Қолданбалар</string>
     <string name="library_checking">Тексерілуде</string>
     <string name="library_install_count">Орнату (%1$d)</string>
     <string name="library_check_and_install">Тексеріп, орнату</string>
@@ -372,7 +372,7 @@
     <string name="updates_install_all">Бәрін орнату</string>
     <string name="updates_ready_title">Орнатуға дайын (%1$d)</string>
     <string name="updates_managed_title">Қабылданған қолданбалар (%1$d)</string>
-    <string name="updates_managed_empty">Әзірге қабылданған қолданба жоқ. «Менікі» бөлімінен қолданба таңдаңыз немесе каталогтан орнатыңыз.</string>
+    <string name="updates_managed_empty">Әзірге қабылданған қолданба жоқ. «Қолданбалар» қойындысынан қолданба таңдаңыз немесе каталогтан орнатыңыз.</string>
     <string name="updates_check_counts">%2$d ішінен %1$d тексерілді · жаңарту: %3$d · мәселе: %4$d</string>
     <string name="common_skip">Өткізу</string>
     <string name="vm_update_check_failed">Жаңартуды тексеру сәтсіз аяқталды</string>
@@ -713,7 +713,7 @@
     <string name="wy_category_travel">Саяхат</string>
     <string name="wy_category_health">Денсаулық және дәріханалар</string>
     <string name="wy_category_telecom">Мобильді операторлар</string>
-    <string name="tv_nav_my_apps">Менің қолданбаларым</string>
+    <string name="tv_nav_my_apps">Қолданбалар</string>
     <string name="tv_row_ready">Орнатуға дайын және жаңартулар</string>
     <string name="tv_row_popular">Теледидарда танымал</string>
     <string name="tv_row_other">Басқалары</string>

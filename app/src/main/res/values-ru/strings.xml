@@ -13,8 +13,8 @@
     <string name="notif_ready_title">Обновление готово</string>
     <string name="notif_ready_text">%1$s %2$s готово к установке</string>
     <string name="notif_ready_summary_title">Обновления готовы к установке</string>
-    <string name="notif_ready_summary_count">%1$d приложений готовы к установке</string>
-    <string name="notif_ready_summary_more">+ еще %1$d</string>
+    <string name="notif_ready_summary_count">Готовы к установке: %1$d</string>
+    <string name="notif_ready_summary_more">+ ещё %1$d</string>
     <string name="notif_action_required_title">Требуется действие: %1$s</string>
     <string name="notif_action_required_text">Подтвердите установку в Wy Store</string>
     <string name="notif_check_summary_title">Проверка обновлений завершена</string>
@@ -176,14 +176,14 @@
     <string name="details_screenshots">Скриншоты</string>
     <string name="details_screenshots_hint">Нажмите, чтобы посмотреть полностью</string>
     <string name="details_reviews">Отзывы</string>
-    <string name="details_reviews_all_shown">Показаны все %1$d отзыва с этой оценкой</string>
+    <string name="details_reviews_all_shown">Показаны все отзывы с этой оценкой: %1$d</string>
     <string name="details_reviews_all">Все</string>
     <string name="details_reviews_sample">Из %1$d загруженных отзывов</string>
     <string name="details_reviews_none_with_stars">Среди загруженных отзывов с такой оценкой нет</string>
     <string name="details_reviews_hint">Последние отзывы из публичной карточки RuStore</string>
     <string name="details_description">Описание</string>
 
-    <string name="github_disclaimer">Устанавливай APK только из релизов тех проектов, которым доверяешь. GitHub не является магазином и не проверяет безопасность APK.</string>
+    <string name="github_disclaimer">Устанавливайте APK только из релизов тех проектов, которым доверяете. GitHub не является магазином и не проверяет безопасность APK.</string>
     <string name="github_repo_url_label">Ссылка на репозиторий</string>
     <string name="github_open_releases">Открыть релизы</string>
     <string name="github_releases_section">Релизы</string>
@@ -417,7 +417,7 @@
     <string name="github_install_section">Файлы для установки</string>
     <string name="github_no_apk">В этом релизе нет APK-файла</string>
     <string name="github_no_android_build">Нет версии для Android</string>
-    <string name="github_about_section">Об приложении</string>
+    <string name="github_about_section">О приложении</string>
     <string name="github_changelog_section">Что нового</string>
     <string name="github_hide_releases">Скрыть список релизов</string>
     <string name="github_prerelease">Предрелиз</string>
@@ -654,7 +654,7 @@
     <string name="details_signature_incompatible">Установленная копия подписана не тем ключом, который RuStore заявляет для этого приложения, поэтому обновление отсюда не встанет поверх — Android откажет. Понадобится удалить и установить заново, а данные при этом, как правило, не сохраняются. Так выглядит и приложение, поставленное из другого источника, и устаревшая карточка в каталоге.</string>
     <string name="details_source_unconfirmed">RuStore не подтвердил это приложение: он заявляет один отпечаток подписи, а выдаёт файл с другим. Установленная копия — это и есть файл из RuStore, так что обновления отсюда встанут поверх неё. Расходится карточка в каталоге, а не приложение на телефоне.</string>
     <string name="details_first_update_manual">Первое обновление через Wy Store придётся подтвердить вручную. После него контроль перейдёт к Wy Store, и дальше он сможет обновлять приложение сам.</string>
-    <string name="details_take_over_hint">Android разрешает тихо обновлять только тому, кто приложение установил. Переустановка через Wy Store делает контролирующим его.</string>
+    <string name="details_take_over_hint">Android разрешает тихо обновлять только тому, кто приложение установил. Переустановка через Wy Store делает установщиком Wy Store.</string>
     <string name="details_uninstall">Удалить</string>
     <string name="details_share">Поделиться</string>
     <string name="details_share_subject">%1$s в RuStore</string>
@@ -713,7 +713,7 @@
     <string name="wy_category_travel">Путешествия</string>
     <string name="wy_category_health">Здоровье и аптеки</string>
     <string name="wy_category_telecom">Связь</string>
-    <string name="tv_nav_my_apps">Мои приложения</string>
+    <string name="tv_nav_my_apps">Приложения</string>
     <string name="tv_row_ready">Готово к установке и обновления</string>
     <string name="tv_row_popular">Популярное на ТВ</string>
     <string name="tv_row_other">Другое</string>

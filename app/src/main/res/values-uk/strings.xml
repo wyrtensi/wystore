@@ -3,7 +3,7 @@
     <string name="nav_home">Головна</string>
     <string name="nav_search">Пошук</string>
     <string name="nav_updates">Оновлення</string>
-    <string name="nav_library">Мої</string>
+    <string name="nav_library">Застосунки</string>
     <string name="nav_settings">Налаштування</string>
 
     <string name="notif_downloading_title">Завантаження %1$s</string>
@@ -176,14 +176,14 @@
     <string name="details_screenshots">Знімки екрана</string>
     <string name="details_screenshots_hint">Натисніть, щоб подивитися повністю</string>
     <string name="details_reviews">Відгуки</string>
-    <string name="details_reviews_all_shown">Показано всі %1$d відгуків з цією оцінкою</string>
+    <string name="details_reviews_all_shown">Показано всі відгуки з цією оцінкою: %1$d</string>
     <string name="details_reviews_all">Усі</string>
     <string name="details_reviews_sample">З %1$d завантажених відгуків</string>
     <string name="details_reviews_none_with_stars">Серед завантажених відгуків з такою оцінкою немає</string>
     <string name="details_reviews_hint">Останні відгуки з публічної картки RuStore</string>
     <string name="details_description">Опис</string>
 
-    <string name="github_disclaimer">Встановлюй APK лише з релізів тих проєктів, яким довіряєш. GitHub не є магазином і не перевіряє безпеку APK.</string>
+    <string name="github_disclaimer">Встановлюйте APK лише з релізів тих проєктів, яким довіряєте. GitHub не є магазином і не перевіряє безпеку APK.</string>
     <string name="github_repo_url_label">Посилання на репозиторій</string>
     <string name="github_open_releases">Відкрити релізи</string>
     <string name="github_releases_section">Релізи</string>
@@ -201,7 +201,7 @@
     <string name="github_install_apk">Встановити APK</string>
     <string name="github_release_no_apk">У цьому релізі немає файлів .apk.</string>
 
-    <string name="library_title">Мої</string>
+    <string name="library_title">Застосунки</string>
     <string name="library_checking">Перевіряємо</string>
     <string name="library_install_count">Встановити (%1$d)</string>
     <string name="library_check_and_install">Перевірити та встановити</string>
@@ -372,7 +372,7 @@
     <string name="updates_install_all">Встановити всі</string>
     <string name="updates_ready_title">Готові до встановлення (%1$d)</string>
     <string name="updates_managed_title">Прийняті застосунки (%1$d)</string>
-    <string name="updates_managed_empty">Поки немає прийнятих застосунків. Виберіть застосунки в «Моїх» або встановіть із каталогу.</string>
+    <string name="updates_managed_empty">Поки немає прийнятих застосунків. Виберіть застосунки на вкладці «Застосунки» або встановіть із каталогу.</string>
     <string name="updates_check_counts">Перевірено %1$d з %2$d · оновлень: %3$d · проблем: %4$d</string>
     <string name="common_skip">Пропустити</string>
     <string name="vm_update_check_failed">Перевірка оновлень не вдалася</string>
@@ -409,7 +409,7 @@
     <string name="github_fact_published">Опубліковано</string>
     <string name="github_fact_size">Розмір</string>
     <string name="github_fact_stars">Зірки</string>
-    <string name="github_fact_owner">Інсталятор</string>
+    <string name="github_fact_owner">Встановлювач</string>
     <string name="github_fact_installed">Встановлено</string>
     <string name="github_fact_unknown">не вказано</string>
     <string name="github_archived">Репозиторій заархівовано і більше не оновлюється</string>
@@ -645,7 +645,7 @@
     <string name="details_reviews_loading">Завантажуємо відгуки…</string>
     <string name="details_reviews_load_all">Завантажити всі відгуки</string>
     <string name="details_reviews_show_less">Згорнути</string>
-    <string name="details_owner">Інсталятор: %1$s</string>
+    <string name="details_owner">Встановлювач: %1$s</string>
     <string name="details_owner_none">немає, встановлено вручну</string>
     <string name="details_take_over">Передати оновлення Wy Store</string>
     <string name="details_catalog_older">У каталозі версія %1$s — старіша за встановлену.</string>
@@ -654,7 +654,7 @@
     <string name="details_signature_incompatible">Встановлена копія підписана не тим ключем, який RuStore заявляє для цього застосунку, тому оновлення звідси не встане поверх — Android відмовить. Знадобиться видалити і встановити заново, а дані при цьому, як правило, не зберігаються. Так виглядає і застосунок, поставлений з іншого джерела, і застаріла картка в каталозі.</string>
     <string name="details_source_unconfirmed">RuStore не підтвердив цей застосунок: він заявляє один відбиток підпису, а видає файл з іншим. Встановлена копія — це і є файл з RuStore, тож оновлення звідси встануть поверх неї. Розходиться картка в каталозі, а не застосунок на телефоні.</string>
     <string name="details_first_update_manual">Перше оновлення через Wy Store доведеться підтвердити вручну. Після нього контроль перейде до Wy Store, і далі він зможе оновлювати застосунок сам.</string>
-    <string name="details_take_over_hint">Android дозволяє тихо оновлювати лише тому, хто застосунок встановив. Перевстановлення через Wy Store робить контролюючим його.</string>
+    <string name="details_take_over_hint">Android дозволяє тихо оновлювати лише тому, хто застосунок встановив. Перевстановлення через Wy Store робить встановлювачем Wy Store.</string>
     <string name="details_uninstall">Видалити</string>
     <string name="details_share">Поділитися</string>
     <string name="details_share_subject">%1$s у RuStore</string>
@@ -713,7 +713,7 @@
     <string name="wy_category_travel">Подорожі</string>
     <string name="wy_category_health">Здоров\'я та аптеки</string>
     <string name="wy_category_telecom">Зв\'язок</string>
-    <string name="tv_nav_my_apps">Мої застосунки</string>
+    <string name="tv_nav_my_apps">Застосунки</string>
     <string name="tv_row_ready">Готово до встановлення та оновлення</string>
     <string name="tv_row_popular">Популярне на ТБ</string>
     <string name="tv_row_other">Інше</string>
@@ -734,7 +734,7 @@
     <string name="adopt_not_found">Цього пакета немає ні в RuStore, ні в каталозі GitHub, тож Wy Store ніде шукати оновлення. Якщо ви встановлювали його з GitHub, вкажіть посилання на репозиторій.</string>
     <string name="adopt_choose_source">Цей пакет є в кількох місцях. Виберіть, звідки брати оновлення:</string>
     <string name="adopt_found_in_place">Знайшовся той самий пакет. Застосунок залишиться як є, оновлення встановлюватимуться поверх:</string>
-    <string name="adopt_replace_signature">У RuStore є цей пакет, але він підписаний іншим ключем, тому оновити цю копію поверх не можна. Щоб прийняти застосунок, його доведеться видалити й установити знову. Дані при цьому, як правило, не зберігаються.</string>
+    <string name="adopt_replace_signature">У RuStore є цей пакет, але він підписаний іншим ключем, тому оновити цю копію поверх не можна. Щоб прийняти застосунок, його доведеться видалити й встановити знову. Дані при цьому, як правило, не зберігаються.</string>
     <string name="adopt_replace_by_name">Застосунку з таким package name немає. Нижче схожі за назвою; якщо вибрати один із них, цей застосунок буде видалено, а замість нього встановлено вибраний:</string>
     <string name="adopt_option_rustore">RuStore · той самий пакет</string>
     <string name="adopt_option_github">GitHub · %1$s</string>

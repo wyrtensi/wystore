@@ -3,7 +3,7 @@
     <string name="nav_home">Asosiy</string>
     <string name="nav_search">Qidiruv</string>
     <string name="nav_updates">Yangilanishlar</string>
-    <string name="nav_library">Ilovalarim</string>
+    <string name="nav_library">Ilovalar</string>
     <string name="nav_settings">Sozlamalar</string>
 
     <string name="notif_downloading_title">%1$s yuklab olinmoqda</string>
@@ -67,8 +67,8 @@
     <string name="common_speed_kb">%1$d KB/s</string>
     <string name="common_speed_mb">%1$s MB/s</string>
     <string name="common_duration_seconds">%1$d s</string>
-    <string name="common_duration_minutes">%1$d min</string>
-    <string name="common_duration_hours">%1$d soat %2$d min</string>
+    <string name="common_duration_minutes">%1$d daq</string>
+    <string name="common_duration_hours">%1$d soat %2$d daq</string>
 
     <string name="details_version">Versiya: %1$s (%2$d)</string>
     <string name="details_updated">Yangilangan: %1$s</string>
@@ -201,7 +201,7 @@
     <string name="github_install_apk">APK oʻrnatish</string>
     <string name="github_release_no_apk">Bu relizda .apk fayllari yoʻq.</string>
 
-    <string name="library_title">Ilovalarim</string>
+    <string name="library_title">Ilovalar</string>
     <string name="library_checking">Tekshirilmoqda</string>
     <string name="library_install_count">Oʻrnatish (%1$d)</string>
     <string name="library_check_and_install">Tekshirish va oʻrnatish</string>
@@ -372,7 +372,7 @@
     <string name="updates_install_all">Barchasini oʻrnatish</string>
     <string name="updates_ready_title">Oʻrnatishga tayyor (%1$d)</string>
     <string name="updates_managed_title">Qabul qilingan ilovalar (%1$d)</string>
-    <string name="updates_managed_empty">Hozircha qabul qilingan ilovalar yoʻq. Ilovalarim boʻlimidan ilova tanlang yoki katalogdan oʻrnating.</string>
+    <string name="updates_managed_empty">Hozircha qabul qilingan ilovalar yoʻq. «Ilovalar» yorligʻidan ilova tanlang yoki katalogdan oʻrnating.</string>
     <string name="updates_check_counts">Tekshirildi: %1$d / %2$d · yangilanishlar: %3$d · muammolar: %4$d</string>
     <string name="common_skip">Oʻtkazib yuborish</string>
     <string name="vm_update_check_failed">Yangilanishlarni tekshirib boʻlmadi</string>
@@ -450,7 +450,7 @@
     <string name="settings_silent_updates_title">Soʻramasdan yangilash</string>
     <string name="settings_silent_updates_hint">Android 12 dan boshlab tizim ilova doʻkoniga oʻzi oʻrnatgan narsani tasdiqlash oynasisiz yangilashga ruxsat beradi. Android 9, 10 va 11 da bunday imkoniyat yoʻq — yangilanish oʻzi yuklab olinadi, lekin oʻrnatishni tasdiqlash kerak. Birinchi oʻrnatish har doim soʻraydi, boshqa doʻkon oʻrnatgan narsa ham shunday. Baʼzida tizim kerak boʻlmagan joyda ham soʻraydi: unga yangilanayotgan ilova yetarlicha yangi Android uchun yigʻilgan boʻlishi kerak.</string>
     <string name="settings_silent_updates_switch">Yangilashda tasdiqlashni oʻtkazib yuborish</string>
-    <string name="settings_silent_updates_refused">Bu tizim so‘ramasdan yangilashni rad etdi, shuning uchun Wy Store Android oynasini ko‘rsatadi. Tizim yangilangach yana urinib ko‘radi.</string>
+    <string name="settings_silent_updates_refused">Bu tizim soʻramasdan yangilashni rad etdi, shuning uchun Wy Store Android oynasini koʻrsatadi. Tizim yangilangach yana urinib koʻradi.</string>
     <string name="settings_auto_download_title">Topilgan yangilanishlarni darhol yuklab olish</string>
     <string name="settings_auto_download_hint">Yangilanish topgan tekshiruv uni darhol yuklab oladi, shunda oʻrnatish taklifi tayyor fayl bilan keladi. Oʻrnatish baribir soʻraydi.</string>
     <string name="settings_auto_download_updates">Avtomatik yuklab olish</string>
@@ -526,7 +526,7 @@
     <string name="notif_speed_kb">%1$d KB/s</string>
     <string name="notif_speed_mb">%1$s MB/s</string>
     <string name="notif_eta_seconds">~%1$d s qoldi</string>
-    <string name="notif_eta_minutes">~%1$d min qoldi</string>
+    <string name="notif_eta_minutes">~%1$d daq qoldi</string>
     <string name="channel_group_updates">Yangilanishlar</string>
     <string name="channel_checks_description">Davriy yangilanish tekshiruvi haqidagi jim hisobotlar.</string>
     <string name="channel_transfers_description">Hozir ketayotgan yuklab olish jarayoni.</string>
@@ -713,7 +713,7 @@
     <string name="wy_category_travel">Sayohat</string>
     <string name="wy_category_health">Sogʻliq va dorixonalar</string>
     <string name="wy_category_telecom">Aloqa operatorlari</string>
-    <string name="tv_nav_my_apps">Mening ilovalarim</string>
+    <string name="tv_nav_my_apps">Ilovalar</string>
     <string name="tv_row_ready">Oʻrnatishga tayyor va yangilanishlar</string>
     <string name="tv_row_popular">Televizorda mashhur</string>
     <string name="tv_row_other">Boshqalar</string>
@@ -825,7 +825,7 @@
     <string name="library_frozen_short">Muzlatilgan</string>
     <string name="library_adopt_progress_title">Manbalar qidirilmoqda</string>
     <string name="source_error_no_connection">Server bilan aloqa yoʻq. Tarmoqni tekshirib, qayta urinib koʻring.</string>
-    <string name="search_start_rustore_title">RuStore\'da qidirish</string>
+    <string name="search_start_rustore_title">RuStore’da qidirish</string>
     <string name="search_start_rustore_message">Nom yoki paket nomini kiriting va qidiruvni boshlang: faqat RuStore soʻraladi.</string>
     <string name="search_start_github_title">GitHub katalogidan qidirish</string>
     <string name="search_start_github_message">GitHub relizlaridagi ochiq kodli ilovalar, yozish davomida topiladi.</string>

@@ -3,7 +3,7 @@
     <string name="nav_home">Home</string>
     <string name="nav_search">Search</string>
     <string name="nav_updates">Updates</string>
-    <string name="nav_library">Library</string>
+    <string name="nav_library">Apps</string>
     <string name="nav_settings">Settings</string>
 
     <string name="notif_downloading_title">Downloading %1$s</string>
@@ -201,7 +201,7 @@
     <string name="github_install_apk">Install APK</string>
     <string name="github_release_no_apk">This release has no .apk files.</string>
 
-    <string name="library_title">Library</string>
+    <string name="library_title">Apps</string>
     <string name="library_checking">Checking</string>
     <string name="library_install_count">Install (%1$d)</string>
     <string name="library_check_and_install">Check and install</string>
@@ -372,7 +372,7 @@
     <string name="updates_install_all">Install all</string>
     <string name="updates_ready_title">Ready to install (%1$d)</string>
     <string name="updates_managed_title">Accepted apps (%1$d)</string>
-    <string name="updates_managed_empty">No accepted apps yet. Pick apps in Library or install them from the catalogue.</string>
+    <string name="updates_managed_empty">No accepted apps yet. Pick apps on the Apps tab or install them from the catalogue.</string>
     <string name="updates_check_counts">Checked %1$d of %2$d · updates: %3$d · problems: %4$d</string>
     <string name="common_skip">Skip</string>
     <string name="vm_update_check_failed">Update check failed</string>
@@ -713,7 +713,7 @@
     <string name="wy_category_travel">Travel</string>
     <string name="wy_category_health">Health and pharmacies</string>
     <string name="wy_category_telecom">Mobile operators</string>
-    <string name="tv_nav_my_apps">My apps</string>
+    <string name="tv_nav_my_apps">Apps</string>
     <string name="tv_row_ready">Ready to install and updates</string>
     <string name="tv_row_popular">Popular on TV</string>
     <string name="tv_row_other">Other</string>

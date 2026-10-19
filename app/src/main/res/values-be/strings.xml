@@ -3,7 +3,7 @@
     <string name="nav_home">Галоўная</string>
     <string name="nav_search">Пошук</string>
     <string name="nav_updates">Абнаўленні</string>
-    <string name="nav_library">Мае</string>
+    <string name="nav_library">Праграмы</string>
     <string name="nav_settings">Налады</string>
 
     <string name="notif_downloading_title">Спампоўванне %1$s</string>
@@ -13,7 +13,7 @@
     <string name="notif_ready_title">Абнаўленне гатовае</string>
     <string name="notif_ready_text">%1$s %2$s гатовае да ўсталявання</string>
     <string name="notif_ready_summary_title">Абнаўленні гатовыя да ўсталявання</string>
-    <string name="notif_ready_summary_count">%1$d абнаўленняў гатовыя да ўсталявання</string>
+    <string name="notif_ready_summary_count">Абнаўленняў гатова да ўсталявання: %1$d</string>
     <string name="notif_ready_summary_more">+ яшчэ %1$d</string>
     <string name="notif_action_required_title">Патрэбнае дзеянне: %1$s</string>
     <string name="notif_action_required_text">Пацвердзіце ўсталяванне ў Wy Store</string>
@@ -176,7 +176,7 @@
     <string name="details_screenshots">Здымкі экрана</string>
     <string name="details_screenshots_hint">Націсніце, каб паглядзець цалкам</string>
     <string name="details_reviews">Водгукі</string>
-    <string name="details_reviews_all_shown">Паказаны ўсе %1$d водгукаў з гэтай ацэнкай</string>
+    <string name="details_reviews_all_shown">Паказаны ўсе водгукі з гэтай ацэнкай: %1$d</string>
     <string name="details_reviews_all">Усе</string>
     <string name="details_reviews_sample">З %1$d загружаных водгукаў</string>
     <string name="details_reviews_none_with_stars">Сярод загружаных водгукаў з такой ацэнкай няма</string>
@@ -201,7 +201,7 @@
     <string name="github_install_apk">Усталяваць APK</string>
     <string name="github_release_no_apk">У гэтым рэлізе няма файлаў .apk.</string>
 
-    <string name="library_title">Мае</string>
+    <string name="library_title">Праграмы</string>
     <string name="library_checking">Правяраем</string>
     <string name="library_install_count">Усталяваць (%1$d)</string>
     <string name="library_check_and_install">Праверыць і ўсталяваць</string>
@@ -372,7 +372,7 @@
     <string name="updates_install_all">Усталяваць усе</string>
     <string name="updates_ready_title">Гатовыя да ўсталявання (%1$d)</string>
     <string name="updates_managed_title">Прынятыя праграмы (%1$d)</string>
-    <string name="updates_managed_empty">Пакуль няма прынятых праграм. Выберыце праграмы ў «Маіх» або ўсталюйце іх з каталога.</string>
+    <string name="updates_managed_empty">Пакуль няма прынятых праграм. Выберыце праграмы на ўкладцы «Праграмы» або ўсталюйце іх з каталога.</string>
     <string name="updates_check_counts">Праверана %1$d з %2$d · абнаўленняў: %3$d · праблем: %4$d</string>
     <string name="common_skip">Прапусціць</string>
     <string name="vm_update_check_failed">Праверка абнаўленняў не ўдалася</string>
@@ -654,7 +654,7 @@
     <string name="details_signature_incompatible">Усталяваная копія падпісана не тым сертыфікатам, які RuStore заяўляе для гэтай праграмы, таму абнаўленне адсюль не ўстане паверх: Android адмовіць. Давядзецца выдаліць і ўсталяваць нанова, а даныя пры гэтым звычайна губляюцца. Гэтак жа выглядае і праграма, пастаўленая з іншай крыніцы, і састарэлы запіс у каталогу.</string>
     <string name="details_source_unconfirmed">RuStore не пацвердзіў гэтую праграму: ён заяўляе адзін адбітак подпісу, а выдае файл, падпісаны іншым. Усталяваная копія — гэта і ёсць файл з RuStore, таму абнаўленні адсюль устануць паверх яе. Разыходзіцца запіс у каталогу, а не праграма на тэлефоне.</string>
     <string name="details_first_update_manual">Першае абнаўленне праз Wy Store давядзецца пацвердзіць уручную. Пасля яго Wy Store становіцца тым, хто праграму ўсталяваў, і зможа абнаўляць яе сам.</string>
-    <string name="details_take_over_hint">Android дазваляе ціха абнаўляць праграму толькі таму, хто яе ўсталяваў. Пераўсталяванне праз Wy Store робіць такім Wy Store.</string>
+    <string name="details_take_over_hint">Android дазваляе ціха абнаўляць праграму толькі таму, хто яе ўсталяваў. Пераўсталяванне праз Wy Store робіць усталёўшчыкам Wy Store.</string>
     <string name="details_uninstall">Выдаліць</string>
     <string name="details_share">Падзяліцца</string>
     <string name="details_share_subject">%1$s у RuStore</string>
@@ -713,7 +713,7 @@
     <string name="wy_category_travel">Падарожжы</string>
     <string name="wy_category_health">Здароўе і аптэкі</string>
     <string name="wy_category_telecom">Мабільныя аператары</string>
-    <string name="tv_nav_my_apps">Мае праграмы</string>
+    <string name="tv_nav_my_apps">Праграмы</string>
     <string name="tv_row_ready">Гатова да ўсталёўкі і абнаўленні</string>
     <string name="tv_row_popular">Папулярнае на ТБ</string>
     <string name="tv_row_other">Іншае</string>

@@ -3,7 +3,7 @@
     <string name="nav_home">首页</string>
     <string name="nav_search">搜索</string>
     <string name="nav_updates">更新</string>
-    <string name="nav_library">我的</string>
+    <string name="nav_library">应用</string>
     <string name="nav_settings">设置</string>
 
     <string name="notif_downloading_title">正在下载 %1$s</string>
@@ -201,7 +201,7 @@
     <string name="github_install_apk">安装 APK</string>
     <string name="github_release_no_apk">该版本没有 .apk 文件。</string>
 
-    <string name="library_title">我的应用</string>
+    <string name="library_title">应用</string>
     <string name="library_checking">检查中</string>
     <string name="library_install_count">安装（%1$d）</string>
     <string name="library_check_and_install">检查并安装</string>
@@ -245,7 +245,7 @@
     <string name="settings_hub_appearance_title">外观</string>
     <string name="settings_hub_appearance_subtitle">主题、设备类型、Material You 动态取色</string>
     <string name="settings_hub_language_title">应用语言</string>
-    <string name="settings_hub_language_subtitle">您选择的，或设备要求的那一种</string>
+    <string name="settings_hub_language_subtitle">你选择的，或设备要求的那一种</string>
     <string name="settings_hub_notifications_title">通知</string>
     <string name="settings_hub_notifications_subtitle">已就绪的更新、错误、通知渠道</string>
     <string name="settings_hub_sources_title">应用来源</string>
@@ -372,7 +372,7 @@
     <string name="updates_install_all">全部安装</string>
     <string name="updates_ready_title">可以安装（%1$d）</string>
     <string name="updates_managed_title">已接管的应用（%1$d）</string>
-    <string name="updates_managed_empty">还没有已接管的应用。在「我的应用」里选择应用，或从目录安装。</string>
+    <string name="updates_managed_empty">还没有已接管的应用。在「应用」里选择应用，或从目录安装。</string>
     <string name="updates_check_counts">已检查 %1$d / %2$d · 更新：%3$d · 问题：%4$d</string>
     <string name="common_skip">跳过</string>
     <string name="vm_update_check_failed">更新检查失败</string>
@@ -713,7 +713,7 @@
     <string name="wy_category_travel">旅行</string>
     <string name="wy_category_health">健康和药品</string>
     <string name="wy_category_telecom">移动运营商</string>
-    <string name="tv_nav_my_apps">我的应用</string>
+    <string name="tv_nav_my_apps">应用</string>
     <string name="tv_row_ready">可安装与更新</string>
     <string name="tv_row_popular">电视热门</string>
     <string name="tv_row_other">其他</string>
@@ -731,7 +731,7 @@
     <string name="tv_details_installed">已安装</string>
     <string name="adopt_source_question">Wy Store 应从哪里获取 %1$s 的更新？</string>
     <string name="adopt_lookup_failed">无法连接 RuStore，因此不确定那里是否有此应用。</string>
-    <string name="adopt_not_found">RuStore 和 GitHub 目录中都没有此软件包，Wy Store 无处查找更新。如果您是从 GitHub 安装的，请提供仓库链接。</string>
+    <string name="adopt_not_found">RuStore 和 GitHub 目录中都没有此软件包，Wy Store 无处查找更新。如果你是从 GitHub 安装的，请提供仓库链接。</string>
     <string name="adopt_choose_source">此软件包在多个来源中都有。请选择更新来源：</string>
     <string name="adopt_found_in_place">找到了相同的软件包。应用保持不变，更新将直接覆盖安装：</string>
     <string name="adopt_replace_signature">RuStore 中有此软件包，但使用了不同的密钥签名，因此无法覆盖更新当前副本。要接管此应用，需要先卸载再重新安装，数据通常会丢失。</string>
@@ -744,7 +744,7 @@
     <string name="adopt_waiting">仍待决定：%1$d</string>
     <string name="adopt_skip">跳过</string>
     <string name="adopt_batch_done">已接管：%1$d</string>
-    <string name="adopt_batch_done_ask">已接管：%1$d。需要您决定：%2$d</string>
+    <string name="adopt_batch_done_ask">已接管：%1$d。需要你决定：%2$d</string>
     <string name="library_filter_not_adopted">未接管</string>
     <string name="library_group_adopted">已接管 · %1$d</string>
     <string name="library_group_not_adopted">未接管 · %1$d</string>
@@ -760,10 +760,10 @@
     <string name="library_updates_from">更新来源：%1$s</string>
     <string name="library_missing_from_rustore">RuStore 中没有此软件包，不会从那里获得更新。请点按“移除”，然后重新接管此应用以选择其他来源。</string>
     <string name="library_backup_save_title">保存此列表的副本</string>
-    <string name="library_backup_save_text">更新 Wy Store 会保留所有内容，但卸载后已接管应用的列表会丢失：Android 只把它保存在 Wy Store 内部。保存在您所选文件中的副本会自动保持最新。</string>
+    <string name="library_backup_save_text">更新 Wy Store 会保留所有内容，但卸载后已接管应用的列表会丢失：Android 只把它保存在 Wy Store 内部。保存在你所选文件中的副本会自动保持最新。</string>
     <string name="library_backup_save">保存副本</string>
     <string name="library_backup_restore_title">重新安装了 Wy Store？</string>
-    <string name="library_backup_restore_text">如果您之前保存过列表副本，请恢复它，已接管的应用和 GitHub 仓库都会回来。</string>
+    <string name="library_backup_restore_text">如果你之前保存过列表副本，请恢复它，已接管的应用和 GitHub 仓库都会回来。</string>
     <string name="library_backup_restore">从文件恢复</string>
     <string name="library_backup_later">暂不</string>
     <string name="github_adopt_installed">由 Wy Store 接管</string>
