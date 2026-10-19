@@ -73,6 +73,9 @@ fun WyStoreRoot(
     var destination by rememberSaveable(stateSaver = WyStoreDestination.Saver) {
         mutableStateOf<WyStoreDestination>(WyStoreDestination.Home)
     }
+    // Tapping the search pill on Home looks like tapping a text field, so the real field on Search
+    // takes focus and opens the keyboard once it arrives.
+    var focusSearchOnOpen by rememberSaveable { mutableStateOf(false) }
     // The open app page lives in the ViewModel, which does not survive process death: backgrounding
     // the app on a store page and coming back after Android reclaimed the process dropped the user
     // on a bare tab. The package name is small and saveable, so the page is reopened from it.
@@ -187,6 +190,7 @@ fun WyStoreRoot(
                             openedPackage = null
                             viewModel.clearDetails()
                         }
+                        focusSearchOnOpen = false
                         destination = it
                     }
                 )
@@ -281,7 +285,10 @@ fun WyStoreRoot(
                         installed = state.installed,
                         managed = state.managed,
                         queue = state.installQueue,
-                        onSearchClick = { destination = WyStoreDestination.Search },
+                        onSearchClick = {
+                            focusSearchOnOpen = true
+                            destination = WyStoreDestination.Search
+                        },
                         onAppClick = { packageName -> viewModel.openDetails(packageName) },
                         onCategoryClick = openCategory,
                         // Running out of rail widens the choice; it used to replace it with one
@@ -359,7 +366,9 @@ fun WyStoreRoot(
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
                         onLaunch = viewModel::launchInstalledApp,
                         error = state.searchError,
-                        onClear = viewModel::clearSearch
+                        onClear = viewModel::clearSearch,
+                        autoFocus = focusSearchOnOpen,
+                        onAutoFocusConsumed = { focusSearchOnOpen = false }
                     )
                     WyStoreDestination.GitHub -> GitHubScreen(
                         modifier = screenModifier,
