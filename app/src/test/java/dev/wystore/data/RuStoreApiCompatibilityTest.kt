@@ -9,22 +9,22 @@ class RuStoreApiCompatibilityTest {
     @Test
     fun startsWithTheBakedInCodeAndKeepsBoundedFallbacks() {
         assertEquals(
-            listOf(110910L, 1_000_000L, 247L),
+            listOf(111103L, 1_000_000L, 247L),
             RuStoreApiCompatibilityPolicy.candidates()
         )
     }
 
     @Test
     fun migrationRejectsManifestVersionPreviouslyStoredAsApiCode() {
-        assertEquals(110910L, RuStoreApiCompatibilityPolicy.migrateLegacyCode(1105002L))
+        assertEquals(111103L, RuStoreApiCompatibilityPolicy.migrateLegacyCode(1105002L))
         assertEquals(110502L, RuStoreApiCompatibilityPolicy.migrateLegacyCode(110502L))
-        assertEquals(110910L, RuStoreApiCompatibilityPolicy.codeFromBackup(backupVersion = 1, versionCode = 1105002L))
+        assertEquals(111103L, RuStoreApiCompatibilityPolicy.codeFromBackup(backupVersion = 1, versionCode = 1105002L))
         assertEquals(1200000L, RuStoreApiCompatibilityPolicy.codeFromBackup(backupVersion = 2, versionCode = 1200000L))
     }
 
     @Test
     fun cleanInstallCarriesTheBakedInCode() {
-        assertEquals(110910L, RuStoreCompatibility().apiVersionCode)
+        assertEquals(111103L, RuStoreCompatibility().apiVersionCode)
     }
 
     @Test

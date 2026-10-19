@@ -11,12 +11,12 @@ data class RuStoreApiAttempt<T>(
  *
  * The value is written here rather than discovered: the app used to download the official RuStore
  * client and read the number out of its manifest, which meant fetching eighty megabytes to learn
- * six digits. It is derived from the published version name of the client - 1.109.1.0 - the way the
+ * six digits. It is derived from the published version name of the client - 1.111.0.3 - the way the
  * source itself derives it.
  */
 object RuStoreApiCompatibilityPolicy {
-    /** From RuStore 1.109.1.0, the client published at rustore.ru at the time of this release. */
-    const val DEFAULT_VERSION_CODE = 110_910L
+    /** From RuStore 1.111.0.3, the client published at rustore.ru at the time of this release. */
+    const val DEFAULT_VERSION_CODE = 111_103L
     const val ATTEMPTS_PER_CANDIDATE = 3
     private val FALLBACK_VERSION_CODES = listOf(1_000_000L, 247L)
     private val REJECTED_HTTP_CODES = setOf(417, 419)

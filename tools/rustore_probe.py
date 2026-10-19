@@ -16,7 +16,7 @@ import urllib.request
 API = "https://backapi.rustore.ru/applicationData/overallInfo/{}"
 PAGE = "https://www.rustore.ru/catalog/app/{}"
 # RuStoreApiCompatibilityPolicy.DEFAULT_VERSION_CODE; the app may have learned a newer one.
-VERSION_CODE = "110910"
+VERSION_CODE = "111103"
 
 
 def get(url: str, api: bool):
