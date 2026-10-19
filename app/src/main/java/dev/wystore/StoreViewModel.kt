@@ -11,6 +11,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import dev.wystore.data.AppPage
 import dev.wystore.data.AppPages
+import dev.wystore.data.SentenceJoin
 import dev.wystore.data.DownloadProgress
 import dev.wystore.data.GitHubAsset
 import dev.wystore.data.GitHubCatalog
@@ -1598,7 +1599,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             _state.update { it.copy(
                 githubRepositories = repository.githubRepositories(),
                 settings = repository.settings(),
-                message = summary.message + restoreCaveat()
+                message = SentenceJoin.sentences(summary.message, restoreCaveat())
             ) }
         }.onFailure { error ->
             _state.update { it.copy(message = error.message ?: string(R.string.vm_backup_import_failed)) }
@@ -1617,7 +1618,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     private fun restoreCaveat(): String {
         val granted = runCatching { queueCoordinator.permissionSnapshot().batteryOptimizationsIgnored }
             .getOrDefault(true)
-        return if (granted) "" else " " + string(R.string.msg_backup_restore_battery)
+        return if (granted) "" else string(R.string.msg_backup_restore_battery)
     }
 
     fun restoreBackupJson(json: String, merge: Boolean = false) {
@@ -1651,9 +1652,14 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * identity rather than a resemblance. Only when neither RuStore nor the GitHub catalogue knows
      * the package is the name searched, and then the user picks from what came back.
      */
-    fun beginAdoption(app: InstalledApp) {
+    fun beginAdoption(app: InstalledApp, keepMessage: Boolean = false) {
         _state.update {
-            it.copy(adoption = AdoptionPrompt(app = app, waiting = adoptionBacklog.size), message = null)
+            it.copy(
+                adoption = AdoptionPrompt(app = app, waiting = adoptionBacklog.size),
+                // The batch summary is posted just before the first leftover dialog opens; clearing
+                // the message here wiped it before the snackbar could show it.
+                message = if (keepMessage) it.message else null
+            )
         }
         viewModelScope.launch {
             val lookup = lookUpAdoption(app, searchByName = true)
@@ -1769,9 +1775,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun showNextAdoption() {
+    private fun showNextAdoption(keepMessage: Boolean = false) {
         val next = adoptionBacklog.removeFirstOrNull()
-        if (next == null) _state.update { it.copy(adoption = null) } else beginAdoption(next)
+        if (next == null) _state.update { it.copy(adoption = null) } else beginAdoption(next, keepMessage)
     }
 
     /**
@@ -1814,7 +1820,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
             adoptionBacklog.addAll(undecided)
-            if (_state.value.adoption == null) showNextAdoption()
+            if (_state.value.adoption == null) showNextAdoption(keepMessage = true)
         }
     }
 

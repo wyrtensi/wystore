@@ -306,7 +306,15 @@ fun LibraryScreen(
                             ) else Modifier
                         ),
                     singleLine = true,
-                    placeholder = { Text(stringResource(R.string.library_search_placeholder)) },
+                    // One line with an ellipsis: the hint wrapped to two lines on the compact phone and
+                    // made the field taller than its neighbours.
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.library_search_placeholder),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                     // Open-everything rides in the search field rather than beside the filters,
                     // where it was a bare chevron the filter rail scrolled underneath. Here it
@@ -544,7 +552,10 @@ private fun LibraryHero(accepted: Int, total: Int, onPick: (() -> Unit)?, modifi
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    stringResource(R.string.library_hero_title, accepted, total),
+                    // The ring takes width, so the title wrapped as "1 из" / "4"; the value stays whole.
+                    dev.wystore.data.SentenceJoin.keepValueTogether(
+                        stringResource(R.string.library_hero_title, accepted, total)
+                    ),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
                     )
