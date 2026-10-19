@@ -51,6 +51,7 @@ Destructive or clean-device scenarios run on the emulators. See `wystore-device`
 | `tools/add_string.py` | Adds strings to every language at once, with escaping and checks |
 | `tools/rustore_probe.py` | Asks the RuStore API about packages with the app's headers |
 | `tools/wystore_adb_install.py` | Installs apps through Wy Store over adb (agent install path) |
+| `tools/brand_images.py` | Draws the site icons, logo, banners and the TV banner from the launcher icon's mark |
 
 ## Skills
 
