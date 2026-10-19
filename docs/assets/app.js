@@ -63,7 +63,10 @@
   var lastH = 0;
 
   function sizeCanvas(reseed) {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    /* Every frame fills the whole backing store, so its size is the cost. At 2x
+       a phone filled four times the pixels of its screen for streaks a pixel or
+       two wide; 1.5x draws them as sharp for a little over half the work. */
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     lastW = window.innerWidth;
     lastH = window.innerHeight;
     W = canvas.width = Math.floor(lastW * dpr);
@@ -167,7 +170,7 @@
       var h = rg.h + rg.h * 1.3 * e;
       var x = rg.x - w / 2;
       var y = rg.y - h / 2;
-      ctx.strokeStyle = "rgba(138,172,255," + a + ")";
+      ctx.strokeStyle = "rgba(227,150,122," + a + ")";
       ctx.lineWidth = 1 * dpr;
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(x, y, w, h, h / 2);
@@ -178,6 +181,13 @@
 
   /* Integrated against real time, so a throttled tab settles at the same rate. */
   var last = 0;
+  /* Most of the time the field only drifts, under a pixel a frame, and the
+     page repainted the whole screen sixty or a hundred and twenty times a
+     second for it - a phone kept warm by a page someone was reading. A drift
+     is drawn at thirty frames; a burst, a ripple or a ring at the display's
+     own rate, since that is when motion is fast enough for a frame to show. */
+  var IDLE_FRAME = 1000 / 30;
+  var lastPaint = 0;
 
   function step(now) {
     var dt = last ? Math.min(96, now - last) / 16.67 : 1;
@@ -199,7 +209,13 @@
     for (var q = rings.length - 1; q >= 0; q--) {
       if (now - rings[q].t0 > RING_LIFE + RING_GAP) rings.splice(q, 1);
     }
-    paint(now);
+    /* A few milliseconds of slack, so a 60 Hz display lands on every other
+       frame rather than drifting between one and three. */
+    var busy = speed > 1 || stretch > 1 || ripples.length || rings.length;
+    if (busy || now - lastPaint >= IDLE_FRAME - 4) {
+      paint(now);
+      lastPaint = now;
+    }
     window.requestAnimationFrame(step);
   }
 
