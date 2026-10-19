@@ -18,7 +18,9 @@
 		-Server
 	}
 
-	# Asset names carry no content hash, so caching stays short; pages revalidate.
+	# Pages name their assets with a content hash in the query (site-build.mjs), but
+	# fonts and the images other sites link to keep plain URLs, so caching stays at
+	# a day; pages revalidate.
 	@assets path /assets/*
 	header @assets Cache-Control "public, max-age=86400"
 	@pages path / */ *.html

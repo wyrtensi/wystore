@@ -8,6 +8,7 @@
 // search engines 0.2.1 until 0.4.1.
 import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '../..');
@@ -26,6 +27,27 @@ for (const name of await readdir(docs)) {
   if (/^(google[0-9a-f]+\.html|yandex_[0-9a-f]+\.html|[0-9a-f]{32}\.txt|logo\.png|app_icon\.png|banner[\w-]*\.png)$/.test(name)) {
     await cp(join(docs, name), join(dist, name));
   }
+}
+
+// The server keeps assets for a day and revalidates pages (deploy/server/Caddyfile), so after a
+// deploy a browser paired the new page with yesterday's style.css: the fonts the page preloaded
+// went unused, with a console warning, and the look was a day behind. Each asset a page names
+// gets the hash of its contents in the query, so a changed file is a new URL and an unchanged
+// one stays cached. Fonts keep their plain URL: style.css names them without a query, and a
+// preload must ask for exactly that URL or the browser fetches the font again and the preload
+// is wasted.
+const ASSET_REF = /((?:src|href|data-src)=")((?:\.{1,2})?\/[^"#?]*assets\/[^"#?]+)"/g;
+
+async function stampAssets(html, pageDir) {
+  const hashes = new Map();
+  for (const [, , ref] of html.matchAll(ASSET_REF)) {
+    if (/\.woff2?$/.test(ref) || hashes.has(ref)) continue;
+    const target = ref.startsWith('/') ? join(dist, ref) : resolve(pageDir, ref);
+    // A missing file is the link check's to report.
+    if (!existsSync(target)) continue;
+    hashes.set(ref, createHash('sha256').update(await readFile(target)).digest('hex').slice(0, 10));
+  }
+  return html.replace(ASSET_REF, (match, attr, ref) => (hashes.has(ref) ? `${attr}${ref}?v=${hashes.get(ref)}"` : match));
 }
 
 const problems = [];
@@ -49,7 +71,6 @@ for (const page of pages) {
     problems.push(`${page}: no "softwareVersion" in its JSON-LD`);
   } else if (version) {
     html = html.replace(softwareVersion, `$1"${version}"`);
-    await writeFile(file, html);
   }
   if (!html.includes(`<link rel="canonical" href="https://wystore.ru${page}">`)) problems.push(`${page}: canonical does not point at itself`);
   for (const other of pages) {
@@ -61,8 +82,14 @@ for (const page of pages) {
     const isDir = existsSync(target) && (await stat(target)).isDirectory();
     if (!existsSync(isDir ? join(target, 'index.html') : target)) problems.push(`${page}: broken link ${ref}`);
   }
+  await writeFile(file, await stampAssets(html, join(dist, page)));
 }
-if (!existsSync(join(dist, '404.html'))) problems.push('404.html is missing');
+if (!existsSync(join(dist, '404.html'))) {
+  problems.push('404.html is missing');
+} else {
+  const notFound = join(dist, '404.html');
+  await writeFile(notFound, await stampAssets(await readFile(notFound, 'utf8'), dist));
+}
 
 if (problems.length > 0) {
   console.error('Site check failed:');
