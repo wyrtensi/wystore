@@ -59,6 +59,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,8 +71,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.wystore.ui.components.WySpinner
@@ -138,7 +141,10 @@ fun SearchScreen(
 ) {
     @Suppress("NAME_SHADOWING")
     val sources = sources.within(githubEnabled)
-    var text by remember(query) { mutableStateOf(query) }
+    var fieldValue by remember(query) {
+        mutableStateOf(TextFieldValue(text = query, selection = TextRange(query.length)))
+    }
+    val text = fieldValue.text
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val runSearch = {
@@ -179,11 +185,20 @@ fun SearchScreen(
             }
             item {
                 LaunchedEffect(autoFocus) {
-                    if (autoFocus) {
-                        runCatching { focusRequester.requestFocus() }
-                        keyboardController?.show()
-                        onAutoFocusConsumed()
+                    if (!autoFocus) return@LaunchedEffect
+                    // The field sits inside a LazyColumn item and only opens its IME input session
+                    // once layout and focus have settled; asking on the first frame is ignored.
+                    repeat(5) {
+                        withFrameNanos { }
+                        if (runCatching { focusRequester.requestFocus() }.getOrDefault(false)) {
+                            withFrameNanos { }
+                            kotlinx.coroutines.delay(50)
+                            keyboardController?.show()
+                            onAutoFocusConsumed()
+                            return@LaunchedEffect
+                        }
                     }
+                    onAutoFocusConsumed()
                 }
                 Column(
                     modifier = Modifier.padding(bottom = 16.dp),
@@ -192,8 +207,8 @@ fun SearchScreen(
                     // A filled field with no visible box outline, so the search input reads like the
                     // pill on Home rather than like a form control.
                     TextField(
-                        value = text,
-                        onValueChange = { text = it },
+                        value = fieldValue,
+                        onValueChange = { fieldValue = it },
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester)
@@ -211,7 +226,7 @@ fun SearchScreen(
                         trailingIcon = {
                             when {
                                 text.isNotEmpty() -> IconButton(onClick = {
-                                    text = ""
+                                    fieldValue = TextFieldValue("")
                                     onClear()
                                 }) {
                                     Icon(

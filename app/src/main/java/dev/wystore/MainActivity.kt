@@ -150,8 +150,23 @@ class MainActivity : AppCompatActivity(), SystemInstallerHost {
 
     override fun onStop() {
         runCatching { unregisterReceiver(packageChangeReceiver) }
-        dev.wystore.settings.LauncherIconSwitcher.sync(this, StoreRepository(this).settings().accent)
+        // Disabling the launcher alias that started this task makes Android finish the task.
+        // Skipping configuration changes (rotation, app language change) and in-task child
+        // activities (document picker, unknown sources settings, installer) keeps the Activity
+        // alive until the user actually leaves Wy Store.
+        if (!isChangingConfigurations && isLeavingApp()) {
+            dev.wystore.settings.LauncherIconSwitcher.sync(this, StoreRepository(this).settings().accent)
+        }
         super.onStop()
+    }
+
+    private fun isLeavingApp(): Boolean {
+        if (isFinishing) return true
+        val tasks = getSystemService(android.app.ActivityManager::class.java)?.appTasks ?: return true
+        return tasks.all { task ->
+            val top = runCatching { task.taskInfo.topActivity }.getOrNull()
+            top == null || top.packageName == packageName
+        }
     }
 
     override fun onPause() {

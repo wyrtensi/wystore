@@ -258,7 +258,7 @@ fun TvApp(
                             ),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TvBrand()
+                        TvBrand(accent = state.settings.accent)
                         Spacer(Modifier.width(40.dp))
                         Box(
                             Modifier
@@ -463,18 +463,32 @@ private const val MESSAGE_MILLIS = 4_000L
 /** The app's mark, its name and a "TV" label, so a screenshot says which version this is. */
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-private fun TvBrand() {
+private fun TvBrand(accent: dev.wystore.settings.AccentPreset) {
+    val (bgRes, fgRes) = when (accent) {
+        dev.wystore.settings.AccentPreset.ORANGE -> R.drawable.ic_wy_store_background to R.drawable.ic_wy_store_foreground
+        dev.wystore.settings.AccentPreset.RED -> R.drawable.ic_wy_store_background_red to R.drawable.ic_wy_store_foreground_red
+        dev.wystore.settings.AccentPreset.PINK -> R.drawable.ic_wy_store_background_pink to R.drawable.ic_wy_store_foreground_pink
+        dev.wystore.settings.AccentPreset.VIOLET -> R.drawable.ic_wy_store_background_violet to R.drawable.ic_wy_store_foreground_violet
+        dev.wystore.settings.AccentPreset.INDIGO -> R.drawable.ic_wy_store_background_indigo to R.drawable.ic_wy_store_foreground_indigo
+        dev.wystore.settings.AccentPreset.BLUE -> R.drawable.ic_wy_store_background_blue to R.drawable.ic_wy_store_foreground_blue
+        dev.wystore.settings.AccentPreset.TEAL -> R.drawable.ic_wy_store_background_teal to R.drawable.ic_wy_store_foreground_teal
+        dev.wystore.settings.AccentPreset.GREEN -> R.drawable.ic_wy_store_background_green to R.drawable.ic_wy_store_foreground_green
+        dev.wystore.settings.AccentPreset.AMBER -> R.drawable.ic_wy_store_background_amber to R.drawable.ic_wy_store_foreground_amber
+    }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             Modifier
                 .size(40.dp)
-                .clip(androidx.compose.material3.MaterialTheme.shapes.medium)
-                // The launcher icon's own background, so the mark looks like the app's icon.
-                .background(Color(0xFF0E141F)),
+                .clip(androidx.compose.material3.MaterialTheme.shapes.medium),
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(R.drawable.ic_wy_store_foreground),
+                painter = painterResource(bgRes),
+                contentDescription = null,
+                modifier = Modifier.size(60.dp)
+            )
+            Image(
+                painter = painterResource(fgRes),
                 contentDescription = null,
                 modifier = Modifier.size(66.dp)
             )
