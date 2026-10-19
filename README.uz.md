@@ -4,10 +4,10 @@
 
 **Kuzatuv va reklamasiz RuStore muqobili**
 
-[![APK yuklab olish](https://img.shields.io/badge/APK%20yuklab%20olish-0B57D0?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
-[![Yuklashlar](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=yuklashlar&labelColor=0B57D0&color=1F6FEB)](https://github.com/wyrtensi/wystore/releases)
+[![APK yuklab olish](https://img.shields.io/badge/APK%20yuklab%20olish-CF4A1A?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
+[![Yuklashlar](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=yuklashlar&labelColor=CF4A1A&color=E0652F)](https://github.com/wyrtensi/wystore/releases)
 
-[![Oxirgi reliz](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=reliz&color=0B57D0)](https://github.com/wyrtensi/wystore/releases/latest)
+[![Oxirgi reliz](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=reliz&color=CF4A1A)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Build](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=build)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#talablar)
 [![Telegram-suhbat](https://img.shields.io/badge/Telegram-suhbat-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
