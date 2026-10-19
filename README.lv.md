@@ -9,9 +9,9 @@
 
 [![Jaunākais laidiens](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=laidiens&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Būvējums](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=b%C5%ABv%C4%93jums)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
-[![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#prasības)
-[![Telegram čats](https://img.shields.io/badge/Telegram-%C4%8Dats-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
-[![MIT licence](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=licence)](LICENSE)
+[![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-5E8F6E?style=flat-square&logo=android&logoColor=white)](#prasības)
+[![Telegram čats](https://img.shields.io/badge/Telegram-%C4%8Dats-4F83A6?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
+[![MIT licence](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&color=6B7280&label=licence)](LICENSE)
 
 [Projekta vietne](https://wystore.ru/lv/)
 

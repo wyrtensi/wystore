@@ -9,9 +9,9 @@
 
 [![Апошні рэліз](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%D1%80%D1%8D%D0%BB%D1%96%D0%B7&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Зборка](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%D0%B7%D0%B1%D0%BE%D1%80%D0%BA%D0%B0)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
-[![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#патрабаванні)
-[![Telegram-чат](https://img.shields.io/badge/Telegram-%D1%87%D0%B0%D1%82-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
-[![Ліцэнзія MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=%D0%BB%D1%96%D1%86%D1%8D%D0%BD%D0%B7%D1%96%D1%8F)](LICENSE)
+[![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-5E8F6E?style=flat-square&logo=android&logoColor=white)](#патрабаванні)
+[![Telegram-чат](https://img.shields.io/badge/Telegram-%D1%87%D0%B0%D1%82-4F83A6?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
+[![Ліцэнзія MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&color=6B7280&label=%D0%BB%D1%96%D1%86%D1%8D%D0%BD%D0%B7%D1%96%D1%8F)](LICENSE)
 
 [Сайт праекта](https://wystore.ru/be/)
 

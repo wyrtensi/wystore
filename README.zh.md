@@ -9,9 +9,9 @@
 
 [![最新版本](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%E7%89%88%E6%9C%AC&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![构建](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%E6%9E%84%E5%BB%BA)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
-[![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#系统要求)
-[![Telegram 交流群](https://img.shields.io/badge/Telegram-%E4%BA%A4%E6%B5%81%E7%BE%A4-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
-[![MIT 许可证](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&label=%E8%AE%B8%E5%8F%AF%E8%AF%81)](LICENSE)
+[![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-5E8F6E?style=flat-square&logo=android&logoColor=white)](#系统要求)
+[![Telegram 交流群](https://img.shields.io/badge/Telegram-%E4%BA%A4%E6%B5%81%E7%BE%A4-4F83A6?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
+[![MIT 许可证](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&color=6B7280&label=%E8%AE%B8%E5%8F%AF%E8%AF%81)](LICENSE)
 
 [项目网站](https://wystore.ru/zh/)
 
