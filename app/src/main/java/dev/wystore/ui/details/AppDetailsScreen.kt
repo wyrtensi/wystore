@@ -9,6 +9,7 @@ import dev.wystore.ui.components.HubRoundIconButton
 import dev.wystore.ui.components.HubPageHeader
 import dev.wystore.ui.components.HubTextAction
 import dev.wystore.ui.components.bleedToScreenEdges
+import dev.wystore.ui.components.isNarrowScreen
 import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.clickable
@@ -99,7 +100,7 @@ import dev.wystore.ui.components.SourceLabel
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.sourceLabel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AppDetailsScreen(
     app: StoreApp,
@@ -204,7 +205,7 @@ fun AppDetailsScreen(
                         size = 76.dp
                     )
                     Spacer(Modifier.width(14.dp))
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
                             app.name,
                             style = MaterialTheme.typography.headlineSmall,
@@ -218,9 +219,12 @@ fun AppDetailsScreen(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                        Row(
+                        // A Row cut the category to "Развлечен..." beside the rating on a compact
+                        // phone; the tags wrap to a second line instead.
+                        FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            itemVerticalAlignment = Alignment.CenterVertically
                         ) {
                             app.rating?.let { RatingPill(it, app.ratingCount) }
                             app.categories.firstOrNull()?.let { CategoryPill(it) }
@@ -237,27 +241,53 @@ fun AppDetailsScreen(
                             onClick = runInstall,
                             enabled = !busy && (canUpdate || pendingUpdate != null || paused != null),
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text(installLabel) }
+                        ) { Text(installLabel, maxLines = 1) }
                     } else {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
+                        val showUpdate = canUpdate || queueActive || pendingUpdate != null || paused != null
+                        val openButton: @Composable (Modifier) -> Unit = { m ->
                             FilledTonalButton(
                                 onClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                     onLaunch(installed.packageName)
                                 },
-                                modifier = Modifier.weight(1f)
-                            ) { Text(stringResource(R.string.common_open)) }
-                            if (canUpdate || queueActive || pendingUpdate != null || paused != null) {
-                                Button(
-                                    onClick = runInstall,
-                                    enabled = !busy && (canUpdate || pendingUpdate != null || paused != null),
-                                    modifier = Modifier.weight(1f)
-                                ) { Text(installLabel) }
+                                modifier = m
+                            ) { Text(stringResource(R.string.common_open), maxLines = 1) }
+                        }
+                        val updateButton: @Composable (Modifier) -> Unit = { m ->
+                            Button(
+                                onClick = runInstall,
+                                enabled = !busy && (canUpdate || pendingUpdate != null || paused != null),
+                                modifier = m
+                            ) { Text(installLabel, maxLines = 1) }
+                        }
+                        if (showUpdate && isNarrowScreen()) {
+                            // Three controls in one row squeezed the update label to two lines of
+                            // letters on a compact phone at a large font. The primary action takes
+                            // the full width; the secondary one and the delete icon sit under it.
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                updateButton(Modifier.fillMaxWidth())
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    openButton(Modifier.weight(1f))
+                                    UninstallIconButton(installed.packageName)
+                                }
                             }
-                            UninstallIconButton(installed.packageName)
+                        } else {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                openButton(Modifier.weight(1f))
+                                if (showUpdate) updateButton(Modifier.weight(1f))
+                                UninstallIconButton(installed.packageName)
+                            }
                         }
                     }
 

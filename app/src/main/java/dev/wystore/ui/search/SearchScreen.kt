@@ -85,6 +85,7 @@ import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.rowButtonPadding
+import dev.wystore.ui.components.isNarrowScreen
 import dev.wystore.ui.components.listingLine
 import dev.wystore.ui.components.CategoryPill
 import dev.wystore.ui.components.EmptyState
@@ -571,22 +572,38 @@ fun SearchCard(
                     }
                 }
                 installed != null -> {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    val versionLine: @Composable (Modifier) -> Unit = { m ->
                         Text(
                             stringResource(R.string.search_installed_version, installed.versionName),
-                            modifier = Modifier.weight(1f),
+                            modifier = m,
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+                    val checkAction: @Composable () -> Unit = {
                         HubTextAction(
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                                 onQuickInstall(app.packageName)
                             }
                         ) { Text(stringResource(R.string.search_check_update), maxLines = 1) }
+                    }
+                    if (isNarrowScreen()) {
+                        // Beside the button the version line was left a few characters and broke
+                        // mid-word; on a narrow screen it keeps the full width of the row and the
+                        // button sits under it.
+                        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                            versionLine(Modifier.fillMaxWidth())
+                            checkAction()
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            versionLine(Modifier.weight(1f))
+                            checkAction()
+                        }
                     }
                 }
             }
