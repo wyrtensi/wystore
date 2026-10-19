@@ -71,16 +71,30 @@ Branch `design/wy-hub-style`. Rules taken from the Wy Hub concept (wy-hub-legacy
       center, updates and storage sub-pages
 - [x] Kazakh on the system font (Android 9, light)
 
+## TV
+
+- [x] Category tiles carry the section's glyph (by slug or title; gamepad for game genres)
+- [x] Rails run to the screen's edges; the focused card stops short of the overscan edge
+- [x] The top of every scrolling TV screen fades under the menu
+- [x] Home's update card, My apps' opening panel and app pages' heroes are glass panels
+- [x] My apps lists as rows of one panel; tags for version and source
+- [x] Status tones and source colours as on the phone; panels with the hairline
+- [x] Card names on three lines
+- [~] My apps accepted rows (no accepted apps on the TV emulator to see them)
+
 ## Done so far (branch)
 
 - Status tones in one place (StatusTone): active accent, ready green, paused yellow, asking blue,
   failed red sentence, neutral grey.
-- Tabs renamed in Russian: «Апдейты», «Приложения».
+- The apps tab is called Apps in every language («Приложения», «Застосунки», ...).
 - Rails bleed to the screen edge; lists under a fixed header fade at the top.
+- Install on a row checks the app's required Android first.
+- Status bar icons follow the app's theme, not the system's.
 
 ## Still open
 
-- Search results cannot tell an app needs a newer Android (the search answer has no minSdk), so a
-  row still offers Install; the page explains it.
 - Inline progress and failure on a search result; backup nudge, export and import; "nothing
-  accepted" on Updates; takeover when the catalogue is older or the source is unconfirmed.
+  accepted" on Updates; takeover when the catalogue is older or the source is unconfirmed;
+  batch accept progress; the compact phone after this round (an agent is reproducing these).
+- GitHub catalogue summaries exist in English and Russian only; other languages show one of them.
+- Latvian strings mix "tu" and "jūs".
