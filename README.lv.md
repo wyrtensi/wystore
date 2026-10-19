@@ -4,10 +4,10 @@
 
 **RuStore alternatīva bez izsekošanas un reklāmas**
 
-[![Lejupielādēt APK](https://img.shields.io/badge/Lejupiel%C4%81d%C4%93t%20APK-CF4A1A?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
-[![Lejupielādes](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=lejupiel%C4%81des&labelColor=CF4A1A&color=E0652F)](https://github.com/wyrtensi/wystore/releases)
+[![Lejupielādēt APK](https://img.shields.io/badge/Lejupiel%C4%81d%C4%93t%20APK-A85A38?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
+[![Lejupielādes](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=lejupiel%C4%81des&labelColor=A85A38&color=BC7048)](https://github.com/wyrtensi/wystore/releases)
 
-[![Jaunākais laidiens](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=laidiens&color=CF4A1A)](https://github.com/wyrtensi/wystore/releases/latest)
+[![Jaunākais laidiens](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=laidiens&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Būvējums](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=b%C5%ABv%C4%93jums)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#prasības)
 [![Telegram čats](https://img.shields.io/badge/Telegram-%C4%8Dats-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)

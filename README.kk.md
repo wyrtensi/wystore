@@ -4,10 +4,10 @@
 
 **Бақылаусыз және жарнамасыз RuStore баламасы**
 
-[![APK жүктеп алу](https://img.shields.io/badge/APK%20%D0%B6%D2%AF%D0%BA%D1%82%D0%B5%D0%BF%20%D0%B0%D0%BB%D1%83-CF4A1A?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
-[![Жүктеулер](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=%D0%B6%D2%AF%D0%BA%D1%82%D0%B5%D1%83%D0%BB%D0%B5%D1%80&labelColor=CF4A1A&color=E0652F)](https://github.com/wyrtensi/wystore/releases)
+[![APK жүктеп алу](https://img.shields.io/badge/APK%20%D0%B6%D2%AF%D0%BA%D1%82%D0%B5%D0%BF%20%D0%B0%D0%BB%D1%83-A85A38?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
+[![Жүктеулер](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=%D0%B6%D2%AF%D0%BA%D1%82%D0%B5%D1%83%D0%BB%D0%B5%D1%80&labelColor=A85A38&color=BC7048)](https://github.com/wyrtensi/wystore/releases)
 
-[![Соңғы шығарылым](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%D1%88%D1%8B%D2%93%D0%B0%D1%80%D1%8B%D0%BB%D1%8B%D0%BC&color=CF4A1A)](https://github.com/wyrtensi/wystore/releases/latest)
+[![Соңғы шығарылым](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%D1%88%D1%8B%D2%93%D0%B0%D1%80%D1%8B%D0%BB%D1%8B%D0%BC&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Құрастыру](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%D2%9B%D2%B1%D1%80%D0%B0%D1%81%D1%82%D1%8B%D1%80%D1%83)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#талаптар)
 [![Telegram-чат](https://img.shields.io/badge/Telegram-%D1%87%D0%B0%D1%82-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)

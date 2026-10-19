@@ -4,10 +4,10 @@
 
 **没有跟踪与广告的 RuStore 替代品**
 
-[![下载 APK](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD%20APK-CF4A1A?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
-[![下载量](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=%E4%B8%8B%E8%BD%BD%E9%87%8F&labelColor=CF4A1A&color=E0652F)](https://github.com/wyrtensi/wystore/releases)
+[![下载 APK](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD%20APK-A85A38?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
+[![下载量](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=%E4%B8%8B%E8%BD%BD%E9%87%8F&labelColor=A85A38&color=BC7048)](https://github.com/wyrtensi/wystore/releases)
 
-[![最新版本](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%E7%89%88%E6%9C%AC&color=CF4A1A)](https://github.com/wyrtensi/wystore/releases/latest)
+[![最新版本](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%E7%89%88%E6%9C%AC&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![构建](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%E6%9E%84%E5%BB%BA)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#系统要求)
 [![Telegram 交流群](https://img.shields.io/badge/Telegram-%E4%BA%A4%E6%B5%81%E7%BE%A4-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)

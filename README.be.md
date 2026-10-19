@@ -4,10 +4,10 @@
 
 **Альтэрнатыва RuStore без сачэння і рэкламы**
 
-[![Спампаваць APK](https://img.shields.io/badge/%D0%A1%D0%BF%D0%B0%D0%BC%D0%BF%D0%B0%D0%B2%D0%B0%D1%86%D1%8C%20APK-CF4A1A?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
-[![Спампаванняў](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=%D1%81%D0%BF%D0%B0%D0%BC%D0%BF%D0%B0%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%D1%9E&labelColor=CF4A1A&color=E0652F)](https://github.com/wyrtensi/wystore/releases)
+[![Спампаваць APK](https://img.shields.io/badge/%D0%A1%D0%BF%D0%B0%D0%BC%D0%BF%D0%B0%D0%B2%D0%B0%D1%86%D1%8C%20APK-A85A38?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
+[![Спампаванняў](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=%D1%81%D0%BF%D0%B0%D0%BC%D0%BF%D0%B0%D0%B2%D0%B0%D0%BD%D0%BD%D1%8F%D1%9E&labelColor=A85A38&color=BC7048)](https://github.com/wyrtensi/wystore/releases)
 
-[![Апошні рэліз](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%D1%80%D1%8D%D0%BB%D1%96%D0%B7&color=CF4A1A)](https://github.com/wyrtensi/wystore/releases/latest)
+[![Апошні рэліз](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%D1%80%D1%8D%D0%BB%D1%96%D0%B7&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Зборка](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%D0%B7%D0%B1%D0%BE%D1%80%D0%BA%D0%B0)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#патрабаванні)
 [![Telegram-чат](https://img.shields.io/badge/Telegram-%D1%87%D0%B0%D1%82-26A5E4?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
