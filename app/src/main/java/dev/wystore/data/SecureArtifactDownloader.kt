@@ -1,5 +1,8 @@
 package dev.wystore.data
 
+import okhttp3.Call
+import kotlinx.coroutines.job
+import kotlinx.coroutines.Job
 import dev.wystore.BuildConfig
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
@@ -49,10 +52,11 @@ class SecureArtifactDownloader(context: Context? = null) {
         artifacts.forEach(::validate)
         directory.mkdirs()
         val totalExpected = artifacts.sumOf { it.sizeBytes }
+        val canceller = CallCanceller(coroutineContext.job)
         var completedBefore = 0L
         var lastSpeedSampleBytes = 0L
         var lastSpeedSampleAt = System.nanoTime()
-        artifacts.flatMapIndexed { index, artifact ->
+        try { artifacts.flatMapIndexed { index, artifact ->
             val temporary = File(directory, "artifact_$index.part")
             val destination = File(directory, "artifact_$index.apk")
             val marker = File(directory, "artifact_$index.id")
@@ -84,7 +88,7 @@ class SecureArtifactDownloader(context: Context? = null) {
                     if (resumeFrom > 0L) header("Range", "bytes=$resumeFrom-")
                 }.build()
 
-                client.newCall(request).execute().use { response ->
+                canceller.track(client.newCall(request)).execute().use { response ->
                     if (!response.isSuccessful) fail(SourceError.DOWNLOAD_FAILED, "HTTP ${response.code}")
                     // 206 means the range was honoured. A 200 to a ranged request means the server
                     // ignored it and is sending the whole body, so whatever was on disk is stale.
@@ -137,7 +141,7 @@ class SecureArtifactDownloader(context: Context? = null) {
                 if (ResumePolicy.discardsPartialFile(error)) temporary.delete()
                 throw error
             }
-        }
+        } } finally { canceller.close() }
     }
 
     suspend fun downloadGitHubApk(
@@ -172,17 +176,18 @@ class SecureArtifactDownloader(context: Context? = null) {
         val resumeFrom = ResumePolicy.resumableBytes(temporary.length(), asset.sizeBytes)
         if (resumeFrom == 0L) temporary.delete()
         rememberPartial(marker, asset.downloadUrl, asset.sizeBytes)
+        val canceller = CallCanceller(coroutineContext.job)
         try {
             var url = asset.downloadUrl
             repeat(6) { redirect ->
-                val response = redirectAwareClient
-                    .newCall(
+                val response = canceller.track(
+                    redirectAwareClient.newCall(
                         Request.Builder().url(url)
                             .header("User-Agent", "WyStore/${BuildConfig.VERSION_NAME}")
                             .apply { if (resumeFrom > 0L) header("Range", "bytes=$resumeFrom-") }
                             .build()
                     )
-                    .execute()
+                ).execute()
                 if (response.isRedirect) {
                     val next = response.header("Location") ?: fail(SourceError.GITHUB_NO_DOWNLOAD_LOCATION, "Redirect without Location")
                     response.close()
@@ -260,6 +265,8 @@ class SecureArtifactDownloader(context: Context? = null) {
             // Kept so the next attempt can resume, unless the failure says the bytes are wrong.
             if (ResumePolicy.discardsPartialFile(error)) temporary.delete()
             throw error
+        } finally {
+            canceller.close()
         }
     }
 
@@ -352,4 +359,27 @@ private fun discardForeignPartial(temporary: File, marker: File, url: String, ex
 /** Records where the bytes now being written came from, for the attempt after this one. */
 private fun rememberPartial(marker: File, url: String, expectedBytes: Long) {
     runCatching { marker.writeText(PartialDownloadIdentity.marker(url, expectedBytes)) }
+}
+
+/**
+ * Cancels the request in flight when the coroutine running it is cancelled.
+ *
+ * Cancelling a coroutine does not interrupt a blocking read. When Android stopped a transfer job
+ * because the network had gone, the download stayed blocked in read() until the 90 s read timeout,
+ * its row showing the last speed and time left; and a job restarted when the network came back in
+ * the meantime found the transfer slot still held, gave up, and nothing ran the row again. Cancelling
+ * the call closes its socket, so the read ends at once and the stop is handled as a stop.
+ */
+private class CallCanceller(private val job: Job) : AutoCloseable {
+    @Volatile
+    private var current: Call? = null
+    private val hook = job.invokeOnCompletion { cause -> if (cause != null) current?.cancel() }
+
+    fun track(call: Call): Call {
+        current = call
+        if (job.isCancelled) call.cancel()
+        return call
+    }
+
+    override fun close() = hook.dispose()
 }
