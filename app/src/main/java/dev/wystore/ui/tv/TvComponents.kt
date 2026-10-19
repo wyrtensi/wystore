@@ -290,11 +290,14 @@ fun TvAppCard(
                 size = 52.dp,
                 fallbackPackageName = app.packageName
             )
+            // Three lines, as the phone's rows have: at two, "Фильмы бесплатно без ..." lost the
+            // words that told one app from the next. Every card keeps room for three so a row's
+            // bottoms line up.
             Text(
                 text = app.name.ifBlank { app.packageName },
                 style = MaterialTheme.typography.titleSmall,
-                maxLines = 2,
-                minLines = 2,
+                maxLines = 3,
+                minLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
             if (status != null) {
@@ -339,7 +342,7 @@ fun StoreApp.primaryCategory(): String? =
 val TvCardWidth = 148.dp
 
 /** Height a row of [TvAppCard]s needs so a grown, focused card is not clipped. */
-val TvRowHeight = 204.dp
+val TvRowHeight = 228.dp
 
 private val CARD_STATES = setOf(
     StatusCode.QUEUED,
