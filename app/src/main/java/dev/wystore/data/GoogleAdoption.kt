@@ -12,10 +12,9 @@ data class AdoptionCandidate(
 /**
  * Finds what to reinstall an app as, when Wy Store is asked to take over one that came from Google.
  *
- * Such an app cannot simply be updated: Google signs its own builds, so an APK from anywhere else
- * refuses to install over it. Taking it over means removing it and installing the same app from a
- * source Wy Store can actually update - and "the same app" has to be established rather than
- * assumed.
+ * Updating over an existing installation does not grant Android update ownership. A verified
+ * handover therefore needs removal and a fresh installation from the chosen source, even when
+ * signatures happen to match. The replacement identity must be established rather than assumed.
  *
  * The package name settles it whenever the store carries it, which for ordinary apps it usually
  * does; that is an identity, not a resemblance, and it is offered on its own. Only when the store

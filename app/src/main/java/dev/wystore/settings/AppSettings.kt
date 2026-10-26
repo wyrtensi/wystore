@@ -90,7 +90,8 @@ data class AppSettings(
     val showExcludedUpdates: Boolean = false,
     val searchSources: dev.wystore.data.SearchSources = dev.wystore.data.SearchSources.ALL,
     val artifactRetentionDays: Int = 7,
-    val artifactStorageLimitMb: Int = 2_048
+    val artifactStorageLimitMb: Int = 2_048,
+    val continueChecksAfterGooglePlayUpdate: Boolean = false
 )
 
 fun AppSettings.toStoreSettings(): StoreSettings = StoreSettings(
@@ -124,6 +125,7 @@ fun AppSettings.toStoreSettings(): StoreSettings = StoreSettings(
     autoInstallNewApps = autoInstallNewApps,
     sourceCategories = sourceCategories,
     showExcludedUpdates = showExcludedUpdates,
+    continueChecksAfterGooglePlayUpdate = continueChecksAfterGooglePlayUpdate,
     searchSources = searchSources,
     artifactRetentionDays = artifactRetentionDays,
     artifactStorageLimitMb = artifactStorageLimitMb
@@ -159,6 +161,7 @@ fun StoreSettings.toAppSettings(): AppSettings = AppSettings(
     autoInstallNewApps = autoInstallNewApps,
     sourceCategories = sourceCategories,
     showExcludedUpdates = showExcludedUpdates,
+    continueChecksAfterGooglePlayUpdate = continueChecksAfterGooglePlayUpdate,
     searchSources = searchSources,
     artifactRetentionDays = artifactRetentionDays,
     artifactStorageLimitMb = artifactStorageLimitMb

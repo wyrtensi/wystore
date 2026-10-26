@@ -18,6 +18,7 @@ package dev.wystore.data
 object DiagnosticsSettingsDump {
 
     fun of(settings: StoreSettings): List<Pair<String, String>> = listOf(
+        "continueChecksAfterGooglePlayUpdate" to settings.continueChecksAfterGooglePlayUpdate.toString(),
         "wifiOnly" to settings.wifiOnly.toString(),
         "requiresCharging" to settings.requiresCharging.toString(),
         "allowMobileData" to settings.allowMobileData.toString(),

@@ -265,6 +265,10 @@ class MainActivity : AppCompatActivity(), SystemInstallerHost {
         if (intent == null) return
         val destination = intent.getStringExtra(NotificationIntentFactory.EXTRA_DESTINATION)
         val packageName = intent.getStringExtra(NotificationIntentFactory.EXTRA_PACKAGE_NAME)
+        if (destination == NotificationIntentFactory.libraryDestination()) {
+            storeViewModel.openLibraryFromNotification()
+            return
+        }
         // The notification's own button asks for the install itself; only the body of the
         // notification opens the page and waits for the user to press something.
         if (intent.getBooleanExtra(NotificationIntentFactory.EXTRA_START_INSTALL, false)) {

@@ -102,7 +102,7 @@
     <string name="dialog_install_existing_title">Updating an existing app</string>
     <string name="dialog_install_existing_text">This app is already installed from another source. After installation Wy Store will manage its updates.</string>
     <string name="adopt_google_title">Take the app over</string>
-    <string name="adopt_google_text">%1$s came from Google and cannot be updated in place — Google signs its own builds with its own key. To take it over, the app is uninstalled and installed again. Its data is usually lost.</string>
+    <string name="adopt_google_text">%1$s receives updates through Google Play. Choose where Wy Store will install the app from after removal.</string>
     <string name="adopt_google_searching">Looking for this app in the catalogue…</string>
     <string name="adopt_google_not_found">The RuStore catalogue has no such app, so it cannot be taken over.</string>
     <string name="adopt_google_exact">The very same package name — this is it:</string>
@@ -113,8 +113,8 @@
     <string name="dialog_replace_title">Replace the installed app</string>
     <string name="dialog_replace_text">%1$s will be uninstalled and installed again from the catalogue: version %2$s in place of %3$s. Its data is usually lost, so expect to sign in again. Android will ask you to confirm both steps.</string>
     <string name="dialog_replace_confirm">Uninstall and install</string>
-    <string name="dialog_force_title">Update instead of Google Play</string>
-    <string name="dialog_force_text">%1$s came from Google Play, and Wy Store leaves such apps to it. Turn this on and background checks will update it through Wy Store instead, whenever the developer signature matches.</string>
+    <string name="dialog_force_title">Allow updates through Wy Store</string>
+    <string name="dialog_force_text">Wy Store will check updates for %1$s and offer installation when signatures match. This setting does not transfer update ownership or disable Google Play auto-updates.</string>
     <string name="dialog_force_confirm">Turn on</string>
     <string name="dialog_uninstall_confirm">Uninstall</string>
     <string name="dialog_github_install_title">Install an APK from GitHub</string>
@@ -208,7 +208,7 @@
     <string name="library_search_clear">Clear search</string>
     <string name="library_expand_all">Expand all</string>
     <string name="library_collapse_all">Collapse all</string>
-    <string name="library_intro">Accepted apps are the ones Wy Store updates; the rest are below. The badge says who installed each app.</string>
+    <string name="library_intro">Wy Store checks updates for accepted apps. The badge shows the update owner, or the installer when ownership is unknown.</string>
     <string name="library_search_label">Search installed apps</string>
     <string name="library_search_placeholder">Name or package name</string>
     <string name="library_sort_title">Sorting</string>
@@ -222,7 +222,7 @@
     <string name="library_update_available">An update was found — not downloaded yet</string>
     <string name="library_update_available_version">Update found: %1$s — not downloaded yet</string>
     <string name="library_auto_update">Auto-update</string>
-    <string name="library_force_wystore">Update instead of Google Play</string>
+    <string name="library_force_wystore">Allow updates through Wy Store</string>
     <string name="library_remove">Remove</string>
     <string name="library_check_progress">Checked %1$d of %2$d · updates found: %3$d</string>
 
@@ -653,8 +653,7 @@
     <string name="details_replace">Uninstall and install through Wy Store</string>
     <string name="details_signature_incompatible">The installed copy is not signed with the certificate RuStore states for this app, so an update from here cannot install over it: Android refuses that. It would have to be removed and installed again, which usually loses its data. An app installed from somewhere else looks like this — and so does a catalogue entry that is out of date.</string>
     <string name="details_source_unconfirmed">RuStore did not confirm this app: it states one signing fingerprint and serves a file signed with another. The installed copy is the file RuStore serves, so updates from here do install over it — it is the catalogue entry that disagrees, not the app on the phone.</string>
-    <string name="details_first_update_manual">The first update through Wy Store has to be confirmed by hand. After it Wy Store becomes the installer of record and can update the app on its own.</string>
-    <string name="details_take_over_hint">Android lets only the installer of record update an app quietly. Reinstalling it through Wy Store makes that Wy Store.</string>
+    <string name="details_take_over_hint">Transferring update ownership requires removing and reinstalling the app. A data-loss warning will appear before removal.</string>
     <string name="details_uninstall">Uninstall</string>
     <string name="details_share">Share</string>
     <string name="details_share_subject">%1$s on RuStore</string>
@@ -766,8 +765,8 @@
     <string name="library_backup_restore_text">If you saved a copy of the list before, restore it to get the accepted apps and GitHub repositories back.</string>
     <string name="library_backup_restore">Restore from file</string>
     <string name="library_backup_later">Not now</string>
-    <string name="github_adopt_installed">Accept into Wy Store</string>
-    <string name="github_adopt_installed_hint">The app stays as it is; Wy Store installs newer releases from this repository over it.</string>
+    <string name="github_adopt_installed">Track updates</string>
+    <string name="github_adopt_installed_hint">The app and its data will stay in place. Wy Store will check new releases from this repository. This does not transfer update ownership.</string>
     <string name="msg_adopted">%1$s is now looked after by Wy Store</string>
     <string name="library_withdrawn_from_rustore">RuStore has stopped serving this package: the last check got \"not found\". It may have been withdrawn or be unavailable for now; until it is back, no updates come.</string>
     <string name="installer_preinstalled_short">Preinstalled</string>
@@ -830,4 +829,30 @@
     <string name="search_start_github_title">Search the GitHub catalogue</string>
     <string name="search_start_github_message">Open-source apps from GitHub releases, matched as you type.</string>
     <string name="updates_managed_empty_title">No accepted apps yet</string>
+    <string name="ownership_unsupported_android">Update ownership requires Android 14 or later. On this Android version, Wy Store can install and update apps but cannot claim ownership of their updates.</string>
+    <string name="ownership_unsupported_installer">This firmware does not allow Wy Store to use its own installer sessions, so update ownership cannot be transferred. There is no reason to remove the app for a handover.</string>
+    <string name="queue_error_update_ownership_unconfirmed">The app is installed, but update ownership was not transferred: Android did not confirm Wy Store as the owner. Check the owner and whether the app exists in other profiles. The app will not be reinstalled automatically.</string>
+    <string name="ownership_transfer_confirmed">Updates transferred to Wy Store: ownership confirmed by Android.</string>
+    <string name="details_update_owner">Update owner: %1$s</string>
+    <string name="github_fact_update_owner">Update owner</string>
+    <string name="adopt_transfer_source">Source for the new installation:</string>
+    <string name="settings_google_play_checks_title">Updates after Google Play</string>
+    <string name="settings_google_play_checks">Continue checking through Wy Store</string>
+    <string name="settings_google_play_checks_hint">Wy Store pauses background updates after Google Play by default. Continuing checks respects your auto-update settings and signature verification. Extra data may be used; Google Play auto-updates are configured separately.</string>
+    <string name="google_play_pause_notification_title">Background updates paused</string>
+    <string name="google_play_pause_notification_text">Android records Google Play as the installer: %1$s. Wy Store has paused background updates for these apps. You can enable continued checks in Settings.</string>
+    <string name="google_play_pause_reason">Android recorded Google Play as the installer. Wy Store background updates are paused.</string>
+    <string name="google_play_continue_reason">Wy Store continues checks with your permission. Google Play auto-updates are configured separately.</string>
+    <string name="google_play_update_settings">Update check settings</string>
+    <string name="github_adopt_google_paused_hint">The installed app will be kept. Background checks will pause after connecting because Google Play is recorded as its installer. You can allow continued checks in settings.</string>
+    <string name="ownership_transfer_target_version">After reinstalling: %1$s</string>
+    <string name="ownership_transfer_release">Selected release: %1$s</string>
+    <string name="ownership_transfer_file">APK file: %1$s</string>
+    <string name="ownership_transfer_downgrade">An older version will be installed after removal.</string>
+    <string name="ownership_transfer_older_release">The selected release is older than the installed version. Its APK may install an older app version.</string>
+    <string name="ownership_transfer_data_loss">The app will be removed and reinstalled. Its local data will be lost; you may need to sign in again.</string>
+    <string name="ownership_transfer_verification">After installation, Wy Store will check whether Android assigned it update ownership.</string>
+    <string name="ownership_transfer_more">Profiles and update protection</string>
+    <string name="ownership_transfer_less">Hide explanation</string>
+    <string name="ownership_transfer_profile_limits">If a copy remains in another profile, such as Shelter, ownership transfer may be unavailable. Even with Wy Store ownership, a system store may update the app without confirmation in managed profiles.</string>
 </resources>

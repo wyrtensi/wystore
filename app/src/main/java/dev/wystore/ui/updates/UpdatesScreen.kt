@@ -154,6 +154,7 @@ fun UpdatesScreen(
                 InstallQueueStatus.FAILED -> true
                 // Only while Android's dialog waits off screen: the card is where its Cancel is.
                 InstallQueueStatus.INSTALLING -> item.awaitingConfirmation
+                InstallQueueStatus.COMPLETE -> item.errorCode == dev.wystore.updates.model.QueueErrorCode.UPDATE_OWNERSHIP_UNCONFIRMED
                 else -> false
             }
         }
@@ -573,8 +574,9 @@ fun QueueItemCard(
     onOpen: () -> Unit = {},
     onWhatsNew: (() -> Unit)? = null
 ) {
-    val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED
-    val failed = item.status == InstallQueueStatus.FAILED
+    val ownershipUnconfirmed = item.errorCode == dev.wystore.updates.model.QueueErrorCode.UPDATE_OWNERSHIP_UNCONFIRMED
+    val stopped = item.status == InstallQueueStatus.FAILED || item.status == InstallQueueStatus.CANCELED || ownershipUnconfirmed
+    val failed = item.status == InstallQueueStatus.FAILED || ownershipUnconfirmed
     // The row said "uninstall it and install it again" and offered Retry, which does the same
     // thing again and fails the same way. A signature that does not match is the one failure a
     // retry can never get past, and the only way through it is the removal - so it is a button.
@@ -710,6 +712,7 @@ fun QueueItemCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 when {
+                    ownershipUnconfirmed -> Unit
                     unconfirmed -> {
                         FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry), maxLines = 1) }
                         Button(onClick = onConfirmUnverifiedSource) {

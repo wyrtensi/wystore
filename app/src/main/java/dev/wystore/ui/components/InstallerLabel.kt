@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import dev.wystore.R
 import dev.wystore.data.InstalledApp
+import dev.wystore.data.InstalledAppOwnership
 import dev.wystore.data.InstallerNames
 import dev.wystore.selfupdate.SelfUpdateChecker
 
@@ -31,13 +32,13 @@ fun installerLabel(installerPackageName: String?): String =
  */
 @Composable
 fun installerLabel(app: InstalledApp): String =
-    if (app.preinstalled) stringResource(R.string.installer_preinstalled)
-    else installerLabel(app.installerPackageName)
+    if (InstalledAppOwnership.showPreinstalledLabel(app)) stringResource(R.string.installer_preinstalled)
+    else installerLabel(app.updateResponsiblePackageName)
 
 @Composable
 fun installerShortLabel(app: InstalledApp): String =
-    if (app.preinstalled) stringResource(R.string.installer_preinstalled_short)
-    else installerShortLabel(app.installerPackageName)
+    if (InstalledAppOwnership.showPreinstalledLabel(app)) stringResource(R.string.installer_preinstalled_short)
+    else installerShortLabel(app.updateResponsiblePackageName)
 
 @Composable
 fun installerShortLabel(installerPackageName: String?): String =

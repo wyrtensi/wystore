@@ -13,6 +13,20 @@ import org.junit.Test
  */
 class GitHubReleasePolicyTest {
 
+    @Test
+    fun confirmationNamesTheReleaseContainingTheSelectedAssetRatherThanTheLatestRelease() {
+        val latest = release("v3", assets = listOf(asset("new.apk")))
+        val older = release("v2", assets = listOf(asset("old.apk")))
+        assertEquals(older, GitHubReleasePolicy.releaseForAsset(listOf(latest, older), older.assets.single().id))
+    }
+
+    @Test
+    fun confirmationCanUseAnExplicitlyOpenedReleaseOnlyIfItContainsTheAsset() {
+        val selected = release("v2", assets = listOf(asset("selected.apk")))
+        assertEquals(selected, GitHubReleasePolicy.releaseForAsset(emptyList(), selected.assets.single().id, selected))
+        assertNull(GitHubReleasePolicy.releaseForAsset(emptyList(), -999, selected))
+    }
+
     private fun asset(name: String, size: Long = 1_000) =
         GitHubAsset(id = name.hashCode().toLong(), name = name, sizeBytes = size, downloadUrl = "https://github.com/x", digest = null)
 

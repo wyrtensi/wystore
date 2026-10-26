@@ -44,6 +44,9 @@ enum class QueueErrorCode {
     INSTALL_CANCELED,
     INSTALL_FAILED,
 
+    /** Installation completed, but Android did not confirm Wy Store as the update owner. */
+    UPDATE_OWNERSHIP_UNCONFIRMED,
+
     /**
      * Android refused because the same package is already on the phone signed with another key,
      * often in another profile where this one cannot see it. See [dev.wystore.updates.InstallRefusal].
@@ -82,7 +85,8 @@ data class QueueItemSnapshot(
     val errorCode: QueueErrorCode? = null,
     val errorDetail: String? = null,
     /** Set on GitHub rows: the package name is a placeholder until verification reads the real one. */
-    val githubRepository: GitHubRepository? = null
+    val githubRepository: GitHubRepository? = null,
+    val requiresUpdateOwnership: Boolean = false
 )
 
 sealed interface QueueAction {

@@ -11,6 +11,14 @@ package dev.wystore.data
  */
 object GitHubReleasePolicy {
 
+    /** Confirmation must describe the selected APK, including an explicitly opened older release. */
+    fun releaseForAsset(
+        releases: List<GitHubRelease>,
+        assetId: Long,
+        openedRelease: GitHubRelease? = null
+    ): GitHubRelease? = releases.firstOrNull { release -> release.assets.any { it.id == assetId } }
+        ?: openedRelease?.takeIf { release -> release.assets.any { it.id == assetId } }
+
     /** Tags that are not a stable build even when the release is not flagged `prerelease`. */
     private val UNSTABLE_TAG = Regex(
         "(?i)(^|[^a-z0-9])(nightly|canary|snapshot|preview|dev|alpha|beta|rc)([^a-z0-9]|\\d|$)"

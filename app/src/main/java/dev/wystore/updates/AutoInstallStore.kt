@@ -1,6 +1,10 @@
 package dev.wystore.updates
 
 import android.content.Context
+import android.content.SharedPreferences
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 /**
  * Packages whose download finished while "install as soon as it is downloaded" was on.
@@ -18,16 +22,35 @@ class AutoInstallStore(context: Context) {
     fun request(packageName: String) {
         if (packageName.isBlank()) return
         // Committed rather than applied: a worker's process can end the moment it returns.
-        prefs.edit().putStringSet(KEY, requested() + packageName).commit()
+        synchronized(lock) {
+            check(prefs.edit().putStringSet(KEY, requested() + packageName).commit()) {
+                "Could not persist the installation confirmation request"
+            }
+        }
     }
 
     fun requested(): Set<String> = prefs.getStringSet(KEY, emptySet())?.toSet().orEmpty()
 
+    /** A ready row can predate the request, so observing the queue alone can miss the offer. */
+    fun observeRequests() = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == KEY) trySend(requested())
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        trySend(requested())
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
     fun clear(packageName: String) {
-        prefs.edit().putStringSet(KEY, requested() - packageName).commit()
+        synchronized(lock) {
+            check(prefs.edit().putStringSet(KEY, requested() - packageName).commit()) {
+                "Could not clear the installation confirmation request"
+            }
+        }
     }
 
     private companion object {
         const val KEY = "auto_install_requested"
+        val lock = Any()
     }
 }

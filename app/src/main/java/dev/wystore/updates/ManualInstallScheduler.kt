@@ -1,7 +1,6 @@
 package dev.wystore.updates
 
 import android.content.Context
-import dev.wystore.background.TransferDispatcher
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.StoreSettings
 import kotlinx.coroutines.CoroutineScope
@@ -22,18 +21,38 @@ object ManualInstallScheduler {
      * used to enqueue on top of a FAILED row, so every later attempt threw on its first transition
      * and the user was told it was a network error.
      */
-    fun enqueue(context: Context, packageName: String, label: String, settings: StoreSettings) {
+    fun enqueue(
+        context: Context,
+        packageName: String,
+        label: String,
+        settings: StoreSettings,
+        requiresUpdateOwnership: Boolean = false
+    ) {
         val appContext = context.applicationContext
         CoroutineScope(Dispatchers.IO).launch {
-            val repository = QueueRepository.getInstance(appContext)
-            val queueEntity = repository.enqueueManualInstall(
-                packageName = packageName,
-                label = label,
-                source = ManagedSource.RUSTORE
-            ) ?: return@launch
-            // Asked for from inside the app, so the app installs it - even on a row an agent once had.
-            repository.endHandoff(queueEntity.id)
-            TransferDispatcher.dispatch(appContext, queueEntity.id)
+            enqueuePrepared(appContext, packageName, label, settings, requiresUpdateOwnership)
         }
+    }
+
+    /** Returns only after the replacement has a durable queue row and has been dispatched. */
+    suspend fun enqueuePrepared(
+        context: Context,
+        packageName: String,
+        label: String,
+        settings: StoreSettings,
+        requiresUpdateOwnership: Boolean = false
+    ): String? {
+        val appContext = context.applicationContext
+        val repository = QueueRepository.getInstance(appContext)
+        val queueEntity = repository.enqueueManualInstall(
+            packageName = packageName,
+            label = label,
+            source = ManagedSource.RUSTORE,
+            requiresUpdateOwnership = requiresUpdateOwnership
+        ) ?: return null
+        // Asked for from inside the app, so the app installs it - even on a row an agent once had.
+        repository.endHandoff(queueEntity.id)
+        PreparedInstallDispatcher.dispatch(appContext, queueEntity.id)
+        return queueEntity.id
     }
 }

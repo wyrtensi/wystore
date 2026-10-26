@@ -102,7 +102,7 @@
     <string name="dialog_install_existing_title">Обновление существующего приложения</string>
     <string name="dialog_install_existing_text">Это приложение уже установлено из другого источника. После установки Wy Store станет управлять его обновлениями.</string>
     <string name="adopt_google_title">Принять приложение в Wy Store</string>
-    <string name="adopt_google_text">%1$s установлено из Google, и обновить его поверх нельзя — Google подписывает свои сборки своим ключом. Чтобы принять приложение, оно будет удалено и установлено заново. Данные при этом, как правило, не сохраняются.</string>
+    <string name="adopt_google_text">%1$s получает обновления через Google Play. Выберите, откуда Wy Store будет устанавливать приложение после удаления.</string>
     <string name="adopt_google_searching">Ищем это приложение в каталоге…</string>
     <string name="adopt_google_not_found">В каталоге RuStore такого приложения не нашлось — принять его не получится.</string>
     <string name="adopt_google_exact">Тот же package name — это оно и есть:</string>
@@ -113,8 +113,8 @@
     <string name="dialog_replace_title">Переустановить приложение</string>
     <string name="dialog_replace_text">%1$s будет удалено и установлено заново из каталога: версия %2$s вместо %3$s. Данные приложения при этом, как правило, теряются — войти в аккаунт, скорее всего, придётся заново. Оба шага Android попросит подтвердить.</string>
     <string name="dialog_replace_confirm">Удалить и установить</string>
-    <string name="dialog_force_title">Обновлять вместо Google Play</string>
-    <string name="dialog_force_text">%1$s установлено через Google Play, и такие приложения Wy Store оставляет ему. Если включить, фоновые проверки будут обновлять его через Wy Store при совпадении цифровой подписи разработчика.</string>
+    <string name="dialog_force_title">Разрешить обновления через Wy Store</string>
+    <string name="dialog_force_text">Wy Store будет проверять обновления для %1$s и предлагать установку при совпадении цифровой подписи. Эта настройка не передаёт владение обновлениями и не отключает автообновления в Google Play.</string>
     <string name="dialog_force_confirm">Включить</string>
     <string name="dialog_uninstall_confirm">Удалить</string>
     <string name="dialog_github_install_title">Установка APK из GitHub</string>
@@ -208,7 +208,7 @@
     <string name="library_search_clear">Очистить поиск</string>
     <string name="library_expand_all">Раскрыть все</string>
     <string name="library_collapse_all">Скрыть все</string>
-    <string name="library_intro">Принятые приложения обновляет Wy Store, остальные ниже. Значок показывает, кто установил приложение.</string>
+    <string name="library_intro">Wy Store проверяет обновления принятых приложений. Значок показывает владельца обновлений, а если он неизвестен — установщика.</string>
     <string name="library_search_label">Поиск среди установленных</string>
     <string name="library_search_placeholder">Название или package name</string>
     <string name="library_sort_title">Сортировка</string>
@@ -222,7 +222,7 @@
     <string name="library_update_available">Найдено обновление — ещё не скачано</string>
     <string name="library_update_available_version">Найдено обновление: %1$s — ещё не скачано</string>
     <string name="library_auto_update">Автообновление</string>
-    <string name="library_force_wystore">Обновлять вместо Google Play</string>
+    <string name="library_force_wystore">Разрешить обновления через Wy Store</string>
     <string name="library_remove">Убрать</string>
     <string name="library_check_progress">Проверено %1$d из %2$d · найдено обновлений: %3$d</string>
 
@@ -653,8 +653,7 @@
     <string name="details_replace">Удалить и переустановить через Wy Store</string>
     <string name="details_signature_incompatible">Установленная копия подписана не тем ключом, который RuStore заявляет для этого приложения, поэтому обновление отсюда не встанет поверх — Android откажет. Понадобится удалить и установить заново, а данные при этом, как правило, не сохраняются. Так выглядит и приложение, поставленное из другого источника, и устаревшая карточка в каталоге.</string>
     <string name="details_source_unconfirmed">RuStore не подтвердил это приложение: он заявляет один отпечаток подписи, а выдаёт файл с другим. Установленная копия — это и есть файл из RuStore, так что обновления отсюда встанут поверх неё. Расходится карточка в каталоге, а не приложение на телефоне.</string>
-    <string name="details_first_update_manual">Первое обновление через Wy Store придётся подтвердить вручную. После него контроль перейдёт к Wy Store, и дальше он сможет обновлять приложение сам.</string>
-    <string name="details_take_over_hint">Android разрешает тихо обновлять только тому, кто приложение установил. Переустановка через Wy Store делает установщиком Wy Store.</string>
+    <string name="details_take_over_hint">Для передачи владения обновлениями потребуется удалить приложение и установить заново. Перед удалением появится предупреждение о потере данных.</string>
     <string name="details_uninstall">Удалить</string>
     <string name="details_share">Поделиться</string>
     <string name="details_share_subject">%1$s в RuStore</string>
@@ -766,8 +765,8 @@
     <string name="library_backup_restore_text">Если раньше вы сохраняли копию списка, восстановите её: принятые приложения и репозитории GitHub вернутся.</string>
     <string name="library_backup_restore">Восстановить из файла</string>
     <string name="library_backup_later">Не сейчас</string>
-    <string name="github_adopt_installed">Принять в Wy Store</string>
-    <string name="github_adopt_installed_hint">Приложение останется как есть, а Wy Store будет ставить поверх новые релизы из этого репозитория.</string>
+    <string name="github_adopt_installed">Подключить проверки обновлений</string>
+    <string name="github_adopt_installed_hint">Приложение и его данные сохранятся. Wy Store будет проверять новые релизы этого репозитория. Владение обновлениями при этом не передаётся.</string>
     <string name="msg_adopted">%1$s теперь обновляет Wy Store</string>
     <string name="library_withdrawn_from_rustore">RuStore перестал отдавать этот пакет: при последней проверке ответил «не найдено». Возможно, его сняли или он временно недоступен; пока он не вернётся, обновлений не будет.</string>
     <string name="installer_preinstalled_short">Предустановлено</string>
@@ -830,4 +829,30 @@
     <string name="search_start_github_title">Поиск по каталогу GitHub</string>
     <string name="search_start_github_message">Приложения с открытым кодом из релизов GitHub, подбираются по мере ввода.</string>
     <string name="updates_managed_empty_title">Пока нет принятых приложений</string>
+    <string name="ownership_unsupported_android">Передача владения обновлениями доступна с Android 14. На этой версии Android Wy Store может устанавливать и обновлять приложения, но не может закрепить за собой их обновления.</string>
+    <string name="ownership_unsupported_installer">Прошивка не позволяет Wy Store устанавливать приложения через собственные сеансы установки. Поэтому передать ему владение обновлениями нельзя. Удалять приложение ради передачи не нужно.</string>
+    <string name="queue_error_update_ownership_unconfirmed">Приложение установлено, но передача обновлений не завершена: Android не подтвердил Wy Store как владельца. Проверьте владельца и наличие приложения в других профилях. Автоматическая переустановка не выполняется.</string>
+    <string name="ownership_transfer_confirmed">Обновления переданы Wy Store: владелец подтверждён Android.</string>
+    <string name="details_update_owner">Владелец обновлений: %1$s</string>
+    <string name="github_fact_update_owner">Владелец обновлений</string>
+    <string name="adopt_transfer_source">Источник новой установки:</string>
+    <string name="settings_google_play_checks_title">Обновления после Google Play</string>
+    <string name="settings_google_play_checks">Продолжать проверки через Wy Store</string>
+    <string name="settings_google_play_checks_hint">По умолчанию Wy Store приостанавливает фоновые обновления после Google Play. Включение сохраняет настройки автообновления и проверку подписи. Возможен дополнительный трафик; автообновления Google Play настраиваются отдельно.</string>
+    <string name="google_play_pause_notification_title">Фоновые обновления приостановлены</string>
+    <string name="google_play_pause_notification_text">Android указывает Google Play как установщик: %1$s. Wy Store приостановил фоновые обновления этих приложений. Продолжение проверок можно включить в настройках.</string>
+    <string name="google_play_pause_reason">Android указал Google Play как установщик. Фоновые обновления Wy Store приостановлены.</string>
+    <string name="google_play_continue_reason">Wy Store продолжает проверки по вашему разрешению. Автообновления Google Play настраиваются отдельно.</string>
+    <string name="google_play_update_settings">Настроить проверки</string>
+    <string name="github_adopt_google_paused_hint">Приложение сохранится. После подключения фоновые проверки будут приостановлены из-за Google Play. Продолжение проверок можно разрешить в настройках.</string>
+    <string name="ownership_transfer_target_version">После переустановки: %1$s</string>
+    <string name="ownership_transfer_release">Выбранный релиз: %1$s</string>
+    <string name="ownership_transfer_file">Файл APK: %1$s</string>
+    <string name="ownership_transfer_downgrade">После удаления будет установлена более старая версия.</string>
+    <string name="ownership_transfer_older_release">Выбран релиз старше установленной версии. Его APK может установить более старую версию приложения.</string>
+    <string name="ownership_transfer_data_loss">Приложение будет удалено и установлено заново. Его локальные данные будут потеряны; может понадобиться повторный вход.</string>
+    <string name="ownership_transfer_verification">После установки Wy Store проверит, назначил ли Android его владельцем обновлений.</string>
+    <string name="ownership_transfer_more">Профили и защита обновлений</string>
+    <string name="ownership_transfer_less">Скрыть пояснение</string>
+    <string name="ownership_transfer_profile_limits">Если копия осталась в другом профиле, например Shelter, передача может быть недоступна. Даже при владении Wy Store системный магазин может обновлять приложение без подтверждения в управляемых профилях.</string>
 </resources>

@@ -72,7 +72,9 @@ fun TvMyAppsScreen(
      * The source's notes for a waiting update: package, name and the repository a GitHub row
      * names. A row here had no way to its page, and so none to what the update brings.
      */
-    onWhatsNew: (String, String, GitHubRepository?) -> Unit = { _, _, _ -> }
+    onWhatsNew: (String, String, GitHubRepository?) -> Unit = { _, _, _ -> },
+    continueChecksAfterGooglePlayUpdate: Boolean = false,
+    onOpenUpdateSettings: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val active = remember(packages) { packages.activeQueue }
@@ -206,6 +208,10 @@ fun TvMyAppsScreen(
                             val source = if (app.source == ManagedSource.GITHUB) "GitHub" else "RuStore"
                             HubTag(source, tint = sourceTint(source))
                         }
+                        dev.wystore.ui.components.GooglePlayUpdateNotice(
+                            app, installed, continueChecksAfterGooglePlayUpdate, onOpenUpdateSettings,
+                            action = { label, onClick -> TvSecondaryButton(label, onClick) }
+                        )
                     }
                 }
             }

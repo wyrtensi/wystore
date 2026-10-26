@@ -136,9 +136,7 @@ data class InstalledApp(
     val source: InstallSource,
     val signingDigests: Set<String>,
     /**
-     * Who Android holds responsible for this app's updates, or null when nobody was given the job
-     * (sideloaded by hand, pushed over adb). The coarse [source] tells Play from everything else;
-     * this is the name the user can actually be shown.
+     * The recorded installer, retained even when Android assigns updates to another package.
      */
     val installerPackageName: String? = null,
     /**
@@ -150,8 +148,13 @@ data class InstalledApp(
      * Frozen by a profile manager such as Shelter: installed, but hidden until unfrozen, so it
      * cannot be opened. Updates still install over it - see InstalledPackageLookup.
      */
-    val frozen: Boolean = false
-)
+    val frozen: Boolean = false,
+    /** Android 14+ can assign updates to a different package than the recorded installer. */
+    val updateOwnerPackageName: String? = null
+) {
+    val updateResponsiblePackageName: String?
+        get() = InstalledAppOwnership.responsiblePackageName(installerPackageName, updateOwnerPackageName)
+}
 
 data class ManagedApp(
     val packageName: String,
@@ -163,7 +166,8 @@ data class ManagedApp(
     val lastUpdatedAt: Long? = null,
     val source: ManagedSource? = ManagedSource.RUSTORE,
     val githubRepository: GitHubRepository? = null,
-    val githubReleaseId: Long? = null
+    val githubReleaseId: Long? = null,
+    val googlePlayUpdateDetected: Boolean = false
 )
 
 typealias QueueMode = dev.wystore.updates.model.QueueMode
@@ -221,7 +225,8 @@ data class StoreSettings(
     /** The same for an app being installed for the first time. */
     val autoInstallNewApps: Boolean = true,
     val artifactRetentionDays: Int = 7,
-    val artifactStorageLimitMb: Int = 2_048
+    val artifactStorageLimitMb: Int = 2_048,
+    val continueChecksAfterGooglePlayUpdate: Boolean = false
 )
 
 data class PendingUpdate(
@@ -243,7 +248,9 @@ data class PendingUpdate(
      * dropped on the way to the install, so a handover downloaded fine and then refused itself
      * with "nothing to update".
      */
-    val userRequested: Boolean = false
+    val userRequested: Boolean = false,
+    /** Explicit removal and replacement requests still need Android's confirmation when auto install is off. */
+    val requiresUpdateOwnership: Boolean = false
 ) {
     /**
      * Unique among downloads, as the queue's (package, version, source) index is. The package name

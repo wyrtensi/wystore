@@ -7,6 +7,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.wystore.data.ManagedSource
+import dev.wystore.data.ManagedApp
 import dev.wystore.data.local.UpdateQueueEntity
 import dev.wystore.data.local.WyStoreDatabase
 import dev.wystore.data.local.toSnapshot
@@ -58,7 +59,8 @@ class NotificationCoordinatorTest {
             NotificationCoordinator.NOTIFICATION_ID_TRANSFER,
             NotificationCoordinator.NOTIFICATION_ID_READY_SUMMARY,
             NotificationCoordinator.NOTIFICATION_ID_ERRORS,
-            NotificationCoordinator.NOTIFICATION_ID_CHECK_SUMMARY
+            NotificationCoordinator.NOTIFICATION_ID_CHECK_SUMMARY,
+            NotificationCoordinator.NOTIFICATION_ID_GOOGLE_PLAY_PAUSE
         )
 
         assertEquals("ids must not collide: $ids", ids.size, ids.toSet().size)
@@ -130,5 +132,35 @@ class NotificationCoordinatorTest {
         // This is how the last pending update clears the shade after it is installed.
         coordinator.publishReady(emptyList())
         coordinator.publishErrors(emptyList())
+        coordinator.publishGooglePlayPause(emptyList())
+    }
+
+    @Test fun googlePlayPauseRetainsItsDigestAcrossRepeatedObservationsAndOverrides() {
+        val repository = dev.wystore.data.StoreRepository(context)
+        val previousSettings = repository.settings()
+        val state = NotificationState(context)
+        val previousDigest = state.lastDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE)
+        try {
+            repository.saveSettings(previousSettings.copy(errorNotificationsEnabled = true))
+            state.clear(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE)
+            val apps = listOf(ManagedApp("test.play.app", "Test", emptySet(), googlePlayUpdateDetected = true))
+            coordinator.publishGooglePlayPause(apps)
+            val digest = state.lastDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE)
+            assertEquals("test.play.app", digest)
+            coordinator.publishGooglePlayPause(apps)
+            assertEquals(digest, state.lastDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE))
+            coordinator.publishGooglePlayPause(emptyList())
+            assertEquals(digest, state.lastDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE))
+            assertTrue(!NotificationPolicy.decide(true, digest!!, digest, false).alert)
+            state.forgetGooglePlayPackage("test.play.app")
+            assertTrue(NotificationPolicy.decide(true, digest,
+                state.lastDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE), false).alert)
+        } finally {
+            repository.saveSettings(previousSettings)
+            if (previousDigest == null) state.clear(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE)
+            else state.recordDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE, previousDigest)
+            context.getSystemService(NotificationManager::class.java)
+                .cancel(NotificationCoordinator.NOTIFICATION_ID_GOOGLE_PLAY_PAUSE)
+        }
     }
 }

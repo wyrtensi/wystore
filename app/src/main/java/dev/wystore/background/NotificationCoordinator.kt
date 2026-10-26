@@ -9,6 +9,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import dev.wystore.R
 import dev.wystore.data.DownloadProgress
+import dev.wystore.data.ManagedApp
 import dev.wystore.settings.AppSettings
 import dev.wystore.settings.SettingsRepository
 import dev.wystore.updates.QueueErrorStrings
@@ -287,6 +288,37 @@ class NotificationCoordinator(
         safeNotify(NOTIFICATION_ID_CHECK_SUMMARY, notification)
     }
 
+    fun publishGooglePlayPause(items: List<ManagedApp>) {
+        val settings = settings()
+        val digest = NotificationPolicy.digestOf(items.map { it.packageName })
+        val decision = NotificationPolicy.decide(
+            categoryEnabled = settings.errorNotificationsEnabled,
+            digest = digest,
+            lastPublishedDigest = state.lastDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE),
+            quietHours = quietNow(settings)
+        )
+        if (!decision.post) {
+            notificationManager.cancel(NOTIFICATION_ID_GOOGLE_PLAY_PAUSE)
+            // Keep the digest when an override is toggled: the same attribution is not new news.
+            return
+        }
+        val names = items.sortedBy { it.packageName }.joinToString(", ") { it.label.ifBlank { it.packageName } }
+        val text = appContext.getString(R.string.google_play_pause_notification_text, names)
+        val notification = NotificationCompat.Builder(appContext, CHANNEL_ERRORS)
+            .setSmallIcon(R.drawable.ic_stat_wystore)
+            .setColor(accentColor())
+            .setContentTitle(appContext.getString(R.string.google_play_pause_notification_title))
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setContentIntent(NotificationIntentFactory.createLibraryPendingIntent(appContext))
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
+            .setSilent(!decision.alert)
+            .build()
+        safeNotify(NOTIFICATION_ID_GOOGLE_PLAY_PAUSE, notification)
+        state.recordDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE, digest)
+    }
+
     fun cancelReady() {
         notificationManager.cancel(NOTIFICATION_ID_READY_SUMMARY)
     }
@@ -438,5 +470,6 @@ class NotificationCoordinator(
         const val NOTIFICATION_ID_READY_SUMMARY = 7002
         const val NOTIFICATION_ID_ERRORS = 7003
         const val NOTIFICATION_ID_CHECK_SUMMARY = 7004
+        const val NOTIFICATION_ID_GOOGLE_PLAY_PAUSE = 7006
     }
 }

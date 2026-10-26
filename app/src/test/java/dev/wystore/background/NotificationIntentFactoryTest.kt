@@ -21,6 +21,10 @@ class NotificationIntentFactoryTest {
         )
     }
 
+    @Test fun googlePlayPauseOpensTheLibrary() {
+        assertEquals("library", NotificationIntentFactory.libraryDestination())
+    }
+
     @Test
     fun extrasConstantsAreStable() {
         assertEquals("extra_destination", NotificationIntentFactory.EXTRA_DESTINATION)

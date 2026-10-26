@@ -2,6 +2,8 @@ package dev.wystore.background
 
 import android.content.Context
 import dev.wystore.data.EventLog
+import dev.wystore.data.GooglePlayUpdateMonitor
+import dev.wystore.data.GooglePlayUpdatePolicy
 import dev.wystore.data.MeteredDownloadConsent
 import dev.wystore.data.MeteredDownloadPolicy
 import dev.wystore.data.StoreRepository
@@ -27,9 +29,12 @@ object QueuePump {
         // waits for a button instead. Withholding it from the check's own downloader was not
         // enough - its row still sat at AVAILABLE, and one other update in the same round handed
         // it the turn as soon as that download finished.
-        val managed = runCatching {
-            StoreRepository(context.applicationContext).managedApps().associateBy { it.packageName }
-        }.getOrDefault(emptyMap())
+        val store = StoreRepository(context.applicationContext)
+        val settings = store.settings()
+        val installed = store.installedApps()
+        val managed = GooglePlayUpdateMonitor(context.applicationContext).refresh(installed)
+            .associateBy { it.packageName }
+        val installedByPackage = installed.associateBy { it.packageName }
         val next = runCatching {
             if (repository.activeTransferIds().isNotEmpty()) return
             repository.nextEligible { item ->
@@ -38,7 +43,10 @@ object QueuePump {
                     // An app that is not managed yet is being installed for the first time, which
                     // is a request in itself.
                     autoUpdateEnabledForApp = managed[item.packageName]?.autoUpdate ?: true
-                )
+                ) && (managed[item.packageName]?.let { app ->
+                    GooglePlayUpdatePolicy.mayProceed(app, installedByPackage[item.packageName],
+                        settings.continueChecksAfterGooglePlayUpdate, item.priority)
+                } ?: true)
             }
         }.getOrNull() ?: return
         // Which mechanism, and under whose rules. A row someone pressed a button for starts now;
@@ -46,9 +54,8 @@ object QueuePump {
         // used to start everything the way a button does, so "only on Wi-Fi" and "only while
         // charging" held for the first download of a round and were dropped for every one behind
         // it - and, since the queue moves one item at a time, that is most of them.
-        val settings = runCatching { StoreRepository(context.applicationContext).settings() }.getOrNull()
         runCatching {
-            if (settings == null || QueueOrigin.isUserRequested(next.priority)) {
+            if (QueueOrigin.isUserRequested(next.priority)) {
                 TransferDispatcher.dispatch(context.applicationContext, next.id)
             } else {
                 TransferDispatcher.dispatchUnattended(

@@ -81,7 +81,10 @@ fun TvDetailsScreen(
     onUninstall: (String) -> Unit,
     modifier: Modifier = Modifier,
     /** Told when a screenshot opens full screen and closes, so the menu can make way for it. */
-    onFullScreenChange: (Boolean) -> Unit = {}
+    onFullScreenChange: (Boolean) -> Unit = {},
+    managedApp: dev.wystore.data.ManagedApp? = null,
+    continueChecksAfterGooglePlayUpdate: Boolean = false,
+    onOpenUpdateSettings: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val primaryFocus = remember { FocusRequester() }
@@ -190,6 +193,10 @@ fun TvDetailsScreen(
                                 )
                             }
                         }
+                        dev.wystore.ui.components.GooglePlayUpdateNotice(
+                            managedApp, installed, continueChecksAfterGooglePlayUpdate, onOpenUpdateSettings,
+                            action = { label, onClick -> TvSecondaryButton(label, onClick) }
+                        )
                     }
                     Surface(
                         modifier = Modifier.weight(1f),
@@ -199,7 +206,13 @@ fun TvDetailsScreen(
                     ) {
                         Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             TvFact(stringResource(R.string.details_label_version), app.versionName)
-                            installed?.versionName?.let { TvFact(stringResource(R.string.tv_details_installed), it) }
+                            installed?.let {
+                                TvFact(stringResource(R.string.tv_details_installed), it.versionName)
+                                TvFact(
+                                    stringResource(if (it.updateOwnerPackageName.isNullOrBlank()) R.string.github_fact_owner else R.string.github_fact_update_owner),
+                                    dev.wystore.ui.components.installerLabel(it)
+                                )
+                            }
                             app.sizeBytes.takeIf { it > 0 }?.let { TvFact(stringResource(R.string.details_label_size), formatSize(context.resources, it)) }
                             app.rating?.let { rating ->
                                 TvFact(

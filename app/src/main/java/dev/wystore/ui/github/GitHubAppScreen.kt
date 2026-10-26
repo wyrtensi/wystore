@@ -116,6 +116,7 @@ fun GitHubAppScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {},
     onInstallAsset: (GitHubAsset) -> Unit = {},
+    onTransferAsset: (GitHubAsset) -> Unit,
     onOpenInstalled: (String) -> Unit = {},
     onRetry: () -> Unit = {},
     /** Opens one release of this repository on its own page. */
@@ -128,7 +129,10 @@ fun GitHubAppScreen(
     install: dev.wystore.InstallQueueItem? = null,
     /** For an install waiting on Android's dialog off screen, by queue row. */
     onShowInstallDialog: (String) -> Unit = {},
-    onCancelInstall: (String) -> Unit = {}
+    onCancelInstall: (String) -> Unit = {},
+    managedApp: dev.wystore.data.ManagedApp? = null,
+    continueChecksAfterGooglePlayUpdate: Boolean = false,
+    onOpenUpdateSettings: () -> Unit = {}
 ) {
     val entry = state.entry
     var showAllAssets by rememberSaveable(entry?.slug) { mutableStateOf(false) }
@@ -250,7 +254,7 @@ fun GitHubAppScreen(
                             (state.recommendedAsset(deviceAbis)?.let { formatSize(it.sizeBytes) } ?: unknown),
                         state.info?.stars?.let { stringResource(R.string.github_fact_stars) to it.toString() },
                         installedApp?.let { stringResource(R.string.github_fact_installed) to it.versionName },
-                        installedApp?.let { stringResource(R.string.github_fact_owner) to installerLabel(it) }
+                        installedApp?.let { stringResource(if (it.updateOwnerPackageName.isNullOrBlank()) R.string.github_fact_owner else R.string.github_fact_update_owner) to installerLabel(it) }
                     )
                 )
             }
@@ -277,7 +281,8 @@ fun GitHubAppScreen(
             // One primary action, like a RuStore card. Choosing a specific build is a small
             // secondary control rather than a list of every asset in the release.
             val recommended = state.recommendedAsset(deviceAbis)
-            val ownedByUs = installedApp?.installerPackageName == context.packageName
+            val handover = installedApp?.let { dev.wystore.ui.components.ownershipHandover(context, it) }
+            val ownedByUs = handover == dev.wystore.data.OwnershipHandover.OWNED
             val installState = GitHubInstallStatePolicy.stateFor(
                 installedVersionName = installedApp?.versionName,
                 releaseTag = state.latestRelease?.tagName
@@ -296,6 +301,13 @@ fun GitHubAppScreen(
             // While the queue has this repository in hand the card above is the action; a second
             // Install beside it started a second fetch of the same file.
             val installBusy = install?.status?.isInFlight == true
+            if (managedApp != null && dev.wystore.data.GooglePlayUpdatePolicy.hasGooglePlayUpdate(managedApp, installedApp)) {
+                item {
+                    dev.wystore.ui.components.GooglePlayUpdateNotice(
+                        managedApp, installedApp, continueChecksAfterGooglePlayUpdate, onOpenUpdateSettings
+                    )
+                }
+            }
             if (recommended != null && !installBusy) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -324,10 +336,8 @@ fun GitHubAppScreen(
                                 installedApp?.let { UninstallIconButton(it.packageName) }
                             }
 
-                            // Nothing to offer: an install over an app that is ahead of this
-                            // release is a downgrade, and Android refuses those. The page used to
-                            // put "hand updates to Wy Store" here, which downloaded the asset in
-                            // full and then dropped it without saying anything.
+                            // A regular update cannot downgrade the installed app. A separate
+                            // ownership handover below explains the reinstall before removal.
                             GitHubInstallState.InstalledNewer -> Row(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 modifier = Modifier.fillMaxWidth()
@@ -348,35 +358,35 @@ fun GitHubAppScreen(
                                     onClick = { installedApp?.let { onOpenInstalled(it.packageName) } },
                                     modifier = Modifier.weight(1f)
                                 ) { Text(stringResource(R.string.common_open)) }
-                                // Still reachable, because a build can be broken or a different
-                                // one wanted - it is just no longer the thing the page pushes.
-                                // When another installer owns the app, the same action is the only
-                                // way to hand its updates to Wy Store, so it says so.
-                                FilledTonalButton(
-                                    onClick = { onInstallAsset(recommended) },
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(
-                                        if (ownedByUs) stringResource(R.string.github_reinstall)
-                                        else stringResource(R.string.details_take_over)
-                                    )
+                                if (ownedByUs) {
+                                    FilledTonalButton(
+                                        onClick = { onInstallAsset(recommended) },
+                                        modifier = Modifier.weight(1f)
+                                    ) { Text(stringResource(R.string.github_reinstall)) }
                                 }
                                 installedApp?.let { UninstallIconButton(it.packageName) }
                             }
+                        }
+                        if (handover == dev.wystore.data.OwnershipHandover.REINSTALL) {
+                            FilledTonalButton(
+                                onClick = { onTransferAsset(recommended) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text(stringResource(R.string.details_take_over)) }
                         }
                         // An app on the phone that Wy Store does not look after yet - an APK from
                         // this repository installed by hand, typically - is accepted as it is.
                         // The page offered only a reinstall, and nothing at all when the phone ran
                         // a build newer than the release, so AmneziaVPN could not be accepted here.
                         if (installedApp != null && !installedManaged) {
-                            // The main action here: it keeps the app and its data, where the
-                            // button beside Open reinstalls it to make Wy Store its installer.
                             Button(
                                 onClick = onAdoptInstalled,
                                 modifier = Modifier.fillMaxWidth()
                             ) { Text(stringResource(R.string.github_adopt_installed)) }
                             Text(
-                                stringResource(R.string.github_adopt_installed_hint),
+                                stringResource(
+                                    if (installedApp.installerPackageName == "com.android.vending" && !continueChecksAfterGooglePlayUpdate)
+                                        R.string.github_adopt_google_paused_hint else R.string.github_adopt_installed_hint
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -390,12 +400,16 @@ fun GitHubAppScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        } else if (installedApp != null && !ownedByUs) {
+                        } else if (handover == dev.wystore.data.OwnershipHandover.REINSTALL) {
                             Text(
                                 stringResource(R.string.details_take_over_hint),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+                        if (handover == dev.wystore.data.OwnershipHandover.UNSUPPORTED_ANDROID ||
+                            handover == dev.wystore.data.OwnershipHandover.UNSUPPORTED_INSTALLER) {
+                            dev.wystore.ui.components.OwnershipHandoverNotice(handover)
                         }
                         Text(
                             stringResource(

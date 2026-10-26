@@ -102,7 +102,7 @@
     <string name="dialog_install_existing_title">Mavjud ilovani yangilash</string>
     <string name="dialog_install_existing_text">Bu ilova boshqa manbadan allaqachon oʻrnatilgan. Oʻrnatishdan soʻng uning yangilanishlarini Wy Store boshqaradi.</string>
     <string name="adopt_google_title">Ilovani nazoratga olish</string>
-    <string name="adopt_google_text">%1$s Google orqali oʻrnatilgan va uni ustidan yangilab boʻlmaydi — Google oʻz yigʻmalarini oʻz kaliti bilan imzolaydi. Uni nazoratga olish uchun ilova oʻchirib tashlanadi va qaytadan oʻrnatiladi. Maʼlumotlari odatda yoʻqoladi.</string>
+    <string name="adopt_google_text">%1$s Google Play orqali yangilanadi. Olib tashlangach, Wy Store ilovani qayerdan oʻrnatishini tanlang.</string>
     <string name="adopt_google_searching">Bu ilova katalogdan qidirilmoqda…</string>
     <string name="adopt_google_not_found">RuStore katalogida bunday ilova yoʻq, shuning uchun uni nazoratga olib boʻlmaydi.</string>
     <string name="adopt_google_exact">Aynan oʻsha package name — bu oʻsha ilova:</string>
@@ -113,8 +113,8 @@
     <string name="dialog_replace_title">Oʻrnatilgan ilovani almashtirish</string>
     <string name="dialog_replace_text">%1$s oʻchirib tashlanadi va katalogdan qaytadan oʻrnatiladi: %3$s oʻrniga %2$s versiyasi. Maʼlumotlari odatda yoʻqoladi, shuning uchun hisobga qaytadan kirishga toʻgʻri keladi. Android ikkala qadamni ham tasdiqlashni soʻraydi.</string>
     <string name="dialog_replace_confirm">Oʻchirib tashlash va oʻrnatish</string>
-    <string name="dialog_force_title">Google Play oʻrniga yangilash</string>
-    <string name="dialog_force_text">%1$s Google Play orqali oʻrnatilgan va Wy Store bunday ilovalarni unga qoldiradi. Buni yoqsangiz, fon tekshiruvlari ishlab chiquvchi imzosi mos kelgan holatlarda uni Wy Store orqali yangilaydi.</string>
+    <string name="dialog_force_title">Wy Store orqali yangilashga ruxsat berish</string>
+    <string name="dialog_force_text">Wy Store %1$s yangilanishlarini tekshiradi va raqamli imzo mos kelsa oʻrnatishni taklif qiladi. Bu sozlama yangilanishlar egaligini topshirmaydi va Google Play avtomatik yangilanishlarini oʻchirmaydi.</string>
     <string name="dialog_force_confirm">Yoqish</string>
     <string name="dialog_uninstall_confirm">Oʻchirib tashlash</string>
     <string name="dialog_github_install_title">GitHub orqali APK oʻrnatish</string>
@@ -208,7 +208,7 @@
     <string name="library_search_clear">Qidiruvni tozalash</string>
     <string name="library_expand_all">Barchasini ochish</string>
     <string name="library_collapse_all">Barchasini yigʻish</string>
-    <string name="library_intro">Qabul qilingan ilovalarni Wy Store yangilaydi, qolganlari pastda. Belgi ilovani kim oʻrnatganini koʻrsatadi.</string>
+    <string name="library_intro">Wy Store qabul qilingan ilovalarning yangilanishlarini tekshiradi. Belgi yangilanishlar egasini, u nomaʼlum boʻlsa oʻrnatuvchini koʻrsatadi.</string>
     <string name="library_search_label">Oʻrnatilganlar orasidan qidirish</string>
     <string name="library_search_placeholder">Nomi yoki package name</string>
     <string name="library_sort_title">Saralash</string>
@@ -222,7 +222,7 @@
     <string name="library_update_available">Yangilanish topildi — hali yuklab olinmagan</string>
     <string name="library_update_available_version">Yangilanish topildi: %1$s — hali yuklab olinmagan</string>
     <string name="library_auto_update">Avtoyangilanish</string>
-    <string name="library_force_wystore">Google Play oʻrniga yangilash</string>
+    <string name="library_force_wystore">Wy Store orqali yangilashga ruxsat berish</string>
     <string name="library_remove">Olib tashlash</string>
     <string name="library_check_progress">Tekshirildi: %1$d / %2$d · topilgan yangilanishlar: %3$d</string>
 
@@ -653,8 +653,7 @@
     <string name="details_replace">Oʻchirib tashlash va Wy Store orqali oʻrnatish</string>
     <string name="details_signature_incompatible">Oʻrnatilgan nusxa RuStore bu ilova uchun koʻrsatgan sertifikat bilan imzolanmagan, shuning uchun bu yerdan yangilanish uning ustiga oʻrnatilmaydi: Android bunga yoʻl qoʻymaydi. Uni oʻchirib tashlab qaytadan oʻrnatishga toʻgʻri keladi, bu esa odatda maʼlumotlarni yoʻqotadi. Boshqa joydan oʻrnatilgan ilova ham shunday koʻrinadi — eskirgan katalog yozuvi ham.</string>
     <string name="details_source_unconfirmed">RuStore bu ilovani tasdiqlamadi: u bitta imzo barmoq izini eʼlon qiladi, lekin boshqasi bilan imzolangan faylni beradi. Oʻrnatilgan nusxa — aynan RuStore beradigan fayl, shuning uchun bu yerdan yangilanishlar uning ustiga oʻrnatiladi: telefondagi ilova emas, katalogdagi yozuv mos kelmayapti.</string>
-    <string name="details_first_update_manual">Wy Store orqali birinchi yangilanishni qoʻlda tasdiqlash kerak. Undan keyin Wy Store rasmiy oʻrnatuvchiga aylanadi va ilovani oʻzi yangilay oladi.</string>
-    <string name="details_take_over_hint">Android ilovani jimgina yangilashga faqat rasmiy oʻrnatuvchiga ruxsat beradi. Uni Wy Store orqali qayta oʻrnatish shu rolni Wy Store zimmasiga yuklaydi.</string>
+    <string name="details_take_over_hint">Yangilanishlar egaligini topshirish uchun ilovani olib tashlab, qayta oʻrnatish kerak. Olib tashlashdan oldin maʼlumotlar yoʻqolishi haqida ogohlantirish chiqadi.</string>
     <string name="details_uninstall">Oʻchirib tashlash</string>
     <string name="details_share">Ulashish</string>
     <string name="details_share_subject">%1$s RuStore katalogida</string>
@@ -766,8 +765,8 @@
     <string name="library_backup_restore_text">Agar avval roʻyxat nusxasini saqlagan boʻlsangiz, uni tiklang: qabul qilingan ilovalar va GitHub repozitoriylari qaytadi.</string>
     <string name="library_backup_restore">Fayldan tiklash</string>
     <string name="library_backup_later">Hozir emas</string>
-    <string name="github_adopt_installed">Wy Store’ga qabul qilish</string>
-    <string name="github_adopt_installed_hint">Ilova oʻz holicha qoladi, Wy Store esa bu repozitoriyning yangi relizlarini ustidan oʻrnatadi.</string>
+    <string name="github_adopt_installed">Yangilanishlarni tekshirishni yoqish</string>
+    <string name="github_adopt_installed_hint">Ilova va uning maʼlumotlari saqlanadi. Wy Store bu repozitoriyning yangi relizlarini tekshiradi. Yangilanishlar egaligi topshirilmaydi.</string>
     <string name="msg_adopted">%1$s endi Wy Store tomonidan yangilanadi</string>
     <string name="library_withdrawn_from_rustore">RuStore bu paketni berishni toʻxtatdi: oxirgi tekshiruvda «topilmadi» deb javob berdi. Ehtimol, u olib tashlangan yoki vaqtincha mavjud emas; u qaytmaguncha yangilanishlar boʻlmaydi.</string>
     <string name="installer_preinstalled_short">Oldindan oʻrnatilgan</string>
@@ -830,4 +829,30 @@
     <string name="search_start_github_title">GitHub katalogidan qidirish</string>
     <string name="search_start_github_message">GitHub relizlaridagi ochiq kodli ilovalar, yozish davomida topiladi.</string>
     <string name="updates_managed_empty_title">Hozircha qabul qilingan ilovalar yoʻq</string>
+    <string name="ownership_unsupported_android">Yangilanishlar egaligini topshirish Android 14 dan boshlab mavjud. Bu Android versiyasida Wy Store ilovalarni oʻrnatishi va yangilashi mumkin, ammo yangilanishlarga egalik qila olmaydi.</string>
+    <string name="ownership_unsupported_installer">Bu proshivka Wy Store uchun oʻz oʻrnatish seanslaridan foydalanishga ruxsat bermaydi, shuning uchun yangilanishlar egaligini topshirib boʻlmaydi. Topshirish uchun ilovani oʻchirish shart emas.</string>
+    <string name="queue_error_update_ownership_unconfirmed">Ilova oʻrnatildi, ammo yangilanishlar topshirilmadi: Android Wy Store egasi ekanini tasdiqlamadi. Egasini va ilova boshqa profillarda borligini tekshiring. Avtomatik qayta oʻrnatish bajarilmaydi.</string>
+    <string name="ownership_transfer_confirmed">Yangilanishlar Wy Store ga topshirildi: Android egalikni tasdiqladi.</string>
+    <string name="details_update_owner">Yangilanishlar egasi: %1$s</string>
+    <string name="github_fact_update_owner">Yangilanishlar egasi</string>
+    <string name="adopt_transfer_source">Yangi oʻrnatish manbasi:</string>
+    <string name="settings_google_play_checks_title">Google Play yangilaganidan keyin</string>
+    <string name="settings_google_play_checks">Wy Store orqali tekshirishni davom ettirish</string>
+    <string name="settings_google_play_checks_hint">Wy Store odatda Google Play yangilaganidan keyin fon yangilanishlarini toʻxtatadi. Tekshiruvlarni davom ettirish avtomatik yangilash sozlamalari va imzoni tekshirishni saqlaydi. Qoʻshimcha trafik sarflanishi mumkin; Google Play avtomatik yangilanishlari alohida sozlanadi.</string>
+    <string name="google_play_pause_notification_title">Fondagi yangilanishlar toʻxtatildi</string>
+    <string name="google_play_pause_notification_text">Android oʻrnatuvchi sifatida Google Play’ni koʻrsatmoqda: %1$s. Wy Store bu ilovalarning fondagi yangilanishlarini toʻxtatdi. Tekshirishni davom ettirishni sozlamalarda yoqish mumkin.</string>
+    <string name="google_play_pause_reason">Android oʻrnatuvchi sifatida Google Playʼni koʻrsatdi. Wy Store fon yangilanishlari toʻxtatildi.</string>
+    <string name="google_play_continue_reason">Wy Store ruxsatingiz bilan tekshiruvlarni davom ettiradi. Google Play avtomatik yangilanishlari alohida sozlanadi.</string>
+    <string name="google_play_update_settings">Tekshiruvlarni sozlash</string>
+    <string name="github_adopt_google_paused_hint">Oʻrnatilgan ilova saqlanadi. Ulangandan keyin Google Play sababli fon tekshiruvlari toʻxtatiladi. Sozlamalarda tekshiruvlarni davom ettirishga ruxsat berishingiz mumkin.</string>
+    <string name="ownership_transfer_target_version">Qayta oʻrnatilgandan keyin: %1$s</string>
+    <string name="ownership_transfer_release">Tanlangan reliz: %1$s</string>
+    <string name="ownership_transfer_file">APK fayli: %1$s</string>
+    <string name="ownership_transfer_downgrade">Oʻchirilgandan keyin eskiroq versiya oʻrnatiladi.</string>
+    <string name="ownership_transfer_older_release">Tanlangan reliz oʻrnatilgan versiyadan eskiroq. Uning APK fayli ilovaning eskiroq versiyasini oʻrnatishi mumkin.</string>
+    <string name="ownership_transfer_data_loss">Ilova oʻchirilib, qayta oʻrnatiladi. Uning mahalliy ma’lumotlari yoʻqoladi; qayta kirish talab qilinishi mumkin.</string>
+    <string name="ownership_transfer_verification">Oʻrnatilgandan soʻng Wy Store Android uni yangilanishlar egasi qilib belgilaganini tekshiradi.</string>
+    <string name="ownership_transfer_more">Profillar va yangilanish himoyasi</string>
+    <string name="ownership_transfer_less">Izohni yashirish</string>
+    <string name="ownership_transfer_profile_limits">Nusxa boshqa profilda, masalan Shelter’da qolsa, egalikni oʻtkazib boʻlmasligi mumkin. Wy Store egasi boʻlsa ham, boshqariladigan profillarda tizim doʻkoni ilovani tasdiqsiz yangilashi mumkin.</string>
 </resources>

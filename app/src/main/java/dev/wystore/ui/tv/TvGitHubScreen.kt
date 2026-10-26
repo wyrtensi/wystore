@@ -107,10 +107,15 @@ fun TvGitHubAppScreen(
     state: GitHubAppUiState,
     installedApp: InstalledApp?,
     onInstallAsset: (GitHubAsset) -> Unit,
+    onTransferAsset: (GitHubAsset) -> Unit,
     onOpenInstalled: (String) -> Unit,
     onUninstall: (String) -> Unit,
     onRetry: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    managedApp: dev.wystore.data.ManagedApp? = null,
+    continueChecksAfterGooglePlayUpdate: Boolean = false,
+    onOpenUpdateSettings: () -> Unit = {},
+    onAdoptInstalled: () -> Unit = {}
 ) {
     val entry = state.entry ?: return
     val context = LocalContext.current
@@ -120,7 +125,8 @@ fun TvGitHubAppScreen(
         installedVersionName = installedApp?.versionName,
         releaseTag = state.latestRelease?.tagName
     )
-    val ownedByUs = installedApp?.installerPackageName == context.packageName
+    val handover = installedApp?.let { dev.wystore.ui.components.ownershipHandover(context, it) }
+    val ownedByUs = handover == dev.wystore.data.OwnershipHandover.OWNED
     val primaryFocus = remember { FocusRequester() }
     val hasButton = recommended != null || installedApp != null
     LaunchedEffect(entry.slug, hasButton, state.loading) {
@@ -200,6 +206,31 @@ fun TvGitHubAppScreen(
                                 onRetry = onRetry.takeIf { state.error != null }
                             )
                         }
+                        dev.wystore.ui.components.GooglePlayUpdateNotice(
+                            managedApp, installedApp, continueChecksAfterGooglePlayUpdate, onOpenUpdateSettings,
+                            action = { label, onClick -> TvSecondaryButton(label, onClick) }
+                        )
+                        if (recommended != null && handover == dev.wystore.data.OwnershipHandover.REINSTALL) {
+                            TvSecondaryButton(
+                                stringResource(R.string.details_take_over),
+                                { onTransferAsset(recommended) }
+                            )
+                        }
+                        if (handover == dev.wystore.data.OwnershipHandover.UNSUPPORTED_ANDROID ||
+                            handover == dev.wystore.data.OwnershipHandover.UNSUPPORTED_INSTALLER) {
+                            dev.wystore.ui.components.OwnershipHandoverNotice(handover)
+                        }
+                        if (installedApp != null && managedApp == null) {
+                            TvSecondaryButton(stringResource(R.string.github_adopt_installed), onAdoptInstalled)
+                            Text(
+                                stringResource(
+                                    if (installedApp.installerPackageName == "com.android.vending" && !continueChecksAfterGooglePlayUpdate)
+                                        R.string.github_adopt_google_paused_hint else R.string.github_adopt_installed_hint
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                         if (installState == GitHubInstallState.InstalledNewer) {
                             Text(
                                 stringResource(R.string.github_installed_newer, installedApp?.versionName.orEmpty()),
@@ -221,7 +252,13 @@ fun TvGitHubAppScreen(
                             // The size of the build the button will actually fetch.
                             TvGitHubFact(stringResource(R.string.github_fact_size), recommended?.let { formatSize(it.sizeBytes) } ?: unknown)
                             state.info?.stars?.let { TvGitHubFact(stringResource(R.string.github_fact_stars), it.toString()) }
-                            installedApp?.let { TvGitHubFact(stringResource(R.string.github_fact_installed), it.versionName) }
+                            installedApp?.let {
+                                TvGitHubFact(stringResource(R.string.github_fact_installed), it.versionName)
+                                TvGitHubFact(
+                                    stringResource(if (it.updateOwnerPackageName.isNullOrBlank()) R.string.github_fact_owner else R.string.github_fact_update_owner),
+                                    dev.wystore.ui.components.installerLabel(it)
+                                )
+                            }
                         }
                     }
                 }
@@ -325,11 +362,9 @@ private fun GitHubActions(
         GitHubInstallState.InstalledNewer -> open?.let { TvPrimaryButton(stringResource(R.string.common_open), it, focus) }
         GitHubInstallState.Current, GitHubInstallState.Unknown -> {
             open?.let { TvPrimaryButton(stringResource(R.string.common_open), it, focus) }
-            // Still reachable for a broken build; when another installer owns the app it is also
-            // the only way to hand its updates to Wy Store, and says so.
-            recommended?.let {
+            recommended?.takeIf { ownedByUs }?.let {
                 TvSecondaryButton(
-                    stringResource(if (ownedByUs) R.string.github_reinstall else R.string.details_take_over),
+                    stringResource(R.string.github_reinstall),
                     { onInstallAsset(it) },
                     if (open == null) focus else Modifier
                 )

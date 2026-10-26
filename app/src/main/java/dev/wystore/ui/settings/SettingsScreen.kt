@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.ScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +46,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.foundation.focusGroup
@@ -63,6 +65,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import kotlin.math.roundToInt
 import dev.wystore.BuildConfig
 import dev.wystore.InstallQueueItem
 import dev.wystore.R
@@ -114,9 +119,16 @@ fun SettingsScreen(
     onCheckSelfUpdate: () -> Unit = {},
     onInstallSelfUpdate: () -> Unit = {},
     onInstallDownloadedSelfUpdate: () -> Unit = {},
-    onCancelSelfUpdateDownload: (String) -> Unit = {}
+    onCancelSelfUpdateDownload: (String) -> Unit = {},
+    openGooglePlayUpdates: Boolean = false
 ) {
-    var subScreen by rememberSaveable { mutableStateOf<SettingsSubScreen?>(null) }
+    var subScreen by rememberSaveable {
+        mutableStateOf(if (openGooglePlayUpdates) SettingsSubScreen.UPDATES else null)
+    }
+    var googlePlayEntryPending by rememberSaveable { mutableStateOf(openGooglePlayUpdates) }
+    val updatesScrollState = rememberScrollState()
+    var googlePlayGroupTop by remember { mutableIntStateOf(-1) }
+    val googlePlayFocus = remember { FocusRequester() }
 
     // Back out of a sub-screen to the hub, not out of Settings altogether. These screens are local
     // state rather than destinations, so the root handler saw only "not Home" and went there -
@@ -142,6 +154,15 @@ fun SettingsScreen(
             if (runCatching { target.requestFocus() }.getOrDefault(false)) return@LaunchedEffect
             withFrameNanos { }
         }
+    }
+    LaunchedEffect(subScreen, googlePlayEntryPending, googlePlayGroupTop) {
+        if (subScreen != SettingsSubScreen.UPDATES || !googlePlayEntryPending || googlePlayGroupTop < 0) return@LaunchedEffect
+        withFrameNanos { }
+        // Bring-into-view aligns the group with the bottom of the scrolling viewport, where the
+        // floating navigation bar can cover its switch. Start at the section heading instead.
+        updatesScrollState.scrollTo(googlePlayGroupTop)
+        if (inputModeManager.inputMode == InputMode.Keyboard) googlePlayFocus.requestFocus()
+        googlePlayEntryPending = false
     }
     var editedSettings by remember(settings) { mutableStateOf(settings) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
@@ -208,6 +229,7 @@ fun SettingsScreen(
         // and a half of paragraphs under it; each is a section of its own now, like the others.
         SettingsSubScreen.UPDATES -> SettingsSubPage(
             title = stringResource(R.string.settings_hub_updates_title),
+            scrollState = updatesScrollState,
             onBack = { subScreen = null }
         ) {
             SettingsGroup(
@@ -342,6 +364,21 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
+                }
+            }
+
+            SettingsGroup(
+                title = stringResource(R.string.settings_google_play_checks_title),
+                modifier = Modifier.onGloballyPositioned { googlePlayGroupTop = it.positionInParent().y.roundToInt() }
+                    .focusRequester(googlePlayFocus).focusGroup(),
+                subtitle = stringResource(R.string.settings_google_play_checks_hint)
+            ) {
+                CompactSettingSwitch(
+                    stringResource(R.string.settings_google_play_checks),
+                    editedSettings.continueChecksAfterGooglePlayUpdate
+                ) {
+                    editedSettings = editedSettings.copy(continueChecksAfterGooglePlayUpdate = it)
+                    onSave(editedSettings)
                 }
             }
 
@@ -756,6 +793,7 @@ private fun SettingsChoiceRow(label: String, content: @Composable () -> Unit) {
 private fun SettingsSubPage(
     title: String,
     onBack: () -> Unit,
+    scrollState: ScrollState = rememberScrollState(),
     content: @Composable ColumnScope.() -> Unit
 ) {
     Scaffold(
@@ -767,7 +805,7 @@ private fun SettingsSubPage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = contentPadding.calculateTopPadding()).fadingTopEdge()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(start = ScreenPadding, end = ScreenPadding, top = 20.dp, bottom = 28.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(SectionSpacing),
             content = content

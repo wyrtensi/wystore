@@ -10,6 +10,8 @@ import dev.wystore.data.GitHubCatalog
 import dev.wystore.data.GitHubReleasePolicy
 import dev.wystore.data.GitHubReleaseSource
 import dev.wystore.data.GitHubRepository
+import dev.wystore.data.GooglePlayUpdatePolicy
+import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedSource
 import dev.wystore.data.RuStoreSource
 import dev.wystore.data.SecureArtifactDownloader
@@ -30,6 +32,8 @@ import dev.wystore.updates.AutoInstallStore
 import dev.wystore.updates.BackgroundInstaller
 import dev.wystore.data.EventLog
 import dev.wystore.updates.QueueOrigin
+import dev.wystore.updates.AvailableUpdateVersion
+import dev.wystore.updates.MetadataCheckedDownload
 import dev.wystore.updates.UnverifiedSourceConsent
 import dev.wystore.updates.UnverifiedSourceStore
 import dev.wystore.updates.QueueRepository
@@ -165,12 +169,17 @@ class UpdateDownloadWorker(
             // possible, and wiping the directory on entry meant every retry restarted from zero.
             val tempDir = File(context.cacheDir, "download_$queueId").apply { mkdirs() }
 
+            if (discardBlockedAutomatic(queueId)) {
+                tempDir.deleteRecursively()
+                return@withContext
+            }
+
             // Kept alongside the files so verification can enforce the fingerprint the source
             // advertised, and so the artifact row records what the source claimed.
             var sourceSignatureHint: String? = null
             var sourceArtifactHash: String? = null
 
-            val downloadedFiles: List<File> = try {
+            val downloadedFiles: List<File>? = try {
                 when (entity.source) {
                     ManagedSource.RUSTORE.name -> {
                         val storeApp = ruStoreSource.details(entity.packageName, includeReviews = false)
@@ -183,12 +192,19 @@ class UpdateDownloadWorker(
                             CatalogRepository.getInstance(context)
                                 .rememberIcons(listOf(storeApp))
                         }
-                        val artifacts = ruStoreSource.resolveArtifacts(storeApp)
-                        sourceSignatureHint = storeApp.signatureHint
-                        sourceArtifactHash = artifacts.firstOrNull()?.sourceHash
-                        downloader.download(artifacts, tempDir) { progress ->
-                            currentCoroutineContext().ensureActive()
-                            reportProgress(queueId, progress, coordinator)
+                        val version = AvailableUpdateVersion.RuStore(storeApp.versionCode)
+                        checkedDownload(queueId, version) {
+                            val artifacts = ruStoreSource.resolveArtifacts(storeApp)
+                            sourceSignatureHint = storeApp.signatureHint
+                            sourceArtifactHash = artifacts.firstOrNull()?.sourceHash
+                            // Resolving links is another network wait. Google Play may have
+                            // installed this version while that request was in flight.
+                            checkedDownload(queueId, version) {
+                                downloader.download(artifacts, tempDir) { progress ->
+                                    currentCoroutineContext().ensureActive()
+                                    reportProgress(queueId, progress, coordinator)
+                                }
+                            }
                         }
                     }
                     ManagedSource.GITHUB.name -> {
@@ -209,39 +225,51 @@ class UpdateDownloadWorker(
                                 GitHubCatalog.find(repo.displayName)?.title ?: repo.name
                             }
                         )
-                        val releases = gitHubSource.releases(repo)
-                        val assetPattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
-                        // A pinned release id can point at a tag whose APK was removed, and the
-                        // newest tag is often a rolling nightly or a notes-only release, so both
-                        // paths fall back to the newest release that actually has an installable
-                        // asset instead of throwing.
-                        // The file a person picked, when they picked one - see GitHubAssetChoice.
-                        val chosenAsset = dev.wystore.updates.GitHubAssetChoice(context).chosen(queueId)
-                        val release = entity.githubReleaseId
-                            ?.let { id -> releases.firstOrNull { it.id == id } }
-                            ?.takeIf { release ->
-                                GitHubReleasePolicy.apkAssets(release, assetPattern).isNotEmpty() ||
-                                    (chosenAsset != null && release.assets.any { it.id == chosenAsset })
-                            }
-                            ?: GitHubReleasePolicy.selectRelease(releases, assetPattern)
-                            ?: error("No APK asset in GitHub release")
-                        val asset = dev.wystore.updates.GitHubAssetChoice.pick(
-                            // Any APK of the release: "show all files" offers ones the catalogue's
-                            // pattern would have hidden.
-                            candidates = GitHubReleasePolicy.apkAssets(release),
-                            chosenId = chosenAsset
+                        val assetChoice = dev.wystore.updates.GitHubAssetChoice(context)
+                        var selectedReleaseTag: String? = null
+                        val asset = assetChoice.prepareDownload(
+                            queueId = queueId,
+                            requiresExactSelection = entity.requiresUpdateOwnership
                         ) {
-                            GitHubReleasePolicy.preferredAsset(
-                                assets = GitHubReleasePolicy.apkAssets(release, assetPattern),
-                                supportedAbis = Build.SUPPORTED_ABIS.toList()
-                            )
+                            val releases = gitHubSource.releases(repo)
+                            val assetPattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
+                            // A pinned release id can point at a tag whose APK was removed, and the
+                            // newest tag is often a rolling nightly or a notes-only release, so both
+                            // paths fall back to the newest release that actually has an installable
+                            // asset instead of throwing.
+                            // The file a person picked, when they picked one - see GitHubAssetChoice.
+                            val chosenAsset = assetChoice.chosen(queueId)
+                            val release = entity.githubReleaseId
+                                ?.let { id -> releases.firstOrNull { it.id == id } }
+                                ?.takeIf { release ->
+                                    GitHubReleasePolicy.apkAssets(release, assetPattern).isNotEmpty() ||
+                                        (chosenAsset != null && release.assets.any { it.id == chosenAsset })
+                                }
+                                ?: GitHubReleasePolicy.selectRelease(releases, assetPattern)
+                                ?: error("No APK asset in GitHub release")
+                            selectedReleaseTag = release.tagName
+                            dev.wystore.updates.GitHubAssetChoice.pick(
+                                // Any APK of the release: "show all files" offers ones the catalogue's
+                                // pattern would have hidden.
+                                candidates = GitHubReleasePolicy.apkAssets(release),
+                                chosenId = chosenAsset
+                            ) {
+                                GitHubReleasePolicy.preferredAsset(
+                                    assets = GitHubReleasePolicy.apkAssets(release, assetPattern),
+                                    supportedAbis = Build.SUPPORTED_ABIS.toList()
+                                )
+                            }
                         } ?: error("No APK asset in GitHub release")
 
-                        val file = downloader.downloadGitHubApk(asset, tempDir) { progress ->
-                            currentCoroutineContext().ensureActive()
-                            reportProgress(queueId, progress, coordinator)
+                        checkedDownload(queueId, AvailableUpdateVersion.GitHub(selectedReleaseTag)) {
+                            val file = downloader.downloadGitHubApk(
+                                asset, tempDir, requiresExactSelection = entity.requiresUpdateOwnership
+                            ) { progress ->
+                                currentCoroutineContext().ensureActive()
+                                reportProgress(queueId, progress, coordinator)
+                            }
+                            listOf(file)
                         }
-                        listOf(file)
                     }
                     else -> error("Unknown source: ${entity.source}")
                 }
@@ -252,6 +280,12 @@ class UpdateDownloadWorker(
                 // directory before that decision was ever reached.
                 coordinator.cancelTransfer()
                 throw t
+            }
+
+            if (downloadedFiles == null) {
+                tempDir.deleteRecursively()
+                coordinator.cancelTransfer()
+                return@withContext
             }
 
             try {
@@ -270,7 +304,9 @@ class UpdateDownloadWorker(
                 val expectedPackageName = entity.packageName.takeIf {
                     entity.source != ManagedSource.GITHUB.name || !GitHubInstallScheduler.isPlaceholder(it)
                 }
-                val installed = expectedPackageName?.let(storeRepository::installedApp)
+                val installed = expectedPackageName?.let(storeRepository::installedAppFresh)
+                val currentItem = queueRepository.getEntityById(queueId)
+                    ?: throw CancellationException("Queue item $queueId was removed")
                 val verification = SigningVerifier.verifyArtifacts(
                     packageManager = context.packageManager,
                     files = downloadedFiles,
@@ -283,7 +319,7 @@ class UpdateDownloadWorker(
                     // "Hand updates to Wy Store" and "reinstall" are requests to install the
                     // version that is already there - that install is the whole point, since it is
                     // what makes Wy Store the installer of record.
-                    allowReinstall = QueueOrigin.isUserRequested(entity.priority)
+                    allowReinstall = QueueOrigin.isUserRequested(currentItem.priority)
                 )
                 // Not newer than what is installed means there was nothing to fetch. For a check
                 // nobody asked for that is neither a failure nor an install: reported as a failure
@@ -301,7 +337,7 @@ class UpdateDownloadWorker(
                         )
                     }
                     tempDir.deleteRecursively()
-                    if (QueueOrigin.isUserRequested(entity.priority)) {
+                    if (QueueOrigin.isUserRequested(currentItem.priority)) {
                         throw dev.wystore.data.TransferFailure(
                             retryable = false,
                             code = dev.wystore.updates.model.QueueErrorCode.DOWNGRADE,
@@ -361,6 +397,20 @@ class UpdateDownloadWorker(
                 // install from here - root, background or a dialog - would race the agent's.
                 if (dev.wystore.agent.AdbHandoff(context).isHandedOff(queueId)) return@withContext
 
+                // A replacement approved before removal is an explicit request for Android's
+                // confirmation. Its durable intent must survive global auto-install settings,
+                // while neither the root nor background installer may spend it silently.
+                if (queueRepository.getEntityById(queueId)?.requiresUpdateOwnership == true) {
+                    dev.wystore.updates.PreparedInstallDispatcher.dispatch(context, queueId)
+                    coordinator.publishReady(queueRepository.readyToInstallSnapshots())
+                    return@withContext
+                }
+
+                if (isUnattendedBlocked(queueId, storeRepository.installedAppFresh(verification.identity.packageName))) {
+                    coordinator.publishReady(queueRepository.readyToInstallSnapshots())
+                    return@withContext
+                }
+
                 // Silent root install, when the user enabled it and root is actually granted.
                 // The policy and the installer existed but had no production caller, so the
                 // setting did nothing and every update still needed the Android dialog.
@@ -372,11 +422,17 @@ class UpdateDownloadWorker(
                     return@withContext
                 }
 
+                if (isUnattendedBlocked(queueId, storeRepository.installedAppFresh(verification.identity.packageName))) {
+                    coordinator.publishReady(queueRepository.readyToInstallSnapshots())
+                    return@withContext
+                }
+
                 // Everything else still needs Android's confirmation dialog, which needs an
                 // Activity. The request is recorded here and carried out the next time the app is on
                 // screen, so "install as soon as it is downloaded" means what it says on a device
                 // where silent installs are not possible.
                 requestAutoInstallIfEnabled(
+                    queueId = queueId,
                     packageName = verification.identity.packageName,
                     isUpdate = installed != null
                 )
@@ -391,6 +447,48 @@ class UpdateDownloadWorker(
             } finally {
                 coordinator.cancelTransfer()
             }
+        }
+
+        private suspend fun isUnattendedBlocked(queueId: String, installed: InstalledApp?): Boolean {
+            val item = queueRepository.getEntityById(queueId) ?: return true
+            if (QueueOrigin.isUserRequested(item.priority)) return false
+            if (installed == null) return true
+            val managed = storeRepository.managedApps().firstOrNull { it.packageName == item.packageName }
+                ?: return false
+            val settings = storeRepository.settings()
+            if (!managed.autoUpdate || (item.source == ManagedSource.GITHUB.name && !settings.githubEnabled)) return true
+            return GooglePlayUpdatePolicy.isPaused(
+                managed, installed, settings.continueChecksAfterGooglePlayUpdate
+            )
+        }
+
+        private suspend fun discardBlockedAutomatic(queueId: String): Boolean {
+            val item = queueRepository.getEntityById(queueId) ?: return true
+            if (QueueOrigin.isUserRequested(item.priority)) return false
+            val installed = storeRepository.installedAppFresh(item.packageName)
+            if (installed != null && !isUnattendedBlocked(queueId, installed)) return false
+            return queueRepository.discardAutomatic(queueId) || queueRepository.getEntityById(queueId) == null
+        }
+
+        private suspend fun <T> checkedDownload(
+            queueId: String,
+            version: AvailableUpdateVersion,
+            transfer: suspend () -> T
+        ): T? {
+            val item = queueRepository.getEntityById(queueId) ?: return null
+            val result = MetadataCheckedDownload.download(
+                userRequested = QueueOrigin.isUserRequested(item.priority),
+                version = version,
+                readInstalled = { storeRepository.installedAppFresh(item.packageName) },
+                isPaused = { installed -> isUnattendedBlocked(queueId, installed) },
+                transfer = transfer
+            )
+            if (result != null) return result
+            if (queueRepository.discardAutomatic(queueId)) return null
+            // An explicit request can arrive during metadata lookup. The conditional deletion
+            // preserves it, and its existing file selection is still the one being downloaded.
+            val current = queueRepository.getEntityById(queueId) ?: return null
+            return if (QueueOrigin.isUserRequested(current.priority)) transfer() else null
         }
 
         /**
@@ -436,10 +534,12 @@ class UpdateDownloadWorker(
             if (mode != InstallMode.SILENT_ROOT) return false
 
             val entity = queueRepository.getEntityById(queueId) ?: return false
+            if (entity.requiresUpdateOwnership) return false
             val files = queueRepository.artifactFilesFor(queueId)
             if (files.isEmpty()) return false
 
-            val installedApp = storeRepository.installedApp(entity.packageName)
+            val installedApp = storeRepository.installedAppFresh(entity.packageName)
+            if (isUnattendedBlocked(queueId, installedApp)) return false
             val recheck = SigningVerifier.verifyArtifacts(
                 packageManager = context.packageManager,
                 files = files,
@@ -469,6 +569,11 @@ class UpdateDownloadWorker(
                 return false
             }
 
+            if (queueRepository.getEntityById(queueId)?.requiresUpdateOwnership != false ||
+                isUnattendedBlocked(queueId, storeRepository.installedAppFresh(entity.packageName))) {
+                queueRepository.resetReadyToInstall(queueId)
+                return false
+            }
             val result = rootInstaller.install(plan, update = isUpdate, installerPackageName = context.packageName)
             return if (result.success) {
                 // What makes the app eligible for later update checks. The dialog path does this
@@ -497,9 +602,10 @@ class UpdateDownloadWorker(
         }
 
         /** Records the user's "install it straight away" choice for the app just downloaded. */
-        private suspend fun requestAutoInstallIfEnabled(packageName: String, isUpdate: Boolean) {
+        private suspend fun requestAutoInstallIfEnabled(queueId: String, packageName: String, isUpdate: Boolean) {
             val settings = storeRepository.settings()
-            val wanted = if (isUpdate) settings.autoInstallUpdates else settings.autoInstallNewApps
+            val ownershipRequested = queueRepository.getEntityById(queueId)?.requiresUpdateOwnership == true
+            val wanted = ownershipRequested || if (isUpdate) settings.autoInstallUpdates else settings.autoInstallNewApps
             if (!wanted) return
             runCatching { AutoInstallStore(context).request(packageName) }
         }

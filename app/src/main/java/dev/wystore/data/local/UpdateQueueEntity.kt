@@ -1,6 +1,7 @@
 package dev.wystore.data.local
 
 import androidx.room.Entity
+import androidx.room.ColumnInfo
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -35,7 +36,9 @@ data class UpdateQueueEntity(
     val githubRepositoryName: String? = null,
     val githubReleaseId: Long? = null,
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = "0")
+    val requiresUpdateOwnership: Boolean = false
 )
 
 @Entity(
@@ -102,5 +105,6 @@ fun UpdateQueueEntity.toSnapshot(): QueueItemSnapshot = QueueItemSnapshot(
     errorDetail = errorDetail,
     githubRepository = if (githubRepositoryOwner != null && githubRepositoryName != null) {
         dev.wystore.data.GitHubRepository(githubRepositoryOwner, githubRepositoryName)
-    } else null
+    } else null,
+    requiresUpdateOwnership = requiresUpdateOwnership
 )

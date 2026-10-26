@@ -18,6 +18,17 @@ object NotificationIntentFactory {
 
     fun summaryDestination(): String = "updates"
 
+    fun libraryDestination(): String = "library"
+
+    fun createLibraryPendingIntent(context: Context): PendingIntent = activity(
+        context, 7006,
+        Intent(context, MainActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            putExtra(EXTRA_DESTINATION, libraryDestination())
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+    )
+
     fun createReadyPackageIntent(
         context: Context,
         packageName: String,

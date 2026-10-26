@@ -4,6 +4,7 @@ import okhttp3.Call
 import kotlinx.coroutines.job
 import kotlinx.coroutines.Job
 import dev.wystore.BuildConfig
+import dev.wystore.updates.GitHubExactDownloadPolicy
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -147,6 +148,7 @@ class SecureArtifactDownloader(context: Context? = null) {
     suspend fun downloadGitHubApk(
         asset: GitHubAsset,
         directory: File,
+        requiresExactSelection: Boolean = false,
         onProgress: suspend (DownloadProgress) -> Unit = {}
     ): File = withContext(Dispatchers.IO) {
         val initial = URI(asset.downloadUrl)
@@ -199,7 +201,10 @@ class SecureArtifactDownloader(context: Context? = null) {
                     return@repeat
                 }
                 response.use {
-                    if (!it.isSuccessful) fail(SourceError.DOWNLOAD_FAILED, "GitHub HTTP ${it.code}")
+                    if (!it.isSuccessful) {
+                        if (requiresExactSelection) GitHubExactDownloadPolicy.failureFor(it.code)?.let { failure -> throw failure }
+                        fail(SourceError.DOWNLOAD_FAILED, "GitHub HTTP ${it.code}")
+                    }
                     // A 200 to a ranged request means the server ignored the range and is sending
                     // the whole body; the bytes on disk are then not a prefix of what is arriving.
                     val resumed = resumeFrom > 0L && it.code == 206
@@ -264,6 +269,9 @@ class SecureArtifactDownloader(context: Context? = null) {
             destination.delete()
             // Kept so the next attempt can resume, unless the failure says the bytes are wrong.
             if (ResumePolicy.discardsPartialFile(error)) temporary.delete()
+            if (requiresExactSelection && error is SourceFormatException) {
+                GitHubExactDownloadPolicy.failureFor(error.error)?.let { throw it }
+            }
             throw error
         } finally {
             canceller.close()

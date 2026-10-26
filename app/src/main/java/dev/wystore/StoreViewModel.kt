@@ -41,6 +41,7 @@ import dev.wystore.data.MeteredDownloadConsent
 import dev.wystore.data.MeteredDownloadPolicy
 import dev.wystore.data.isActiveNetworkMetered
 import dev.wystore.data.PendingUpdate
+import dev.wystore.data.local.toSnapshot
 import dev.wystore.root.RootInstaller
 import dev.wystore.root.RootSettingsGuard
 import dev.wystore.updates.UpdateScheduler
@@ -74,6 +75,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
@@ -186,7 +188,8 @@ fun List<InstallQueueItem>.rowFor(packageName: String): InstallQueueItem? =
 fun List<InstallQueueItem>.githubRowFor(repository: GitHubRepository?): InstallQueueItem? {
     if (repository == null) return null
     return filter { it.githubRepository == repository }.mostRelevant()?.takeIf {
-        it.status.isInFlight || it.status == InstallQueueStatus.FAILED
+        it.status.isInFlight || it.status == InstallQueueStatus.FAILED ||
+            it.errorCode == dev.wystore.updates.model.QueueErrorCode.UPDATE_OWNERSHIP_UNCONFIRMED
     }
 }
 
@@ -197,7 +200,7 @@ private fun List<InstallQueueItem>.mostRelevant(): InstallQueueItem? =
             // install is what is happening to the app on the phone right now.
             row.status == InstallQueueStatus.INSTALLING -> 0
             row.status.occupiesQueue || row.status == InstallQueueStatus.PAUSED -> 1
-            row.status == InstallQueueStatus.FAILED -> 2
+            row.status == InstallQueueStatus.FAILED || row.errorCode == dev.wystore.updates.model.QueueErrorCode.UPDATE_OWNERSHIP_UNCONFIRMED -> 2
             else -> 3
         }
     }
@@ -221,7 +224,8 @@ data class InstallQueueItem(
      */
     val awaitingConfirmation: Boolean = false,
     /** The dialog can be brought back; after a restart of the app it can only be cancelled. */
-    val canShowDialogAgain: Boolean = false
+    val canShowDialogAgain: Boolean = false,
+    val requiresUpdateOwnership: Boolean = false
 )
 
 /**
@@ -272,7 +276,8 @@ data class AdoptionPrompt(
     val githubChecking: Boolean = false,
     val githubError: String? = null,
     /** Apps still waiting for a decision after this one, when several were accepted at once. */
-    val waiting: Int = 0
+    val waiting: Int = 0,
+    val requestId: Long = 0L
 )
 
 /**
@@ -370,6 +375,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     private val queueRepository = QueueRepository.getInstance(application)
     private val selfUpdateChecker = SelfUpdateChecker(application)
     private val autoInstallStore = dev.wystore.updates.AutoInstallStore(application)
+    private var queueReplacementJob: Job? = null
 
     /** The app an "update all" run is waiting on right now, or null when nothing is in flight. */
     private var installAllCurrent: String? = null
@@ -440,6 +446,27 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     private val _installRequest = MutableStateFlow<String?>(null)
     val installRequest: StateFlow<String?> = _installRequest.asStateFlow()
+    private var batchStartInProgress = false
+    private var batchGeneration = 0L
+    private val automaticInstallPackages = mutableSetOf<String>()
+
+    private val _navigationRequest = MutableStateFlow<String?>(null)
+    val navigationRequest: StateFlow<String?> = _navigationRequest.asStateFlow()
+
+    fun openLibraryFromNotification() {
+        clearDetails()
+        _navigationRequest.value = "library"
+    }
+
+    fun openGooglePlayUpdateSettings() {
+        clearDetails()
+        closeGitHubApp()
+        _navigationRequest.value = "google_play_settings"
+    }
+
+    fun consumeNavigationRequest() {
+        _navigationRequest.value = null
+    }
 
     fun consumeInstallRequest() {
         _installRequest.value = null
@@ -464,61 +491,6 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             // Android confirms one install at a time - two dialogs at once loses one of them.
             if (packageName == null) updateAll() else requestInstall(packageName)
         }
-    }
-
-    init {
-        viewModelScope.launch {
-            queueRepository.observePendingUpdates().collect { pending ->
-                _state.update { it.copy(pendingUpdates = pending) }
-                resolvePendingIcons(pending)
-                requestAutoInstalls(pending)
-            }
-        }
-        viewModelScope.launch {
-            queueRepository.observeAll().collect { items ->
-                queueRows = items
-                updateTransferRates(items)
-                // The batch reads the queue's own statuses; see toDisplayedStatus.
-                val uiQueue = queueItems(items) { it.state.toInstallQueueStatus() }
-                resolveIcons(uiQueue.map { row -> row.packageName })
-                advanceBatchIfSettled(uiQueue)
-                publishQueue()
-                // A batch that stood down because the install slot was busy picks up again once it
-                // frees. Only an install holds it: downloads have their own (see QueueSlots), and
-                // counting them made every install wait for the last download of the round.
-                // Waiting rows were counted once too, and with auto-download off a check leaves
-                // those waiting for good, so every later Install tap was swallowed by requestInstall.
-                if (installAllCurrent == null &&
-                    _state.value.installAllRemaining.isNotEmpty() &&
-                    uiQueue.none { row -> row.status == InstallQueueStatus.INSTALLING }
-                ) {
-                    startNextBatchInstall()
-                }
-            }
-        }
-        viewModelScope.launch {
-            dev.wystore.updates.ConfirmationDialogs.waiting.collect { dialogs ->
-                confirmationDialogs = dialogs
-                publishQueue()
-            }
-        }
-        viewModelScope.launch {
-            settingsRepository.settings.collect { appSettings ->
-                _state.update { it.copy(settings = appSettings.toStoreSettings()) }
-            }
-        }
-                // The smart prompt is derived from durable queue states, so it survives process death.
-        viewModelScope.launch { runCatching { queueCoordinator.restoreOfferedNext() } }
-        // Installs the user declined are still downloaded and verified; they belong in the ready
-        // list, not behind an error that offers to fetch them all over again.
-        viewModelScope.launch { runCatching { queueRepository.restoreDeclinedInstalls() } }
-        refreshLibrary()
-        _state.update { it.copy(githubRepositories = repository.githubRepositories()) }
-        UpdateScheduler.schedule(application, repository.settings())
-        manualCheckWorkInfos.observeForever(updateCheckObserver)
-        // Root switches read as unavailable until su has answered, so it is asked only when one
-        // of them is on; a root manager answers every probe with a prompt.
-        repository.settings().let { if (it.backgroundRootUpdates || it.rootSilentUninstallEnabled) checkRoot() }
     }
 
     override fun onCleared() {
@@ -709,8 +681,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun refreshLibrary(reportConfirmed: Boolean = false) {
         viewModelScope.launch {
-            val installed = withContext(Dispatchers.IO) { repository.installedApps() }
+            val installed = withContext(Dispatchers.IO) {
+                dev.wystore.data.invalidateInstalledApps()
+                repository.installedApps()
+            }
             val managed = withContext(Dispatchers.IO) {
+                dev.wystore.data.GooglePlayUpdateMonitor(getApplication()).refresh(installed)
                 repository.retainManagedInstalled(installed.mapTo(mutableSetOf()) { it.packageName })
             }
             val pending = _state.value.pendingUpdates
@@ -1054,6 +1030,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * after another; anything still waiting to be fetched starts fetching.
      */
     fun updateAll() {
+        automaticInstallPackages.clear()
         // Added to what the batch is already carrying rather than replacing it: a batch running
         // when this is pressed would otherwise lose its remaining list and rebuild it from every
         // downloaded update - including the one whose dialog the user had just dismissed.
@@ -1178,6 +1155,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 etaSeconds = transferRates[item.id]?.let { TransferRate.etaSeconds(it, item.totalBytes) }
             ) else null,
             errorCode = item.errorCode,
+            requiresUpdateOwnership = item.requiresUpdateOwnership,
             detail = item.errorDetail,
             githubRepository = item.githubRepository,
             awaitingConfirmation = item.state == QueueState.INSTALLING && item.id in confirmationDialogs,
@@ -1239,11 +1217,41 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Hands the Activity the next install of a batch, or ends the batch. */
     private fun startNextBatchInstall() {
+        if (batchStartInProgress || installAllCurrent != null) return
+        batchStartInProgress = true
+        viewModelScope.launch {
+            try {
+                startNextBatchInstallChecked()
+            } finally {
+                batchStartInProgress = false
+            }
+        }
+    }
+
+    private suspend fun startNextBatchInstallChecked() {
         if (installAllCurrent != null) return
+        val generation = batchGeneration
         val stillPending = _state.value.pendingUpdates.mapTo(mutableSetOf()) { it.packageName }
-        val remaining = _state.value.installAllRemaining
-        val next = InstallBatchPolicy.next(remaining, stillPending)
-        _state.update { it.copy(installAllRemaining = InstallBatchPolicy.remainingAfter(remaining, next)) }
+        var remaining = _state.value.installAllRemaining
+        val rejected = mutableSetOf<String>()
+        var next = InstallBatchPolicy.next(remaining, stillPending)
+        while (next != null && next in automaticInstallPackages) {
+            val packageName = next
+            val pending = _state.value.pendingUpdates.firstOrNull { it.packageName == packageName } ?: return
+            val permitted = automaticInstallAllowed(pending)
+            if (generation != batchGeneration) return
+            if (permitted || packageName !in automaticInstallPackages) break
+            automaticInstallPackages.remove(packageName)
+            rejected += packageName
+            remaining = remaining.filterNot { it == packageName }
+            next = InstallBatchPolicy.next(remaining, stillPending)
+        }
+        if (generation != batchGeneration) return
+        _state.update {
+            val latest = it.installAllRemaining.filterNot { packageName -> packageName in rejected }
+            it.copy(installAllRemaining = if (next == null) latest.filter { packageName -> packageName in stillPending }
+                else InstallBatchPolicy.remainingAfter(latest, next))
+        }
         if (next == null) return
         installAllCurrent = next
         installAllHandedOver = false
@@ -1268,6 +1276,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun requestInstall(packageName: String) {
         if (packageName.isBlank()) return
+        automaticInstallPackages.remove(packageName)
         if (packageName == installAllCurrent) return
         if (packageName in _state.value.installAllRemaining) {
             // Already in the batch, which may have stood down; the tap is the push to go on.
@@ -1310,6 +1319,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun cancelInstallAll() {
+        batchGeneration++
+        automaticInstallPackages.clear()
         installAllCurrent = null
         installAllHandedOver = false
         _state.update { it.copy(installAllRemaining = emptyList(), installAllCurrent = null) }
@@ -1328,17 +1339,56 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         if (_installRequest.value != null) return
         val requested = runCatching { autoInstallStore.requested() }.getOrDefault(emptySet())
         if (requested.isEmpty()) return
-        val additions = InstallBatchPolicy.autoInstallAdditions(
-            requested = requested,
-            pending = pending.map { it.packageName },
-            alreadyQueued = _state.value.installAllRemaining,
-            current = installAllCurrent
-        )
-        if (additions.isEmpty()) return
-        _state.update { it.copy(installAllRemaining = it.installAllRemaining + additions) }
-        // Not handed to the Activity directly: that left the batch with no current item, so
-        // nothing ever advanced it and only the first download was offered for installing.
-        startNextBatchInstall()
+        viewModelScope.launch {
+            val generation = batchGeneration
+            val candidates = InstallBatchPolicy.autoInstallAdditions(
+                requested = requested,
+                pending = pending.map { it.packageName },
+                alreadyQueued = _state.value.installAllRemaining,
+                current = installAllCurrent
+            )
+            val allowed = mutableSetOf<String>()
+            for (packageName in candidates) {
+                val ready = pending.firstOrNull { it.packageName == packageName } ?: continue
+                if (automaticInstallAllowed(ready)) allowed += packageName
+            }
+            if (generation != batchGeneration || allowed.isEmpty()) return@launch
+            // A manual batch or another queue emission may have advanced while the device was
+            // queried. Enrol only requests still pending and not already carried by that batch.
+            val additions = InstallBatchPolicy.autoInstallAdditions(
+                requested = allowed,
+                pending = _state.value.pendingUpdates.map { it.packageName },
+                alreadyQueued = _state.value.installAllRemaining,
+                current = installAllCurrent
+            )
+            if (additions.isEmpty()) return@launch
+            automaticInstallPackages.addAll(additions)
+            _state.update { it.copy(installAllRemaining = it.installAllRemaining + additions) }
+            // The batch advances after each system installer result, including automatic offers.
+            startNextBatchInstall()
+        }
+    }
+
+    private suspend fun automaticInstallAllowed(pending: PendingUpdate): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val installed = repository.installedAppFresh(pending.packageName)
+            val managed = repository.observeGooglePlayUpdates(listOfNotNull(installed))
+                .firstOrNull { it.packageName == pending.packageName }
+            dev.wystore.updates.AutomaticInstallPolicy.mayOffer(managed, installed,
+                repository.settings(), pending.userRequested, pending.requiresUpdateOwnership)
+        } catch (error: kotlinx.coroutines.CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            // A failed package-manager read is not evidence that the app was removed. Keep the
+            // durable request and its files, report why it stopped, and let a later attempt retry.
+            dev.wystore.data.EventLog(getApplication()).record(
+                packageName = pending.packageName,
+                code = "AUTO_INSTALL_CHECK_FAILED",
+                detail = "${error.javaClass.simpleName}: ${error.message}"
+            )
+            _state.update { it.copy(message = string(R.string.msg_install_reverify_failed)) }
+            false
+        }
     }
 
     /**
@@ -1644,6 +1694,11 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Apps accepted together that still need a decision, shown one dialog at a time. */
     private val adoptionBacklog = ArrayDeque<InstalledApp>()
+    private val adoptionRequests = dev.wystore.data.AdoptionRequestTracker()
+    private var adoptionTransferJob: Job? = null
+
+    private fun isCurrentAdoption(prompt: AdoptionPrompt): Boolean =
+        adoptionRequests.isCurrent(prompt.requestId) && _state.value.adoption?.requestId == prompt.requestId
 
     /**
      * Looks up where updates for [app] could come from, then asks.
@@ -1653,9 +1708,11 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * the package is the name searched, and then the user picks from what came back.
      */
     fun beginAdoption(app: InstalledApp, keepMessage: Boolean = false) {
+        adoptionTransferJob?.cancel()
+        val requestId = adoptionRequests.begin()
         _state.update {
             it.copy(
-                adoption = AdoptionPrompt(app = app, waiting = adoptionBacklog.size),
+                adoption = AdoptionPrompt(app = app, waiting = adoptionBacklog.size, requestId = requestId),
                 // The batch summary is posted just before the first leftover dialog opens; clearing
                 // the message here wiped it before the snackbar could show it.
                 message = if (keepMessage) it.message else null
@@ -1664,7 +1721,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val lookup = lookUpAdoption(app, searchByName = true)
             _state.update { state ->
-                val prompt = state.adoption?.takeIf { it.app.packageName == app.packageName }
+                val prompt = state.adoption?.takeIf { it.requestId == requestId && adoptionRequests.isCurrent(requestId) }
                     ?: return@update state
                 state.copy(
                     adoption = prompt.copy(loading = false, options = lookup.options, lookupFailed = lookup.failed)
@@ -1706,30 +1763,103 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun acceptAdoption(option: AdoptionOption): Boolean {
         val prompt = _state.value.adoption ?: return false
-        return when (option) {
-            is AdoptionOption.RuStore -> {
-                saveAdopted(prompt.app, ManagedSource.RUSTORE, null)
-                showNextAdoption()
-                false
+        if (prompt.githubChecking) return false
+        val handover = dev.wystore.ui.components.ownershipHandover(getApplication(), prompt.app)
+        if (option is AdoptionOption.Replace || handover != dev.wystore.data.OwnershipHandover.OWNED) {
+            if (!canTransferUpdates(prompt.app)) return false
+            if (option is AdoptionOption.GitHub) {
+                startGitHubAdoptionTransfer(prompt.app, option.repository)
+                return false
             }
-            is AdoptionOption.GitHub -> {
-                saveAdopted(prompt.app, ManagedSource.GITHUB, option.repository)
-                showNextAdoption()
-                false
+            val candidate = when (option) {
+                is AdoptionOption.Replace -> option.candidate
+                is AdoptionOption.RuStore -> option.candidate
+                else -> return false
             }
-            is AdoptionOption.Replace -> {
-                PendingReinstallStore(getApplication()).save(
-                    PendingReinstall(
-                        removedPackageName = prompt.app.packageName,
-                        installPackageName = option.candidate.packageName,
-                        label = option.candidate.label,
-                        startedAt = System.currentTimeMillis()
-                    )
-                )
-                showNextAdoption()
-                true
+            PendingReinstallStore(getApplication()).save(PendingReinstall(
+                removedPackageName = prompt.app.packageName,
+                installPackageName = candidate.packageName,
+                label = candidate.label,
+                startedAt = System.currentTimeMillis(),
+                requiresUpdateOwnership = true
+            ))
+            showNextAdoption()
+            return true
+        }
+        when (option) {
+            is AdoptionOption.RuStore -> saveAdopted(prompt.app, ManagedSource.RUSTORE, null)
+            is AdoptionOption.GitHub -> saveAdopted(prompt.app, ManagedSource.GITHUB, option.repository)
+            is AdoptionOption.Replace -> return false
+        }
+        showNextAdoption()
+        return false
+    }
+
+    private fun canTransferUpdates(app: InstalledApp): Boolean {
+        val handover = dev.wystore.ui.components.ownershipHandover(getApplication(), app)
+        val warning = when (handover) {
+            dev.wystore.data.OwnershipHandover.UNSUPPORTED_ANDROID -> R.string.ownership_unsupported_android
+            dev.wystore.data.OwnershipHandover.UNSUPPORTED_INSTALLER -> R.string.ownership_unsupported_installer
+            else -> null
+        }
+        if (warning != null) _state.update { it.copy(message = string(warning)) }
+        return warning == null
+    }
+
+    /** Resolve the exact release before removal so a lookup failure cannot leave the app deleted. */
+    private fun startGitHubAdoptionTransfer(app: InstalledApp, repo: GitHubRepository) {
+        val prompt = _state.value.adoption ?: return
+        if (prompt.app.packageName != app.packageName || prompt.githubChecking) return
+        if (!canTransferUpdates(app)) return
+        _state.update { it.copy(adoption = prompt.copy(githubChecking = true, githubError = null)) }
+        adoptionTransferJob = viewModelScope.launch {
+            try {
+                val pattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
+                val release = GitHubReleasePolicy.selectRelease(githubSource.releases(repo), pattern)
+                    ?: error(string(R.string.adopt_github_no_apk))
+                val asset = GitHubReleasePolicy.preferredAsset(
+                    GitHubReleasePolicy.apkAssets(release, pattern), Build.SUPPORTED_ABIS.toList()
+                ) ?: error(string(R.string.adopt_github_no_apk))
+                // No writes or uninstall can outlive the exact prompt that authorized the lookup.
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                if (!isCurrentAdoption(prompt)) return@launch
+                repository.saveGithubRepository(repo)
+                _state.update { it.copy(githubRepositories = repository.githubRepositories()) }
+                if (app.updateOwnerPackageName == getApplication<Application>().packageName) {
+                    saveAdopted(app, ManagedSource.GITHUB, repo)
+                    adoptionTransferJob = null
+                    showNextAdoption()
+                } else {
+                    recordGitHubTransfer(app, repo, asset, release.id)
+                    adoptionTransferJob = null
+                    showNextAdoption()
+                    uninstall(app.packageName)
+                }
+            } catch (error: kotlinx.coroutines.CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (isCurrentAdoption(prompt)) _state.update { state -> state.copy(
+                    adoption = state.adoption?.copy(githubChecking = false,
+                        githubError = error.message ?: string(R.string.vm_github_bad_url))
+                ) }
             }
         }
+    }
+
+    private fun recordGitHubTransfer(app: InstalledApp, repo: GitHubRepository, asset: GitHubAsset, releaseId: Long?) {
+        PendingReinstallStore(getApplication()).save(PendingReinstall(
+            removedPackageName = app.packageName, installPackageName = app.packageName,
+            label = app.label, startedAt = System.currentTimeMillis(), requiresUpdateOwnership = true,
+            githubRepository = repo, githubAsset = asset, githubReleaseId = releaseId
+        ))
+    }
+
+    fun confirmGitHubTransfer(asset: GitHubAsset, packageName: String): Boolean {
+        val app = _state.value.installed.firstOrNull { it.packageName == packageName } ?: return false
+        if (!canTransferUpdates(app)) return false
+        val repo = _state.value.githubActiveRepository ?: return false
+        recordGitHubTransfer(app, repo, asset, _state.value.githubApp.latestRelease?.id)
+        return true
     }
 
     /**
@@ -1740,30 +1870,14 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun adoptFromGitHub(input: String) {
         val prompt = _state.value.adoption ?: return
-        _state.update { it.copy(adoption = prompt.copy(githubChecking = true, githubError = null)) }
-        viewModelScope.launch {
-            val error: String? = runCatching {
-                val repo = githubSource.parseRepository(input)
-                val pattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
-                val release = GitHubReleasePolicy.selectRelease(githubSource.releases(repo), pattern)
-                if (release == null) {
-                    string(R.string.adopt_github_no_apk)
-                } else {
-                    repository.saveGithubRepository(repo)
-                    _state.update { it.copy(githubRepositories = repository.githubRepositories()) }
-                    saveAdopted(prompt.app, ManagedSource.GITHUB, repo)
-                    showNextAdoption()
-                    null
-                }
-            }.getOrElse { it.message ?: string(R.string.vm_github_bad_url) }
-            if (error != null) {
-                _state.update { state ->
-                    val current = state.adoption?.takeIf { it.app.packageName == prompt.app.packageName }
-                        ?: return@update state
-                    state.copy(adoption = current.copy(githubChecking = false, githubError = error))
-                }
-            }
+        if (prompt.githubChecking) return
+        val repo = try {
+            githubSource.parseRepository(input)
+        } catch (error: SourceFormatException) {
+            _state.update { it.copy(adoption = prompt.copy(githubError = string(R.string.vm_github_bad_url))) }
+            return
         }
+        startGitHubAdoptionTransfer(prompt.app, repo)
     }
 
     fun dismissAdoption() = showNextAdoption()
@@ -1776,6 +1890,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun showNextAdoption(keepMessage: Boolean = false) {
+        adoptionTransferJob?.cancel()
+        adoptionTransferJob = null
+        adoptionRequests.invalidate()
         val next = adoptionBacklog.removeFirstOrNull()
         if (next == null) _state.update { it.copy(adoption = null) } else beginAdoption(next, keepMessage)
     }
@@ -1795,7 +1912,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             var accepted = 0
             val undecided = mutableListOf<InstalledApp>()
             apps.forEachIndexed { index, app ->
-                val automatic = if (app.source == InstallSource.GOOGLE_PLAY) null else {
+                val automatic = if (app.updateOwnerPackageName != getApplication<Application>().packageName) null else {
                     lookUpAdoption(app, searchByName = false)
                         .takeUnless { it.failed }
                         ?.let { AdoptionPolicy.automatic(it.options) }
@@ -1858,31 +1975,72 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * The caller opens that dialog; this only writes the note, so a cancelled removal installs
      * nothing.
      */
-    fun confirmReplaceInstall(packageName: String, label: String) {
+    fun confirmReplaceInstall(packageName: String, label: String): Boolean {
+        val app = _state.value.installed.firstOrNull { it.packageName == packageName } ?: return false
+        if (!canTransferUpdates(app)) return false
         PendingReinstallStore(getApplication()).save(
             PendingReinstall(
                 removedPackageName = packageName,
                 installPackageName = packageName,
                 label = label,
-                startedAt = System.currentTimeMillis()
+                startedAt = System.currentTimeMillis(),
+                requiresUpdateOwnership = true
             )
         )
+        return true
     }
 
     /**
      * Records a handover that starts from a stopped queue row, so the same source is used again
      * once the app has been removed. The caller opens Android's uninstall dialog.
      */
-    fun confirmReplaceFromQueue(item: InstallQueueItem) {
-        PendingReinstallStore(getApplication()).save(
-            PendingReinstall(
-                removedPackageName = item.packageName,
-                installPackageName = item.packageName,
-                label = item.label.ifBlank { item.packageName },
-                startedAt = System.currentTimeMillis(),
-                queueId = item.id
-            )
-        )
+    fun confirmReplaceFromQueue(item: InstallQueueItem, onPrepared: (Boolean) -> Unit) {
+        if (queueReplacementJob?.isActive == true) {
+            onPrepared(false)
+            return
+        }
+        queueReplacementJob = viewModelScope.launch {
+            val prepared = try {
+                withContext(Dispatchers.IO) {
+                    val row = queueRepository.getEntityById(item.id)
+                        ?: throw dev.wystore.data.TransferFailure(false,
+                            dev.wystore.updates.model.QueueErrorCode.SOURCE_CHANGED)
+                    val current = row.toSnapshot()
+                    if (row.packageName != item.packageName || row.versionName != item.versionName ||
+                        current.githubRepository != item.githubRepository ||
+                        current.state.toInstallQueueStatus() != item.status || item.status.isInFlight
+                    ) throw dev.wystore.data.TransferFailure(false,
+                        dev.wystore.updates.model.QueueErrorCode.SOURCE_CHANGED)
+                    val choices = dev.wystore.updates.GitHubAssetChoice(getApplication())
+                    dev.wystore.updates.QueueReplacementPreparation.prepare(
+                        expectedRow = row,
+                        loadRow = { queueRepository.getEntityById(item.id) },
+                        chosenId = { choices.chosen(item.id) },
+                        exactSelection = { choices.exact(item.id) },
+                        releases = { githubSource.releases(requireNotNull(current.githubRepository)) },
+                        persistExact = { choices.rememberExact(item.id, it) },
+                        savePending = {
+                            PendingReinstallStore(getApplication()).save(PendingReinstall(
+                                removedPackageName = row.packageName,
+                                installPackageName = row.packageName,
+                                label = row.label.ifBlank { row.packageName },
+                                startedAt = System.currentTimeMillis(),
+                                queueId = row.id,
+                                requiresUpdateOwnership = Build.VERSION.SDK_INT >= 34
+                            ))
+                        }
+                    )
+                }
+                true
+            } catch (error: kotlinx.coroutines.CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                val failure = dev.wystore.data.classifyThrowable(error)
+                _state.update { it.copy(message = string(dev.wystore.updates.QueueErrorStrings.stringRes(failure.code))) }
+                false
+            }
+            onPrepared(prepared)
+        }
     }
 
     fun updateManaged(app: ManagedApp) {
@@ -2200,6 +2358,68 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     fun consumeMessage() {
         _state.value = _state.value.copy(message = null)
+    }
+
+    // Main.immediate collectors can emit during construction, so every backing field must
+    // be initialized before subscriptions or notification-triggered startup begin.
+    init {
+        viewModelScope.launch {
+            autoInstallStore.observeRequests().collect {
+                requestAutoInstalls(_state.value.pendingUpdates)
+            }
+        }
+        viewModelScope.launch {
+            queueRepository.observePendingUpdates().collect { pending ->
+                _state.update { it.copy(pendingUpdates = pending) }
+                resolvePendingIcons(pending)
+                requestAutoInstalls(pending)
+            }
+        }
+        viewModelScope.launch {
+            queueRepository.observeAll().collect { items ->
+                queueRows = items
+                updateTransferRates(items)
+                // The batch reads the queue's own statuses; see toDisplayedStatus.
+                val uiQueue = queueItems(items) { it.state.toInstallQueueStatus() }
+                resolveIcons(uiQueue.map { row -> row.packageName })
+                advanceBatchIfSettled(uiQueue)
+                publishQueue()
+                // A batch that stood down because the install slot was busy picks up again once it
+                // frees. Only an install holds it: downloads have their own (see QueueSlots), and
+                // counting them made every install wait for the last download of the round.
+                // Waiting rows were counted once too, and with auto-download off a check leaves
+                // those waiting for good, so every later Install tap was swallowed by requestInstall.
+                if (installAllCurrent == null &&
+                    _state.value.installAllRemaining.isNotEmpty() &&
+                    uiQueue.none { row -> row.status == InstallQueueStatus.INSTALLING }
+                ) {
+                    startNextBatchInstall()
+                }
+            }
+        }
+        viewModelScope.launch {
+            dev.wystore.updates.ConfirmationDialogs.waiting.collect { dialogs ->
+                confirmationDialogs = dialogs
+                publishQueue()
+            }
+        }
+        viewModelScope.launch {
+            settingsRepository.settings.collect { appSettings ->
+                _state.update { it.copy(settings = appSettings.toStoreSettings()) }
+            }
+        }
+                // The smart prompt is derived from durable queue states, so it survives process death.
+        viewModelScope.launch { runCatching { queueCoordinator.restoreOfferedNext() } }
+        // Installs the user declined are still downloaded and verified; they belong in the ready
+        // list, not behind an error that offers to fetch them all over again.
+        viewModelScope.launch { runCatching { queueRepository.restoreDeclinedInstalls() } }
+        refreshLibrary()
+        _state.update { it.copy(githubRepositories = repository.githubRepositories()) }
+        UpdateScheduler.schedule(application, repository.settings())
+        manualCheckWorkInfos.observeForever(updateCheckObserver)
+        // Root switches read as unavailable until su has answered, so it is asked only when one
+        // of them is on; a root manager answers every probe with a prompt.
+        repository.settings().let { if (it.backgroundRootUpdates || it.rootSilentUninstallEnabled) checkRoot() }
     }
 
     private companion object {

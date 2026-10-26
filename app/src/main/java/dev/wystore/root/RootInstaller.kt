@@ -63,7 +63,12 @@ class RootInstaller {
         if (files.any { !it.isFile || it.length() <= 0L }) {
             return@withContext RootResult(false, "A verified APK is no longer on disk", RootFailure.ARTIFACT_MISSING)
         }
-        val create = execute(createSessionCommand(update, installerPackageName, Build.VERSION.SDK_INT))
+        val create = execute(createSessionCommand(
+            update = update,
+            installerPackageName = installerPackageName,
+            sdkInt = Build.VERSION.SDK_INT,
+            userId = userIdForUid(android.os.Process.myUid())
+        ))
         val session = Regex("\\[(\\d+)]").find(create.output)?.groupValues?.getOrNull(1)
             ?: return@withContext RootResult(false, create.output, RootFailure.SESSION_NOT_CREATED)
         var committed = false
@@ -88,7 +93,7 @@ class RootInstaller {
         if (!packageName.matches(PACKAGE_NAME)) {
             return@withContext RootResult(false, "Rejected package name: $packageName", RootFailure.INVALID_PACKAGE_NAME)
         }
-        val result = execute("pm uninstall --user 0 ${shellQuote(packageName)}")
+        val result = execute(uninstallCommand(packageName, userIdForUid(android.os.Process.myUid())))
         result.copy(success = result.success && result.output.contains("Success", ignoreCase = true))
     }
 
@@ -151,14 +156,31 @@ class RootInstaller {
          * the way the dialog path does with `setRequestUpdateOwnership`; `pm` before Android 14
          * does not know the flag and refuses to create the session if it is given.
          */
-        fun createSessionCommand(update: Boolean, installerPackageName: String, sdkInt: Int): String {
+        fun createSessionCommand(update: Boolean, installerPackageName: String, sdkInt: Int, userId: Int = 0): String {
             require(installerPackageName.matches(PACKAGE_NAME)) { "Rejected installer package name: $installerPackageName" }
+            require(userId >= 0) { "Rejected user id: $userId" }
             return buildList {
-                add("pm install-create --user 0 -i $installerPackageName")
+                add("pm install-create --user $userId -i $installerPackageName")
                 if (update) add("-r")
                 if (sdkInt >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) add("--update-ownership")
             }.joinToString(" ")
         }
+
+        fun uninstallCommand(packageName: String, userId: Int): String {
+            require(packageName.matches(PACKAGE_NAME)) { "Rejected package name: $packageName" }
+            require(userId >= 0) { "Rejected user id: $userId" }
+            return "pm uninstall --user $userId '$packageName'"
+        }
+
+        fun userIdForUid(uid: Int): Int {
+            require(uid >= 0) { "Rejected uid: $uid" }
+            return uid / UID_RANGE_PER_USER
+        }
+
+        // A root shell runs as uid 0, so its default user is not necessarily this app's profile.
+        // Android allocates each user's UIDs in this range; UserHandle.getIdentifier is hidden:
+        // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/core/java/android/os/UserHandle.java
+        private const val UID_RANGE_PER_USER = 100_000
 
         private val PACKAGE_NAME = Regex("[A-Za-z][A-Za-z0-9_]*(\\.[A-Za-z][A-Za-z0-9_]*)+")
 

@@ -37,6 +37,15 @@ object InstalledPackageLookup {
             .getOrNull()
             ?.takeIf { isOnDevice(it.applicationInfo?.flags) }
 
+    /** A failed package-manager read must not make an automatic update look like a new install. */
+    fun packageInfoStrict(packageManager: PackageManager, packageName: String, flags: Int = 0): PackageInfo? =
+        try {
+            query(packageManager, packageName, flags or SEE_FROZEN)
+                .takeIf { isOnDevice(it.applicationInfo?.flags) }
+        } catch (_: PackageManager.NameNotFoundException) {
+            null
+        }
+
     fun versionCode(packageManager: PackageManager, packageName: String): Long? =
         packageInfo(packageManager, packageName)?.longVersionCode
 

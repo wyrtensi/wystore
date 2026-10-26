@@ -26,10 +26,18 @@ class NotificationState(context: Context) {
         prefs.edit().remove(key(category)).commit()
     }
 
+    /** A verified handover ends this incident; a later Play attribution is news again. */
+    fun forgetGooglePlayPackage(packageName: String) {
+        val previous = lastDigest(CATEGORY_GOOGLE_PLAY_PAUSE) ?: return
+        recordDigest(CATEGORY_GOOGLE_PLAY_PAUSE,
+            NotificationPolicy.digestOf(previous.split('|').filterNot { it == packageName }))
+    }
+
     private fun key(category: String) = "digest_$category"
 
     companion object {
         const val CATEGORY_READY = "ready"
         const val CATEGORY_ERRORS = "errors"
+        const val CATEGORY_GOOGLE_PLAY_PAUSE = "google_play_pause"
     }
 }

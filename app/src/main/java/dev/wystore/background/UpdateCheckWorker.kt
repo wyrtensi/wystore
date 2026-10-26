@@ -5,6 +5,9 @@ import android.os.PowerManager
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import dev.wystore.data.EventLog
+import dev.wystore.data.GooglePlayUpdateMonitor
+import dev.wystore.data.GooglePlayUpdatePolicy
+import dev.wystore.data.invalidateInstalledApps
 import dev.wystore.data.GitHubCatalog
 import dev.wystore.data.GitHubInstallState
 import dev.wystore.data.GitHubInstallStatePolicy
@@ -72,7 +75,10 @@ class UpdateCheckWorker(
     private suspend fun runCheck(isManualCheck: Boolean): Result {
         val requestedPackage = inputData.getString(KEY_PACKAGE) ?: inputData.getString("package")
 
-        val installed = repository.installedApps().associateBy { it.packageName }
+        invalidateInstalledApps()
+        val installedList = repository.installedApps()
+        GooglePlayUpdateMonitor(applicationContext).refresh(installedList)
+        val installed = installedList.associateBy { it.packageName }
         val managedApps = repository.retainManagedInstalled(installed.keys)
 
         val settings = repository.settings()
@@ -151,7 +157,9 @@ class UpdateCheckWorker(
                 )
             }
             val local = installed[managed.packageName] ?: continue
-            if (local.source == InstallSource.GOOGLE_PLAY && !managed.forceWyStore && !isManualCheck) {
+            if (!isManualCheck && GooglePlayUpdatePolicy.isPaused(
+                    managed, local, settings.continueChecksAfterGooglePlayUpdate
+                )) {
                 continue
             }
 
@@ -202,7 +210,8 @@ class UpdateCheckWorker(
                     updatesFound++
                     // Found, and shown in the queue either way. Only an app the user still lets
                     // update by itself is handed to the downloader; see mayDownloadAfterCheck.
-                    if (UpdateCheckPolicy.mayDownloadAfterCheck(managed.autoUpdate)) {
+                    if (UpdateCheckPolicy.mayDownloadAfterCheck(managed.autoUpdate) &&
+                        !GooglePlayUpdatePolicy.isPaused(managed, local, settings.continueChecksAfterGooglePlayUpdate)) {
                         queuedThisRun += QueuedRow(id = queuedId, packageName = managed.packageName)
                     }
                 }

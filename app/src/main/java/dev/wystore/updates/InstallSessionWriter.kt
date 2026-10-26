@@ -61,7 +61,7 @@ class InstallSessionWriter(private val context: Context) {
             "Downloaded APK files are missing or unreadable"
         }
 
-        val installed = storeRepository.installedApp(entity.packageName)
+        val installed = storeRepository.installedAppFresh(entity.packageName)
         val verification = SigningVerifier.verifyArtifacts(
             packageManager = appContext.packageManager,
             files = files,
@@ -88,14 +88,15 @@ class InstallSessionWriter(private val context: Context) {
             // there made every self-update look like a first install.
             isUpdate = isInstalled(entity.packageName),
             installerOfRecord = installerOfRecord(entity.packageName),
-            ownPackageName = appContext.packageName
+            ownPackageName = appContext.packageName,
+            requiresUpdateOwnership = entity.requiresUpdateOwnership
         )
 
         val sessionsRefused = SessionInstallSupport(appContext).sessionsRefused()
         when (UserInstallRouting.select(Build.VERSION.SDK_INT, files.size, sessionsRefused)) {
             UserInstallRoute.LEGACY_SINGLE_APK -> prepareLegacySingleApk(queueId, entity.packageName, files.single())
             UserInstallRoute.PACKAGE_INSTALLER_SESSION ->
-                prepareSession(queueId, entity.packageName, files, silent)
+                prepareSession(queueId, entity.packageName, files, silent, entity.requiresUpdateOwnership)
             UserInstallRoute.WHOLE_APK_REQUIRED -> throw WholeApkRequiredException(queueId, entity.packageName)
         }
     }
@@ -116,7 +117,10 @@ class InstallSessionWriter(private val context: Context) {
     /** Who Android considers responsible for this app, or null when nobody was given the job. */
     private fun installerOfRecord(packageName: String): String? = runCatching {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            appContext.packageManager.getInstallSourceInfo(packageName).installingPackageName
+            appContext.packageManager.getInstallSourceInfo(packageName).let { source ->
+                if (Build.VERSION.SDK_INT >= 34) source.updateOwnerPackageName ?: source.installingPackageName
+                else source.installingPackageName
+            }
         } else {
             @Suppress("DEPRECATION")
             appContext.packageManager.getInstallerPackageName(packageName)
@@ -127,7 +131,8 @@ class InstallSessionWriter(private val context: Context) {
         queueId: String,
         packageName: String,
         files: List<File>,
-        silent: Boolean
+        silent: Boolean,
+        requiresUpdateOwnership: Boolean
     ): PreparedInstall.Session {
         val requestsSilence = silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
@@ -135,14 +140,16 @@ class InstallSessionWriter(private val context: Context) {
             // A request, not an instruction. When Android declines - the app targets too old an
             // API, someone else has since become its installer - the session reports that user
             // action is needed and the ordinary confirmation runs, exactly as it did before.
-            if (requestsSilence) {
+            if (requiresUpdateOwnership && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED)
+            } else if (requestsSilence) {
                 setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED)
             }
-            // Android 14 lets an installer claim responsibility for an app's future updates, and
-            // it can only be claimed while installing. Claiming it is what "hand updates to Wy
-            // Store" actually does: another store updating it afterwards has to say so first.
+            // Android 14 can assign update ownership on initial installation. This requests that
+            // role; Android may decline it or exempt another installer from the ownership prompt,
+            // including privileged installers operating in managed profiles.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                runCatching { setRequestUpdateOwnership(true) }
+                setRequestUpdateOwnership(true)
             }
         }
         val sessionId = packageInstaller.createSession(params)

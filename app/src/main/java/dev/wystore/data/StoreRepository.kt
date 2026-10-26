@@ -17,23 +17,65 @@ class StoreRepository(private val context: Context) {
     private val settingsRepository = SettingsRepository(context)
     private val gson = Gson()
 
-    fun managedApps(): List<ManagedApp> {
+    fun managedApps(): List<ManagedApp> = synchronized(MANAGED_LOCK) { readManagedApps() }
+
+    internal fun <T> withManagedAppsLock(block: () -> T): T = synchronized(MANAGED_LOCK, block)
+
+    private fun readManagedApps(): List<ManagedApp> {
         val json = preferences.getString("managed_apps", "[]") ?: "[]"
         return runCatching {
             gson.fromJson<List<ManagedApp>>(json, object : TypeToken<List<ManagedApp>>() {}.type)
         }.getOrDefault(emptyList())
     }
 
-    fun saveManaged(app: ManagedApp) {
-        val updated = managedApps().filterNot { it.packageName == app.packageName } + app
+    fun saveManaged(app: ManagedApp, clearGooglePlayUpdate: Boolean = false) {
+        updateManaged(app.packageName, clearGooglePlayUpdate) { app }
+    }
+
+    /** Registration, observation and UI edits share one lock across repository instances. */
+    fun updateManaged(
+        packageName: String,
+        clearGooglePlayUpdate: Boolean = false,
+        transform: (ManagedApp?) -> ManagedApp
+    ): ManagedApp = synchronized(MANAGED_LOCK) {
+        val current = readManagedApps()
+        val previous = current.firstOrNull { it.packageName == packageName }
+        val replacement = transform(previous)
+        require(replacement.packageName == packageName)
+        val merged = replacement.copy(googlePlayUpdateDetected = !clearGooglePlayUpdate &&
+            (replacement.googlePlayUpdateDetected || previous?.googlePlayUpdateDetected == true))
+        writeManagedApps(current.filterNot { it.packageName == packageName } + merged)
+        merged
+    }
+
+    fun observeGooglePlayUpdates(installed: List<InstalledApp>): List<ManagedApp> = synchronized(MANAGED_LOCK) {
+        val current = readManagedApps()
+        val managedNames = current.filterNot { it.googlePlayUpdateDetected }.mapTo(HashSet()) { it.packageName }
+        // A scan may predate a verified ownership handover. Confirm attribution under the same
+        // lock as the handover reset so that stale scan cannot restore the previous pause.
+        val playPackages = installed.asSequence()
+            .filter { it.packageName in managedNames && it.installerPackageName == "com.android.vending" }
+            .mapNotNull { installedAppFresh(it.packageName) }
+            .filter { it.installerPackageName == "com.android.vending" }
+            .mapTo(HashSet()) { it.packageName }
+        val observed = current.map { app ->
+            if (app.packageName in playPackages) app.copy(googlePlayUpdateDetected = true) else app
+        }
+        if (observed != current) writeManagedApps(observed)
+        observed
+    }
+
+    private fun writeManagedApps(updated: List<ManagedApp>) {
         // commit(), not apply(): this is called from a broadcast receiver right after an install,
         // and the process can be torn down before an asynchronous write reaches disk — which loses
         // the registration that makes the app eligible for updates.
-        preferences.edit().putString("managed_apps", gson.toJson(updated)).commit()
+        check(preferences.edit().putString("managed_apps", gson.toJson(updated)).commit()) {
+            "Could not persist managed apps"
+        }
     }
 
-    fun removeManaged(packageName: String) {
-        preferences.edit().putString("managed_apps", gson.toJson(managedApps().filterNot { it.packageName == packageName })).apply()
+    fun removeManaged(packageName: String) = synchronized(MANAGED_LOCK) {
+        writeManagedApps(readManagedApps().filterNot { it.packageName == packageName })
     }
 
     /**
@@ -46,10 +88,11 @@ class StoreRepository(private val context: Context) {
      * pruning on it alone deleted the registration that had just been written — which is why an app
      * installed through Wy Store never received updates.
      */
-    fun retainManagedInstalled(packageNames: Set<String>): List<ManagedApp> {
-        val retained = managedApps().filter { it.packageName in packageNames || isInstalled(it.packageName) }
-        preferences.edit().putString("managed_apps", gson.toJson(retained)).apply()
-        return retained
+    fun retainManagedInstalled(packageNames: Set<String>): List<ManagedApp> = synchronized(MANAGED_LOCK) {
+        val current = readManagedApps()
+        val retained = current.filter { it.packageName in packageNames || isInstalled(it.packageName) }
+        if (retained != current) writeManagedApps(retained)
+        retained
     }
 
     /**
@@ -229,20 +272,28 @@ class StoreRepository(private val context: Context) {
         )
     }
 
-    private fun PackageInfo.toInstalledApp(): InstalledApp {
-        // Asked once and used twice: the coarse source and the installer's name are the same fact,
-        // and reading it twice per package doubled the work on a phone with three hundred of them.
-        val installer = installerOf(packageName)
+    /** Update/download decisions must not reuse the list captured before another store updated it. */
+    fun installedAppFresh(packageName: String): InstalledApp? {
+        val info = InstalledPackageLookup.packageInfoStrict(
+            context.packageManager, packageName, SigningFlags.forSdk(Build.VERSION.SDK_INT)
+        ) ?: return null
+        return info.toInstalledApp(readInstallSourceOf(packageName))
+    }
+
+    private fun PackageInfo.toInstalledApp(
+        installSource: PackageInstallSource = installSourceOf(packageName)
+    ): InstalledApp {
         return InstalledApp(
             packageName = packageName,
             label = applicationInfo?.loadLabel(context.packageManager)?.toString().orEmpty(),
             versionName = versionName.orEmpty(),
             versionCode = versionCodeCompat(),
             lastUpdateTime = lastUpdateTime,
-            source = sourceFor(installer),
+            source = InstalledAppOwnership.source(installSource.responsiblePackageName, context.packageName),
             signingDigests = SigningVerifier.installedDigests(this),
-            installerPackageName = installer,
-            preinstalled = InstallerNames.isPreinstalled(installer, applicationInfo?.sourceDir)
+            installerPackageName = installSource.installerPackageName,
+            preinstalled = InstallerNames.isPreinstalled(installSource.installerPackageName, applicationInfo?.sourceDir),
+            updateOwnerPackageName = installSource.updateOwnerPackageName
         )
     }
 
@@ -269,24 +320,22 @@ class StoreRepository(private val context: Context) {
             .filter { it.applicationInfo?.flags?.and(android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0 }
             .filterNot { it.packageName == context.packageName }
             .map { info ->
-                // Asked once and used twice: the coarse source and the installer's name are the
-                // same fact, and reading it twice per package doubled the work on a phone with
-                // three hundred of them.
-                val installer = installerOf(info.packageName)
+                val installSource = installSourceOf(info.packageName)
                 InstalledApp(
                     packageName = info.packageName,
                     label = info.applicationInfo?.loadLabel(context.packageManager)?.toString().orEmpty(),
                     versionName = info.versionName.orEmpty(),
                     versionCode = info.versionCodeCompat(),
                     lastUpdateTime = info.lastUpdateTime,
-                    source = sourceFor(installer),
+                    source = InstalledAppOwnership.source(installSource.responsiblePackageName, context.packageName),
                     signingDigests = SigningVerifier.installedDigests(info),
-                    installerPackageName = installer,
-                    preinstalled = InstallerNames.isPreinstalled(installer, info.applicationInfo?.sourceDir),
+                    installerPackageName = installSource.installerPackageName,
+                    preinstalled = InstallerNames.isPreinstalled(installSource.installerPackageName, info.applicationInfo?.sourceDir),
                     frozen = visible != null && InstalledPackageLookup.isFrozen(
                         visibleWithoutFlag = info.packageName in visible,
                         onDevice = true
-                    )
+                    ),
+                    updateOwnerPackageName = installSource.updateOwnerPackageName
                 )
             }.sortedBy { it.label.lowercase() }.toList()
     }
@@ -322,11 +371,16 @@ class StoreRepository(private val context: Context) {
         val mergedRepos = (currentRepos + backup.githubRepositories).distinctBy { it.url }
         preferences.edit().putString("github_repositories", gson.toJson(mergedRepos)).apply()
 
-        val currentManaged = if (merge) managedApps().associateBy { it.packageName }.toMutableMap() else mutableMapOf()
-        backup.managedApps.forEach { app ->
-            currentManaged[app.packageName] = app
+        val currentManaged = synchronized(MANAGED_LOCK) {
+            val existing = readManagedApps().associateBy { it.packageName }
+            val restored = if (merge) existing.toMutableMap() else mutableMapOf()
+            backup.managedApps.forEach { app ->
+                restored[app.packageName] = app.copy(googlePlayUpdateDetected =
+                    app.googlePlayUpdateDetected || existing[app.packageName]?.googlePlayUpdateDetected == true)
+            }
+            writeManagedApps(restored.values.toList())
+            restored
         }
-        preferences.edit().putString("managed_apps", gson.toJson(currentManaged.values.toList())).apply()
 
         return BackupRestoreSummary(
             managedAppsCount = currentManaged.size,
@@ -345,26 +399,31 @@ class StoreRepository(private val context: Context) {
         return restoreBackup(backup, merge)
     }
 
-    /**
-     * The coarse source shown on a badge.
-     *
-     * [InstallSource.WY_STORE] existed and was never produced: everything the store had installed
-     * itself was labelled "other source", including on its own library rows. The installer of
-     * record is exactly the answer, and it is already being read.
-     */
-    private fun sourceFor(installerPackageName: String?): InstallSource = when (installerPackageName) {
-        "com.android.vending" -> InstallSource.GOOGLE_PLAY
-        context.packageName -> InstallSource.WY_STORE
-        else -> InstallSource.OTHER
-    }
+    /** One package-manager read keeps the recorded installer and current update owner together. */
+    private fun installSourceOf(packageName: String): PackageInstallSource =
+        runCatching { readInstallSourceOf(packageName) }.getOrDefault(PackageInstallSource())
 
-    /** Android's installer of record: who is expected to update this app. */
-    private fun installerOf(packageName: String): String? = if (Build.VERSION.SDK_INT >= 30) {
-        runCatching { context.packageManager.getInstallSourceInfo(packageName).installingPackageName }.getOrNull()
+    private fun readInstallSourceOf(packageName: String): PackageInstallSource = if (Build.VERSION.SDK_INT >= 30) {
+        val source = context.packageManager.getInstallSourceInfo(packageName)
+        PackageInstallSource(
+            installerPackageName = source.installingPackageName,
+            updateOwnerPackageName = if (Build.VERSION.SDK_INT >= 34) source.updateOwnerPackageName else null
+        )
     } else {
         @Suppress("DEPRECATION")
-        runCatching { context.packageManager.getInstallerPackageName(packageName) }.getOrNull()
+        PackageInstallSource(installerPackageName = context.packageManager.getInstallerPackageName(packageName))
     }
+    companion object {
+        private val MANAGED_LOCK = Any()
+    }
+}
+
+private data class PackageInstallSource(
+    val installerPackageName: String? = null,
+    val updateOwnerPackageName: String? = null
+) {
+    val responsiblePackageName: String?
+        get() = InstalledAppOwnership.responsiblePackageName(installerPackageName, updateOwnerPackageName)
 }
 
 private fun PackageInfo.versionCodeCompat(): Long = longVersionCode

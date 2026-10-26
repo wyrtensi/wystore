@@ -102,7 +102,7 @@
     <string name="dialog_install_existing_title">Бар қолданбаны жаңарту</string>
     <string name="dialog_install_existing_text">Бұл қолданба басқа дереккөзден орнатылған. Орнатудан кейін оның жаңартуларын Wy Store басқарады.</string>
     <string name="adopt_google_title">Қолданбаны басқаруға алу</string>
-    <string name="adopt_google_text">%1$s Google-дан келген, оны орнына жаңарту мүмкін емес — Google өз құрастырмаларына өз кілтімен қол қояды. Оны басқаруға алу үшін қолданба жойылып, қайта орнатылады. Деректері әдетте жоғалады.</string>
+    <string name="adopt_google_text">%1$s жаңартуларды Google Play арқылы алады. Жойғаннан кейін Wy Store қолданбаны қайдан орнататынын таңдаңыз.</string>
     <string name="adopt_google_searching">Бұл қолданба каталогтан ізделуде…</string>
     <string name="adopt_google_not_found">RuStore каталогында мұндай қолданба жоқ, сондықтан оны басқаруға алу мүмкін емес.</string>
     <string name="adopt_google_exact">Дәл сол package name — бұл сол:</string>
@@ -113,8 +113,8 @@
     <string name="dialog_replace_title">Орнатылған қолданбаны ауыстыру</string>
     <string name="dialog_replace_text">%1$s жойылып, каталогтан қайта орнатылады: %3$s орнына %2$s нұсқасы. Деректері әдетте жоғалады, сондықтан қайта кіруге тура келеді. Android екі қадамды да растауды сұрайды.</string>
     <string name="dialog_replace_confirm">Жойып, орнату</string>
-    <string name="dialog_force_title">Google Play орнына жаңарту</string>
-    <string name="dialog_force_text">%1$s Google Play-ден келген, Wy Store мұндай қолданбаларды оған қалдырады. Мұны қоссаңыз, әзірлеушінің қолтаңбасы сәйкес келген сайын фондық тексерулер оны Wy Store арқылы жаңартады.</string>
+    <string name="dialog_force_title">Wy Store арқылы жаңартуға рұқсат беру</string>
+    <string name="dialog_force_text">Wy Store %1$s жаңартуларын тексеріп, цифрлық қолтаңба сәйкес болса орнатуды ұсынады. Бұл параметр жаңартулар иелігін бермейді және Google Play автоматты жаңартуларын өшірмейді.</string>
     <string name="dialog_force_confirm">Қосу</string>
     <string name="dialog_uninstall_confirm">Жою</string>
     <string name="dialog_github_install_title">GitHub-тан APK орнату</string>
@@ -208,7 +208,7 @@
     <string name="library_search_clear">Іздеуді тазалау</string>
     <string name="library_expand_all">Бәрін жаю</string>
     <string name="library_collapse_all">Бәрін жию</string>
-    <string name="library_intro">Қабылданған қолданбаларды Wy Store жаңартады, қалғандары төменде. Белгі қолданбаны кім орнатқанын көрсетеді.</string>
+    <string name="library_intro">Wy Store қабылданған қолданбалардың жаңартуларын тексереді. Белгі жаңартулар иесін, ал ол белгісіз болса орнатушыны көрсетеді.</string>
     <string name="library_search_label">Орнатылған қолданбалардан іздеу</string>
     <string name="library_search_placeholder">Атауы немесе package name</string>
     <string name="library_sort_title">Сұрыптау</string>
@@ -222,7 +222,7 @@
     <string name="library_update_available">Жаңарту табылды — әлі жүктеп алынбаған</string>
     <string name="library_update_available_version">Жаңарту табылды: %1$s — әлі жүктеп алынбаған</string>
     <string name="library_auto_update">Автожаңарту</string>
-    <string name="library_force_wystore">Google Play орнына жаңарту</string>
+    <string name="library_force_wystore">Wy Store арқылы жаңартуға рұқсат беру</string>
     <string name="library_remove">Алып тастау</string>
     <string name="library_check_progress">%2$d ішінен %1$d тексерілді · табылған жаңарту: %3$d</string>
 
@@ -653,8 +653,7 @@
     <string name="details_replace">Wy Store арқылы жойып, қайта орнату</string>
     <string name="details_signature_incompatible">Орнатылған көшірме RuStore осы қолданба үшін мәлімдеген сертификатпен қол қойылмаған, сондықтан мұндағы жаңарту оның үстіне орнатылмайды: Android оған жол бермейді. Оны жойып, қайта орнату керек болады, ал бұл әдетте деректерін жоғалтады. Басқа жерден орнатылған қолданба да осылай көрінеді — каталогтағы ескірген жазба да.</string>
     <string name="details_source_unconfirmed">RuStore бұл қолданбаны растамады: ол бір қолтаңба саусақ ізін мәлімдейді, ал басқасымен қол қойылған файл береді. Орнатылған көшірме — RuStore беретін файлдың дәл өзі, сондықтан мұндағы жаңартулар оның үстіне орнатылады. Келіспейтіні — телефондағы қолданба емес, каталогтағы жазба.</string>
-    <string name="details_first_update_manual">Wy Store арқылы алғашқы жаңартуды қолмен растау керек. Одан кейін Wy Store ресми орнатушы болады да, қолданбаны әрі қарай өзі жаңарта алады.</string>
-    <string name="details_take_over_hint">Android қолданбаны үнсіз жаңартуға тек ресми орнатушыға рұқсат етеді. Оны Wy Store арқылы қайта орнату сол рөлді Wy Store-ға береді.</string>
+    <string name="details_take_over_hint">Жаңартулар иелігін беру үшін қолданбаны жойып, қайта орнату қажет. Жою алдында деректердің жоғалуы туралы ескерту көрсетіледі.</string>
     <string name="details_uninstall">Жою</string>
     <string name="details_share">Бөлісу</string>
     <string name="details_share_subject">RuStore-дағы %1$s</string>
@@ -766,8 +765,8 @@
     <string name="library_backup_restore_text">Бұрын тізім көшірмесін сақтаған болсаңыз, оны қалпына келтіріңіз: қабылданған қолданбалар мен GitHub репозиторийлері қайтады.</string>
     <string name="library_backup_restore">Файлдан қалпына келтіру</string>
     <string name="library_backup_later">Қазір емес</string>
-    <string name="github_adopt_installed">Wy Store-ға қабылдау</string>
-    <string name="github_adopt_installed_hint">Қолданба сол күйінде қалады, ал Wy Store осы репозиторийдің жаңа релиздерін үстінен орнатады.</string>
+    <string name="github_adopt_installed">Жаңартуларды тексеруді қосу</string>
+    <string name="github_adopt_installed_hint">Қолданба мен оның деректері сақталады. Wy Store осы репозиторийдің жаңа шығарылымдарын тексереді. Жаңартулар иелігі берілмейді.</string>
     <string name="msg_adopted">%1$s енді Wy Store арқылы жаңартылады</string>
     <string name="library_withdrawn_from_rustore">RuStore бұл пакетті беруді тоқтатты: соңғы тексеруде «табылмады» деп жауап берді. Мүмкін, ол алынып тасталған немесе уақытша қолжетімсіз; ол қайтпайынша жаңартулар болмайды.</string>
     <string name="installer_preinstalled_short">Алдын ала орнатылған</string>
@@ -830,4 +829,30 @@
     <string name="search_start_github_title">GitHub каталогынан іздеу</string>
     <string name="search_start_github_message">GitHub релиздеріндегі ашық кодты қолданбалар, енгізген сайын табылады.</string>
     <string name="updates_managed_empty_title">Әзірге қабылданған қолданба жоқ</string>
+    <string name="ownership_unsupported_android">Жаңартулар иелігін беру Android 14 нұсқасынан бастап қолжетімді. Бұл Android нұсқасында Wy Store қолданбаларды орнатып, жаңарта алады, бірақ олардың жаңартуларын өзіне бекіте алмайды.</string>
+    <string name="ownership_unsupported_installer">Микробағдарлама Wy Store дүкеніне өз орнату сеанстарын пайдалануға рұқсат бермейді, сондықтан жаңартулар иелігін беру мүмкін емес. Беру үшін қолданбаны жою қажет емес.</string>
+    <string name="queue_error_update_ownership_unconfirmed">Қолданба орнатылды, бірақ жаңартулар берілмеді: Android Wy Store дүкенін иесі ретінде растамады. Иесін және қолданбаның басқа профильдерде бар-жоғын тексеріңіз. Автоматты қайта орнату орындалмайды.</string>
+    <string name="ownership_transfer_confirmed">Жаңартулар Wy Store дүкеніне берілді: иесін Android растады.</string>
+    <string name="details_update_owner">Жаңартулар иесі: %1$s</string>
+    <string name="github_fact_update_owner">Жаңартулар иесі</string>
+    <string name="adopt_transfer_source">Жаңа орнату көзі:</string>
+    <string name="settings_google_play_checks_title">Google Play жаңартқаннан кейін</string>
+    <string name="settings_google_play_checks">Wy Store арқылы тексеруді жалғастыру</string>
+    <string name="settings_google_play_checks_hint">Wy Store әдепкіде Google Play жаңартқаннан кейін фондық жаңартуларды кідіртеді. Тексерулерді жалғастыру автоматты жаңарту параметрлері мен қолтаңбаны тексеруді сақтайды. Қосымша трафик жұмсалуы мүмкін; Google Play автоматты жаңартулары бөлек бапталады.</string>
+    <string name="google_play_pause_notification_title">Фондық жаңартулар тоқтатылды</string>
+    <string name="google_play_pause_notification_text">Android орнатушы ретінде Google Play көрсетеді: %1$s. Wy Store бұл қолданбалардың фондық жаңартуларын тоқтатты. Тексеруді жалғастыруды параметрлерден қосуға болады.</string>
+    <string name="google_play_pause_reason">Android орнатушы ретінде Google Play көрсетті. Wy Store фондық жаңартулары кідіртілді.</string>
+    <string name="google_play_continue_reason">Wy Store сіздің рұқсатыңызбен тексерулерді жалғастырады. Google Play автоматты жаңартулары бөлек бапталады.</string>
+    <string name="google_play_update_settings">Тексерулерді баптау</string>
+    <string name="github_adopt_google_paused_hint">Орнатылған қолданба сақталады. Қосылғаннан кейін Google Play себебінен фондық тексерулер кідіртіледі. Тексерулерді жалғастыруға параметрлерден рұқсат беруге болады.</string>
+    <string name="ownership_transfer_target_version">Қайта орнатқаннан кейін: %1$s</string>
+    <string name="ownership_transfer_release">Таңдалған шығарылым: %1$s</string>
+    <string name="ownership_transfer_file">APK файлы: %1$s</string>
+    <string name="ownership_transfer_downgrade">Жойылғаннан кейін ескілеу нұсқа орнатылады.</string>
+    <string name="ownership_transfer_older_release">Таңдалған шығарылым орнатылған нұсқадан ескі. Оның APK файлы қолданбаның ескілеу нұсқасын орнатуы мүмкін.</string>
+    <string name="ownership_transfer_data_loss">Қолданба жойылып, қайта орнатылады. Оның жергілікті деректері жоғалады; қайта кіру қажет болуы мүмкін.</string>
+    <string name="ownership_transfer_verification">Орнатқаннан кейін Wy Store Android оны жаңартулар иесі етіп тағайындағанын тексереді.</string>
+    <string name="ownership_transfer_more">Профильдер және жаңарту қорғанысы</string>
+    <string name="ownership_transfer_less">Түсіндірмені жасыру</string>
+    <string name="ownership_transfer_profile_limits">Көшірме басқа профильде, мысалы Shelter-де қалса, иелікті беру қолжетімсіз болуы мүмкін. Wy Store иелік етсе де, басқарылатын профильдерде жүйелік дүкен қолданбаны растаусыз жаңарта алады.</string>
 </resources>

@@ -1,5 +1,8 @@
 package dev.wystore.ui.navigation
 
+import dev.wystore.ui.components.OwnershipHandoverNotice
+import dev.wystore.ui.components.ownershipHandover
+import dev.wystore.data.OwnershipHandover
 import dev.wystore.ui.components.DialogButton
 import dev.wystore.ui.components.HubAlertDialog
 import dev.wystore.githubRowFor
@@ -9,6 +12,8 @@ import dev.wystore.background.UpdateCheckPolicy
 import dev.wystore.ui.components.SourceFailureDialog
 import dev.wystore.ui.components.UnverifiedSourceDialog
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,6 +78,8 @@ fun WyStoreRoot(
     var destination by rememberSaveable(stateSaver = WyStoreDestination.Saver) {
         mutableStateOf<WyStoreDestination>(WyStoreDestination.Home)
     }
+    val navigationRequest by viewModel.navigationRequest.collectAsState()
+    var settingsGooglePlayEntry by rememberSaveable { mutableStateOf(false) }
     // Tapping the search pill on Home looks like tapping a text field, so the real field on Search
     // takes focus and opens the keyboard once it arrives.
     var focusSearchOnOpen by rememberSaveable { mutableStateOf(false) }
@@ -84,8 +91,25 @@ fun WyStoreRoot(
     // would be too late: the effect that tracks the open page runs first and would have written
     // the current (empty) selection over the value that was just restored.
     val restoredPackage = remember { openedPackage }
+    LaunchedEffect(navigationRequest) {
+        if (navigationRequest == "google_play_settings") {
+            openedPackage = null
+            settingsGooglePlayEntry = true
+            destination = WyStoreDestination.Settings
+            viewModel.consumeNavigationRequest()
+        }
+        if (navigationRequest == "library") {
+            openedPackage = null
+            viewModel.clearDetails()
+            viewModel.closeGitHubApp()
+            destination = WyStoreDestination.Library
+            viewModel.consumeNavigationRequest()
+        }
+    }
     LaunchedEffect(Unit) {
-        restoredPackage?.takeIf { state.selected == null }?.let(viewModel::openDetails)
+        if (navigationRequest != "library") {
+            restoredPackage?.takeIf { state.selected == null }?.let(viewModel::openDetails)
+        }
     }
     // Only ever records an open page. Closing one clears the record explicitly, so a transient
     // null while details load cannot wipe it.
@@ -108,7 +132,9 @@ fun WyStoreRoot(
     var replaceDialog by remember { mutableStateOf<Pair<InstalledApp, StoreApp>?>(null) }
     // The same offer made from a stopped queue row, where the signature is what stands in the way.
     var queueReplaceDialog by remember { mutableStateOf<dev.wystore.InstallQueueItem?>(null) }
+    var preparingQueueReplacement by remember { mutableStateOf(false) }
     var githubInstallDialog by remember { mutableStateOf<GitHubAsset?>(null) }
+    var githubTransferPackage by remember { mutableStateOf<String?>(null) }
     val snackbars = remember { SnackbarHostState() }
     val context = LocalContext.current
     val allCategoriesTitle = stringResource(R.string.home_all_apps)
@@ -191,6 +217,7 @@ fun WyStoreRoot(
                             viewModel.clearDetails()
                         }
                         focusSearchOnOpen = false
+                        settingsGooglePlayEntry = false
                         destination = it
                     }
                 )
@@ -220,8 +247,15 @@ fun WyStoreRoot(
                     GitHubAppScreen(
                         state = githubApp,
                         installedApp = githubInstalled,
+                        managedApp = state.managed.firstOrNull { it.packageName == githubInstalled?.packageName },
+                        continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
+                        onOpenUpdateSettings = viewModel::openGooglePlayUpdateSettings,
                         onBack = viewModel::closeGitHubApp,
-                        onInstallAsset = { githubInstallDialog = it },
+                        onInstallAsset = { githubTransferPackage = null; githubInstallDialog = it },
+                        onTransferAsset = { asset ->
+                            githubTransferPackage = githubInstalled?.packageName
+                            githubInstallDialog = asset
+                        },
                         onOpenInstalled = viewModel::launchInstalledApp,
                         onRetry = viewModel::retryGitHubApp,
                         onOpenRelease = viewModel::openGitHubRelease,
@@ -249,6 +283,9 @@ fun WyStoreRoot(
                     AppDetailsScreen(
                         app = selected,
                         installed = selectedInstalled,
+                        managedApp = selectedManaged,
+                        continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
+                        onOpenUpdateSettings = viewModel::openGooglePlayUpdateSettings,
                         pendingUpdate = state.pendingUpdates.firstOrNull { it.packageName == selected.packageName },
                         rootAvailable = state.rootAvailable,
                         busy = state.detailsLoading,
@@ -437,6 +474,8 @@ fun WyStoreRoot(
                     )
                     WyStoreDestination.Library -> LibraryScreen(
                         modifier = screenModifier,
+                        onOpenUpdateSettings = viewModel::openGooglePlayUpdateSettings,
+                        continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
                         installed = state.installed,
                         managed = state.managed,
                         pendingUpdates = state.pendingUpdates,
@@ -467,6 +506,7 @@ fun WyStoreRoot(
                         onInstallPending = onInstallPending
                     )
                     WyStoreDestination.Settings -> SettingsScreen(
+                        openGooglePlayUpdates = settingsGooglePlayEntry,
                         modifier = screenModifier,
                         settings = state.settings,
                         rootAvailable = state.rootAvailable,
@@ -527,27 +567,28 @@ fun WyStoreRoot(
     }
 
     replaceDialog?.let { (installedApp, catalogApp) ->
+        val handover = ownershipHandover(context, installedApp)
         HubAlertDialog(
             onDismissRequest = { replaceDialog = null },
             title = { Text(stringResource(R.string.dialog_replace_title)) },
             text = {
-                Text(
-                    stringResource(
-                        R.string.dialog_replace_text,
-                        installedApp.label,
-                        catalogApp.versionName,
-                        installedApp.versionName
-                    )
+                dev.wystore.ui.components.OwnershipTransferDetails(
+                    installed = installedApp,
+                    targetVersion = catalogApp.versionName,
+                    targetVersionCode = catalogApp.versionCode,
+                    handover = handover,
+                    modifier = Modifier.verticalScroll(rememberScrollState())
                 )
             },
             confirmButton = {
-                DialogButton(primary = true, onClick = {
-                    // Recorded first: the uninstall dialog takes the screen and may outlive this
-                    // process, and the install has to survive that trip.
-                    viewModel.confirmReplaceInstall(installedApp.packageName, catalogApp.name)
-                    replaceDialog = null
-                    viewModel.uninstall(installedApp.packageName)
-                }) { Text(stringResource(R.string.dialog_replace_confirm)) }
+                if (handover == OwnershipHandover.REINSTALL) {
+                    DialogButton(primary = true, onClick = {
+                        if (viewModel.confirmReplaceInstall(installedApp.packageName, catalogApp.name)) {
+                            replaceDialog = null
+                            viewModel.uninstall(installedApp.packageName)
+                        }
+                    }) { Text(stringResource(R.string.dialog_replace_confirm)) }
+                }
             },
             dismissButton = {
                 DialogButton(onClick = { replaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
@@ -558,7 +599,7 @@ fun WyStoreRoot(
     queueReplaceDialog?.let { item ->
         val installedVersion = state.installed.firstOrNull { it.packageName == item.packageName }?.versionName
         HubAlertDialog(
-            onDismissRequest = { queueReplaceDialog = null },
+            onDismissRequest = { if (!preparingQueueReplacement) queueReplaceDialog = null },
             title = { Text(stringResource(R.string.dialog_replace_title)) },
             text = {
                 Text(
@@ -571,14 +612,19 @@ fun WyStoreRoot(
                 )
             },
             confirmButton = {
-                DialogButton(primary = true, onClick = {
-                    viewModel.confirmReplaceFromQueue(item)
-                    queueReplaceDialog = null
-                    viewModel.uninstall(item.packageName)
+                DialogButton(primary = true, enabled = !preparingQueueReplacement, onClick = {
+                    preparingQueueReplacement = true
+                    viewModel.confirmReplaceFromQueue(item) { prepared ->
+                        preparingQueueReplacement = false
+                        queueReplaceDialog = null
+                        if (prepared) viewModel.uninstall(item.packageName)
+                    }
                 }) { Text(stringResource(R.string.dialog_replace_confirm)) }
             },
             dismissButton = {
-                DialogButton(onClick = { queueReplaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
+                DialogButton(enabled = !preparingQueueReplacement, onClick = { queueReplaceDialog = null }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
             }
         )
     }
@@ -599,17 +645,37 @@ fun WyStoreRoot(
     }
 
     githubInstallDialog?.let { asset ->
+        val transferPackage = githubTransferPackage
+        val transferInstalled = state.installed.firstOrNull { it.packageName == transferPackage }
+        val handover = transferInstalled?.let { ownershipHandover(context, it) }
+        val transferRelease = dev.wystore.data.GitHubReleasePolicy.releaseForAsset(
+            state.githubApp.releases, asset.id, state.githubSelectedRelease
+        )
+        val closeDialog = { githubInstallDialog = null; githubTransferPackage = null }
         HubAlertDialog(
-            onDismissRequest = { githubInstallDialog = null },
-            title = { Text(stringResource(R.string.dialog_github_install_title)) },
-            text = { Text(stringResource(R.string.dialog_github_install_text, asset.name)) },
-            confirmButton = {
-                DialogButton(primary = true, onClick = {
-                    githubInstallDialog = null
-                    viewModel.installGitHubAsset(asset)
-                }) { Text(stringResource(R.string.common_install)) }
+            onDismissRequest = closeDialog,
+            title = { Text(stringResource(if (transferPackage != null) R.string.details_take_over else R.string.dialog_github_install_title)) },
+            text = {
+                if (transferInstalled != null && handover != null) {
+                    dev.wystore.ui.components.OwnershipTransferDetails(
+                        installed = transferInstalled, targetVersion = transferRelease?.tagName,
+                        handover = handover, assetName = asset.name, targetIsReleaseTag = true,
+                        modifier = Modifier.verticalScroll(rememberScrollState())
+                    )
+                }
+                else Text(stringResource(R.string.dialog_github_install_text, asset.name))
             },
-            dismissButton = { DialogButton(onClick = { githubInstallDialog = null }) { Text(stringResource(R.string.common_cancel)) } }
+            confirmButton = {
+                if (transferPackage == null || handover == OwnershipHandover.REINSTALL) {
+                    DialogButton(primary = true, onClick = {
+                        closeDialog()
+                        if (transferPackage != null) {
+                            if (viewModel.confirmGitHubTransfer(asset, transferPackage)) viewModel.uninstall(transferPackage)
+                        } else viewModel.installGitHubAsset(asset)
+                    }) { Text(stringResource(if (transferPackage != null) R.string.dialog_replace_confirm else R.string.common_install)) }
+                }
+            },
+            dismissButton = { DialogButton(onClick = closeDialog) { Text(stringResource(R.string.common_cancel)) } }
         )
     }
 }

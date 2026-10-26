@@ -81,9 +81,6 @@ import dev.wystore.data.StoreApp
 import dev.wystore.ui.components.UninstallIconButton
 import dev.wystore.data.SignatureCompatibility
 import dev.wystore.data.SignatureCompatibilityPolicy
-import dev.wystore.data.TakeoverObstacle
-import dev.wystore.data.TakeoverPath
-import dev.wystore.data.TakeoverPolicy
 import dev.wystore.updates.SessionInstallSupport
 import dev.wystore.updates.UnverifiedSourceStore
 import dev.wystore.ui.components.installerLabel
@@ -123,7 +120,10 @@ fun AppDetailsScreen(
     onShowInstallDialog: (String) -> Unit = {},
     onCancelInstall: (String) -> Unit = {},
     /** Carries a paused download on, by queue row. */
-    onResume: (String) -> Unit = {}
+    onResume: (String) -> Unit = {},
+    managedApp: dev.wystore.data.ManagedApp? = null,
+    continueChecksAfterGooglePlayUpdate: Boolean = false,
+    onOpenUpdateSettings: () -> Unit = {}
 ) {
     var screenshotPreview by remember { mutableStateOf<String?>(null) }
     var shownReviews by remember(app.packageName) { mutableIntStateOf(REVIEW_PAGE) }
@@ -359,9 +359,12 @@ fun AppDetailsScreen(
                             // dialog?" has an answer, and something can be done about it.
                             if (installed != null) {
                                 Text(
-                                    stringResource(R.string.details_owner, installerLabel(installed)),
+                                    stringResource(if (installed.updateOwnerPackageName.isNullOrBlank()) R.string.details_owner else R.string.details_update_owner, installerLabel(installed)),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                dev.wystore.ui.components.GooglePlayUpdateNotice(
+                                    managedApp, installed, continueChecksAfterGooglePlayUpdate, onOpenUpdateSettings
                                 )
                                 // Whether the handover can be an install at all, and if not, why.
                                 // The page used to ask only about the certificate and offer the
@@ -377,107 +380,33 @@ fun AppDetailsScreen(
                                             .acceptedArchiveDigest(app.packageName, app.signatureHint)
                                     }.getOrNull()
                                 }
-                                val takeover = TakeoverPolicy.decide(
-                                    installedVersionCode = installed.versionCode,
-                                    installedDigests = installed.signingDigests,
-                                    ownedByStore = installed.installerPackageName == context.packageName,
-                                    catalogVersionCode = app.versionCode,
-                                    catalogSignatureHint = app.signatureHint,
-                                    acceptedSourceDigest = acceptedDigest,
-                                    storeCanBecomeInstaller = !SessionInstallSupport(context).sessionsRefused()
-                                )
-                                when (takeover.path) {
-                                    // Nothing to hand over - but an app Wy Store already owns can
-                                    // still be signed with a key the catalogue does not carry, and
-                                    // then no update from here will ever install. The warning
-                                    // predates the handover button and does not belong to it.
-                                    TakeoverPath.NONE -> {
+                                val handover = dev.wystore.ui.components.ownershipHandover(context, installed)
+                                when (handover) {
+                                    dev.wystore.data.OwnershipHandover.OWNED -> {
                                         val compatibility = SignatureCompatibilityPolicy.evaluate(
                                             installedDigests = installed.signingDigests,
                                             declaredFingerprint = app.signatureHint,
                                             acceptedFingerprint = acceptedDigest
                                         )
-                                        when (compatibility) {
-                                            // The catalogue and the phone disagree, and that is
-                                            // visible here without fetching anything - so this is
-                                            // where it can be answered, rather than after a
-                                            // download that the check will not even start.
-                                            SignatureCompatibility.MISMATCH -> {
-                                                Text(
-                                                    stringResource(R.string.unverified_source_catalogue),
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                                // Only where there is nothing else to press. With
-                                                // a newer version in the catalogue the page already
-                                                // offers Update, and that fetches the same file and
-                                                // asks the same question at the end of it - two
-                                                // buttons doing one thing is just a choice nobody
-                                                // asked for. Without it the app is stuck: the check
-                                                // skips it, and no other control here acts on it.
-                                                if (!canUpdate) {
-                                                    HubTextAction(
-                                                        onClick = { onConfirmUnverifiedSource(app.packageName) },
-                                                        enabled = !busy,
-                                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                                                    ) { Text(stringResource(R.string.unverified_source_force)) }
-                                                }
-                                            }
-                                            // Not an error on this phone, and not red: the source
-                                            // is the one contradicting itself.
-                                            SignatureCompatibility.SOURCE_UNCONFIRMED -> Text(
-                                                stringResource(R.string.details_source_unconfirmed),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                            SignatureCompatibility.COMPATIBLE,
-                                            SignatureCompatibility.UNKNOWN -> Unit
+                                        if (compatibility == SignatureCompatibility.MISMATCH) {
+                                            Text(stringResource(R.string.unverified_source_catalogue),
+                                                style = MaterialTheme.typography.bodySmall)
+                                            if (!canUpdate) HubTextAction(
+                                                onClick = { onConfirmUnverifiedSource(app.packageName) }, enabled = !busy
+                                            ) { Text(stringResource(R.string.unverified_source_force)) }
+                                        } else if (compatibility == SignatureCompatibility.SOURCE_UNCONFIRMED) {
+                                            Text(stringResource(R.string.details_source_unconfirmed),
+                                                style = MaterialTheme.typography.bodySmall)
                                         }
                                     }
-                                    TakeoverPath.IN_PLACE -> {
-                                        Text(
-                                            stringResource(R.string.details_take_over_hint),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        // Said before it happens: an app Wy Store did not install
-                                        // stops on Android's dialog once, and people read that
-                                        // dialog as something having gone wrong rather than as the
-                                        // handover.
-                                        Text(
-                                            stringResource(R.string.details_first_update_manual),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        HubTextAction(
-                                            onClick = runInstall,
-                                            enabled = !busy,
-                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                                        ) { Text(stringResource(R.string.details_take_over)) }
+                                    dev.wystore.data.OwnershipHandover.REINSTALL -> {
+                                        Text(stringResource(R.string.details_take_over_hint),
+                                            style = MaterialTheme.typography.bodySmall)
+                                        HubTextAction(onClick = onReplace, enabled = !busy) {
+                                            Text(stringResource(R.string.details_take_over))
+                                        }
                                     }
-                                    TakeoverPath.REPLACE -> {
-                                        Text(
-                                            stringResource(
-                                                if (takeover.obstacle == TakeoverObstacle.SIGNATURE) {
-                                                    R.string.details_signature_incompatible
-                                                } else {
-                                                    R.string.details_catalog_older_blocks
-                                                }
-                                            ),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.error
-                                        )
-                                        // The same offer the library makes for a Google-installed
-                                        // app, made wherever the install cannot happen in place.
-                                        HubTextAction(
-                                            onClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                                                onReplace()
-                                            },
-                                            enabled = !busy,
-                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
-                                        ) { Text(stringResource(R.string.details_replace)) }
-                                    }
+                                    else -> dev.wystore.ui.components.OwnershipHandoverNotice(handover)
                                 }
                             }
                         }
@@ -489,7 +418,8 @@ fun AppDetailsScreen(
             // stays in the queue until cleanup, and rendering it left a transfer card sitting on the
             // page of an app that had been up to date for days.
             queueItem
-                ?.takeIf { it.status.isInFlight || it.status == InstallQueueStatus.FAILED }
+                ?.takeIf { it.status.isInFlight || it.status == InstallQueueStatus.FAILED ||
+                    it.errorCode == dev.wystore.updates.model.QueueErrorCode.UPDATE_OWNERSHIP_UNCONFIRMED }
                 ?.let {
                     item {
                         OperationProgress(

@@ -69,9 +69,14 @@ import dev.wystore.data.GitHubAsset
 import androidx.compose.foundation.lazy.rememberLazyListState
 import dev.wystore.data.GitHubCatalog
 import dev.wystore.data.GitHubCatalogEntry
+import dev.wystore.data.OwnershipHandover
 import dev.wystore.ui.components.LocalBottomBarInset
 import dev.wystore.ui.components.ScreenPadding
 import dev.wystore.ui.components.PackageUiStateReducer
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import dev.wystore.ui.components.OwnershipHandoverNotice
+import dev.wystore.ui.components.ownershipHandover
 import dev.wystore.ui.navigation.SharedRootDialogs
 import dev.wystore.ui.settings.SettingsScreen
 import dev.wystore.ui.theme.ThemePolicy
@@ -110,6 +115,22 @@ fun TvApp(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     var destination by rememberSaveable { mutableStateOf(TvDestination.HOME) }
+    var settingsGooglePlayEntry by rememberSaveable { mutableStateOf(false) }
+    val navigationRequest by viewModel.navigationRequest.collectAsState()
+    LaunchedEffect(navigationRequest) {
+        if (navigationRequest == "library") {
+            viewModel.clearDetails()
+            viewModel.closeGitHubApp()
+            destination = TvDestination.MY_APPS
+            viewModel.consumeNavigationRequest()
+        } else if (navigationRequest == "google_play_settings") {
+            viewModel.clearDetails()
+            viewModel.closeGitHubApp()
+            settingsGooglePlayEntry = true
+            destination = TvDestination.SETTINGS
+            viewModel.consumeNavigationRequest()
+        }
+    }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var voiceRequested by remember { mutableStateOf(false) }
     var sourceFailureHelp by rememberSaveable { mutableStateOf(false) }
@@ -140,11 +161,19 @@ fun TvApp(
         if (githubEnabled) GitHubCatalog.search(searchQuery, state.githubRepositories) else emptyList()
     }
     var githubInstallDialog by remember { mutableStateOf<GitHubAsset?>(null) }
+    var githubTransferPackage by remember { mutableStateOf<String?>(null) }
     val openGitHub: (GitHubCatalogEntry) -> Unit = { entry ->
         lastOpened = entry.tvKey()
         viewModel.openGitHubApp(entry)
     }
     val githubPage = state.githubApp.entry
+    val githubInstalledApp = githubPage?.let { page ->
+        state.installed.firstOrNull { installed ->
+            state.managed.any { managed ->
+                managed.githubRepository == page.repository && managed.packageName == installed.packageName
+            } || page.packageName == installed.packageName
+        }
+    }
     val homeListState = rememberLazyListState()
     val homeRowStates = remember { mutableMapOf<String, androidx.compose.foundation.lazy.LazyListState>() }
     var fullScreen by remember { mutableStateOf(false) }
@@ -280,6 +309,7 @@ fun TvApp(
                                             // tab's screen; coming up onto this one keeps it.
                                             if (destination != item) {
                                                 closePages()
+                                                settingsGooglePlayEntry = false
                                                 destination = item
                                             }
                                         },
@@ -288,6 +318,7 @@ fun TvApp(
                                             .focusRequester(tabFocus.getValue(item))
                                             .tvPointerClick {
                                                 closePages()
+                                                settingsGooglePlayEntry = false
                                                 destination = item
                                                 focusManager.moveFocus(FocusDirection.Down)
                                             }
@@ -313,12 +344,23 @@ fun TvApp(
                                 state = state.githubApp,
                                 // Recognised as the phone page recognises it: through the record of what Wy Store
                                 // installed, or by the package a curated entry states.
-                                installedApp = state.installed.firstOrNull { installed ->
-                                    state.managed.any { managed ->
-                                        managed.githubRepository == githubPage.repository && managed.packageName == installed.packageName
-                                    } || githubPage.packageName == installed.packageName
+                                installedApp = githubInstalledApp,
+                                managedApp = state.managed.firstOrNull { it.packageName == githubInstalledApp?.packageName },
+                                continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
+                                onOpenUpdateSettings = viewModel::openGooglePlayUpdateSettings,
+                                onAdoptInstalled = {
+                                    githubInstalledApp?.let { viewModel.adoptFromRepository(it, githubPage.repository) }
                                 },
-                                onInstallAsset = { githubInstallDialog = it },
+                                onInstallAsset = {
+                                    githubTransferPackage = null
+                                    githubInstallDialog = it
+                                },
+                                onTransferAsset = { asset ->
+                                    githubInstalledApp?.packageName?.let { packageName ->
+                                        githubTransferPackage = packageName
+                                        githubInstallDialog = asset
+                                    }
+                                },
                                 onOpenInstalled = viewModel::launchInstalledApp,
                                 onUninstall = viewModel::uninstall,
                                 onRetry = viewModel::retryGitHubApp
@@ -335,6 +377,9 @@ fun TvApp(
                                     resources = context.resources
                                 ),
                                 installed = state.installed.firstOrNull { it.packageName == selected.packageName },
+                                managedApp = state.managed.firstOrNull { it.packageName == selected.packageName },
+                                continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
+                                onOpenUpdateSettings = viewModel::openGooglePlayUpdateSettings,
                                 loading = state.detailsLoading,
                                 // Marked the way its card was: a phone app opened from among TV apps.
                                 forPhone = catalogMode == TvCatalog.BOTH && catalog.apps.none { it.packageName == selected.packageName },
@@ -380,6 +425,8 @@ fun TvApp(
                             )
                             TvDestination.MY_APPS -> TvMyAppsScreen(
                                 packages = packages,
+                                continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
+                                onOpenUpdateSettings = viewModel::openGooglePlayUpdateSettings,
                                 packageIcons = state.packageIcons,
                                 checking = state.updateCheckTask?.active == true,
                                 firstFocus = contentFocus,
@@ -412,6 +459,7 @@ fun TvApp(
                                 SettingsScreen(
                                     modifier = Modifier.padding(horizontal = TvOverscanHorizontal - ScreenPadding),
                                     settings = state.settings,
+                                    openGooglePlayUpdates = settingsGooglePlayEntry,
                                     rootAvailable = state.rootAvailable,
                                     managedCount = state.managed.size,
                                     githubCount = state.githubRepositories.size,
@@ -435,18 +483,54 @@ fun TvApp(
             }
 
             githubInstallDialog?.let { asset ->
+                val transferPackage = githubTransferPackage
+                val transferInstalled = state.installed.firstOrNull { it.packageName == transferPackage }
+                val handover = transferInstalled?.let { ownershipHandover(context, it) }
+                val transferRelease = dev.wystore.data.GitHubReleasePolicy.releaseForAsset(
+            state.githubApp.releases, asset.id, state.githubSelectedRelease
+        )
+                val closeDialog = {
+                    githubInstallDialog = null
+                    githubTransferPackage = null
+                }
                 androidx.compose.material3.AlertDialog(
-                    onDismissRequest = { githubInstallDialog = null },
-                    title = { androidx.compose.material3.Text(stringResource(R.string.dialog_github_install_title)) },
-                    text = { androidx.compose.material3.Text(stringResource(R.string.dialog_github_install_text, asset.name)) },
+                    onDismissRequest = closeDialog,
+                    title = {
+                        androidx.compose.material3.Text(stringResource(
+                            if (transferPackage != null) R.string.details_take_over else R.string.dialog_github_install_title
+                        ))
+                    },
+                    text = {
+                        if (transferInstalled != null && handover != null) {
+                            dev.wystore.ui.components.OwnershipTransferDetails(
+                                installed = transferInstalled, targetVersion = transferRelease?.tagName,
+                                handover = handover, assetName = asset.name, targetIsReleaseTag = true,
+                                modifier = Modifier.verticalScroll(rememberScrollState())
+                            )
+                        } else {
+                            androidx.compose.material3.Text(stringResource(R.string.dialog_github_install_text, asset.name))
+                        }
+                    },
                     confirmButton = {
-                        androidx.compose.material3.TextButton(onClick = {
-                            githubInstallDialog = null
-                            viewModel.installGitHubAsset(asset)
-                        }) { androidx.compose.material3.Text(stringResource(R.string.common_install)) }
+                        if (transferPackage == null || handover == OwnershipHandover.REINSTALL) {
+                            androidx.compose.material3.TextButton(onClick = {
+                                closeDialog()
+                                if (transferPackage != null) {
+                                    if (viewModel.confirmGitHubTransfer(asset, transferPackage)) {
+                                        viewModel.uninstall(transferPackage)
+                                    }
+                                } else {
+                                    viewModel.installGitHubAsset(asset)
+                                }
+                            }) {
+                                androidx.compose.material3.Text(stringResource(
+                                    if (transferPackage != null) R.string.dialog_replace_confirm else R.string.common_install
+                                ))
+                            }
+                        }
                     },
                     dismissButton = {
-                        androidx.compose.material3.TextButton(onClick = { githubInstallDialog = null }) {
+                        androidx.compose.material3.TextButton(onClick = closeDialog) {
                             androidx.compose.material3.Text(stringResource(R.string.common_cancel))
                         }
                     }

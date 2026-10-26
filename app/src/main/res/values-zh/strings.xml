@@ -102,7 +102,7 @@
     <string name="dialog_install_existing_title">更新已安装的应用</string>
     <string name="dialog_install_existing_text">该应用已从其他来源安装。安装后由 Wy Store 管理它的更新。</string>
     <string name="adopt_google_title">接管该应用</string>
-    <string name="adopt_google_text">%1$s 来自 Google，无法就地更新——Google 用自己的密钥签名自己的构建。要接管它，需要先卸载再重新安装。应用数据通常会丢失。</string>
+    <string name="adopt_google_text">%1$s 通过 Google Play 获取更新。请选择卸载后 Wy Store 将从何处安装应用。</string>
     <string name="adopt_google_searching">正在目录中查找该应用…</string>
     <string name="adopt_google_not_found">RuStore 目录中没有这个应用，无法接管。</string>
     <string name="adopt_google_exact">完全相同的包名，就是它：</string>
@@ -113,8 +113,8 @@
     <string name="dialog_replace_title">替换已安装的应用</string>
     <string name="dialog_replace_text">%1$s 将被卸载并从目录重新安装：用版本 %2$s 替换 %3$s。应用数据通常会丢失，多半需要重新登录。两个步骤 Android 都会请你确认。</string>
     <string name="dialog_replace_confirm">卸载并安装</string>
-    <string name="dialog_force_title">代替 Google Play 更新</string>
-    <string name="dialog_force_text">%1$s 来自 Google Play，Wy Store 把这类应用留给它。开启后，只要开发者签名一致，后台检查就会改用 Wy Store 更新它。</string>
+    <string name="dialog_force_title">允许通过 Wy Store 更新</string>
+    <string name="dialog_force_text">Wy Store 会检查 %1$s 的更新，并在数字签名匹配时提供安装。此设置不会移交更新所有权，也不会关闭 Google Play 自动更新。</string>
     <string name="dialog_force_confirm">开启</string>
     <string name="dialog_uninstall_confirm">卸载</string>
     <string name="dialog_github_install_title">从 GitHub 安装 APK</string>
@@ -208,7 +208,7 @@
     <string name="library_search_clear">清除搜索</string>
     <string name="library_expand_all">全部展开</string>
     <string name="library_collapse_all">全部收起</string>
-    <string name="library_intro">已接管的应用由 Wy Store 更新，其余的在下方。标签显示应用由谁安装。</string>
+    <string name="library_intro">Wy Store 检查已接管应用的更新。徽标显示更新所有者；所有权未知时显示安装程序。</string>
     <string name="library_search_label">搜索已安装的应用</string>
     <string name="library_search_placeholder">名称或包名</string>
     <string name="library_sort_title">排序</string>
@@ -222,7 +222,7 @@
     <string name="library_update_available">发现更新——尚未下载</string>
     <string name="library_update_available_version">发现更新：%1$s——尚未下载</string>
     <string name="library_auto_update">自动更新</string>
-    <string name="library_force_wystore">代替 Google Play 更新</string>
+    <string name="library_force_wystore">允许通过 Wy Store 更新</string>
     <string name="library_remove">移除</string>
     <string name="library_check_progress">已检查 %1$d / %2$d · 发现更新：%3$d</string>
 
@@ -653,8 +653,7 @@
     <string name="details_replace">卸载并通过 Wy Store 重新安装</string>
     <string name="details_signature_incompatible">已安装的副本不是用 RuStore 为该应用声明的证书签名的，所以这里的更新无法覆盖安装：Android 会拒绝。只能先卸载再重新安装，而这通常会丢失应用数据。从别处安装的应用是这个样子，过期的目录条目也是这个样子。</string>
     <string name="details_source_unconfirmed">RuStore 没有确认该应用：它声明了一个签名指纹，却提供用另一个密钥签名的文件。已安装的副本就是 RuStore 提供的那个文件，所以这里的更新可以覆盖安装——不一致的是目录条目，不是手机上的应用。</string>
-    <string name="details_first_update_manual">通过 Wy Store 的第一次更新需要手动确认。之后 Wy Store 成为记录在案的安装程序，就能自己更新该应用了。</string>
-    <string name="details_take_over_hint">Android 只允许记录在案的安装程序静默更新应用。通过 Wy Store 重新安装，这个身份就归 Wy Store。</string>
+    <string name="details_take_over_hint">移交更新所有权需要卸载并重新安装应用。卸载前会显示数据丢失警告。</string>
     <string name="details_uninstall">卸载</string>
     <string name="details_share">分享</string>
     <string name="details_share_subject">RuStore 上的 %1$s</string>
@@ -766,8 +765,8 @@
     <string name="library_backup_restore_text">如果你之前保存过列表副本，请恢复它，已接管的应用和 GitHub 仓库都会回来。</string>
     <string name="library_backup_restore">从文件恢复</string>
     <string name="library_backup_later">暂不</string>
-    <string name="github_adopt_installed">由 Wy Store 接管</string>
-    <string name="github_adopt_installed_hint">应用保持不变，Wy Store 会用此仓库的新版本覆盖更新。</string>
+    <string name="github_adopt_installed">跟踪更新</string>
+    <string name="github_adopt_installed_hint">应用及其数据将保留。Wy Store 会检查此仓库的新版本。此操作不会移交更新所有权。</string>
     <string name="msg_adopted">%1$s 现由 Wy Store 负责更新</string>
     <string name="library_withdrawn_from_rustore">RuStore 已不再提供此软件包：上次检查返回“未找到”。它可能已被下架或暂时不可用；在恢复之前不会有更新。</string>
     <string name="installer_preinstalled_short">预装</string>
@@ -830,4 +829,30 @@
     <string name="search_start_github_title">搜索 GitHub 目录</string>
     <string name="search_start_github_message">来自 GitHub 发布的开源应用，输入时即时匹配。</string>
     <string name="updates_managed_empty_title">还没有已接管的应用</string>
+    <string name="ownership_unsupported_android">移交更新所有权需要 Android 14 或更高版本。在此 Android 版本上，Wy Store 可以安装和更新应用，但无法取得更新所有权。</string>
+    <string name="ownership_unsupported_installer">此固件不允许 Wy Store 使用自己的安装会话，因此无法移交更新所有权。无需为移交而卸载应用。</string>
+    <string name="queue_error_update_ownership_unconfirmed">应用已安装，但更新所有权未移交：Android 未确认 Wy Store 为所有者。请检查所有者以及其他配置文件中是否存在该应用。不会自动重新安装。</string>
+    <string name="ownership_transfer_confirmed">更新已移交给 Wy Store：Android 已确认所有权。</string>
+    <string name="details_update_owner">更新所有者：%1$s</string>
+    <string name="github_fact_update_owner">更新所有者</string>
+    <string name="adopt_transfer_source">新安装的来源：</string>
+    <string name="settings_google_play_checks_title">Google Play 更新后</string>
+    <string name="settings_google_play_checks">继续通过 Wy Store 检查</string>
+    <string name="settings_google_play_checks_hint">默认情况下，Wy Store 会在 Google Play 更新后暂停后台更新。继续检查仍遵循自动更新设置并验证签名，可能使用额外流量；Google Play 自动更新需单独设置。</string>
+    <string name="google_play_pause_notification_title">后台更新已暂停</string>
+    <string name="google_play_pause_notification_text">Android 将 Google Play 记录为以下应用的安装程序：%1$s。Wy Store 已暂停这些应用的后台更新。你可以在设置中开启继续检查。</string>
+    <string name="google_play_pause_reason">Android 将 Google Play 记录为安装程序。Wy Store 后台更新已暂停。</string>
+    <string name="google_play_continue_reason">Wy Store 经您允许继续检查。Google Play 自动更新需单独设置。</string>
+    <string name="google_play_update_settings">更新检查设置</string>
+    <string name="github_adopt_google_paused_hint">将保留已安装的应用。关联后，由于 Google Play 被记录为安装程序，后台检查将暂停。您可以在设置中允许继续检查。</string>
+    <string name="ownership_transfer_target_version">重新安装后：%1$s</string>
+    <string name="ownership_transfer_release">所选发行版：%1$s</string>
+    <string name="ownership_transfer_file">APK 文件：%1$s</string>
+    <string name="ownership_transfer_downgrade">卸载后将安装较旧版本。</string>
+    <string name="ownership_transfer_older_release">所选发行版比已安装版本旧。其 APK 可能会安装较旧的应用版本。</string>
+    <string name="ownership_transfer_data_loss">应用将被卸载并重新安装。本地数据将丢失，可能需要重新登录。</string>
+    <string name="ownership_transfer_verification">安装后，Wy Store 将检查 Android 是否已将其指定为更新所有者。</string>
+    <string name="ownership_transfer_more">配置文件与更新保护</string>
+    <string name="ownership_transfer_less">收起说明</string>
+    <string name="ownership_transfer_profile_limits">如果另一个配置文件（如 Shelter）中仍有副本，可能无法转移更新所有权。即使 Wy Store 拥有更新权限，系统应用商店仍可能在受管理配置文件中无需确认即可更新应用。</string>
 </resources>

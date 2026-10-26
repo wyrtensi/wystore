@@ -8,6 +8,8 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import dev.wystore.updates.QueueSlots
+import dev.wystore.updates.QueueRequestRetention
+import dev.wystore.updates.QueueOrigin
 import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.flow.Flow
 
@@ -81,13 +83,34 @@ abstract class UpdateQueueDao {
     abstract suspend fun getActive(activeStates: List<String>): List<UpdateQueueEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insertOrReplace(entity: UpdateQueueEntity)
+    protected abstract suspend fun insertOrReplaceRow(entity: UpdateQueueEntity)
+
+    @Transaction
+    open suspend fun insertOrReplace(entity: UpdateQueueEntity) {
+        val current = getById(entity.id)
+        val conflict = find(entity.packageName, entity.versionCode, entity.source)
+        insertOrReplaceRow(QueueRequestRetention.merge(entity, current, conflict))
+    }
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     abstract suspend fun insert(entity: UpdateQueueEntity)
 
     @Update
-    abstract suspend fun update(entity: UpdateQueueEntity)
+    protected abstract suspend fun updateRow(entity: UpdateQueueEntity)
+
+    /** Stale metadata must never erase a newer explicit install or handover request. */
+    @Transaction
+    open suspend fun update(entity: UpdateQueueEntity) {
+        val current = getById(entity.id)
+        updateRow(QueueRequestRetention.merge(entity, current))
+    }
+
+    @Query("UPDATE update_queue SET requiresUpdateOwnership = 1, priority = MAX(priority, :priority), updatedAt = :now WHERE id = :id")
+    abstract suspend fun requireUpdateOwnership(
+        id: String,
+        now: Long,
+        priority: Int = QueueOrigin.USER_REQUESTED_PRIORITY
+    ): Int
 
     @Delete
     abstract suspend fun delete(entity: UpdateQueueEntity)
@@ -203,9 +226,11 @@ abstract class UpdateQueueDao {
         require(artifacts.isNotEmpty()) { "Verified artifacts must not be empty" }
         val current = getById(queueId) ?: throw IllegalArgumentException("Queue item not found: $queueId")
         val obsolete = mutableListOf<String>()
+        var requiresUpdateOwnership = current.requiresUpdateOwnership
         // The row was created before the download with a placeholder version code, so adopting the
         // real one can collide with the unique (packageName, versionCode, source) index.
         for (conflict in findConflicting(packageName, versionCode, current.source, queueId)) {
+            requiresUpdateOwnership = requiresUpdateOwnership || conflict.requiresUpdateOwnership
             obsolete += getArtifactsForQueue(conflict.id).map { it.path }
             deleteById(conflict.id)
         }
@@ -221,6 +246,7 @@ abstract class UpdateQueueDao {
                 versionName = versionName,
                 versionCode = versionCode,
                 signingDigests = signingDigests,
+                requiresUpdateOwnership = requiresUpdateOwnership,
                 updatedAt = System.currentTimeMillis()
             )
         )

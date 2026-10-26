@@ -133,7 +133,9 @@ fun LibraryScreen(
     onInstallPending: (String) -> Unit,
     /** The queue, so a row can say a check found something that is not downloaded yet. */
     queue: List<InstallQueueItem> = emptyList(),
-    onDownloadUpdate: (String) -> Unit = {}
+    onDownloadUpdate: (String) -> Unit = {},
+    continueChecksAfterGooglePlayUpdate: Boolean = false,
+    onOpenUpdateSettings: () -> Unit = {}
 ) {
     val managedByPackage = remember(managed) { managed.associateBy { it.packageName } }
     val pendingByPackage = remember(pendingUpdates) { pendingUpdates.associateBy { it.packageName } }
@@ -446,6 +448,8 @@ fun LibraryScreen(
                         onToggleSelected = toggle,
                         onWhatsNew = onWhatsNew,
                         position = groupPosition(index, group.apps.size),
+                        continueChecksAfterGooglePlayUpdate = continueChecksAfterGooglePlayUpdate,
+                        onOpenUpdateSettings = onOpenUpdateSettings,
                         // A long press on an app not accepted yet starts choosing several at once.
                         onStartSelection = if (managedApp == null && !selecting && adoptionBatch == null) {
                             {

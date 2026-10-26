@@ -26,22 +26,35 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class WyStoreApplication : Application(), ImageLoaderFactory {
 
     /** Lives for the process; used only to keep the synchronous settings cache warm. */
     private val applicationScope = CoroutineScope(SupervisorJob())
+    private val pendingReinstallMutex = Mutex()
 
     /** Registered for the life of the process, so no package change is missed. */
     private val packageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             invalidateInstalledApps()
-            if (intent?.action == Intent.ACTION_PACKAGE_FULLY_REMOVED) {
+            observeGooglePlayUpdates()
+            if (intent?.action == Intent.ACTION_PACKAGE_FULLY_REMOVED ||
+                (intent?.action == Intent.ACTION_PACKAGE_REMOVED && !intent.getBooleanExtra(Intent.EXTRA_REPLACING, false))) {
                 intent.data?.schemeSpecificPart?.let(::finishPendingReinstall)
             }
             if (intent?.action == Intent.ACTION_PACKAGE_ADDED || intent?.action == Intent.ACTION_PACKAGE_REPLACED) {
                 intent.data?.schemeSpecificPart?.let(::discardOutdatedDownloads)
             }
+        }
+    }
+
+    private fun observeGooglePlayUpdates() {
+        applicationScope.launch(Dispatchers.IO) {
+            val repository = StoreRepository(this@WyStoreApplication)
+            dev.wystore.data.GooglePlayUpdateMonitor(this@WyStoreApplication)
+                .refresh(repository.installedApps())
         }
     }
 
@@ -58,29 +71,47 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
         // onReceive is the main thread, and both reads below go to disk - the settings one can
         // even block on a cold cache when the broadcast is what started the process.
         applicationScope.launch(Dispatchers.IO) {
-            val store = PendingReinstallStore(this@WyStoreApplication)
-            val pending = store.read() ?: return@launch
-            if (pending.removedPackageName != removedPackage) return@launch
-            store.clear()
-            // A handover the user walked away from must not install something days later.
-            if (!GoogleAdoptionPolicy.isPendingFresh(pending.startedAt, System.currentTimeMillis())) {
-                return@launch
+            pendingReinstallMutex.withLock {
+                val store = PendingReinstallStore(this@WyStoreApplication)
+                val pending = store.read(removedPackage) ?: return@withLock
+                if (pending.removedPackageName != removedPackage) return@withLock
+                if (!GoogleAdoptionPolicy.isPendingFresh(pending.startedAt, System.currentTimeMillis())) {
+                    store.clear(removedPackage)
+                    return@withLock
+                }
+                try {
+                    val queued = if (pending.queueId != null) {
+                        val queue = dev.wystore.updates.QueueRepository.getInstance(this@WyStoreApplication)
+                        checkNotNull(queue.getById(pending.queueId)) { "Replacement queue item is missing" }
+                        if (pending.requiresUpdateOwnership) queue.requireUpdateOwnership(pending.queueId)
+                        QueueCoordinator(this@WyStoreApplication).retry(pending.queueId)
+                        pending.queueId
+                    } else if (pending.githubRepository != null) {
+                        val asset = checkNotNull(pending.githubAsset) { "Replacement GitHub asset is missing" }
+                        dev.wystore.updates.GitHubInstallScheduler.enqueuePrepared(
+                            context = this@WyStoreApplication, asset = asset,
+                            repository = pending.githubRepository, releaseId = pending.githubReleaseId,
+                            requiresUpdateOwnership = pending.requiresUpdateOwnership,
+                            expectedPackageName = pending.installPackageName
+                        )
+                    } else {
+                        ManualInstallScheduler.enqueuePrepared(
+                            context = this@WyStoreApplication, packageName = pending.installPackageName,
+                            label = pending.label,
+                            settings = SettingsRepository(this@WyStoreApplication).currentSettings().toStoreSettings(),
+                            requiresUpdateOwnership = pending.requiresUpdateOwnership
+                        )
+                    }
+                    // Both removal broadcasts can arrive. Clear only once the replacement has a
+                    // durable row, and never erase a newer handover recorded while it was queued.
+                    if (queued != null && store.read(removedPackage) == pending) store.clear(removedPackage)
+                } catch (error: Exception) {
+                    // Keep the request for startup recovery; never substitute a different source.
+                    dev.wystore.data.EventLog(this@WyStoreApplication).record(
+                        pending.installPackageName, "HANDOVER_QUEUE_FAILED", error.message
+                    )
+                }
             }
-            // A handover started from a stopped queue row goes back through that row: it already
-            // holds the source, and for a GitHub release that is a repository, a release id and an
-            // asset pattern - none of which a package name can stand in for.
-            val queueId = pending.queueId
-            if (queueId != null) {
-                runCatching {
-                    QueueCoordinator(this@WyStoreApplication).retry(queueId)
-                }.onSuccess { return@launch }
-            }
-            ManualInstallScheduler.enqueue(
-                context = this@WyStoreApplication,
-                packageName = pending.installPackageName,
-                label = pending.label,
-                settings = SettingsRepository(this@WyStoreApplication).currentSettings().toStoreSettings()
-            )
         }
     }
 
@@ -102,6 +133,7 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+        observeGooglePlayUpdates()
         // Workers and Activity startup read settings synchronously; warming the cache here keeps
         // those reads off disk regardless of which component starts the process.
         // Invalidating the installed-app cache belongs to the process, not to a screen. The
@@ -136,10 +168,11 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
         // replacement was never installed - after the user had already lost the app and its data.
         // A handover still on disk whose app is gone is finished here instead.
         applicationScope.launch(Dispatchers.IO) {
-            val pending = runCatching { PendingReinstallStore(this@WyStoreApplication).read() }.getOrNull()
-                ?: return@launch
-            val stillInstalled = dev.wystore.data.InstalledPackageLookup.isInstalled(packageManager, pending.removedPackageName)
-            if (!stillInstalled) finishPendingReinstall(pending.removedPackageName)
+            val pending = PendingReinstallStore(this@WyStoreApplication).readAll()
+            for (request in pending) {
+                val stillInstalled = dev.wystore.data.InstalledPackageLookup.isInstalled(packageManager, request.removedPackageName)
+                if (!stillInstalled) finishPendingReinstall(request.removedPackageName)
+            }
         }
 
         // Android clears the installer of record on every app Wy Store installed the moment Wy

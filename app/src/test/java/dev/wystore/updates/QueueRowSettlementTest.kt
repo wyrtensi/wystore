@@ -1,11 +1,24 @@
 package dev.wystore.updates
 
 import dev.wystore.updates.model.QueueState
+import dev.wystore.updates.model.QueueErrorCode
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class QueueRowSettlementTest {
+
+    @Test
+    fun anUnconfirmedHandoverRemainsVisibleAfterTheAppIsInstalled() {
+        assertFalse(
+            QueueRowSettlement.isSettled(
+                QueueState.INSTALLED.name,
+                20,
+                20,
+                errorCode = QueueErrorCode.UPDATE_OWNERSHIP_UNCONFIRMED.name
+            )
+        )
+    }
 
     @Test
     fun theInstalledVersionAndOlderAreSettled() {

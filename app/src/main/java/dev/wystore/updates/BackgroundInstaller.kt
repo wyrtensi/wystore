@@ -32,7 +32,7 @@ class BackgroundInstaller(context: Context) {
         // Cancel would drop a session nobody is asked about. See UserConfirmedInstaller.install.
         ConfirmationDialogs.closed(queueId)
         val settings = storeRepository.settings()
-        if (!settings.autoInstallUpdates) return@withContext false
+        if (!mayInstallAutomatically(queueId, packageName)) return@withContext false
         if (!SilentUpdatePolicy.allows(
                 enabled = settings.silentUpdatesEnabled,
                 refusedOnThisFirmware = SilentInstallRefusal(appContext).refusedOnThisFirmware(),
@@ -78,6 +78,13 @@ class BackgroundInstaller(context: Context) {
         }
 
         try {
+            // Preparing the session copies the APKs and may take long enough for Play or the
+            // user's settings to change. Ask again immediately before committing to Android.
+            if (!mayInstallAutomatically(queueId, packageName)) {
+                sessionWriter.abandon(queueId)
+                queueRepository.resetReadyToInstall(queueId)
+                return@withContext false
+            }
             sessionWriter.commitSession(prepared)
             // Whether it actually installs is decided by InstallResultReceiver. If Android asks
             // for confirmation after all, that receiver puts the row back where the user can
@@ -93,6 +100,17 @@ class BackgroundInstaller(context: Context) {
             )
             false
         }
+    }
+
+    private suspend fun mayInstallAutomatically(queueId: String, packageName: String): Boolean {
+        val settings = storeRepository.settings()
+        if (!settings.autoInstallUpdates) return false
+        val item = queueRepository.getEntityById(queueId) ?: return false
+        if (item.requiresUpdateOwnership) return false
+        val installed = storeRepository.installedAppFresh(packageName)
+        val managed = storeRepository.observeGooglePlayUpdates(listOfNotNull(installed))
+            .firstOrNull { it.packageName == packageName }
+        return AutomaticInstallPolicy.mayOffer(managed, installed, settings, QueueOrigin.isUserRequested(item.priority))
     }
 
     private fun isInstalled(packageName: String): Boolean = dev.wystore.data.InstalledPackageLookup.isInstalled(appContext.packageManager, packageName)

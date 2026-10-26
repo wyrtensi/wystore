@@ -80,13 +80,27 @@ class InstallLifecycleTest {
         val result = repository.reconcileInstallResult(
             id = id,
             success = false,
-            errorCode = QueueErrorCode.INSTALL_CANCELED,
-            errorDetail = "user aborted"
+            errorCode = QueueErrorCode.INSTALL_FAILED,
+            errorDetail = "installation failed"
         )
 
         assertEquals(QueueState.FAILED, result?.state)
-        assertEquals(QueueErrorCode.INSTALL_CANCELED, result?.errorCode)
-        assertEquals("user aborted", result?.errorDetail)
+        assertEquals(QueueErrorCode.INSTALL_FAILED, result?.errorCode)
+        assertEquals("installation failed", result?.errorDetail)
+    }
+
+    @Test
+    fun cancellingAReadyInstallKeepsTheVerifiedDownloadAvailable() = runBlocking {
+        val id = seedReadyItem()
+        val result = repository.reconcileInstallResult(
+            id, success = false, errorCode = QueueErrorCode.INSTALL_CANCELED,
+            errorDetail = "user declined"
+        )
+
+        assertEquals(QueueState.READY_TO_INSTALL, result?.state)
+        assertNull(result?.errorCode)
+        assertTrue(repository.getPendingUpdates().any { it.packageName == PACKAGE })
+        assertTrue(repository.artifactFilesFor(id).all { it.isFile })
     }
 
     @Test

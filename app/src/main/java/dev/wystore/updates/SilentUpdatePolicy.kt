@@ -25,8 +25,10 @@ object SilentUpdatePolicy {
         sdkInt: Int = Build.VERSION.SDK_INT,
         isUpdate: Boolean,
         installerOfRecord: String?,
-        ownPackageName: String
+        ownPackageName: String,
+        requiresUpdateOwnership: Boolean = false
     ): Boolean {
+        if (requiresUpdateOwnership) return false
         if (!enabled) return false
         if (refusedOnThisFirmware) return false
         if (sdkInt < Build.VERSION_CODES.S) return false

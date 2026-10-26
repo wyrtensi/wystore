@@ -10,6 +10,7 @@ import org.junit.runner.RunWith
 class SmokeInstrumentedTest {
     @Test
     fun packageNameIsStable() {
-        assertEquals("dev.wystore", InstrumentationRegistry.getInstrumentation().targetContext.packageName)
+        // The published application identity differs from its Kotlin/resource namespace.
+        assertEquals("app.wystore", InstrumentationRegistry.getInstrumentation().targetContext.packageName)
     }
 }

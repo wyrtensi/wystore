@@ -88,7 +88,9 @@ fun LibraryAppRow(
     /** The source's notes for the version it offers, without opening the page. */
     onWhatsNew: (ManagedApp) -> Unit = {},
     /** Where the row stands in its group, which is drawn as one panel of rows. */
-    position: dev.wystore.ui.components.GroupPosition = dev.wystore.ui.components.GroupPosition.SINGLE
+    position: dev.wystore.ui.components.GroupPosition = dev.wystore.ui.components.GroupPosition.SINGLE,
+    continueChecksAfterGooglePlayUpdate: Boolean = false,
+    onOpenUpdateSettings: () -> Unit = {}
 ) {
     val selectable = selected != null && managed == null
     dev.wystore.ui.components.HubGroupRow(
@@ -115,18 +117,14 @@ fun LibraryAppRow(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Row(
+                    FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        // The badge is measured first, at whatever short word it needs, and the
-                        // version takes the rest. The other way round a version like
-                        // "1.423.966222932" took the whole line and left the badge one character
-                        // wide, which wrapped it into a column of letters and stretched the row
-                        // to half a screen.
+                        // On narrow screens with larger text each badge needs its own line;
+                        // giving the version the leftover width made it disappear entirely.
                         dev.wystore.ui.components.HubTag(
-                            shortVersionName(app.versionName) ?: app.versionName,
-                            modifier = Modifier.weight(1f, fill = false)
+                            shortVersionName(app.versionName) ?: app.versionName
                         )
                         installerShortLabel(app).let {
                             dev.wystore.ui.components.HubTag(it, tint = dev.wystore.ui.components.sourceTint(it))
@@ -171,6 +169,17 @@ fun LibraryAppRow(
                 )
             }
 
+            if (managed != null && dev.wystore.data.GooglePlayUpdatePolicy.hasGooglePlayUpdate(managed, app)) {
+                val paused = dev.wystore.data.GooglePlayUpdatePolicy.isPaused(
+                    managed, app, continueChecksAfterGooglePlayUpdate
+                )
+                if (paused || expanded) {
+                    dev.wystore.ui.components.GooglePlayUpdateNotice(
+                        managed, app, continueChecksAfterGooglePlayUpdate, onOpenUpdateSettings
+                    )
+                }
+            }
+
             if (!expanded) return@Column
 
             Text(
@@ -194,7 +203,7 @@ fun LibraryAppRow(
             // update can arrive without a dialog.
             Text(
                 stringResource(
-                    R.string.details_owner,
+                    if (app.updateOwnerPackageName.isNullOrBlank()) R.string.details_owner else R.string.details_update_owner,
                     installerLabel(app)
                 ),
                 style = MaterialTheme.typography.labelSmall,
@@ -255,7 +264,7 @@ fun LibraryAppRow(
                         onCheckedChange = { onUpdateManaged(managed.copy(autoUpdate = it)) }
                     )
                 }
-                if (app.source == InstallSource.GOOGLE_PLAY) {
+                if (dev.wystore.data.GooglePlayUpdatePolicy.hasGooglePlayUpdate(managed, app)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             stringResource(R.string.library_force_wystore),

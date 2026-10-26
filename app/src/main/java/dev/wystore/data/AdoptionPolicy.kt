@@ -36,8 +36,8 @@ sealed interface AdoptionOption {
  * "RuStore", with "Check" and "Open page" pointing at a package RuStore does not have. The source
  * is now looked up before anything is recorded, and an app with no source is not accepted at all.
  *
- * Google-installed apps keep their own rules ([GoogleAdoptionPolicy]): Google signs its builds, so
- * every way of taking one over is a replacement.
+ * Google-installed apps are offered as replacements: changing the installer on an update does
+ * not establish initial update ownership. The caller verifies the handover after installation.
  */
 object AdoptionPolicy {
 

@@ -102,7 +102,7 @@
     <string name="dialog_install_existing_title">Esošas lietotnes atjaunināšana</string>
     <string name="dialog_install_existing_text">Šī lietotne jau ir instalēta no cita avota. Pēc instalēšanas tās atjauninājumus pārvaldīs Wy Store.</string>
     <string name="adopt_google_title">Pārņemt lietotni</string>
-    <string name="adopt_google_text">%1$s nāk no Google, un to nevar atjaunināt uz vietas — Google paraksta savus būvējumus ar savu atslēgu. Lai to pārņemtu, lietotne tiek atinstalēta un instalēta no jauna. Tās dati parasti tiek zaudēti.</string>
+    <string name="adopt_google_text">%1$s saņem atjauninājumus no Google Play. Izvēlieties, no kurienes Wy Store instalēs lietotni pēc noņemšanas.</string>
     <string name="adopt_google_searching">Meklē šo lietotni katalogā…</string>
     <string name="adopt_google_not_found">RuStore katalogā tādas lietotnes nav, tāpēc to nevar pārņemt.</string>
     <string name="adopt_google_exact">Tieši tas pats pakotnes nosaukums — tā ir šī:</string>
@@ -113,8 +113,8 @@
     <string name="dialog_replace_title">Aizstāt instalēto lietotni</string>
     <string name="dialog_replace_text">%1$s tiks atinstalēta un instalēta no jauna no kataloga: versija %2$s versijas %3$s vietā. Tās dati parasti tiek zaudēti, tāpēc rēķinies ar atkārtotu pierakstīšanos. Android lūgs apstiprināt abus soļus.</string>
     <string name="dialog_replace_confirm">Atinstalēt un instalēt</string>
-    <string name="dialog_force_title">Atjaunināt Google Play vietā</string>
-    <string name="dialog_force_text">%1$s nāk no Google Play, un tādas lietotnes Wy Store atstāj tam. Ieslēdz šo, un fona pārbaudes to atjauninās caur Wy Store ikreiz, kad izstrādātāja paraksts sakrīt.</string>
+    <string name="dialog_force_title">Atļaut atjauninājumus ar Wy Store</string>
+    <string name="dialog_force_text">Wy Store pārbaudīs %1$s atjauninājumus un piedāvās instalēšanu, ja sakrīt paraksti. Šis iestatījums nenodod atjauninājumu īpašumtiesības un neizslēdz Google Play automātiskos atjauninājumus.</string>
     <string name="dialog_force_confirm">Ieslēgt</string>
     <string name="dialog_uninstall_confirm">Atinstalēt</string>
     <string name="dialog_github_install_title">APK instalēšana no GitHub</string>
@@ -208,7 +208,7 @@
     <string name="library_search_clear">Notīrīt meklēšanu</string>
     <string name="library_expand_all">Izvērst visas</string>
     <string name="library_collapse_all">Sakļaut visas</string>
-    <string name="library_intro">Pieņemtās lietotnes atjaunina Wy Store, pārējās ir zemāk. Zīme rāda, kas lietotni instalēja.</string>
+    <string name="library_intro">Wy Store pārbauda pieņemto lietotņu atjauninājumus. Nozīmīte rāda atjauninājumu īpašnieku vai instalētāju, ja īpašnieks nav zināms.</string>
     <string name="library_search_label">Meklēt instalētajās lietotnēs</string>
     <string name="library_search_placeholder">Nosaukums vai pakotnes nosaukums</string>
     <string name="library_sort_title">Kārtošana</string>
@@ -222,7 +222,7 @@
     <string name="library_update_available">Atrasts atjauninājums — vēl nav lejupielādēts</string>
     <string name="library_update_available_version">Atrasts atjauninājums: %1$s — vēl nav lejupielādēts</string>
     <string name="library_auto_update">Automātiskā atjaunināšana</string>
-    <string name="library_force_wystore">Atjaunināt Google Play vietā</string>
+    <string name="library_force_wystore">Atļaut atjauninājumus ar Wy Store</string>
     <string name="library_remove">Noņemt</string>
     <string name="library_check_progress">Pārbaudīts %1$d no %2$d · atrasti atjauninājumi: %3$d</string>
 
@@ -653,8 +653,7 @@
     <string name="details_replace">Atinstalēt un instalēt caur Wy Store</string>
     <string name="details_signature_incompatible">Instalētā kopija nav parakstīta ar to sertifikātu, ko RuStore norāda šai lietotnei, tāpēc atjauninājums no šejienes tai virsū uzstādīties nevar: Android to atsaka. Lietotne būtu jānoņem un jāinstalē no jauna, un tas parasti zaudē tās datus. Tieši tā izskatās lietotne, kas instalēta no citurienes — un tāpat izskatās novecojis kataloga ieraksts.</string>
     <string name="details_source_unconfirmed">RuStore šo lietotni neapstiprināja: tas norāda vienu paraksta nospiedumu un izsniedz failu, kas parakstīts ar citu. Instalētā kopija ir tieši tas fails, ko izsniedz RuStore, tāpēc atjauninājumi no šejienes tai virsū uzstādās — nesakrīt kataloga ieraksts, nevis lietotne telefonā.</string>
-    <string name="details_first_update_manual">Pirmais atjauninājums caur Wy Store ir jāapstiprina ar roku. Pēc tā Wy Store kļūst par reģistrēto instalētāju un var atjaunināt lietotni pats.</string>
-    <string name="details_take_over_hint">Android ļauj klusi atjaunināt lietotni tikai reģistrētajam instalētājam. Pārinstalēšana caur Wy Store padara par tādu Wy Store.</string>
+    <string name="details_take_over_hint">Lai nodotu atjauninājumu īpašumtiesības, lietotne jānoņem un jāinstalē atkārtoti. Pirms noņemšanas būs brīdinājums par datu zudumu.</string>
     <string name="details_uninstall">Atinstalēt</string>
     <string name="details_share">Kopīgot</string>
     <string name="details_share_subject">%1$s RuStore</string>
@@ -766,8 +765,8 @@
     <string name="library_backup_restore_text">Ja iepriekš saglabājāt saraksta kopiju, atjaunojiet to: pieņemtās lietotnes un GitHub repozitoriji atgriezīsies.</string>
     <string name="library_backup_restore">Atjaunot no faila</string>
     <string name="library_backup_later">Ne tagad</string>
-    <string name="github_adopt_installed">Pieņemt Wy Store</string>
-    <string name="github_adopt_installed_hint">Lietotne paliks, kā ir, un Wy Store instalēs virsū jaunus laidienus no šī repozitorija.</string>
+    <string name="github_adopt_installed">Sekot atjauninājumiem</string>
+    <string name="github_adopt_installed_hint">Lietotne un tās dati tiks saglabāti. Wy Store pārbaudīs šī repozitorija jaunos laidienus. Atjauninājumu īpašumtiesības netiek nodotas.</string>
     <string name="msg_adopted">%1$s tagad atjaunina Wy Store</string>
     <string name="library_withdrawn_from_rustore">RuStore vairs nepiedāvā šo pakotni: pēdējā pārbaudē atbilde bija «nav atrasts». Iespējams, tā ir izņemta vai īslaicīgi nepieejama; kamēr tā neatgriezīsies, atjauninājumu nebūs.</string>
     <string name="installer_preinstalled_short">Iepriekš instalēta</string>
@@ -830,4 +829,30 @@
     <string name="search_start_github_title">Meklēt GitHub katalogā</string>
     <string name="search_start_github_message">Atvērtā koda lietotnes no GitHub laidieniem, atlasītas rakstīšanas laikā.</string>
     <string name="updates_managed_empty_title">Pagaidām nav pieņemtu lietotņu</string>
+    <string name="ownership_unsupported_android">Atjauninājumu īpašumtiesībām nepieciešams Android 14 vai jaunāks. Šajā Android versijā Wy Store var instalēt un atjaunināt lietotnes, bet nevar iegūt to atjauninājumu īpašumtiesības.</string>
+    <string name="ownership_unsupported_installer">Šī programmaparatūra neļauj Wy Store izmantot savas instalēšanas sesijas, tāpēc atjauninājumu īpašumtiesības nevar nodot. Lietotni nodošanas dēļ nav jānoņem.</string>
+    <string name="queue_error_update_ownership_unconfirmed">Lietotne ir instalēta, bet atjauninājumu īpašumtiesības netika nodotas: Android neapstiprināja Wy Store kā īpašnieku. Pārbaudiet īpašnieku un lietotnes esamību citos profilos. Lietotne netiks automātiski pārinstalēta.</string>
+    <string name="ownership_transfer_confirmed">Atjauninājumi nodoti Wy Store: Android apstiprināja īpašumtiesības.</string>
+    <string name="details_update_owner">Atjauninājumu īpašnieks: %1$s</string>
+    <string name="github_fact_update_owner">Atjauninājumu īpašnieks</string>
+    <string name="adopt_transfer_source">Jaunās instalēšanas avots:</string>
+    <string name="settings_google_play_checks_title">Atjauninājumi pēc Google Play</string>
+    <string name="settings_google_play_checks">Turpināt pārbaudes ar Wy Store</string>
+    <string name="settings_google_play_checks_hint">Pēc noklusējuma Wy Store aptur fona atjauninājumus pēc Google Play. Pārbaužu turpināšana ievēro automātiskās atjaunināšanas iestatījumus un paraksta pārbaudi. Var tikt izmantoti papildu dati; Google Play automātiskie atjauninājumi tiek iestatīti atsevišķi.</string>
+    <string name="google_play_pause_notification_title">Fona atjauninājumi apturēti</string>
+    <string name="google_play_pause_notification_text">Android norāda Google Play kā instalētāju: %1$s. Wy Store ir apturējis šo lietotņu fona atjauninājumus. Pārbaužu turpināšanu var ieslēgt iestatījumos.</string>
+    <string name="google_play_pause_reason">Android norādīja Google Play kā instalētāju. Wy Store fona atjauninājumi ir apturēti.</string>
+    <string name="google_play_continue_reason">Wy Store turpina pārbaudes ar jūsu atļauju. Google Play automātiskie atjauninājumi tiek iestatīti atsevišķi.</string>
+    <string name="google_play_update_settings">Atjauninājumu pārbaužu iestatījumi</string>
+    <string name="github_adopt_google_paused_hint">Instalētā lietotne tiks saglabāta. Pēc pievienošanas Google Play dēļ fona pārbaudes tiks apturētas. Iestatījumos var atļaut turpināt pārbaudes.</string>
+    <string name="ownership_transfer_target_version">Pēc pārinstalēšanas: %1$s</string>
+    <string name="ownership_transfer_release">Izvēlētais laidiens: %1$s</string>
+    <string name="ownership_transfer_file">APK fails: %1$s</string>
+    <string name="ownership_transfer_downgrade">Pēc noņemšanas tiks instalēta vecāka versija.</string>
+    <string name="ownership_transfer_older_release">Izvēlētais laidiens ir vecāks par instalēto versiju. Tā APK var instalēt vecāku lietotnes versiju.</string>
+    <string name="ownership_transfer_data_loss">Lietotne tiks noņemta un instalēta no jauna. Tās lokālie dati tiks zaudēti; var būt jāpiesakās vēlreiz.</string>
+    <string name="ownership_transfer_verification">Pēc instalēšanas Wy Store pārbaudīs, vai Android tam piešķīra atjauninājumu īpašumtiesības.</string>
+    <string name="ownership_transfer_more">Profili un atjauninājumu aizsardzība</string>
+    <string name="ownership_transfer_less">Paslēpt skaidrojumu</string>
+    <string name="ownership_transfer_profile_limits">Ja kopija paliek citā profilā, piemēram, Shelter, īpašumtiesību nodošana var nebūt pieejama. Pat ja īpašnieks ir Wy Store, pārvaldītos profilos sistēmas veikals var atjaunināt lietotni bez apstiprinājuma.</string>
 </resources>

@@ -59,6 +59,11 @@ fun AdoptionDialog(
     onDismiss: () -> Unit
 ) {
     val fromGoogle = prompt.app.source == InstallSource.GOOGLE_PLAY
+    val handover = dev.wystore.ui.components.ownershipHandover(
+        androidx.compose.ui.platform.LocalContext.current, prompt.app
+    )
+    val canAccept = handover == dev.wystore.data.OwnershipHandover.OWNED ||
+        handover == dev.wystore.data.OwnershipHandover.REINSTALL
     HubAlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -76,7 +81,11 @@ fun AdoptionDialog(
                     ),
                     style = MaterialTheme.typography.bodyMedium
                 )
+                if (handover != dev.wystore.data.OwnershipHandover.OWNED) {
+                    dev.wystore.ui.components.OwnershipHandoverNotice(handover)
+                }
                 when {
+                    !canAccept -> Unit
                     prompt.loading -> Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -107,16 +116,18 @@ fun AdoptionDialog(
 
                     else -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            optionsHeading(prompt, fromGoogle),
+                            if (handover != dev.wystore.data.OwnershipHandover.OWNED) stringResource(R.string.adopt_transfer_source) else optionsHeading(prompt, fromGoogle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         prompt.options.forEachIndexed { index, option ->
-                            OptionRow(option = option, leading = index == 0, onPick = { onPick(option) })
+                            OptionRow(option = option, leading = index == 0, enabled = canAccept && !prompt.githubChecking,
+                                transferring = handover == dev.wystore.data.OwnershipHandover.REINSTALL,
+                                onPick = { onPick(option) })
                         }
                     }
                 }
-                if (!fromGoogle && !prompt.loading) {
+                if (!fromGoogle && !prompt.loading && canAccept) {
                     GitHubLinkSection(prompt, onGitHub)
                 }
                 if (prompt.waiting > 0) {
@@ -198,6 +209,8 @@ private fun GitHubLinkSection(prompt: AdoptionPrompt, onGitHub: (String) -> Unit
 private fun OptionRow(
     option: AdoptionOption,
     leading: Boolean,
+    enabled: Boolean,
+    transferring: Boolean,
     onPick: () -> Unit
 ) {
     val iconSize = if (leading) 48.dp else 32.dp
@@ -222,7 +235,7 @@ private fun OptionRow(
         )
     }
     Surface(
-        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).clickable(onClick = onPick),
+        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).clickable(enabled = enabled, onClick = onPick),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -261,7 +274,7 @@ private fun OptionRow(
             // The step as a pill, the accent for the one recommended: a line of accent text read
             // as a link to somewhere else rather than as the answer to the dialog.
             Text(
-                action,
+                if (transferring) stringResource(R.string.adopt_google_confirm) else action,
                 modifier = Modifier
                     .clip(RoundedCornerShape(percent = 50))
                     .background(if (leading) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer)

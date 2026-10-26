@@ -54,6 +54,7 @@ internal object SettingsCodec {
     val KEY_AUTO_INSTALL_UPDATES = booleanPreferencesKey("auto_install_updates")
     val KEY_AUTO_INSTALL_NEW_APPS = booleanPreferencesKey("auto_install_new_apps")
     val KEY_SHOW_EXCLUDED_UPDATES = booleanPreferencesKey("show_excluded_updates")
+    val KEY_CONTINUE_CHECKS_AFTER_GOOGLE_PLAY_UPDATE = booleanPreferencesKey("continue_checks_after_google_play_update")
     val KEY_SOURCE_CATEGORIES = booleanPreferencesKey("source_categories")
     val KEY_ARTIFACT_RETENTION_DAYS = intPreferencesKey("retention_days")
     val KEY_ARTIFACT_STORAGE_LIMIT_MB = intPreferencesKey("storage_limit_mb")
@@ -113,6 +114,8 @@ internal object SettingsCodec {
             autoInstallUpdates = prefs[KEY_AUTO_INSTALL_UPDATES] ?: defaults.autoInstallUpdates,
             autoInstallNewApps = prefs[KEY_AUTO_INSTALL_NEW_APPS] ?: defaults.autoInstallNewApps,
             showExcludedUpdates = prefs[KEY_SHOW_EXCLUDED_UPDATES] ?: defaults.showExcludedUpdates,
+            continueChecksAfterGooglePlayUpdate = prefs[KEY_CONTINUE_CHECKS_AFTER_GOOGLE_PLAY_UPDATE]
+                ?: defaults.continueChecksAfterGooglePlayUpdate,
             sourceCategories = prefs[KEY_SOURCE_CATEGORIES] ?: defaults.sourceCategories,
             searchSources = prefs[KEY_SEARCH_SOURCES]?.let { raw ->
                 runCatching { dev.wystore.data.SearchSources.valueOf(raw) }.getOrNull()
@@ -181,6 +184,8 @@ internal object SettingsCodec {
         prefs.put(KEY_AUTO_INSTALL_UPDATES, updated.autoInstallUpdates, current.autoInstallUpdates)
         prefs.put(KEY_AUTO_INSTALL_NEW_APPS, updated.autoInstallNewApps, current.autoInstallNewApps)
         prefs.put(KEY_SHOW_EXCLUDED_UPDATES, updated.showExcludedUpdates, current.showExcludedUpdates)
+        prefs.put(KEY_CONTINUE_CHECKS_AFTER_GOOGLE_PLAY_UPDATE,
+            updated.continueChecksAfterGooglePlayUpdate, current.continueChecksAfterGooglePlayUpdate)
         prefs.put(KEY_SOURCE_CATEGORIES, updated.sourceCategories, current.sourceCategories)
         prefs.put(KEY_SEARCH_SOURCES, updated.searchSources.name, current.searchSources.name)
         prefs.put(

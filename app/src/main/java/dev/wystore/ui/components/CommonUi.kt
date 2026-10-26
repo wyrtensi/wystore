@@ -330,7 +330,9 @@ fun OperationProgress(
                     onCancelInstall = { onCancelInstall(item.id) }
                 )
             } else if (item.status == InstallQueueStatus.COMPLETE) {
-                Text(item.detail ?: stringResource(R.string.queue_status_install_complete), style = MaterialTheme.typography.bodySmall)
+                if (item.errorCode != QueueErrorCode.UPDATE_OWNERSHIP_UNCONFIRMED) {
+                    Text(stringResource(if (item.requiresUpdateOwnership) R.string.ownership_transfer_confirmed else R.string.queue_status_install_complete), style = MaterialTheme.typography.bodySmall)
+                }
             } else if (progress != null && progress.totalBytes > 0) {
                 LinearProgressIndicator(
                     progress = { progress.fraction.coerceIn(0f, 1f) },
@@ -417,7 +419,11 @@ fun queueStatusLabel(item: InstallQueueItem): String = when (item.status) {
     InstallQueueStatus.INSTALLING ->
         if (item.awaitingConfirmation) stringResource(R.string.queue_status_awaiting_confirmation)
         else stringResource(R.string.queue_status_installing)
-    InstallQueueStatus.COMPLETE -> stringResource(R.string.queue_status_complete)
+    InstallQueueStatus.COMPLETE -> stringResource(
+        if (item.errorCode == QueueErrorCode.UPDATE_OWNERSHIP_UNCONFIRMED) R.string.queue_error_update_ownership_unconfirmed
+        else if (item.requiresUpdateOwnership) R.string.ownership_transfer_confirmed
+        else R.string.queue_status_complete
+    )
     InstallQueueStatus.CANCELED -> stringResource(R.string.queue_status_canceled)
     // Failure text comes from the typed code, because the raw detail is an exception message from
     // the data layer and is not translated. A verification failure is the exception: it records

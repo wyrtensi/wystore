@@ -102,7 +102,7 @@
     <string name="dialog_install_existing_title">Абнаўленне ўсталяванай праграмы</string>
     <string name="dialog_install_existing_text">Гэтая праграма ўжо ўсталяваная з іншай крыніцы. Пасля ўсталявання Wy Store будзе кіраваць яе абнаўленнямі.</string>
     <string name="adopt_google_title">Прыняць праграму пад Wy Store</string>
-    <string name="adopt_google_text">%1$s усталяваная з Google, і абнавіць яе паверх нельга — Google падпісвае свае зборкі ўласным ключом. Каб прыняць праграму, яе выдаляць і ўсталююць нанова. Даныя пры гэтым звычайна губляюцца.</string>
+    <string name="adopt_google_text">%1$s атрымлівае абнаўленні праз Google Play. Выберыце, адкуль Wy Store усталюе праграму пасля выдалення.</string>
     <string name="adopt_google_searching">Шукаем гэтую праграму ў каталогу…</string>
     <string name="adopt_google_not_found">У каталогу RuStore такой праграмы няма, таму прыняць яе не атрымаецца.</string>
     <string name="adopt_google_exact">Тое самае package name — гэта яна:</string>
@@ -113,8 +113,8 @@
     <string name="dialog_replace_title">Пераўсталяваць праграму</string>
     <string name="dialog_replace_text">%1$s будзе выдалена і ўсталявана нанова з каталога: версія %2$s замест %3$s. Даныя праграмы пры гэтым звычайна губляюцца, таму ўвайсці ў акаўнт, хутчэй за ўсё, давядзецца нанова. Абодва крокі Android папросіць пацвердзіць.</string>
     <string name="dialog_replace_confirm">Выдаліць і ўсталяваць</string>
-    <string name="dialog_force_title">Абнаўляць замест Google Play</string>
-    <string name="dialog_force_text">%1$s усталяваная праз Google Play, і такія праграмы Wy Store пакідае яму. Калі ўключыць, фонавыя праверкі будуць абнаўляць яе праз Wy Store пры супадзенні подпісу распрацоўшчыка.</string>
+    <string name="dialog_force_title">Дазволіць абнаўленні праз Wy Store</string>
+    <string name="dialog_force_text">Wy Store будзе правяраць абнаўленні для %1$s і прапаноўваць усталяванне пры супадзенні лічбавага подпісу. Гэта налада не перадае ўладанне абнаўленнямі і не адключае аўтаабнаўленні ў Google Play.</string>
     <string name="dialog_force_confirm">Уключыць</string>
     <string name="dialog_uninstall_confirm">Выдаліць</string>
     <string name="dialog_github_install_title">Усталяванне APK з GitHub</string>
@@ -208,7 +208,7 @@
     <string name="library_search_clear">Ачысціць пошук</string>
     <string name="library_expand_all">Разгарнуць усе</string>
     <string name="library_collapse_all">Згарнуць усе</string>
-    <string name="library_intro">Прынятыя праграмы абнаўляе Wy Store, астатнія ніжэй. Значок паказвае, хто ўсталяваў праграму.</string>
+    <string name="library_intro">Wy Store правярае абнаўленні прынятых праграм. Значок паказвае ўладальніка абнаўленняў, а калі ён невядомы — усталёўшчыка.</string>
     <string name="library_search_label">Пошук сярод усталяваных</string>
     <string name="library_search_placeholder">Назва або package name</string>
     <string name="library_sort_title">Сартаванне</string>
@@ -222,7 +222,7 @@
     <string name="library_update_available">Знойдзена абнаўленне — яшчэ не спампавана</string>
     <string name="library_update_available_version">Знойдзена абнаўленне: %1$s — яшчэ не спампавана</string>
     <string name="library_auto_update">Аўтаабнаўленне</string>
-    <string name="library_force_wystore">Абнаўляць замест Google Play</string>
+    <string name="library_force_wystore">Дазволіць абнаўленні праз Wy Store</string>
     <string name="library_remove">Прыбраць</string>
     <string name="library_check_progress">Праверана %1$d з %2$d · знойдзена абнаўленняў: %3$d</string>
 
@@ -653,8 +653,7 @@
     <string name="details_replace">Выдаліць і ўсталяваць праз Wy Store</string>
     <string name="details_signature_incompatible">Усталяваная копія падпісана не тым сертыфікатам, які RuStore заяўляе для гэтай праграмы, таму абнаўленне адсюль не ўстане паверх: Android адмовіць. Давядзецца выдаліць і ўсталяваць нанова, а даныя пры гэтым звычайна губляюцца. Гэтак жа выглядае і праграма, пастаўленая з іншай крыніцы, і састарэлы запіс у каталогу.</string>
     <string name="details_source_unconfirmed">RuStore не пацвердзіў гэтую праграму: ён заяўляе адзін адбітак подпісу, а выдае файл, падпісаны іншым. Усталяваная копія — гэта і ёсць файл з RuStore, таму абнаўленні адсюль устануць паверх яе. Разыходзіцца запіс у каталогу, а не праграма на тэлефоне.</string>
-    <string name="details_first_update_manual">Першае абнаўленне праз Wy Store давядзецца пацвердзіць уручную. Пасля яго Wy Store становіцца тым, хто праграму ўсталяваў, і зможа абнаўляць яе сам.</string>
-    <string name="details_take_over_hint">Android дазваляе ціха абнаўляць праграму толькі таму, хто яе ўсталяваў. Пераўсталяванне праз Wy Store робіць усталёўшчыкам Wy Store.</string>
+    <string name="details_take_over_hint">Для перадачы ўладання абнаўленнямі трэба выдаліць праграму і ўсталяваць нанова. Перад выдаленнем будзе папярэджанне пра страту даных.</string>
     <string name="details_uninstall">Выдаліць</string>
     <string name="details_share">Падзяліцца</string>
     <string name="details_share_subject">%1$s у RuStore</string>
@@ -766,8 +765,8 @@
     <string name="library_backup_restore_text">Калі раней вы захоўвалі копію спіса, аднавіце яе: прынятыя праграмы і рэпазіторыі GitHub вернуцца.</string>
     <string name="library_backup_restore">Аднавіць з файла</string>
     <string name="library_backup_later">Не зараз</string>
-    <string name="github_adopt_installed">Прыняць у Wy Store</string>
-    <string name="github_adopt_installed_hint">Праграма застанецца як ёсць, а Wy Store будзе ставіць паверх новыя рэлізы з гэтага рэпазіторыя.</string>
+    <string name="github_adopt_installed">Падключыць праверкі абнаўленняў</string>
+    <string name="github_adopt_installed_hint">Праграма і яе даныя захаваюцца. Wy Store будзе правяраць новыя рэлізы гэтага рэпазіторыя. Уладанне абнаўленнямі пры гэтым не перадаецца.</string>
     <string name="msg_adopted">%1$s цяпер абнаўляе Wy Store</string>
     <string name="library_withdrawn_from_rustore">RuStore перастаў аддаваць гэты пакет: пры апошняй праверцы адказаў «не знойдзена». Магчыма, яго знялі або ён часова недаступны; пакуль ён не вернецца, абнаўленняў не будзе.</string>
     <string name="installer_preinstalled_short">Перадусталявана</string>
@@ -830,4 +829,30 @@
     <string name="search_start_github_title">Пошук па каталогу GitHub</string>
     <string name="search_start_github_message">Праграмы з адкрытым кодам з рэлізаў GitHub, падбіраюцца па меры ўводу.</string>
     <string name="updates_managed_empty_title">Пакуль няма прынятых праграм</string>
+    <string name="ownership_unsupported_android">Перадача ўладання абнаўленнямі даступная з Android 14. На гэтай версіі Android Wy Store можа ўсталёўваць і абнаўляць праграмы, але не можа замацаваць за сабой іх абнаўленні.</string>
+    <string name="ownership_unsupported_installer">Прашыўка не дазваляе Wy Store выкарыстоўваць уласныя сеансы ўсталявання, таму перадаць яму ўладанне абнаўленнямі нельга. Выдаляць праграму дзеля перадачы не трэба.</string>
+    <string name="queue_error_update_ownership_unconfirmed">Праграма ўсталявана, але перадача абнаўленняў не завершана: Android не пацвердзіў Wy Store як уладальніка. Праверце ўладальніка і наяўнасць праграмы ў іншых профілях. Аўтаматычнага пераўсталявання не будзе.</string>
+    <string name="ownership_transfer_confirmed">Абнаўленні перададзены Wy Store: уладальнік пацверджаны Android.</string>
+    <string name="details_update_owner">Уладальнік абнаўленняў: %1$s</string>
+    <string name="github_fact_update_owner">Уладальнік абнаўленняў</string>
+    <string name="adopt_transfer_source">Крыніца новага ўсталявання:</string>
+    <string name="settings_google_play_checks_title">Абнаўленні пасля Google Play</string>
+    <string name="settings_google_play_checks">Працягваць праверкі праз Wy Store</string>
+    <string name="settings_google_play_checks_hint">Па змаўчанні Wy Store прыпыняе фонавыя абнаўленні пасля Google Play. Працяг праверак захоўвае налады аўтаабнаўлення і праверку подпісу. Магчымы дадатковы трафік; аўтаабнаўленні Google Play наладжваюцца асобна.</string>
+    <string name="google_play_pause_notification_title">Фонавыя абнаўленні прыпынены</string>
+    <string name="google_play_pause_notification_text">Android паказвае Google Play як усталёўшчык: %1$s. Wy Store прыпыніў фонавыя абнаўленні гэтых праграм. Працяг праверак можна ўключыць у наладах.</string>
+    <string name="google_play_pause_reason">Android пазначыў Google Play як усталёўшчык. Фонавыя абнаўленні Wy Store прыпыненыя.</string>
+    <string name="google_play_continue_reason">Wy Store працягвае праверкі з вашага дазволу. Аўтаабнаўленні Google Play наладжваюцца асобна.</string>
+    <string name="google_play_update_settings">Наладзіць праверкі</string>
+    <string name="github_adopt_google_paused_hint">Прыкладанне захаваецца. Пасля падключэння фонавыя праверкі будуць прыпыненыя праз Google Play. Працяг праверак можна дазволіць у наладах.</string>
+    <string name="ownership_transfer_target_version">Пасля пераўсталявання: %1$s</string>
+    <string name="ownership_transfer_release">Выбраны рэліз: %1$s</string>
+    <string name="ownership_transfer_file">Файл APK: %1$s</string>
+    <string name="ownership_transfer_downgrade">Пасля выдалення будзе ўсталявана больш старая версія.</string>
+    <string name="ownership_transfer_older_release">Выбраны рэліз старэйшы за ўсталяваную версію. Яго APK можа ўсталяваць больш старую версію праграмы.</string>
+    <string name="ownership_transfer_data_loss">Праграма будзе выдалена і ўсталявана нанова. Яе лакальныя даныя будуць страчаны; можа спатрэбіцца паўторны ўваход.</string>
+    <string name="ownership_transfer_verification">Пасля ўсталявання Wy Store праверыць, ці прызначыў Android яго ўладальнікам абнаўленняў.</string>
+    <string name="ownership_transfer_more">Профілі і абарона абнаўленняў</string>
+    <string name="ownership_transfer_less">Схаваць тлумачэнне</string>
+    <string name="ownership_transfer_profile_limits">Калі копія засталася ў іншым профілі, напрыклад Shelter, перадача можа быць недаступная. Нават пры ўласнасці Wy Store сістэмная крама можа абнаўляць праграму без пацвярджэння ў кіраваных профілях.</string>
 </resources>

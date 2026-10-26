@@ -1,6 +1,9 @@
 package dev.wystore.updates
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.room.withTransaction
 import dev.wystore.data.GitHubRepository
 import dev.wystore.data.EventLog
 import dev.wystore.data.ManagedSource
@@ -86,6 +89,10 @@ class QueueRepository(
     }
 
     suspend fun transition(id: String, action: QueueAction): QueueItemSnapshot = withContext(Dispatchers.IO) {
+        if (action == QueueAction.InstallSucceeded) {
+            return@withContext reconcileInstallResult(id, success = true)
+                ?: throw IllegalArgumentException("Queue item not found: $id")
+        }
         val entity = dao.getById(id) ?: throw IllegalArgumentException("Queue item not found: $id")
         val currentSnapshot = entity.toSnapshot()
         val nextSnapshot = QueueReducer.reduce(currentSnapshot, action)
@@ -105,6 +112,13 @@ class QueueRepository(
             dao.update(updatedEntity)
         }
         nextSnapshot
+    }
+
+    /** Persist the explicit handover requirement before a scheduler can dispatch this row. */
+    suspend fun requireUpdateOwnership(id: String) = withContext(Dispatchers.IO) {
+        if (dao.requireUpdateOwnership(id, System.currentTimeMillis()) != 1) {
+            throw IllegalArgumentException("Queue item not found: $id")
+        }
     }
 
     /**
@@ -265,55 +279,78 @@ class QueueRepository(
         errorCode: QueueErrorCode = QueueErrorCode.INSTALL_FAILED,
         errorDetail: String? = null
     ): QueueItemSnapshot? = withContext(Dispatchers.IO) {
-        // Whatever answered, no dialog is waiting for this row any more.
-        ConfirmationDialogs.closed(id)
-        val entity = dao.getById(id) ?: return@withContext null
-        // An app that installed stays installed. A failure arriving after the success - the late
-        // report of a session called off, or a cancel that lost the race with Android's answer -
-        // turned the row into an error about an app that was on the phone.
-        if (!success && entity.state == QueueState.INSTALLED.name) return@withContext entity.toSnapshot()
-        // However it ended, an install was attempted for this row here, not by an agent.
-        endHandoff(id)
+        database.withTransaction {
+            // Whatever answered, no dialog is waiting for this row any more.
+            ConfirmationDialogs.closed(id)
+            val entity = dao.getById(id) ?: return@withTransaction null
+            // An app that installed stays installed. A failure arriving after the success - the late
+            // report of a session called off, or a cancel that lost the race with Android's answer -
+            // turned the row into an error about an app that was on the phone.
+            if (!success && entity.state == QueueState.INSTALLED.name) return@withTransaction entity.toSnapshot()
+            // However it ended, an install was attempted for this row here, not by an agent.
+            endHandoff(id)
 
-        // Saying "not now" to Android's dialog is not a failed download. The verified APK is still
-        // on disk, so the row goes back to waiting rather than to an error whose only offered
-        // action is fetching the same two hundred megabytes again.
-        if (!success && errorCode == QueueErrorCode.INSTALL_CANCELED) {
-            val ready = resetReadyToInstall(id)
-            if (ready?.state == QueueState.READY_TO_INSTALL) {
-                dao.deleteSession(id)
-                return@withContext ready
+            // Saying "not now" to Android's dialog is not a failed download. The verified APK is still
+            // on disk, so the row goes back to waiting rather than to an error whose only offered
+            // action is fetching the same two hundred megabytes again.
+            if (!success && errorCode == QueueErrorCode.INSTALL_CANCELED) {
+                val ready = resetReadyToInstall(id)
+                if (ready?.state == QueueState.READY_TO_INSTALL) {
+                    dao.deleteSession(id)
+                    return@withTransaction ready
+                }
             }
-        }
-        // INSTALLED is terminal. Parking a finished install in OFFER_NEXT left a row nothing ever
-        // moved on, and every screen that reads the queue kept treating the app as busy.
-        val target = if (success) QueueState.INSTALLED else QueueState.FAILED
-        // An install that Android refused never passes through markFailed, so without this the one
-        // failure a user is most likely to be asking about was the one missing from the report.
-        if (!success) {
-            runCatching { EventLog(context).record(entity.packageName, errorCode.name, errorDetail) }
-        }
-        val updated = entity.copy(
-            state = target.name,
-            errorCode = if (success) null else errorCode.name,
-            errorDetail = if (success) null else errorDetail,
-            updatedAt = System.currentTimeMillis()
-        )
-        dao.update(updated)
-        dao.deleteSession(id)
-        // The APK has been consumed. It used to sit in private storage until some later download
-        // happened to run the cleanup pass, so a phone that installed everything and then stopped
-        // fetching kept every archive it had ever installed. The row stays - screens read it to
-        // show the install finished - only the file goes. A declined install is the case above:
-        // that one keeps its archive, so saying "not now" does not cost the download again.
-        if (success) {
-            for (artifact in dao.getArtifactsForQueue(id)) {
-                runCatching { File(artifact.path).delete() }
+            // INSTALLED is terminal. Parking a finished install in OFFER_NEXT left a row nothing ever
+            // moved on, and every screen that reads the queue kept treating the app as busy.
+            val target = if (success) QueueState.INSTALLED else QueueState.FAILED
+            val succeeded = if (success) {
+                OwnershipTransferResult.successfulInstall(
+                    current = entity.toSnapshot(),
+                    sdkInt = Build.VERSION.SDK_INT,
+                    wyStorePackageName = context.packageName,
+                    updateOwnerPackageName = if (entity.requiresUpdateOwnership) updateOwnerPackageName(entity.packageName) else null
+                )
+            } else null
+            // An install that Android refused never passes through markFailed, so without this the one
+            // failure a user is most likely to be asking about was the one missing from the report.
+            if (!success) {
+                runCatching { EventLog(context).record(entity.packageName, errorCode.name, errorDetail) }
             }
-            dao.deleteArtifactsForQueue(id)
-            runCatching { File(rootDirectory, id).deleteRecursively() }
+            val updated = entity.copy(
+                state = target.name,
+                errorCode = if (success) succeeded?.errorCode?.name else errorCode.name,
+                errorDetail = if (success) succeeded?.errorDetail else errorDetail,
+                updatedAt = System.currentTimeMillis()
+            )
+            dao.update(updated)
+            dao.deleteSession(id)
+            // The APK has been consumed. It used to sit in private storage until some later download
+            // happened to run the cleanup pass, so a phone that installed everything and then stopped
+            // fetching kept every archive it had ever installed. The row stays - screens read it to
+            // show the install finished - only the file goes. A declined install is the case above:
+            // that one keeps its archive, so saying "not now" does not cost the download again.
+            if (success) {
+                for (artifact in dao.getArtifactsForQueue(id)) {
+                    runCatching { File(artifact.path).delete() }
+                }
+                dao.deleteArtifactsForQueue(id)
+                runCatching { File(rootDirectory, id).deleteRecursively() }
+            }
+            updated.toSnapshot()
         }
-        updated.toSnapshot()
+    }
+
+    private fun updateOwnerPackageName(packageName: String): String? {
+        if (Build.VERSION.SDK_INT < 34) return null
+        return try {
+            context.packageManager.getInstallSourceInfo(packageName).updateOwnerPackageName
+        } catch (_: PackageManager.NameNotFoundException) {
+            // Android cannot confirm ownership for a package it cannot find; keep the handover warning.
+            null
+        } catch (_: SecurityException) {
+            // An inaccessible install source is unknown ownership, never a successful transfer.
+            null
+        }
     }
 
     /**
@@ -712,52 +749,65 @@ class QueueRepository(
         packageName: String,
         label: String,
         source: ManagedSource,
-        priority: Int = 10
+        priority: Int = 10,
+        requiresUpdateOwnership: Boolean = false
     ): UpdateQueueEntity? = withContext(Dispatchers.IO) {
-        val rows = dao.getByPackage(packageName).filter { it.source == source.name }
-        val states = rows.mapNotNull { runCatching { QueueState.valueOf(it.state) }.getOrNull() }
-        if (ManualEnqueuePolicy.decide(states) == ManualEnqueueAction.IGNORE) return@withContext null
+        database.withTransaction {
+            val rows = dao.getByPackage(packageName).filter { it.source == source.name }
+            val states = rows.mapNotNull { runCatching { QueueState.valueOf(it.state) }.getOrNull() }
+            if (ManualEnqueuePolicy.decide(states) == ManualEnqueueAction.IGNORE) {
+                // An explicit handover must adopt the existing work before its uninstall intent is
+                // cleared. Ordinary taps still leave an active or downloaded row alone.
+                return@withTransaction if (requiresUpdateOwnership) {
+                    rows.firstOrNull { runCatching { QueueState.valueOf(it.state) }.getOrNull() in ACTIVE_OR_READY }
+                        ?.let { existing ->
+                            dao.requireUpdateOwnership(existing.id, System.currentTimeMillis())
+                            dao.getById(existing.id)
+                        }
+                } else null
+            }
 
-        val target = rows.maxByOrNull { it.versionCode }
-        val prepared = if (target == null) {
-            UpdateQueueEntity(
-                id = UUID.randomUUID().toString(),
-                packageName = packageName,
-                label = label,
-                versionName = "",
-                versionCode = 0,
-                source = source.name,
-                state = QueueState.AVAILABLE.name,
-                priority = priority,
-                position = 0
-            )
-        } else {
-            target.copy(
-                // A label the user can read. Manual installs know only the package name at this
-                // point for an app that is not installed, so a better one is kept if it is there.
-                label = label.takeIf { it.isNotBlank() && it != packageName } ?: target.label,
-                state = QueueState.AVAILABLE.name,
-                priority = priority,
-                downloadedBytes = 0L,
-                totalBytes = 0L,
-                errorCode = null,
-                errorDetail = null,
-                // A new request: the install it leads to is judged against when it was made (see
-                // InstalledUpdateMatcher), not against when this row first appeared.
-                createdAt = System.currentTimeMillis(),
-                updatedAt = System.currentTimeMillis()
-            )
+            val target = rows.maxByOrNull { it.versionCode }
+            val prepared = QueueRequestRetention.merge(if (target == null) {
+                UpdateQueueEntity(
+                    id = UUID.randomUUID().toString(),
+                    packageName = packageName,
+                    label = label,
+                    versionName = "",
+                    versionCode = 0,
+                    source = source.name,
+                    state = QueueState.AVAILABLE.name,
+                    priority = priority,
+                    position = 0
+                )
+            } else {
+                target.copy(
+                    // A label the user can read. Manual installs know only the package name at this
+                    // point for an app that is not installed, so a better one is kept if it is there.
+                    label = label.takeIf { it.isNotBlank() && it != packageName } ?: target.label,
+                    state = QueueState.AVAILABLE.name,
+                    priority = priority,
+                    downloadedBytes = 0L,
+                    totalBytes = 0L,
+                    errorCode = null,
+                    errorDetail = null,
+                    // A new request: the install it leads to is judged against when it was made (see
+                    // InstalledUpdateMatcher), not against when this row first appeared.
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
+                )
+            }.copy(requiresUpdateOwnership = requiresUpdateOwnership), target)
+            if (target == null) dao.insertOrReplace(prepared) else dao.update(prepared)
+
+            // Other stopped rows for the same package are noise: they keep an old failure visible on
+            // every card that looks the package up.
+            rows.filter { it.id != prepared.id }
+                .filter { runCatching { QueueState.valueOf(it.state) }.getOrNull() !in ACTIVE_OR_READY }
+                .filter { dao.getArtifactsForQueue(it.id).none { artifact -> File(artifact.path).isFile } }
+                .forEach { dao.deleteById(it.id) }
+
+            prepared
         }
-        if (target == null) dao.insertOrReplace(prepared) else dao.update(prepared)
-
-        // Other stopped rows for the same package are noise: they keep an old failure visible on
-        // every card that looks the package up.
-        rows.filter { it.id != prepared.id }
-            .filter { runCatching { QueueState.valueOf(it.state) }.getOrNull() !in ACTIVE_OR_READY }
-            .filter { dao.getArtifactsForQueue(it.id).none { artifact -> File(artifact.path).isFile } }
-            .forEach { dao.deleteById(it.id) }
-
-        prepared
     }
 
     /**
@@ -776,13 +826,23 @@ class QueueRepository(
         File(rootDirectory, id).deleteRecursively()
     }
 
+    /** A late explicit install request must not be erased by an earlier automatic check. */
+    suspend fun discardAutomatic(id: String): Boolean = withContext(Dispatchers.IO) {
+        database.withTransaction {
+            val entity = dao.getById(id) ?: return@withTransaction false
+            if (QueueOrigin.isUserRequested(entity.priority)) return@withTransaction false
+            discard(id)
+            true
+        }
+    }
+
     /**
      * Drops the rows of [packageName] that an install of [installedVersionCode] has made pointless:
      * not newer than it, and not being worked on.
      */
     suspend fun removeSettled(packageName: String, installedVersionCode: Long) = withContext(Dispatchers.IO) {
         dao.getByPackage(packageName)
-            .filter { QueueRowSettlement.isSettled(it.state, it.versionCode, installedVersionCode) }
+            .filter { QueueRowSettlement.isSettled(it.state, it.versionCode, installedVersionCode, it.errorCode) }
             .forEach { discard(it.id) }
     }
 
@@ -865,7 +925,8 @@ class QueueRepository(
             githubRepository = repo,
             githubReleaseId = entity.githubReleaseId,
             downloadedAt = entity.createdAt,
-            userRequested = QueueOrigin.isUserRequested(entity.priority)
+            userRequested = QueueOrigin.isUserRequested(entity.priority),
+            requiresUpdateOwnership = entity.requiresUpdateOwnership
         )
     }
 

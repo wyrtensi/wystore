@@ -1,6 +1,8 @@
 package dev.wystore.updates
 
 import dev.wystore.data.GitHubRepository
+import dev.wystore.data.GitHubAsset
+import dev.wystore.updates.model.QueueState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -13,6 +15,28 @@ import org.junit.Test
  * real package inside the archive — so every GitHub install failed verification.
  */
 class GitHubInstallSchedulerTest {
+    private val asset = GitHubAsset(7L, "app.apk", 1024L, "https://example.com/app.apk", "sha256:digest")
+
+    @Test fun aReadyOwnershipApkIsReusedOnlyForTheSamePinnedFile() {
+        assertFalse(GitHubInstallScheduler.mustRefetchOwnershipApk(QueueState.READY_TO_INSTALL.name, asset, asset))
+        assertTrue(GitHubInstallScheduler.mustRefetchOwnershipApk(QueueState.READY_TO_INSTALL.name, null, asset))
+        assertTrue(GitHubInstallScheduler.mustRefetchOwnershipApk(QueueState.READY_TO_INSTALL.name,
+            asset.copy(id = 8L), asset))
+        assertTrue(GitHubInstallScheduler.mustRefetchOwnershipApk(QueueState.READY_TO_INSTALL.name,
+            asset.copy(digest = "sha256:other"), asset))
+        assertTrue(GitHubInstallScheduler.mustRefetchOwnershipApk(QueueState.READY_TO_INSTALL.name,
+            asset.copy(downloadUrl = "https://example.com/other.apk"), asset))
+    }
+
+    @Test
+    fun aHandoverKeepsThePackageIdentityThatVerificationMustRequire() {
+        val packageName = GitHubInstallScheduler.queuePackageName(
+            GitHubRepository("owner", "repository"), expectedPackageName = "example.selected.app"
+        )
+
+        assertEquals("example.selected.app", packageName)
+        assertFalse(GitHubInstallScheduler.isPlaceholder(packageName))
+    }
 
     @Test
     fun aPlaceholderIsRecognisableAndDerivedFromTheRepository() {
