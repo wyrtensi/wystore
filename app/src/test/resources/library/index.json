@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "variant_schema": 1,
+  "applications": [
+    {
+      "package": "org.example.library",
+      "name": "Example",
+      "default_variant": "modern",
+      "artifacts": [
+        {
+          "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apk",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "size": 100,
+          "url": "https://github.com/wyrtensi/wystore-library/releases/download/org.example.library-library/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.apk"
+        }
+      ],
+      "unavailable": [],
+      "publication": {
+        "tag": "org.example.library-library",
+        "release_url": "https://github.com/wyrtensi/wystore-library/releases/tag/org.example.library-library",
+        "catalog": {
+          "name": "catalog-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.json",
+          "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "size": 50,
+          "url": "https://github.com/wyrtensi/wystore-library/releases/download/org.example.library-library/catalog-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.json"
+        },
+        "compat_manifest": {
+          "name": "manifest-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd.json",
+          "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "size": 50,
+          "url": "https://github.com/wyrtensi/wystore-library/releases/download/org.example.library-library/manifest-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd.json"
+        }
+      },
+      "variants": [
+        {
+          "id": "modern",
+          "profile_fingerprint": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "version_code": 100,
+          "version_name": "1.0",
+          "certificate_sha256": [
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          ],
+          "compatibility": {
+            "min_sdk": 28,
+            "abis": [
+              "arm64-v8a"
+            ],
+            "native_abis": [
+              "arm64-v8a"
+            ],
+            "density": 420,
+            "locale": "ru_RU",
+            "languages": [
+              "ru",
+              "en"
+            ],
+            "required_features": [],
+            "gl_es_version": 0,
+            "required_split_types": [],
+            "provided_split_types": [],
+            "uses_splits": []
+          },
+          "files": [
+            {
+              "artifact": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "original_name": "base.apk",
+              "role": "base",
+              "split": ""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "entries": [],
+  "delivery_profiles": [],
+  "migration_pending": []
+}

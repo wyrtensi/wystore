@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "package": "org.example.library",
+  "locales": {
+    "en_US": {
+      "title": "Example",
+      "developer": "Publisher",
+      "description": "Description",
+      "shortDescription": "Summary",
+      "versionName": "2.0",
+      "updatedDate": "2026-10-30",
+      "playUrl": "https://play.google.com/store/apps/details?id=org.example.library",
+      "changelog": "Listing notes",
+      "icon": "images/icon.png",
+      "screenshots": [
+        "images/screen.jpg"
+      ]
+    }
+  },
+  "changelogHistory": {}
+}

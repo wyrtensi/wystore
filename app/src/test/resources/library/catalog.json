@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "apps": [
+    {
+      "package": "org.example.library",
+      "title": "Example",
+      "developer": "Publisher",
+      "metadataPath": "apps/org.example.library/metadata.json",
+      "icon": "apps/org.example.library/images/icon.png",
+      "locales": {
+        "en_US": {
+          "title": "Example",
+          "shortDescription": "English summary"
+        }
+      }
+    }
+  ]
+}
