@@ -88,7 +88,14 @@ class QueueRepository(
         Unit
     }
 
-    suspend fun transition(id: String, action: QueueAction): QueueItemSnapshot = withContext(Dispatchers.IO) {
+    suspend fun transition(id: String, action: QueueAction): QueueItemSnapshot =
+        if (action == QueueAction.StartInstall) SourceSelectionGate.locked {
+            val row = dao.getById(id) ?: error("Install request was removed")
+            SourceSelectionCoordinator.requireCurrent(context, row)
+            transitionUnchecked(id, action)
+        } else transitionUnchecked(id, action)
+
+    private suspend fun transitionUnchecked(id: String, action: QueueAction): QueueItemSnapshot = withContext(Dispatchers.IO) {
         if (action == QueueAction.InstallSucceeded) {
             return@withContext reconcileInstallResult(id, success = true)
                 ?: throw IllegalArgumentException("Queue item not found: $id")
@@ -262,8 +269,8 @@ class QueueRepository(
         allowedFrom: Set<QueueState>,
         action: QueueAction
     ): Boolean = try {
-        transitionIfIn(id, allowedFrom, action)
-        true
+        val result = transitionIfIn(id, allowedFrom, action)
+        if (action == QueueAction.StartInstall) result?.state == QueueState.INSTALLING else true
     } catch (busy: dev.wystore.data.local.QueueBusyException) {
         false
     }
@@ -513,8 +520,14 @@ class QueueRepository(
         identity: ArchiveIdentity,
         files: List<File>,
         sourceHash: String? = null,
-        sourceHashes: List<String>? = null
-    ): List<UpdateArtifactEntity> = withContext(Dispatchers.IO) {
+        sourceHashes: List<String>? = null,
+        expectedSourceRevision: Long? = null
+    ): List<UpdateArtifactEntity> = withContext(Dispatchers.IO) { SourceSelectionGate.locked {
+        val current = dao.getById(queueId) ?: error("Verified request was removed")
+        SourceSelectionCoordinator.requireCurrent(context, current)
+        if (expectedSourceRevision != null && current.sourceRevision != expectedSourceRevision) {
+            throw dev.wystore.data.TransferFailure(false, QueueErrorCode.SOURCE_CHANGED)
+        }
         require(identity.signingDigests.isNotEmpty()) { "Verified identity carries no signing digest" }
         require(identity.packageName.isNotBlank()) { "Verified identity carries no package name" }
         require(files.isNotEmpty()) { "Verified APK set is empty" }
@@ -547,7 +560,7 @@ class QueueRepository(
             if (path !in keptPaths) File(path).delete()
         }
         copied
-    }
+    } }
 
     /**
      * Records the name the source publishes for an app.
@@ -625,13 +638,19 @@ class QueueRepository(
         label: String,
         source: ManagedSource,
         githubRepository: GitHubRepository? = null,
-        githubReleaseId: Long? = null
+        githubReleaseId: Long? = null,
+        sourceReplacement: Boolean = false,
+        sourceRevision: Long = 0,
+        sourceHashes: List<String>? = null
     ): PendingUpdate = withContext(Dispatchers.IO) {
         require(plan.files.isNotEmpty() && plan.files.all { it.isFile && it.length() > 0L }) {
             "A verified APK is no longer on disk"
         }
         val identity = plan.identity
-        val existing = dao.find(identity.packageName, identity.versionCode, source.name)
+        require(sourceHashes == null || sourceHashes.size == plan.files.size)
+        val found = dao.find(identity.packageName, identity.versionCode, source.name)
+        if (sourceReplacement && found != null) discard(found.id)
+        val existing = if (sourceReplacement) null else found
         val queueId = existing?.id ?: UUID.randomUUID().toString()
         val targetDir = File(rootDirectory, queueId)
         if (!targetDir.exists()) {
@@ -653,21 +672,25 @@ class QueueRepository(
             versionCode = identity.versionCode,
             source = source.name,
             state = QueueState.READY_TO_INSTALL.name,
-            priority = 0,
+            priority = if (sourceReplacement) 10 else 0,
             position = 0,
             signingDigests = identity.signingDigests.joinToString(","),
             githubRepositoryOwner = githubRepository?.owner,
             githubRepositoryName = githubRepository?.name,
             githubReleaseId = githubReleaseId,
             createdAt = System.currentTimeMillis(),
-            updatedAt = System.currentTimeMillis()
+            updatedAt = System.currentTimeMillis(),
+            sourceReplacement = sourceReplacement,
+            sourceRevision = sourceRevision,
+            requiresUserConfirmation = sourceReplacement
         )
         dao.upsertAtomic(entity)
-        val artifacts = copiedFiles.map { file ->
+        val artifacts = copiedFiles.mapIndexed { index, file ->
             UpdateArtifactEntity(
                 queueId = queueId,
                 path = file.absolutePath,
                 size = file.length(),
+                sourceHash = sourceHashes?.get(index),
                 createdAt = System.currentTimeMillis(),
                 lastAccessedAt = System.currentTimeMillis()
             )
@@ -675,7 +698,7 @@ class QueueRepository(
         dao.insertArtifacts(artifacts)
 
         // Clean up older ready updates for this same package
-        val otherItems = dao.getByPackage(identity.packageName).filter { it.id != queueId }
+        val otherItems = if (sourceReplacement) emptyList() else dao.getByPackage(identity.packageName).filter { it.id != queueId }
         for (old in otherItems) {
             val oldArtifacts = dao.getArtifactsForQueue(old.id)
             dao.deleteById(old.id)
@@ -767,8 +790,10 @@ class QueueRepository(
             githubReleaseId = githubReleaseId,
             now = System.currentTimeMillis()
         )
-        dao.upsertAtomic(entity)
-        entity
+        val selected = dev.wystore.data.StoreRepository(context).managedApps().firstOrNull { it.packageName == packageName }
+        val prepared = entity.copy(sourceRevision = dev.wystore.data.StoreRepository(context).sourceRevision(packageName))
+        dao.upsertAtomic(prepared)
+        prepared
     }
 
     /**
@@ -836,7 +861,8 @@ class QueueRepository(
                     updatedAt = System.currentTimeMillis()
                 )
             }.copy(requiresUpdateOwnership = requiresUpdateOwnership,
-                requiresUserConfirmation = requiresUserConfirmation), target)
+                requiresUserConfirmation = requiresUserConfirmation,
+                sourceRevision = dev.wystore.data.StoreRepository(context).sourceRevision(packageName)), target)
             if (target == null) dao.insertOrReplace(prepared) else dao.update(prepared)
 
             // Other stopped rows for the same package are noise: they keep an old failure visible on

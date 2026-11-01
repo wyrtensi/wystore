@@ -55,6 +55,11 @@ class InstallSessionWriter(private val context: Context) {
         val entity = database.updateQueueDao.getById(queueId)
             ?: throw IllegalArgumentException("Queue item not found: $queueId")
 
+        SourceSelectionCoordinator.requireCurrent(appContext, entity)
+        if (entity.sourceReplacement && storeRepository.installedAppFresh(entity.packageName) != null) {
+            throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.SIGNATURE,
+                detail = "Replacement requires explicit removal confirmation")
+        }
         val artifacts = database.updateQueueDao.getArtifactsForQueue(queueId)
         val files = artifacts.map { File(it.path) }
         require(files.isNotEmpty() && files.all { it.isFile && it.length() > 0L }) {
@@ -189,7 +194,11 @@ class InstallSessionWriter(private val context: Context) {
         }
     }
 
-    suspend fun commitSession(session: PreparedInstall.Session) = withContext(Dispatchers.IO) {
+    suspend fun commitSession(session: PreparedInstall.Session) = withContext(Dispatchers.IO) { SourceSelectionGate.locked {
+        val row = database.updateQueueDao.getById(session.queueId) ?: error("Install request was removed")
+        SourceSelectionCoordinator.requireCurrent(appContext, row)
+        check(row.state == dev.wystore.updates.model.QueueState.INSTALLING.name) { "Install request is no longer active" }
+        database.updateQueueDao.updateSessionState(session.queueId, SESSION_COMMITTED, System.currentTimeMillis())
         val callbackIntent = Intent(appContext, InstallResultReceiver::class.java).apply {
             action = ACTION_INSTALL_RESULT
             putExtra(EXTRA_QUEUE_ID, session.queueId)
@@ -204,7 +213,7 @@ class InstallSessionWriter(private val context: Context) {
         packageInstaller.openSession(session.sessionId).use { openSession ->
             openSession.commit(pendingIntent.intentSender)
         }
-    }
+    } }
 
     /**
      * Drops a prepared-but-never-committed session. Without this the staged bytes stay charged to
@@ -226,6 +235,7 @@ class InstallSessionWriter(private val context: Context) {
         const val EXTRA_SILENT = "extra_silent"
 
         const val SESSION_PREPARED = "PREPARED"
+        const val SESSION_COMMITTED = "COMMITTED"
 
         /**
          * Android asked for the user's answer. The session's updatedAt then says when, which is

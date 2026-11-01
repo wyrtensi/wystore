@@ -4,6 +4,7 @@ import android.content.Context
 import dev.wystore.data.GitHubRepository
 import dev.wystore.data.ManagedApp
 import dev.wystore.data.ManagedSource
+import dev.wystore.data.SourceRequestPolicy
 import dev.wystore.data.StoreRepository
 import dev.wystore.data.invalidateInstalledApps
 import dev.wystore.data.local.UpdateQueueEntity
@@ -33,6 +34,9 @@ object InstalledAppRegistrar {
                 // Only adopt what is actually on the device now: a callback can arrive for an install
                 // Android ultimately refused, and pinning digests from a package that is not installed
                 // would poison every later update check.
+                if (!SourceRequestPolicy.isCurrent(repository.managedApps().firstOrNull { it.packageName == entity.packageName },
+                        ManagedSource.valueOf(entity.source), entity.sourceRevision, entity.sourceReplacement,
+                        repository.sourceRevision(entity.packageName))) return@withManagedAppsLock false
                 val digests = entity.signingDigests.split(",").filter { it.isNotBlank() }.toSet()
                 if (digests.isNotEmpty() && installed.signingDigests != digests) return@withManagedAppsLock false
                 if (entity.versionCode > 0 && installed.versionCode < entity.versionCode) return@withManagedAppsLock false
@@ -58,7 +62,9 @@ object InstalledAppRegistrar {
                                 entity.githubRepositoryName?.let { name -> GitHubRepository(owner, name) }
                             },
                         githubReleaseId = entity.githubReleaseId,
-                        sourceRevision = existing?.sourceRevision ?: entity.sourceRevision
+                        sourceRevision = if (entity.sourceReplacement && existing?.source != source)
+                            Math.addExact(existing?.sourceRevision ?: entity.sourceRevision, 1)
+                            else existing?.sourceRevision ?: entity.sourceRevision
                     )
                 }
                 if (verifiedHandover) {

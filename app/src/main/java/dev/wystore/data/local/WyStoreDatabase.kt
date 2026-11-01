@@ -44,6 +44,7 @@ abstract class WyStoreDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE update_queue ADD COLUMN sourceRevision INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE update_queue ADD COLUMN libraryRequestJson TEXT")
+                db.execSQL("ALTER TABLE update_queue ADD COLUMN sourceReplacement INTEGER NOT NULL DEFAULT 0")
             }
         }
 

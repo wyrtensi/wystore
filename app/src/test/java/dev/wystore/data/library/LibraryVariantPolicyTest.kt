@@ -4,6 +4,17 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LibraryVariantPolicyTest {
+    @Test fun `base is first for root and session installers even when feed members are shuffled`() {
+        val base = app()
+        val split = LibraryMember("f".repeat(64), "split_config.arm64.apk", "split", "config.arm64")
+        val source = base.copy(artifacts = base.artifacts + (split.artifact to
+            LibraryArtifact("${split.artifact}.apk", split.artifact, 10, "https://example.test/split.apk")),
+            variants = base.variants.map { it.copy(files = listOf(split) + it.files) })
+        val result = selected(source)
+        assertEquals(listOf("base", "split"), result.members.map { it.role })
+        assertEquals(listOf("a".repeat(64), "f".repeat(64)), result.artifacts.map { it.sha256 })
+    }
+
     private fun app() = LibraryJson.parseIndex(javaClass.getResource("/library/index.json")!!.readText())
         .applications.getValue("org.example.library")
     private fun device(abis: List<String> = listOf("arm64-v8a"), sdk: Int = 35) =

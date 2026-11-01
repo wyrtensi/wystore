@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "e34c316f6443e1b1b70459be3758bf74",
+    "identityHash": "edb224cbe07343bb791c116b3a3990fe",
     "entities": [
       {
         "tableName": "update_queue",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `packageName` TEXT NOT NULL, `label` TEXT NOT NULL, `versionName` TEXT NOT NULL, `versionCode` INTEGER NOT NULL, `source` TEXT NOT NULL, `state` TEXT NOT NULL, `priority` INTEGER NOT NULL, `position` INTEGER NOT NULL, `downloadedBytes` INTEGER NOT NULL, `totalBytes` INTEGER NOT NULL, `errorCode` TEXT, `errorDetail` TEXT, `signingDigests` TEXT NOT NULL, `githubRepositoryOwner` TEXT, `githubRepositoryName` TEXT, `githubReleaseId` INTEGER, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `requiresUpdateOwnership` INTEGER NOT NULL DEFAULT 0, `requiresUserConfirmation` INTEGER NOT NULL DEFAULT 0, `sourceRevision` INTEGER NOT NULL DEFAULT 0, `libraryRequestJson` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `packageName` TEXT NOT NULL, `label` TEXT NOT NULL, `versionName` TEXT NOT NULL, `versionCode` INTEGER NOT NULL, `source` TEXT NOT NULL, `state` TEXT NOT NULL, `priority` INTEGER NOT NULL, `position` INTEGER NOT NULL, `downloadedBytes` INTEGER NOT NULL, `totalBytes` INTEGER NOT NULL, `errorCode` TEXT, `errorDetail` TEXT, `signingDigests` TEXT NOT NULL, `githubRepositoryOwner` TEXT, `githubRepositoryName` TEXT, `githubReleaseId` INTEGER, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `requiresUpdateOwnership` INTEGER NOT NULL DEFAULT 0, `requiresUserConfirmation` INTEGER NOT NULL DEFAULT 0, `sourceRevision` INTEGER NOT NULL DEFAULT 0, `libraryRequestJson` TEXT, `sourceReplacement` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -142,6 +142,13 @@
             "fieldPath": "libraryRequestJson",
             "columnName": "libraryRequestJson",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sourceReplacement",
+            "columnName": "sourceReplacement",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
           }
         ],
         "primaryKey": {
@@ -464,7 +471,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e34c316f6443e1b1b70459be3758bf74')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'edb224cbe07343bb791c116b3a3990fe')"
     ]
   }
 }

@@ -43,7 +43,9 @@ data class UpdateQueueEntity(
     val requiresUserConfirmation: Boolean = false,
     @ColumnInfo(defaultValue = "0")
     val sourceRevision: Long = 0,
-    val libraryRequestJson: String? = null
+    val libraryRequestJson: String? = null,
+    @ColumnInfo(defaultValue = "0")
+    val sourceReplacement: Boolean = false
 )
 
 @Entity(

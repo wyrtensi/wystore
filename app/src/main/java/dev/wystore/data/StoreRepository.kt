@@ -19,6 +19,18 @@ class StoreRepository(private val context: Context) {
 
     fun managedApps(): List<ManagedApp> = synchronized(MANAGED_LOCK) { readManagedApps() }
 
+    /** Keep the revision through an uninstall/reinstall gap so obsolete requests remain obsolete. */
+    fun sourceRevision(packageName: String): Long = synchronized(MANAGED_LOCK) {
+        maxOf(preferences.getLong("source_revision:$packageName", 0),
+            readManagedApps().firstOrNull { it.packageName == packageName }?.sourceRevision ?: 0)
+    }
+
+    fun advanceSourceRevision(packageName: String): Long = synchronized(MANAGED_LOCK) {
+        Math.addExact(sourceRevision(packageName), 1).also { revision ->
+            check(preferences.edit().putLong("source_revision:$packageName", revision).commit())
+        }
+    }
+
     internal fun <T> withManagedAppsLock(block: () -> T): T = synchronized(MANAGED_LOCK, block)
 
     private fun readManagedApps(): List<ManagedApp> {
@@ -40,9 +52,10 @@ class StoreRepository(private val context: Context) {
     ): ManagedApp = synchronized(MANAGED_LOCK) {
         val current = readManagedApps()
         val previous = current.firstOrNull { it.packageName == packageName }
-        val replacement = transform(previous)
+        val replacement = SourceRequestPolicy.preserveSelection(previous, transform(previous))
         require(replacement.packageName == packageName)
-        val merged = replacement.copy(googlePlayUpdateDetected = !clearGooglePlayUpdate &&
+        val merged = replacement.copy(sourceRevision = maxOf(replacement.sourceRevision, sourceRevision(packageName)),
+            googlePlayUpdateDetected = !clearGooglePlayUpdate &&
             (replacement.googlePlayUpdateDetected || previous?.googlePlayUpdateDetected == true))
         writeManagedApps(current.filterNot { it.packageName == packageName } + merged)
         merged
@@ -69,7 +82,17 @@ class StoreRepository(private val context: Context) {
         // commit(), not apply(): this is called from a broadcast receiver right after an install,
         // and the process can be torn down before an asynchronous write reaches disk — which loses
         // the registration that makes the app eligible for updates.
-        check(preferences.edit().putString("managed_apps", gson.toJson(updated)).commit()) {
+        val old = readManagedApps().associateBy { it.packageName }
+        val normalized = updated.map { app ->
+            val previous = old[app.packageName]
+            val epoch = maxOf(preferences.getLong("source_revision:${app.packageName}", 0), previous?.sourceRevision ?: 0)
+            if (app.sourceRevision >= epoch) app else app.copy(sourceRevision =
+                if (previous != null && previous.source == app.source && previous.githubRepository == app.githubRepository) epoch
+                else Math.addExact(epoch, 1))
+        }
+        val editor = preferences.edit().putString("managed_apps", gson.toJson(normalized))
+        normalized.forEach { editor.putLong("source_revision:${it.packageName}", it.sourceRevision) }
+        check(editor.commit()) {
             "Could not persist managed apps"
         }
     }

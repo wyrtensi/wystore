@@ -160,6 +160,8 @@ class UpdateDownloadWorker(
             val entity = queueRepository.getEntityById(queueId)
                 ?: throw IllegalArgumentException("Queue item not found: $queueId")
 
+            dev.wystore.updates.SourceSelectionCoordinator.requireCurrent(context, entity)
+
             // One row, one runner. Losing the claim means something else is already carrying this
             // transfer, which is nothing to report and nothing to clean up: the files on disk
             // belong to whoever holds the row.
@@ -217,7 +219,7 @@ class UpdateDownloadWorker(
                             }
                         ) { version ->
                             var completed = 0L
-                            version.artifacts.mapIndexed { index, artifact ->
+                            val files = version.artifacts.mapIndexed { index, artifact ->
                                 val file = downloader.downloadGitHubApk(
                                     dev.wystore.data.GitHubAsset(0, artifact.name, artifact.size, artifact.url, "sha256:${artifact.sha256}"),
                                     File(tempDir, "${version.publicationHash}/${artifact.sha256}"), requiresExactSelection = true
@@ -230,6 +232,8 @@ class UpdateDownloadWorker(
                                 completed += artifact.size
                                 file
                             }
+                            dev.wystore.data.library.LibraryFileIntegrity.requireMatches(files, version.artifacts)
+                            files
                         }
                         libraryVersion = result?.version
                         sourceSignatureHint = result?.version?.preliminaryCertificates(device.sdk)?.singleOrNull()
@@ -365,6 +369,7 @@ class UpdateDownloadWorker(
                 val installed = expectedPackageName?.let(storeRepository::installedAppFresh)
                 val currentItem = queueRepository.getEntityById(queueId)
                     ?: throw CancellationException("Queue item $queueId was removed")
+                dev.wystore.updates.SourceSelectionCoordinator.requireCurrent(context, currentItem)
                 val verification = SigningVerifier.verifyArtifacts(
                     packageManager = context.packageManager,
                     files = downloadedFiles,
@@ -446,7 +451,8 @@ class UpdateDownloadWorker(
                     identity = verification.identity,
                     files = downloadedFiles,
                     sourceHash = sourceArtifactHash,
-                    sourceHashes = libraryVersion?.artifacts?.map { it.sha256 }
+                    sourceHashes = libraryVersion?.artifacts?.map { it.sha256 },
+                    expectedSourceRevision = entity.sourceRevision
                 )
                 queueRepository.transition(queueId, QueueAction.Verified)
                 // An older download of the same app left beside this one was a second ready item
@@ -518,6 +524,7 @@ class UpdateDownloadWorker(
 
         private suspend fun isUnattendedBlocked(queueId: String, installed: InstalledApp?): Boolean {
             val item = queueRepository.getEntityById(queueId) ?: return true
+            dev.wystore.updates.SourceSelectionCoordinator.requireCurrent(context, item)
             if (QueueOrigin.isUserRequested(item.priority)) return false
             if (installed == null) return true
             val managed = storeRepository.managedApps().firstOrNull { it.packageName == item.packageName }

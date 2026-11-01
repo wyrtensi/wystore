@@ -47,10 +47,11 @@ object LibraryVariantPolicy {
 
     fun resolve(app: LibraryApplication, selected: LibraryVariant): ResolvedLibraryVersion {
         require(selected in app.variants) { "Variant does not belong to application" }
+        val members = selected.files.sortedBy { if (it.role == "base") 0 else 1 }
         return ResolvedLibraryVersion(app.packageName, app.name, selected.id,
             selected.versionCode, selected.versionName, app.publication.catalog.sha256,
-            selected.certificates, selected.certificateScopeSdk, selected.files,
-            selected.files.map { app.artifacts.getValue(it.artifact) })
+            selected.certificates, selected.certificateScopeSdk, members,
+            members.map { app.artifacts.getValue(it.artifact) })
     }
 
     private fun localeRank(c: LibraryCompatibility, preferred: List<String>): Int {
