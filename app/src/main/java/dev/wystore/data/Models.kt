@@ -10,11 +10,12 @@ enum class InstallSource {
 
 enum class ManagedSource {
     RUSTORE,
-    GITHUB
+    GITHUB,
+    WY_STORE
 }
 
 data class StoreApp(
-    val appId: Long,
+    val appId: Long?,
     val packageName: String,
     val name: String,
     val publisher: String,
@@ -35,7 +36,8 @@ data class StoreApp(
     val signatureHint: String?,
     val sourceVersionId: Long?,
     val reviews: List<StoreReview> = emptyList(),
-    val changelog: AppChangelog? = null
+    val changelog: AppChangelog? = null,
+    val source: ManagedSource = ManagedSource.RUSTORE
 )
 
 /**
@@ -167,7 +169,8 @@ data class ManagedApp(
     val source: ManagedSource? = ManagedSource.RUSTORE,
     val githubRepository: GitHubRepository? = null,
     val githubReleaseId: Long? = null,
-    val googlePlayUpdateDetected: Boolean = false
+    val googlePlayUpdateDetected: Boolean = false,
+    val sourceRevision: Long = 0
 )
 
 typealias QueueMode = dev.wystore.updates.model.QueueMode
@@ -190,6 +193,7 @@ data class StoreSettings(
     val dynamicColorEnabled: Boolean = false,
     val accent: dev.wystore.settings.AccentPreset = dev.wystore.settings.AccentPreset.ORANGE,
     val githubEnabled: Boolean = true,
+    val libraryEnabled: Boolean = true,
     val readyNotificationsEnabled: Boolean = true,
     val errorNotificationsEnabled: Boolean = true,
     val checkSummaryNotificationsEnabled: Boolean = false,

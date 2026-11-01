@@ -35,6 +35,7 @@ object DiagnosticsSettingsDump {
         "dynamicColorEnabled" to settings.dynamicColorEnabled.toString(),
         "accent" to settings.accent.name,
         "githubEnabled" to settings.githubEnabled.toString(),
+        "libraryEnabled" to settings.libraryEnabled.toString(),
         "readyNotificationsEnabled" to settings.readyNotificationsEnabled.toString(),
         "errorNotificationsEnabled" to settings.errorNotificationsEnabled.toString(),
         "checkSummaryNotificationsEnabled" to settings.checkSummaryNotificationsEnabled.toString(),

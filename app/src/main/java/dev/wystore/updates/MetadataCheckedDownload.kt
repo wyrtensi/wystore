@@ -6,6 +6,7 @@ import dev.wystore.data.GitHubInstallStatePolicy
 
 sealed interface AvailableUpdateVersion {
     data class RuStore(val versionCode: Long) : AvailableUpdateVersion
+    data class Library(val versionCode: Long) : AvailableUpdateVersion
     data class GitHub(val releaseTag: String?) : AvailableUpdateVersion
 }
 
@@ -23,6 +24,8 @@ object MetadataCheckedDownload {
         if (isPaused(installed)) return null
         val newer = when (version) {
             is AvailableUpdateVersion.RuStore ->
+                version.versionCode > 0 && version.versionCode > installed.versionCode
+            is AvailableUpdateVersion.Library ->
                 version.versionCode > 0 && version.versionCode > installed.versionCode
             is AvailableUpdateVersion.GitHub ->
                 GitHubInstallStatePolicy.stateFor(installed.versionName, version.releaseTag) ==

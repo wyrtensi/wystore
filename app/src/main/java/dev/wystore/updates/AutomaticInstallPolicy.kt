@@ -22,7 +22,8 @@ object AutomaticInstallPolicy {
         if (userRequested) return true
         if (installed == null) return false
         if (managed == null) return true
-        if (!managed.autoUpdate || (managed.source == ManagedSource.GITHUB && !settings.githubEnabled)) return false
+        if (!managed.autoUpdate || (managed.source == ManagedSource.GITHUB && !settings.githubEnabled) ||
+            (managed.source == ManagedSource.WY_STORE && !settings.libraryEnabled)) return false
         return !GooglePlayUpdatePolicy.isPaused(managed, installed, settings.continueChecksAfterGooglePlayUpdate)
     }
 }

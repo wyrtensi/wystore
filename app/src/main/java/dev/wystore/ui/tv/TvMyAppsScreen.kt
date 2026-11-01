@@ -205,7 +205,11 @@ fun TvMyAppsScreen(
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             HubTag(installed?.versionName ?: stringResource(R.string.details_not_installed))
-                            val source = if (app.source == ManagedSource.GITHUB) "GitHub" else "RuStore"
+                            val source = when (app.source) {
+                                ManagedSource.GITHUB -> "GitHub"
+                                ManagedSource.WY_STORE -> "Wy Store"
+                                else -> "RuStore"
+                            }
                             HubTag(source, tint = sourceTint(source))
                         }
                         dev.wystore.ui.components.GooglePlayUpdateNotice(

@@ -37,8 +37,7 @@ object InstalledAppRegistrar {
                 if (digests.isNotEmpty() && installed.signingDigests != digests) return@withManagedAppsLock false
                 if (entity.versionCode > 0 && installed.versionCode < entity.versionCode) return@withManagedAppsLock false
 
-                val source = runCatching { ManagedSource.valueOf(entity.source) }
-                    .getOrDefault(ManagedSource.RUSTORE)
+                val source = ManagedSource.valueOf(entity.source)
                 val now = System.currentTimeMillis()
                 // A regular update must not erase observed Play attribution. Only the explicitly
                 // requested handover with Android confirming our update ownership resets that fact.
@@ -58,7 +57,8 @@ object InstalledAppRegistrar {
                             ?.let { owner ->
                                 entity.githubRepositoryName?.let { name -> GitHubRepository(owner, name) }
                             },
-                        githubReleaseId = entity.githubReleaseId
+                        githubReleaseId = entity.githubReleaseId,
+                        sourceRevision = existing?.sourceRevision ?: entity.sourceRevision
                     )
                 }
                 if (verifiedHandover) {

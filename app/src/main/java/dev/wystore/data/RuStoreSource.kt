@@ -81,7 +81,8 @@ class RuStoreSource(context: Context) : StoreSource {
         PackageNameValidator.requireValid(app.packageName)
         AndroidSdkCompatibility.requireSupported(app.minSdkVersion, Build.VERSION.SDK_INT)
         val payload = JsonObject().apply {
-            addProperty("appId", app.appId)
+            addProperty("appId", app.appId.takeIf { app.source == ManagedSource.RUSTORE }
+                ?: throw SourceFormatException(SourceError.FORMAT_CHANGED, "Missing RuStore application identity"))
             addProperty("firstInstall", true)
             addProperty("screenDensity", density)
             addProperty("sdkVersion", Build.VERSION.SDK_INT)

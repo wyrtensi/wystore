@@ -178,9 +178,67 @@ class UpdateDownloadWorker(
             // advertised, and so the artifact row records what the source claimed.
             var sourceSignatureHint: String? = null
             var sourceArtifactHash: String? = null
+            var libraryVersion: dev.wystore.data.library.ResolvedLibraryVersion? = null
 
             val downloadedFiles: List<File>? = try {
                 when (entity.source) {
+                    ManagedSource.WY_STORE.name -> {
+                        val stored = dev.wystore.data.library.LibraryRequestCodec.decode(
+                            entity.libraryRequestJson ?: error("Missing library install request"))
+                        require(stored.application.packageName == entity.packageName && stored.sourceRevision == entity.sourceRevision)
+                        val device = dev.wystore.data.library.LibraryDeviceSpec.current(context)
+                        val repo = dev.wystore.data.library.LibraryRepository.getInstance(context)
+                        var application = stored.application
+                        val compatible = dev.wystore.data.library.LibraryVariantPolicy.select(application.copy(
+                            variants = application.variants.filter { it.id == stored.variantId }), device)
+                        val initial = (compatible as? dev.wystore.data.library.LibrarySelection.Compatible)?.version
+                            ?: throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.INCOMPATIBLE,
+                                detail = "The stored library variant no longer supports this device")
+                        val result = dev.wystore.data.library.LibraryTransfer.download(initial,
+                            resolveLatest = {
+                                application = repo.index(forceRefresh = true).requireFresh().applications[entity.packageName]
+                                    ?: throw dev.wystore.data.library.LibraryApplicationMissing(entity.packageName)
+                                (dev.wystore.data.library.LibraryVariantPolicy.select(application, device)
+                                    as? dev.wystore.data.library.LibrarySelection.Compatible)?.version
+                                    ?: throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.INCOMPATIBLE,
+                                        detail = "No replacement library variant supports this device")
+                            },
+                            allowed = { version ->
+                                val item = queueRepository.getEntityById(queueId)
+                                item != null && item.state == QueueState.DOWNLOADING.name &&
+                                    !isUnattendedBlocked(queueId, storeRepository.installedAppFresh(entity.packageName)) &&
+                                    (QueueOrigin.isUserRequested(item.priority) ||
+                                        storeRepository.installedAppFresh(entity.packageName)?.let {
+                                            version.versionCode > it.versionCode
+                                        } == true)
+                            },
+                            onResolved = { version ->
+                                queueRepository.updateLibraryRequest(queueId, application, version.variantId, entity.sourceRevision)
+                            }
+                        ) { version ->
+                            var completed = 0L
+                            version.artifacts.mapIndexed { index, artifact ->
+                                val file = downloader.downloadGitHubApk(
+                                    dev.wystore.data.GitHubAsset(0, artifact.name, artifact.size, artifact.url, "sha256:${artifact.sha256}"),
+                                    File(tempDir, "${version.publicationHash}/${artifact.sha256}"), requiresExactSelection = true
+                                ) { progress ->
+                                    currentCoroutineContext().ensureActive()
+                                    reportProgress(queueId, progress.copy(downloadedBytes = completed + progress.downloadedBytes,
+                                        totalBytes = version.totalBytes, artifactIndex = index + 1,
+                                        artifactCount = version.artifacts.size), coordinator)
+                                }
+                                completed += artifact.size
+                                file
+                            }
+                        }
+                        libraryVersion = result?.version
+                        sourceSignatureHint = result?.version?.preliminaryCertificates(device.sdk)?.singleOrNull()
+                        if (result == null && queueRepository.getEntityById(queueId)?.state != QueueState.DOWNLOADING.name) {
+                            throw CancellationException("Library request was paused or canceled during resolution")
+                        }
+                        if (result == null) queueRepository.discardAutomatic(queueId)
+                        result?.data
+                    }
                     ManagedSource.RUSTORE.name -> {
                         val storeApp = ruStoreSource.details(entity.packageName, includeReviews = false)
                         // The name the source publishes, so the queue and the ready-to-install
@@ -321,6 +379,13 @@ class UpdateDownloadWorker(
                     // what makes Wy Store the installer of record.
                     allowReinstall = QueueOrigin.isUserRequested(currentItem.priority)
                 )
+                libraryVersion?.let { expected ->
+                    if (verification.identity.packageName != expected.packageName ||
+                        verification.identity.versionCode != expected.versionCode || downloadedFiles.size != expected.members.size) {
+                        throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.INTEGRITY,
+                            detail = "Library archive identity differs from the selected immutable set")
+                    }
+                }
                 // Not newer than what is installed means there was nothing to fetch. For a check
                 // nobody asked for that is neither a failure nor an install: reported as a failure
                 // it left a red row about an app that is perfectly up to date. But the same silence
@@ -380,7 +445,8 @@ class UpdateDownloadWorker(
                     queueId = queueId,
                     identity = verification.identity,
                     files = downloadedFiles,
-                    sourceHash = sourceArtifactHash
+                    sourceHash = sourceArtifactHash,
+                    sourceHashes = libraryVersion?.artifacts?.map { it.sha256 }
                 )
                 queueRepository.transition(queueId, QueueAction.Verified)
                 // An older download of the same app left beside this one was a second ready item
@@ -457,7 +523,8 @@ class UpdateDownloadWorker(
             val managed = storeRepository.managedApps().firstOrNull { it.packageName == item.packageName }
                 ?: return false
             val settings = storeRepository.settings()
-            if (!managed.autoUpdate || (item.source == ManagedSource.GITHUB.name && !settings.githubEnabled)) return true
+            if (!managed.autoUpdate || (item.source == ManagedSource.GITHUB.name && !settings.githubEnabled) ||
+                (item.source == ManagedSource.WY_STORE.name && !settings.libraryEnabled)) return true
             return GooglePlayUpdatePolicy.isPaused(
                 managed, installed, settings.continueChecksAfterGooglePlayUpdate
             )

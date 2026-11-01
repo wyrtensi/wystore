@@ -16,7 +16,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         CatalogAppEntity::class,
         PackageIconEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class WyStoreDatabase : RoomDatabase() {
@@ -40,6 +40,13 @@ abstract class WyStoreDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE update_queue ADD COLUMN sourceRevision INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE update_queue ADD COLUMN libraryRequestJson TEXT")
+            }
+        }
+
         @Volatile
         private var instance: WyStoreDatabase? = null
 
@@ -50,7 +57,7 @@ abstract class WyStoreDatabase : RoomDatabase() {
                     WyStoreDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                     .also { instance = it }
             }

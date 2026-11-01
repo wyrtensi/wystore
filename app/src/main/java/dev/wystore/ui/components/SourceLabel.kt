@@ -27,6 +27,7 @@ fun SourceLabel(source: ManagedSource, modifier: Modifier = Modifier) {
         text = when (source) {
             ManagedSource.RUSTORE -> stringResource(R.string.source_rustore)
             ManagedSource.GITHUB -> stringResource(R.string.source_github)
+            ManagedSource.WY_STORE -> "Wy Store"
         },
         modifier = modifier
     )

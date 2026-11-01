@@ -7,7 +7,7 @@ import dev.wystore.updates.model.QueueErrorCode
 /** A handover approves one asset, so a removed or replaced file cannot become another choice. */
 object GitHubExactDownloadPolicy {
     fun failureFor(statusCode: Int): TransferFailure? =
-        if (statusCode == 404 || statusCode == 410) changed("GitHub HTTP $statusCode") else null
+        if (statusCode == 404 || statusCode == 410) changed("GitHub HTTP $statusCode").copy(httpStatus = statusCode) else null
 
     fun failureFor(error: SourceError): TransferFailure? = when (error) {
         SourceError.ARTIFACT_SIZE_MISMATCH,

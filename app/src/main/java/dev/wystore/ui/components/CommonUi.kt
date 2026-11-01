@@ -477,6 +477,7 @@ fun sourceLabel(source: InstallSource): String = when (source) {
 fun managedSourceLabel(app: ManagedApp): String = when (app.source) {
     ManagedSource.RUSTORE -> "RuStore"
     ManagedSource.GITHUB -> "GitHub"
+    ManagedSource.WY_STORE -> "Wy Store"
     null -> stringResource(R.string.source_not_saved)
 }
 

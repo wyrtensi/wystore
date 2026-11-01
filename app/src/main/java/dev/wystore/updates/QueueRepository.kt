@@ -512,11 +512,13 @@ class QueueRepository(
         queueId: String,
         identity: ArchiveIdentity,
         files: List<File>,
-        sourceHash: String? = null
+        sourceHash: String? = null,
+        sourceHashes: List<String>? = null
     ): List<UpdateArtifactEntity> = withContext(Dispatchers.IO) {
         require(identity.signingDigests.isNotEmpty()) { "Verified identity carries no signing digest" }
         require(identity.packageName.isNotBlank()) { "Verified identity carries no package name" }
         require(files.isNotEmpty()) { "Verified APK set is empty" }
+        require(sourceHashes == null || sourceHashes.size == files.size) { "Wrong per-artifact hash count" }
         val targetDir = File(rootDirectory, queueId).apply { mkdirs() }
         val copied = files.mapIndexed { index, file ->
             val dest = File(targetDir, "artifact_$index.apk")
@@ -527,7 +529,7 @@ class QueueRepository(
                 queueId = queueId,
                 path = dest.absolutePath,
                 size = dest.length(),
-                sourceHash = sourceHash,
+                sourceHash = sourceHashes?.get(index) ?: sourceHash,
                 createdAt = System.currentTimeMillis(),
                 lastAccessedAt = System.currentTimeMillis()
             )
@@ -701,6 +703,38 @@ class QueueRepository(
     suspend fun enqueueAvailableUpdate(entity: UpdateQueueEntity): UpdateQueueEntity = withContext(Dispatchers.IO) {
         dao.upsertAtomic(entity)
         entity
+    }
+
+    suspend fun enqueueLibraryUpdate(
+        app: dev.wystore.data.library.LibraryApplication,
+        variantId: String,
+        priority: Int = 0,
+        sourceRevision: Long = 0,
+        manual: Boolean = false,
+        requiresUserConfirmation: Boolean = false
+    ): UpdateQueueEntity? = withContext(Dispatchers.IO) {
+        database.withTransaction {
+            val version = dev.wystore.data.library.LibraryVariantPolicy.resolve(app, app.variants.single { it.id == variantId })
+            val row = if (manual) enqueueManualInstall(app.packageName, app.name, ManagedSource.WY_STORE,
+                priority = priority, requiresUserConfirmation = requiresUserConfirmation)
+            else enqueueAvailableUpdate(app.packageName, app.name, version.versionName, version.versionCode,
+                ManagedSource.WY_STORE, priority)
+            row?.let { updateLibraryRequest(it.id, app, variantId, sourceRevision) }
+        }
+    }
+
+    suspend fun updateLibraryRequest(
+        id: String, app: dev.wystore.data.library.LibraryApplication, variantId: String, sourceRevision: Long
+    ): UpdateQueueEntity = withContext(Dispatchers.IO) {
+        database.withTransaction {
+            val current = dao.getById(id) ?: error("Library request was removed")
+            require(current.packageName == app.packageName && current.source == ManagedSource.WY_STORE.name)
+            val next = current.copy(label = app.name, sourceRevision = sourceRevision,
+                libraryRequestJson = dev.wystore.data.library.LibraryRequestCodec.encode(app, variantId, sourceRevision),
+                updatedAt = System.currentTimeMillis())
+            dao.update(next)
+            next
+        }
     }
 
     suspend fun enqueueAvailableUpdate(
@@ -915,7 +949,7 @@ class QueueRepository(
         val artifacts = dao.getArtifactsForQueue(entity.id)
         val validFiles = artifacts.map { File(it.path) }.filter { it.isFile && it.length() > 0L }
         if (validFiles.isEmpty()) return null
-        val source = runCatching { ManagedSource.valueOf(entity.source) }.getOrDefault(ManagedSource.RUSTORE)
+        val source = ManagedSource.valueOf(entity.source)
         val repo = if (entity.githubRepositoryOwner != null && entity.githubRepositoryName != null) {
             GitHubRepository(owner = entity.githubRepositoryOwner, name = entity.githubRepositoryName)
         } else null

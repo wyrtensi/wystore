@@ -41,6 +41,7 @@ internal object SettingsCodec {
     val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
     val KEY_ACCENT = stringPreferencesKey("accent")
     val KEY_GITHUB_ENABLED = booleanPreferencesKey("github_enabled")
+    val KEY_LIBRARY_ENABLED = booleanPreferencesKey("library_enabled")
     val KEY_READY_NOTIFICATIONS = booleanPreferencesKey("ready_notifications")
     val KEY_ERROR_NOTIFICATIONS = booleanPreferencesKey("error_notifications")
     val KEY_CHECK_SUMMARY_NOTIFICATIONS = booleanPreferencesKey("check_summary_notifications")
@@ -98,6 +99,7 @@ internal object SettingsCodec {
                 runCatching { AccentPreset.valueOf(raw) }.getOrNull()
             } ?: defaults.accent,
             githubEnabled = prefs[KEY_GITHUB_ENABLED] ?: defaults.githubEnabled,
+            libraryEnabled = prefs[KEY_LIBRARY_ENABLED] ?: defaults.libraryEnabled,
             readyNotificationsEnabled = prefs[KEY_READY_NOTIFICATIONS]
                 ?: defaults.readyNotificationsEnabled,
             errorNotificationsEnabled = prefs[KEY_ERROR_NOTIFICATIONS]
@@ -159,6 +161,7 @@ internal object SettingsCodec {
         prefs.put(KEY_DYNAMIC_COLOR, updated.dynamicColorEnabled, current.dynamicColorEnabled)
         prefs.put(KEY_ACCENT, updated.accent.name, current.accent.name)
         prefs.put(KEY_GITHUB_ENABLED, updated.githubEnabled, current.githubEnabled)
+        prefs.put(KEY_LIBRARY_ENABLED, updated.libraryEnabled, current.libraryEnabled)
         prefs.put(
             KEY_READY_NOTIFICATIONS,
             updated.readyNotificationsEnabled,

@@ -8,6 +8,7 @@ data class LibraryCard(
     val locales: Map<String, LibrarySearchText>
 )
 data class LibraryIndex(val applications: Map<String, LibraryApplication>)
+class LibraryApplicationMissing(val packageName: String) : IllegalStateException("Application absent from library: $packageName")
 data class LibraryApplication(
     val packageName: String, val name: String, val defaultVariant: String,
     val variants: List<LibraryVariant>, val artifacts: Map<String, LibraryArtifact>,
@@ -22,7 +23,8 @@ data class LibraryMember(val artifact: String, val originalName: String, val rol
 data class LibraryVariant(
     val id: String, val versionCode: Long, val versionName: String,
     val certificates: Set<String>, val certificateScopeSdk: Int?,
-    val compatibility: LibraryCompatibility, val files: List<LibraryMember>
+    val compatibility: LibraryCompatibility, val files: List<LibraryMember>,
+    val profileFingerprint: String
 )
 data class LibraryCompatibility(
     val minSdk: Int, val abis: List<String>, val nativeAbis: Set<String>,

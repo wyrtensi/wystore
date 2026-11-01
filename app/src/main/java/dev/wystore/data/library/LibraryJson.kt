@@ -90,7 +90,8 @@ object LibraryJson {
                 val id = variant.text("id")
                 check(Regex("[A-Za-z0-9_]+").matches(id), "Invalid variant id")
                 LibraryVariant(id, variant.integer("version_code", 1),
-                    variant.text("version_name", allowBlank = true), certificates, scope, compatibility, members)
+                    variant.text("version_name", allowBlank = true), certificates, scope, compatibility, members,
+                    variant.text("profile_fingerprint"))
             }
             check(variants.map { it.id }.distinct().size == variants.size && variants.isNotEmpty(), "Duplicate/empty variants")
             val default = item.text("default_variant")

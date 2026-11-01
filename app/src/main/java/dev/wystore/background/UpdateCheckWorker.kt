@@ -53,6 +53,7 @@ class UpdateCheckWorker(
     private val ruStoreSource = RuStoreSource.getInstance(appContext)
     private val gitHubSource = GitHubReleaseSource(appContext)
     private val queueRepository = QueueRepository.getInstance(appContext)
+    private val libraryRepository = dev.wystore.data.library.LibraryRepository.getInstance(appContext)
 
     override suspend fun doWork(): Result {
         val isManualCheck = inputData.getBoolean(KEY_MANUAL_CHECK, false)
@@ -140,6 +141,12 @@ class UpdateCheckWorker(
         // a row id in the failure log is a UUID nobody can match to an app.
         val queuedThisRun = mutableListOf<QueuedRow>()
 
+        val libraryBatch = if (settings.libraryEnabled && candidates.any { it.source == ManagedSource.WY_STORE }) {
+            runCatching { libraryRepository.index(forceRefresh = true).requireFresh() }.also {
+                val error = it.exceptionOrNull()
+                if (error is CancellationException) throw error
+            }
+        } else null
         for ((index, managed) in candidates.withIndex()) {
             currentCoroutineContext().ensureActive()
             // Nothing was ever published here, so the card the Library shows while a check runs
@@ -166,10 +173,11 @@ class UpdateCheckWorker(
             if (managed.source == ManagedSource.GITHUB && !settings.githubEnabled) {
                 continue
             }
+            if (managed.source == ManagedSource.WY_STORE && !settings.libraryEnabled) continue
 
             try {
                 // Paced, so forty apps are not forty requests fired back to back.
-                if (attempted > 0) delay(RuStoreRateLimitPolicy.CHECK_PACE_MILLIS)
+                if (attempted > 0 && managed.source != ManagedSource.WY_STORE) delay(RuStoreRateLimitPolicy.CHECK_PACE_MILLIS)
                 attempted++
                 // A check aimed at this one package is someone asking about it, so the answer is
                 // kept and offered rather than swept away with the rows nobody asked for. Asking
@@ -203,6 +211,7 @@ class UpdateCheckWorker(
                         }
                     }
                     ManagedSource.GITHUB -> checkGitHubUpdate(managed, local.versionName, priority)
+                    ManagedSource.WY_STORE -> checkLibraryUpdate(managed, local, priority, requireNotNull(libraryBatch).getOrThrow())
                     null -> null
                 }
                 answeredNow += managed.packageName
@@ -364,6 +373,26 @@ class UpdateCheckWorker(
         data object SignatureChanged : RuStoreCheck
     }
 
+    private suspend fun checkLibraryUpdate(
+        managed: ManagedApp, local: InstalledApp, priority: Int,
+        index: dev.wystore.data.library.LibraryIndex
+    ): String? {
+        val app = index.applications[managed.packageName]
+            ?: throw dev.wystore.data.library.LibraryApplicationMissing(managed.packageName)
+        val selection = dev.wystore.data.library.LibraryVariantPolicy.select(app,
+            dev.wystore.data.library.LibraryDeviceSpec.current(applicationContext))
+        val version = (selection as? dev.wystore.data.library.LibrarySelection.Compatible)?.version
+            ?: throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.INCOMPATIBLE,
+                detail = "No published library variant supports this device")
+        if (!dev.wystore.data.library.LibraryUpdatePolicy.isNewer(local.versionCode, version)) return null
+        val certificates = version.preliminaryCertificates(android.os.Build.VERSION.SDK_INT)
+        if (certificates.isNotEmpty() && certificates != local.signingDigests) {
+            throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.SIGNATURE,
+                detail = "Library signing identity differs; manual verification is required")
+        }
+        return queueRepository.enqueueLibraryUpdate(app, version.variantId, priority, managed.sourceRevision)?.id
+    }
+
     private suspend fun checkRuStoreUpdate(
         managed: ManagedApp,
         local: InstalledApp,
@@ -512,7 +541,8 @@ class UpdateCheckWorker(
 
     /** Whether the source answered "no such app" rather than failing to answer at all. */
     private fun isMissingFromSource(error: Throwable): Boolean =
-        error is SourceFormatException && error.error == SourceError.RUSTORE_NOT_FOUND
+        (error is SourceFormatException && error.error == SourceError.RUSTORE_NOT_FOUND) ||
+            error is dev.wystore.data.library.LibraryApplicationMissing
 
     companion object {
         private val CHECK_LOCK = Mutex()

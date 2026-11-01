@@ -14,7 +14,8 @@ data class TransferFailure(
     val retryable: Boolean,
     val code: QueueErrorCode,
     val retryAfterMillis: Long? = null,
-    val detail: String? = null
+    val detail: String? = null,
+    val httpStatus: Int? = null
 ) : RuntimeException(detail)
 
 fun classifyHttpFailure(statusCode: Int, retryAfterHeader: String? = null): TransferFailure {
@@ -57,6 +58,7 @@ fun classifyHttpFailure(statusCode: Int, retryAfterHeader: String? = null): Tran
 fun classifyThrowable(throwable: Throwable): TransferFailure {
     if (throwable is CancellationException) throw throwable
     if (throwable is TransferFailure) return throwable
+    if (throwable is dev.wystore.data.library.LibraryHttpException) return classifyHttpFailure(throwable.status)
 
     // A typed source failure answers this outright. The message matching below is the fallback for
     // everything that is still a plain exception, and it used to be the only path: whether a

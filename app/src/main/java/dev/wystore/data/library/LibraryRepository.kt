@@ -29,6 +29,12 @@ class LibraryRepository(
     private val freshnessMillis: Long = 6 * 60 * 60 * 1000L,
     private val now: () -> Long = System::currentTimeMillis
 ) {
+    companion object {
+        @Volatile private var instance: LibraryRepository? = null
+        fun getInstance(context: Context): LibraryRepository = instance ?: synchronized(this) {
+            instance ?: LibraryRepository(context.applicationContext).also { instance = it }
+        }
+    }
     private data class Snapshot(val json: String, val etag: String?, val checkedAt: Long, val generation: Long)
     private val mutex = Mutex()
     private val memory = mutableMapOf<String, Snapshot>()

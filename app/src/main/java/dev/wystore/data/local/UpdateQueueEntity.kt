@@ -40,7 +40,10 @@ data class UpdateQueueEntity(
     @ColumnInfo(defaultValue = "0")
     val requiresUpdateOwnership: Boolean = false,
     @ColumnInfo(defaultValue = "0")
-    val requiresUserConfirmation: Boolean = false
+    val requiresUserConfirmation: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val sourceRevision: Long = 0,
+    val libraryRequestJson: String? = null
 )
 
 @Entity(
@@ -97,7 +100,7 @@ fun UpdateQueueEntity.toSnapshot(): QueueItemSnapshot = QueueItemSnapshot(
     label = label,
     versionName = versionName,
     versionCode = versionCode,
-    source = runCatching { ManagedSource.valueOf(source) }.getOrDefault(ManagedSource.RUSTORE),
+    source = ManagedSource.valueOf(source),
     state = runCatching { QueueState.valueOf(state) }.getOrDefault(QueueState.AVAILABLE),
     priority = priority,
     position = position,

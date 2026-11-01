@@ -12,6 +12,16 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 class MetadataCheckedDownloadTest {
+    @Test
+    fun `library native versions are checked before the APK callback`() = runTest {
+        var calls = 0
+        for (version in listOf(19L, 20L, 21L)) {
+            MetadataCheckedDownload.download(false, AvailableUpdateVersion.Library(version),
+                readInstalled = { installed() }, isPaused = { false }) { calls++; "apk" }
+        }
+        assertEquals(1, calls)
+    }
+
     private fun installed(code: Long = 20L, name: String = "2.0") = InstalledApp(
         packageName = "example.app", label = "Example", versionName = name,
         versionCode = code, lastUpdateTime = 1L, source = InstallSource.OTHER,

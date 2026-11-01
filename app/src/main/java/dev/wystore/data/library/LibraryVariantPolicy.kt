@@ -42,10 +42,15 @@ object LibraryVariantPolicy {
             .thenBy { abs(it.compatibility.density.toLong() - device.density) }
             .thenBy { it.id }).firstOrNull()
             ?: return LibrarySelection.Unsupported(failures.ifEmpty { setOf(LibraryIncompatibility.NO_VARIANT) })
-        return LibrarySelection.Compatible(ResolvedLibraryVersion(app.packageName, app.name, selected.id,
+        return LibrarySelection.Compatible(resolve(app, selected))
+    }
+
+    fun resolve(app: LibraryApplication, selected: LibraryVariant): ResolvedLibraryVersion {
+        require(selected in app.variants) { "Variant does not belong to application" }
+        return ResolvedLibraryVersion(app.packageName, app.name, selected.id,
             selected.versionCode, selected.versionName, app.publication.catalog.sha256,
             selected.certificates, selected.certificateScopeSdk, selected.files,
-            selected.files.map { app.artifacts.getValue(it.artifact) }))
+            selected.files.map { app.artifacts.getValue(it.artifact) })
     }
 
     private fun localeRank(c: LibraryCompatibility, preferred: List<String>): Int {
