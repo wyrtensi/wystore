@@ -13,6 +13,14 @@ class QueueRequestRetentionTest {
         versionCode = 20, source = "RUSTORE", state = QueueState.AVAILABLE.name
     )
 
+    @Test fun `legacy replacement confirmation survives stale and conflicting rows without requesting ownership`() {
+        val requested = stale.copy(requiresUserConfirmation = true)
+        val merged = QueueRequestRetention.merge(stale.copy(id = "verified"), null, requested)
+        assertTrue(merged.requiresUserConfirmation)
+        assertFalse(merged.requiresUpdateOwnership)
+        assertEquals(QueueOrigin.USER_REQUESTED_PRIORITY, merged.priority)
+    }
+
     @Test
     fun `an ownership request promotes an automatic download without losing its progress`() {
         val automatic = stale.copy(state = QueueState.DOWNLOADING.name, downloadedBytes = 1024, priority = 0)

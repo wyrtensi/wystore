@@ -27,6 +27,13 @@ class SilentUpdatePolicyTest {
     }
 
     @Test
+    fun anExplicitReplacementAlwaysRequiresConfirmation() {
+        assertFalse(SilentUpdatePolicy.allows(enabled = true, sdkInt = 33,
+            isUpdate = true, installerOfRecord = "app.wystore", ownPackageName = "app.wystore",
+            requiresUserConfirmation = true))
+    }
+
+    @Test
     fun theSettingTurnsItOff() {
         assertFalse(allows(enabled = false))
     }

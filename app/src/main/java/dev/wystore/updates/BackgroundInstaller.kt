@@ -106,7 +106,7 @@ class BackgroundInstaller(context: Context) {
         val settings = storeRepository.settings()
         if (!settings.autoInstallUpdates) return false
         val item = queueRepository.getEntityById(queueId) ?: return false
-        if (item.requiresUpdateOwnership) return false
+        if (item.requiresUpdateOwnership || item.requiresUserConfirmation) return false
         val installed = storeRepository.installedAppFresh(packageName)
         val managed = storeRepository.observeGooglePlayUpdates(listOfNotNull(installed))
             .firstOrNull { it.packageName == packageName }

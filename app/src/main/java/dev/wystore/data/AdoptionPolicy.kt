@@ -88,8 +88,14 @@ object AdoptionPolicy {
      * Only an identity, and only when it is the one answer: the same package in one place, kept in
      * place. A replacement removes the app, and two sources for the same package are a choice.
      */
-    fun automatic(options: List<AdoptionOption>): AdoptionOption? =
-        options.singleOrNull()?.takeIf { it.inPlace }
+    fun automatic(
+        options: List<AdoptionOption>,
+        handover: OwnershipHandover = OwnershipHandover.OWNED
+    ): AdoptionOption? = options.singleOrNull()?.takeIf { it.inPlace && canTrackInPlace(handover) }
+
+    // Android before 14 has no update ownership. That must not prevent recording a source.
+    fun canTrackInPlace(handover: OwnershipHandover): Boolean =
+        handover == OwnershipHandover.OWNED || handover == OwnershipHandover.UNSUPPORTED_ANDROID
 
     private fun StoreApp.toCandidate(exact: Boolean) = AdoptionCandidate(
         packageName = packageName,

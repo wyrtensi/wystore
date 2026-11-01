@@ -5,6 +5,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class PreparedInstallDispatcherTest {
+    @Test fun `legacy replacement still offers confirmation and reuses an active transfer`() {
+        assertEquals(PreparedInstallAction.OFFER_CONFIRMATION,
+            PreparedInstallDispatcher.action(QueueState.READY_TO_INSTALL, false, true))
+        assertEquals(PreparedInstallAction.KEEP_ACTIVE,
+            PreparedInstallDispatcher.action(QueueState.DOWNLOADING, false, true))
+        assertEquals(PreparedInstallAction.DOWNLOAD,
+            PreparedInstallDispatcher.action(QueueState.AVAILABLE, false, true))
+    }
     @Test fun `a verified ownership replacement offers confirmation without another network transfer`() {
         assertEquals(PreparedInstallAction.OFFER_CONFIRMATION,
             PreparedInstallDispatcher.action(QueueState.READY_TO_INSTALL, requiresUpdateOwnership = true))

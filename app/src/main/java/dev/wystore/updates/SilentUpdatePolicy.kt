@@ -26,9 +26,10 @@ object SilentUpdatePolicy {
         isUpdate: Boolean,
         installerOfRecord: String?,
         ownPackageName: String,
-        requiresUpdateOwnership: Boolean = false
+        requiresUpdateOwnership: Boolean = false,
+        requiresUserConfirmation: Boolean = false
     ): Boolean {
-        if (requiresUpdateOwnership) return false
+        if (requiresUpdateOwnership || requiresUserConfirmation) return false
         if (!enabled) return false
         if (refusedOnThisFirmware) return false
         if (sdkInt < Build.VERSION_CODES.S) return false

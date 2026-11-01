@@ -6,13 +6,15 @@ import dev.wystore.data.local.UpdateQueueEntity
 object QueueRequestRetention {
     fun merge(incoming: UpdateQueueEntity, vararg stored: UpdateQueueEntity?): UpdateQueueEntity {
         val ownershipRequested = incoming.requiresUpdateOwnership || stored.any { it?.requiresUpdateOwnership == true }
+        val confirmationRequested = incoming.requiresUserConfirmation || stored.any { it?.requiresUserConfirmation == true }
         return incoming.copy(
             priority = maxOf(
                 incoming.priority,
                 stored.filterNotNull().maxOfOrNull { it.priority } ?: incoming.priority,
-                if (ownershipRequested) QueueOrigin.USER_REQUESTED_PRIORITY else incoming.priority
+                if (ownershipRequested || confirmationRequested) QueueOrigin.USER_REQUESTED_PRIORITY else incoming.priority
             ),
-            requiresUpdateOwnership = ownershipRequested
+            requiresUpdateOwnership = ownershipRequested,
+            requiresUserConfirmation = confirmationRequested
         )
     }
 }

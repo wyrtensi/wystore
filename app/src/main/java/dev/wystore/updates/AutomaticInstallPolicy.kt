@@ -13,10 +13,11 @@ object AutomaticInstallPolicy {
         installed: InstalledApp?,
         settings: StoreSettings,
         userRequested: Boolean,
-        requiresUpdateOwnership: Boolean = false
+        requiresUpdateOwnership: Boolean = false,
+        requiresUserConfirmation: Boolean = false
     ): Boolean {
         // This grants an offer of Android's dialog, never permission for a silent installer.
-        if (userRequested && requiresUpdateOwnership) return true
+        if (userRequested && (requiresUpdateOwnership || requiresUserConfirmation)) return true
         if (!settings.autoInstallUpdates) return false
         if (userRequested) return true
         if (installed == null) return false

@@ -99,7 +99,8 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
                             context = this@WyStoreApplication, packageName = pending.installPackageName,
                             label = pending.label,
                             settings = SettingsRepository(this@WyStoreApplication).currentSettings().toStoreSettings(),
-                            requiresUpdateOwnership = pending.requiresUpdateOwnership
+                            requiresUpdateOwnership = pending.requiresUpdateOwnership,
+                            requiresUserConfirmation = true
                         )
                     }
                     // Both removal broadcasts can arrive. Clear only once the replacement has a

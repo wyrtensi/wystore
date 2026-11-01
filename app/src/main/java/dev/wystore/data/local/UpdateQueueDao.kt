@@ -227,10 +227,12 @@ abstract class UpdateQueueDao {
         val current = getById(queueId) ?: throw IllegalArgumentException("Queue item not found: $queueId")
         val obsolete = mutableListOf<String>()
         var requiresUpdateOwnership = current.requiresUpdateOwnership
+        var requiresUserConfirmation = current.requiresUserConfirmation
         // The row was created before the download with a placeholder version code, so adopting the
         // real one can collide with the unique (packageName, versionCode, source) index.
         for (conflict in findConflicting(packageName, versionCode, current.source, queueId)) {
             requiresUpdateOwnership = requiresUpdateOwnership || conflict.requiresUpdateOwnership
+            requiresUserConfirmation = requiresUserConfirmation || conflict.requiresUserConfirmation
             obsolete += getArtifactsForQueue(conflict.id).map { it.path }
             deleteById(conflict.id)
         }
@@ -247,6 +249,7 @@ abstract class UpdateQueueDao {
                 versionCode = versionCode,
                 signingDigests = signingDigests,
                 requiresUpdateOwnership = requiresUpdateOwnership,
+                requiresUserConfirmation = requiresUserConfirmation,
                 updatedAt = System.currentTimeMillis()
             )
         )

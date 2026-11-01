@@ -855,4 +855,5 @@
     <string name="ownership_transfer_more">Profili un atjauninājumu aizsardzība</string>
     <string name="ownership_transfer_less">Paslēpt skaidrojumu</string>
     <string name="ownership_transfer_profile_limits">Ja kopija paliek citā profilā, piemēram, Shelter, īpašumtiesību nodošana var nebūt pieejama. Pat ja īpašnieks ir Wy Store, pārvaldītos profilos sistēmas veikals var atjaunināt lietotni bez apstiprinājuma.</string>
+    <string name="adopt_finish_batch">Beigt pārskatīšanu</string>
 </resources>

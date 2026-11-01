@@ -855,4 +855,5 @@
     <string name="ownership_transfer_more">Profiles and update protection</string>
     <string name="ownership_transfer_less">Hide explanation</string>
     <string name="ownership_transfer_profile_limits">If a copy remains in another profile, such as Shelter, ownership transfer may be unavailable. Even with Wy Store ownership, a system store may update the app without confirmation in managed profiles.</string>
+    <string name="adopt_finish_batch">Finish reviewing</string>
 </resources>

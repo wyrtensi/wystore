@@ -37,6 +37,14 @@ class AutomaticInstallPolicyTest {
             userRequested = false, requiresUpdateOwnership = true))
     }
 
+    @Test fun `a legacy replacement offers confirmation without enabling automatic installs`() {
+        val disabled = settings.copy(autoInstallUpdates = false, autoInstallNewApps = false)
+        assertTrue(AutomaticInstallPolicy.mayOffer(null, null, disabled,
+            userRequested = true, requiresUserConfirmation = true))
+        assertFalse(AutomaticInstallPolicy.mayOffer(null, null, disabled,
+            userRequested = false, requiresUserConfirmation = true))
+    }
+
     @Test fun `a handover offer does not grant the background installer silent installation permission`() {
         val disabled = settings.copy(autoInstallUpdates = false)
         assertTrue(AutomaticInstallPolicy.mayOffer(app, null, disabled, true, requiresUpdateOwnership = true))

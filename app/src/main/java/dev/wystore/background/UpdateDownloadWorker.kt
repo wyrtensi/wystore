@@ -400,7 +400,8 @@ class UpdateDownloadWorker(
                 // A replacement approved before removal is an explicit request for Android's
                 // confirmation. Its durable intent must survive global auto-install settings,
                 // while neither the root nor background installer may spend it silently.
-                if (queueRepository.getEntityById(queueId)?.requiresUpdateOwnership == true) {
+                val prepared = queueRepository.getEntityById(queueId)
+                if (prepared?.requiresUpdateOwnership == true || prepared?.requiresUserConfirmation == true) {
                     dev.wystore.updates.PreparedInstallDispatcher.dispatch(context, queueId)
                     coordinator.publishReady(queueRepository.readyToInstallSnapshots())
                     return@withContext
@@ -534,7 +535,7 @@ class UpdateDownloadWorker(
             if (mode != InstallMode.SILENT_ROOT) return false
 
             val entity = queueRepository.getEntityById(queueId) ?: return false
-            if (entity.requiresUpdateOwnership) return false
+            if (entity.requiresUpdateOwnership || entity.requiresUserConfirmation) return false
             val files = queueRepository.artifactFilesFor(queueId)
             if (files.isEmpty()) return false
 
@@ -569,7 +570,8 @@ class UpdateDownloadWorker(
                 return false
             }
 
-            if (queueRepository.getEntityById(queueId)?.requiresUpdateOwnership != false ||
+            val beforeInstall = queueRepository.getEntityById(queueId)
+            if (beforeInstall == null || beforeInstall.requiresUpdateOwnership || beforeInstall.requiresUserConfirmation ||
                 isUnattendedBlocked(queueId, storeRepository.installedAppFresh(entity.packageName))) {
                 queueRepository.resetReadyToInstall(queueId)
                 return false
@@ -604,8 +606,9 @@ class UpdateDownloadWorker(
         /** Records the user's "install it straight away" choice for the app just downloaded. */
         private suspend fun requestAutoInstallIfEnabled(queueId: String, packageName: String, isUpdate: Boolean) {
             val settings = storeRepository.settings()
-            val ownershipRequested = queueRepository.getEntityById(queueId)?.requiresUpdateOwnership == true
-            val wanted = ownershipRequested || if (isUpdate) settings.autoInstallUpdates else settings.autoInstallNewApps
+            val item = queueRepository.getEntityById(queueId)
+            val confirmationRequested = item?.requiresUpdateOwnership == true || item?.requiresUserConfirmation == true
+            val wanted = confirmationRequested || if (isUpdate) settings.autoInstallUpdates else settings.autoInstallNewApps
             if (!wanted) return
             runCatching { AutoInstallStore(context).request(packageName) }
         }

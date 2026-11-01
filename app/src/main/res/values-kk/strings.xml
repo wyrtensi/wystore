@@ -855,4 +855,5 @@
     <string name="ownership_transfer_more">Профильдер және жаңарту қорғанысы</string>
     <string name="ownership_transfer_less">Түсіндірмені жасыру</string>
     <string name="ownership_transfer_profile_limits">Көшірме басқа профильде, мысалы Shelter-де қалса, иелікті беру қолжетімсіз болуы мүмкін. Wy Store иелік етсе де, басқарылатын профильдерде жүйелік дүкен қолданбаны растаусыз жаңарта алады.</string>
+    <string name="adopt_finish_batch">Қарауды аяқтау</string>
 </resources>

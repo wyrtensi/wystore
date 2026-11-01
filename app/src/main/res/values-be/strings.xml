@@ -855,4 +855,5 @@
     <string name="ownership_transfer_more">Профілі і абарона абнаўленняў</string>
     <string name="ownership_transfer_less">Схаваць тлумачэнне</string>
     <string name="ownership_transfer_profile_limits">Калі копія засталася ў іншым профілі, напрыклад Shelter, перадача можа быць недаступная. Нават пры ўласнасці Wy Store сістэмная крама можа абнаўляць праграму без пацвярджэння ў кіраваных профілях.</string>
+    <string name="adopt_finish_batch">Завяршыць разгляд</string>
 </resources>

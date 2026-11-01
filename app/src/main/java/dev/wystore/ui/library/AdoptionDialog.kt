@@ -39,6 +39,7 @@ import coil.compose.AsyncImage
 import dev.wystore.AdoptionPrompt
 import dev.wystore.R
 import dev.wystore.data.AdoptionOption
+import dev.wystore.data.AdoptionPolicy
 import dev.wystore.data.InstallSource
 import dev.wystore.ui.components.WySpinner
 
@@ -56,16 +57,18 @@ fun AdoptionDialog(
     onPick: (AdoptionOption) -> Unit,
     onGitHub: (String) -> Unit,
     onRetry: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onDismissAll: () -> Unit
 ) {
     val fromGoogle = prompt.app.source == InstallSource.GOOGLE_PLAY
     val handover = dev.wystore.ui.components.ownershipHandover(
         androidx.compose.ui.platform.LocalContext.current, prompt.app
     )
-    val canAccept = handover == dev.wystore.data.OwnershipHandover.OWNED ||
+    val trackInPlace = AdoptionPolicy.canTrackInPlace(handover)
+    val canAccept = trackInPlace ||
         handover == dev.wystore.data.OwnershipHandover.REINSTALL
     HubAlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = onDismissAll,
         title = {
             Text(stringResource(if (fromGoogle) R.string.adopt_google_title else R.string.dialog_adopt_title))
         },
@@ -81,7 +84,7 @@ fun AdoptionDialog(
                     ),
                     style = MaterialTheme.typography.bodyMedium
                 )
-                if (handover != dev.wystore.data.OwnershipHandover.OWNED) {
+                if (!trackInPlace) {
                     dev.wystore.ui.components.OwnershipHandoverNotice(handover)
                 }
                 when {
@@ -116,7 +119,7 @@ fun AdoptionDialog(
 
                     else -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            if (handover != dev.wystore.data.OwnershipHandover.OWNED) stringResource(R.string.adopt_transfer_source) else optionsHeading(prompt, fromGoogle),
+                            if (!trackInPlace) stringResource(R.string.adopt_transfer_source) else optionsHeading(prompt, fromGoogle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -141,8 +144,15 @@ fun AdoptionDialog(
         },
         confirmButton = {},
         dismissButton = {
-            DialogButton(onClick = onDismiss) {
-                Text(stringResource(if (prompt.waiting > 0) R.string.adopt_skip else R.string.common_cancel))
+            Column {
+                DialogButton(onClick = onDismiss) {
+                    Text(stringResource(if (prompt.waiting > 0) R.string.adopt_skip else R.string.common_cancel))
+                }
+                if (prompt.waiting > 0) {
+                    DialogButton(onClick = onDismissAll) {
+                        Text(stringResource(R.string.adopt_finish_batch))
+                    }
+                }
             }
         }
     )

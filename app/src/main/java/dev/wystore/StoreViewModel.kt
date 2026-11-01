@@ -1375,7 +1375,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             val managed = repository.observeGooglePlayUpdates(listOfNotNull(installed))
                 .firstOrNull { it.packageName == pending.packageName }
             dev.wystore.updates.AutomaticInstallPolicy.mayOffer(managed, installed,
-                repository.settings(), pending.userRequested, pending.requiresUpdateOwnership)
+                repository.settings(), pending.userRequested, pending.requiresUpdateOwnership,
+                pending.requiresUserConfirmation)
         } catch (error: kotlinx.coroutines.CancellationException) {
             throw error
         } catch (error: Exception) {
@@ -1765,8 +1766,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         val prompt = _state.value.adoption ?: return false
         if (prompt.githubChecking) return false
         val handover = dev.wystore.ui.components.ownershipHandover(getApplication(), prompt.app)
-        if (option is AdoptionOption.Replace || handover != dev.wystore.data.OwnershipHandover.OWNED) {
-            if (!canTransferUpdates(prompt.app)) return false
+        if (option is AdoptionOption.Replace || !AdoptionPolicy.canTrackInPlace(handover)) {
+            val requiresOwnership = Build.VERSION.SDK_INT >= 34
+            if (requiresOwnership && !canTransferUpdates(prompt.app)) return false
             if (option is AdoptionOption.GitHub) {
                 startGitHubAdoptionTransfer(prompt.app, option.repository)
                 return false
@@ -1781,7 +1783,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 installPackageName = candidate.packageName,
                 label = candidate.label,
                 startedAt = System.currentTimeMillis(),
-                requiresUpdateOwnership = true
+                requiresUpdateOwnership = requiresOwnership
             ))
             showNextAdoption()
             return true
@@ -1810,7 +1812,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     private fun startGitHubAdoptionTransfer(app: InstalledApp, repo: GitHubRepository) {
         val prompt = _state.value.adoption ?: return
         if (prompt.app.packageName != app.packageName || prompt.githubChecking) return
-        if (!canTransferUpdates(app)) return
+        val handover = dev.wystore.ui.components.ownershipHandover(getApplication(), app)
+        if (!AdoptionPolicy.canTrackInPlace(handover) && !canTransferUpdates(app)) return
         _state.update { it.copy(adoption = prompt.copy(githubChecking = true, githubError = null)) }
         adoptionTransferJob = viewModelScope.launch {
             try {
@@ -1825,7 +1828,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 if (!isCurrentAdoption(prompt)) return@launch
                 repository.saveGithubRepository(repo)
                 _state.update { it.copy(githubRepositories = repository.githubRepositories()) }
-                if (app.updateOwnerPackageName == getApplication<Application>().packageName) {
+                if (AdoptionPolicy.canTrackInPlace(handover)) {
                     saveAdopted(app, ManagedSource.GITHUB, repo)
                     adoptionTransferJob = null
                     showNextAdoption()
@@ -1882,6 +1885,11 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     fun dismissAdoption() = showNextAdoption()
 
+    fun dismissAllAdoptions() {
+        adoptionBacklog.clear()
+        showNextAdoption()
+    }
+
     /** Accepts an installed app as it is, with updates from [repository]; from a catalogue page. */
     fun adoptFromRepository(app: InstalledApp, repository: GitHubRepository) {
         if (saveAdopted(app, ManagedSource.GITHUB, repository)) {
@@ -1912,10 +1920,11 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             var accepted = 0
             val undecided = mutableListOf<InstalledApp>()
             apps.forEachIndexed { index, app ->
-                val automatic = if (app.updateOwnerPackageName != getApplication<Application>().packageName) null else {
+                val handover = dev.wystore.ui.components.ownershipHandover(getApplication(), app)
+                val automatic = if (!AdoptionPolicy.canTrackInPlace(handover)) null else {
                     lookUpAdoption(app, searchByName = false)
                         .takeUnless { it.failed }
-                        ?.let { AdoptionPolicy.automatic(it.options) }
+                        ?.let { AdoptionPolicy.automatic(it.options, handover) }
                 }
                 val saved = when (automatic) {
                     is AdoptionOption.RuStore -> saveAdopted(app, ManagedSource.RUSTORE, null, refresh = false)

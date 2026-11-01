@@ -89,7 +89,8 @@ class InstallSessionWriter(private val context: Context) {
             isUpdate = isInstalled(entity.packageName),
             installerOfRecord = installerOfRecord(entity.packageName),
             ownPackageName = appContext.packageName,
-            requiresUpdateOwnership = entity.requiresUpdateOwnership
+            requiresUpdateOwnership = entity.requiresUpdateOwnership,
+            requiresUserConfirmation = entity.requiresUserConfirmation
         )
 
         val sessionsRefused = SessionInstallSupport(appContext).sessionsRefused()

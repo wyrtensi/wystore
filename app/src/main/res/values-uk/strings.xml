@@ -855,4 +855,5 @@
     <string name="ownership_transfer_more">Профілі та захист оновлень</string>
     <string name="ownership_transfer_less">Приховати пояснення</string>
     <string name="ownership_transfer_profile_limits">Якщо копія залишилася в іншому профілі, наприклад Shelter, передача може бути недоступною. Навіть за володіння Wy Store системний магазин може оновлювати застосунок без підтвердження в керованих профілях.</string>
+    <string name="adopt_finish_batch">Завершити розгляд</string>
 </resources>

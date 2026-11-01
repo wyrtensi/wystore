@@ -86,7 +86,8 @@ data class QueueItemSnapshot(
     val errorDetail: String? = null,
     /** Set on GitHub rows: the package name is a placeholder until verification reads the real one. */
     val githubRepository: GitHubRepository? = null,
-    val requiresUpdateOwnership: Boolean = false
+    val requiresUpdateOwnership: Boolean = false,
+    val requiresUserConfirmation: Boolean = false
 )
 
 sealed interface QueueAction {

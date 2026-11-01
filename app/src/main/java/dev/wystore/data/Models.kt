@@ -249,8 +249,10 @@ data class PendingUpdate(
      * with "nothing to update".
      */
     val userRequested: Boolean = false,
-    /** Explicit removal and replacement requests still need Android's confirmation when auto install is off. */
-    val requiresUpdateOwnership: Boolean = false
+    /** Android must confirm Wy Store as the update owner after installation. */
+    val requiresUpdateOwnership: Boolean = false,
+    /** A replacement must still offer Android's confirmation when automatic installation is off. */
+    val requiresUserConfirmation: Boolean = false
 ) {
     /**
      * Unique among downloads, as the queue's (package, version, source) index is. The package name

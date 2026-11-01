@@ -750,7 +750,8 @@ class QueueRepository(
         label: String,
         source: ManagedSource,
         priority: Int = 10,
-        requiresUpdateOwnership: Boolean = false
+        requiresUpdateOwnership: Boolean = false,
+        requiresUserConfirmation: Boolean = false
     ): UpdateQueueEntity? = withContext(Dispatchers.IO) {
         database.withTransaction {
             val rows = dao.getByPackage(packageName).filter { it.source == source.name }
@@ -758,10 +759,14 @@ class QueueRepository(
             if (ManualEnqueuePolicy.decide(states) == ManualEnqueueAction.IGNORE) {
                 // An explicit handover must adopt the existing work before its uninstall intent is
                 // cleared. Ordinary taps still leave an active or downloaded row alone.
-                return@withTransaction if (requiresUpdateOwnership) {
+                return@withTransaction if (requiresUpdateOwnership || requiresUserConfirmation) {
                     rows.firstOrNull { runCatching { QueueState.valueOf(it.state) }.getOrNull() in ACTIVE_OR_READY }
                         ?.let { existing ->
-                            dao.requireUpdateOwnership(existing.id, System.currentTimeMillis())
+                            dao.update(QueueRequestRetention.merge(existing.copy(
+                                requiresUpdateOwnership = requiresUpdateOwnership,
+                                requiresUserConfirmation = requiresUserConfirmation,
+                                updatedAt = System.currentTimeMillis()
+                            ), existing))
                             dao.getById(existing.id)
                         }
                 } else null
@@ -796,7 +801,8 @@ class QueueRepository(
                     createdAt = System.currentTimeMillis(),
                     updatedAt = System.currentTimeMillis()
                 )
-            }.copy(requiresUpdateOwnership = requiresUpdateOwnership), target)
+            }.copy(requiresUpdateOwnership = requiresUpdateOwnership,
+                requiresUserConfirmation = requiresUserConfirmation), target)
             if (target == null) dao.insertOrReplace(prepared) else dao.update(prepared)
 
             // Other stopped rows for the same package are noise: they keep an old failure visible on
@@ -926,7 +932,8 @@ class QueueRepository(
             githubReleaseId = entity.githubReleaseId,
             downloadedAt = entity.createdAt,
             userRequested = QueueOrigin.isUserRequested(entity.priority),
-            requiresUpdateOwnership = entity.requiresUpdateOwnership
+            requiresUpdateOwnership = entity.requiresUpdateOwnership,
+            requiresUserConfirmation = entity.requiresUserConfirmation
         )
     }
 

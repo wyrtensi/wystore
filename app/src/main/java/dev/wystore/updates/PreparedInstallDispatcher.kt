@@ -8,8 +8,12 @@ enum class PreparedInstallAction { DOWNLOAD, OFFER_CONFIRMATION, KEEP_ACTIVE }
 
 /** Routes an adopted queue row without asking a downloaded APK to go through the network again. */
 object PreparedInstallDispatcher {
-    fun action(state: QueueState, requiresUpdateOwnership: Boolean): PreparedInstallAction {
-        if (!requiresUpdateOwnership) return PreparedInstallAction.DOWNLOAD
+    fun action(
+        state: QueueState,
+        requiresUpdateOwnership: Boolean,
+        requiresUserConfirmation: Boolean = false
+    ): PreparedInstallAction {
+        if (!requiresUpdateOwnership && !requiresUserConfirmation) return PreparedInstallAction.DOWNLOAD
         return when (state) {
             QueueState.AVAILABLE -> PreparedInstallAction.DOWNLOAD
             QueueState.READY_TO_INSTALL, QueueState.AWAITING_UNKNOWN_SOURCES_PERMISSION ->
@@ -23,7 +27,7 @@ object PreparedInstallDispatcher {
     suspend fun dispatch(context: Context, queueId: String) {
         val item = QueueRepository.getInstance(context).getEntityById(queueId)
             ?: throw IllegalStateException("Replacement queue item is missing: $queueId")
-        when (action(QueueState.valueOf(item.state), item.requiresUpdateOwnership)) {
+        when (action(QueueState.valueOf(item.state), item.requiresUpdateOwnership, item.requiresUserConfirmation)) {
             PreparedInstallAction.DOWNLOAD -> TransferDispatcher.dispatch(context, queueId)
             PreparedInstallAction.OFFER_CONFIRMATION -> AutoInstallStore(context).request(item.packageName)
             PreparedInstallAction.KEEP_ACTIVE -> Unit

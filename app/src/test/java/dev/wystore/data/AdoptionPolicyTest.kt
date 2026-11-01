@@ -50,6 +50,33 @@ class AdoptionPolicyTest {
     private fun catalog(packageName: String) =
         GitHubCatalogEntry(repository, "AmneziaVPN", "amnezia", "", packageName = packageName)
 
+    @Test fun `Android 12 and 13 can track all 93 compatible apps without ownership`() {
+        for (sdk in listOf(31, 33)) {
+            val handover = OwnershipHandoverPolicy.decide(sdk, null, "app.wystore", true)
+            val accepted = (1..93).count {
+                val pkg = "ru.app$it"
+                val options = AdoptionPolicy.options(installed(pkg), store(pkg), null)
+                AdoptionPolicy.automatic(options, handover) != null
+            }
+            assertEquals(93, accepted)
+        }
+    }
+
+    @Test fun `legacy tracking never automatically replaces incompatible or Google apps`() {
+        val legacy = OwnershipHandover.UNSUPPORTED_ANDROID
+        assertNull(AdoptionPolicy.automatic(
+            AdoptionPolicy.options(installed("ru.app"), store("ru.app", otherKey), null), legacy))
+        assertNull(AdoptionPolicy.automatic(
+            AdoptionPolicy.options(installed("ru.app", InstallSource.GOOGLE_PLAY), store("ru.app"), null), legacy))
+    }
+
+    @Test fun `modern ownership transfer still requires an explicit decision`() {
+        val options = AdoptionPolicy.options(installed("ru.app"), store("ru.app"), null)
+        assertNull(AdoptionPolicy.automatic(options, OwnershipHandover.REINSTALL))
+        assertNull(AdoptionPolicy.automatic(options, OwnershipHandover.UNSUPPORTED_INSTALLER))
+        assertEquals(options.single(), AdoptionPolicy.automatic(options, OwnershipHandover.OWNED))
+    }
+
     @Test
     fun `the same package in RuStore is kept in place and needs no question`() {
         val options = AdoptionPolicy.options(installed("ru.app"), store("ru.app"), catalogEntry = null)

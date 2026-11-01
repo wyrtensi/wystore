@@ -38,7 +38,9 @@ data class UpdateQueueEntity(
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     @ColumnInfo(defaultValue = "0")
-    val requiresUpdateOwnership: Boolean = false
+    val requiresUpdateOwnership: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val requiresUserConfirmation: Boolean = false
 )
 
 @Entity(
@@ -106,5 +108,6 @@ fun UpdateQueueEntity.toSnapshot(): QueueItemSnapshot = QueueItemSnapshot(
     githubRepository = if (githubRepositoryOwner != null && githubRepositoryName != null) {
         dev.wystore.data.GitHubRepository(githubRepositoryOwner, githubRepositoryName)
     } else null,
-    requiresUpdateOwnership = requiresUpdateOwnership
+    requiresUpdateOwnership = requiresUpdateOwnership,
+    requiresUserConfirmation = requiresUserConfirmation
 )

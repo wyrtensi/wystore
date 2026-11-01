@@ -855,4 +855,5 @@
     <string name="ownership_transfer_more">配置文件与更新保护</string>
     <string name="ownership_transfer_less">收起说明</string>
     <string name="ownership_transfer_profile_limits">如果另一个配置文件（如 Shelter）中仍有副本，可能无法转移更新所有权。即使 Wy Store 拥有更新权限，系统应用商店仍可能在受管理配置文件中无需确认即可更新应用。</string>
+    <string name="adopt_finish_batch">结束处理</string>
 </resources>

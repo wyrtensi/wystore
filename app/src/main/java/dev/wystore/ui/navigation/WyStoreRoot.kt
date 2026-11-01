@@ -562,7 +562,8 @@ fun WyStoreRoot(
             },
             onGitHub = viewModel::adoptFromGitHub,
             onRetry = { viewModel.beginAdoption(prompt.app) },
-            onDismiss = viewModel::dismissAdoption
+            onDismiss = viewModel::dismissAdoption,
+            onDismissAll = viewModel::dismissAllAdoptions
         )
     }
 

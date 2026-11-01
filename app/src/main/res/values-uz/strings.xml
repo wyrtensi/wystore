@@ -855,4 +855,5 @@
     <string name="ownership_transfer_more">Profillar va yangilanish himoyasi</string>
     <string name="ownership_transfer_less">Izohni yashirish</string>
     <string name="ownership_transfer_profile_limits">Nusxa boshqa profilda, masalan Shelter’da qolsa, egalikni oʻtkazib boʻlmasligi mumkin. Wy Store egasi boʻlsa ham, boshqariladigan profillarda tizim doʻkoni ilovani tasdiqsiz yangilashi mumkin.</string>
+    <string name="adopt_finish_batch">Koʻrib chiqishni tugatish</string>
 </resources>

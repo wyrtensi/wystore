@@ -40,7 +40,8 @@ object ManualInstallScheduler {
         packageName: String,
         label: String,
         settings: StoreSettings,
-        requiresUpdateOwnership: Boolean = false
+        requiresUpdateOwnership: Boolean = false,
+        requiresUserConfirmation: Boolean = false
     ): String? {
         val appContext = context.applicationContext
         val repository = QueueRepository.getInstance(appContext)
@@ -48,7 +49,8 @@ object ManualInstallScheduler {
             packageName = packageName,
             label = label,
             source = ManagedSource.RUSTORE,
-            requiresUpdateOwnership = requiresUpdateOwnership
+            requiresUpdateOwnership = requiresUpdateOwnership,
+            requiresUserConfirmation = requiresUserConfirmation
         ) ?: return null
         // Asked for from inside the app, so the app installs it - even on a row an agent once had.
         repository.endHandoff(queueEntity.id)
