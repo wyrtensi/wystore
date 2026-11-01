@@ -93,9 +93,9 @@ and APK publishing contracts remain intact.
 - Consumes: snapshot at base `e507615`, or the owning session's verified commit if now available.
 - Produces: baseline with separate `requiresUpdateOwnership` and `requiresUserConfirmation` throughout pending updates, queue, policy and prepared-install dispatch; Room `MIGRATION_4_5`; `AdoptionPolicy.canTrackInPlace(handover)`.
 
-- [ ] **Step 1:** Compare live HEAD and per-file hashes with the snapshot. Read all session mailboxes and coordinate any newer/claimed patch; never overwrite the live source. Prefer the owner's completed commit when available. If the snapshot is still authoritative, run `git apply --check outputs/ownership-integration/ownership.patch` in this isolated branch, then apply it and copy the exported schema 5 from the verified snapshot.
-- [ ] **Step 2:** Run `python tools/verify.py --tests "*AdoptionPolicyTest"`, then the ownership install-policy test classes and `python tools/verify.py`. Expected: `VERIFY OK`, no failed/errors/skips; preserve tests for Android without ownership support, explicit confirmation with auto-install disabled, queue retention and prepared-confirmation dispatch.
-- [ ] **Step 3:** Inspect the staged patch against the snapshot, including both confirmation flags and migration registration. Commit only the imported fix paths as the repository owner, or retain the original owner's commit. Do not cherry-pick the same changes twice.
+- [x] **Step 1:** Compare live HEAD and per-file hashes with the snapshot. Read all session mailboxes and coordinate any newer/claimed patch; never overwrite the live source. Prefer the owner's completed commit when available. If the snapshot is still authoritative, run `git apply --check outputs/ownership-integration/ownership.patch` in this isolated branch, then apply it and copy the exported schema 5 from the verified snapshot.
+- [x] **Step 2:** Run `python tools/verify.py --tests "*AdoptionPolicyTest"`, then the ownership install-policy test classes and `python tools/verify.py`. Expected: `VERIFY OK`, no failed/errors/skips; preserve tests for Android without ownership support, explicit confirmation with auto-install disabled, queue retention and prepared-confirmation dispatch.
+- [x] **Step 3:** Inspect the staged patch against the snapshot, including both confirmation flags and migration registration. Commit only the imported fix paths as the repository owner, or retain the original owner's commit. Do not cherry-pick the same changes twice.
 
 ### Task 1: Publish optional foreign-category membership
 
@@ -105,10 +105,10 @@ and APK publishing contracts remain intact.
 - Consumes: `apps.json` entries with optional `foreign_category: bool`.
 - Produces: discovery cards with resolved `foreign_category`, plus additive `locales` search summaries keyed by `ru_RU` / `en_US` (title and short description). Existing top-level card keys remain available.
 
-- [ ] **Step 1:** Add failing tests asserting missing/true -> included, false -> excluded, nonboolean -> explicit configuration error. Extend the metadata-failure fixture: cached artwork remains, but the current flag overrides the cached card and the refresh still reports the upstream failure. Assert every current configured app defaults to included without a hardcoded count.
-- [ ] **Step 2:** Run `.venv/Scripts/python.exe -m unittest tests.test_metadata tests.test_sync`; capture the meaningful failing assertions before implementing.
-- [ ] **Step 3:** Validate the optional setting before network work; carry resolved editorial membership into both freshly built and retained cached cards. Publish localized search title/summary from metadata already fetched in this job; never require new per-search network calls. Document one exclusion example without altering existing thematic categories or release retention.
-- [ ] **Step 4:** Run `.venv/Scripts/python.exe -m unittest discover -s tests` and `git diff --check`. Expected: all library tests pass, no live APK transfer. Commit explicit paths on the library task branch; no push/workflow dispatch.
+- [x] **Step 1:** Add failing tests asserting missing/true -> included, false -> excluded, nonboolean -> explicit configuration error. Extend the metadata-failure fixture: cached artwork remains, but the current flag overrides the cached card and the refresh still reports the upstream failure. Assert every current configured app defaults to included without a hardcoded count.
+- [x] **Step 2:** Run `.venv/Scripts/python.exe -m unittest tests.test_metadata tests.test_sync`; capture the meaningful failing assertions before implementing.
+- [x] **Step 3:** Validate the optional setting before network work; carry resolved editorial membership into both freshly built and retained cached cards. Publish localized search title/summary from metadata already fetched in this job; never require new per-search network calls. Document one exclusion example without altering existing thematic categories or release retention.
+- [x] **Step 4:** Run `.venv/Scripts/python.exe -m unittest discover -s tests` and `git diff --check`. Expected: all library tests pass, no live APK transfer. Commit explicit paths on the library task branch; no push/workflow dispatch.
 
 ### Task 2: Parse and cache the library contract
 
@@ -124,10 +124,10 @@ and APK publishing contracts remain intact.
 - `LibraryRead<T>` exposes value, stale status and a typed refresh error. A required fresh update check does not treat stale fallback as a successful remote check.
 - `LibraryIndex` owns canonical applications. Each `LibraryApplication` owns variants and artifacts by ID/hash plus immutable publication hash. Each `LibraryVariant` has native version, signer set/scope, compatibility and exact member references.
 
-- [ ] **Step 1:** Add parser fixture assertions for all canonical fields, `schema == 1`, `variant_schema == 1`, duplicate package/variant/hash rejection, missing artifact reference, base count, wrong types, nonpositive sizes and invalid SHA-256. Add catalogue default/exclusion, RU/EN fallback and version-labelled changelog tests. A legacy `entries` default must never replace canonical variant selection.
-- [ ] **Step 2:** Add MockWebServer cases for one shared index request, ETag/304 reuse, no cache on first offline failure, stale catalogue with visible refresh error, and invalid feed preserving the last valid snapshot. Test traversal/arbitrary origins on artwork/metadata/release references and strict package/tag binding. Run focused verification and observe RED.
-- [ ] **Step 3:** Implement typed parsing and atomic disk snapshots, using the existing Gson/OkHttp stack and public library root. Relative URLs must stay under that root; asset origins/redirect handling must use existing permitted GitHub routes. Do not turn validation errors into empty catalogues. Coalesce concurrent reads; `forceRefresh` revalidates the network.
-- [ ] **Step 4:** Run `python tools/verify.py --tests "*LibraryJsonTest"`, `--tests "*LibraryRepositoryTest"` and full verification before committing these files. Expected: `VERIFY OK` for each, with all HTTP tests local.
+- [x] **Step 1:** Add parser fixture assertions for all canonical fields, `schema == 1`, `variant_schema == 1`, duplicate package/variant/hash rejection, missing artifact reference, base count, wrong types, nonpositive sizes and invalid SHA-256. Add catalogue default/exclusion, RU/EN fallback and version-labelled changelog tests. A legacy `entries` default must never replace canonical variant selection.
+- [x] **Step 2:** Add MockWebServer cases for one shared index request, ETag/304 reuse, no cache on first offline failure, stale catalogue with visible refresh error, and invalid feed preserving the last valid snapshot. Test traversal/arbitrary origins on artwork/metadata/release references and strict package/tag binding. Run focused verification and observe RED.
+- [x] **Step 3:** Implement typed parsing and atomic disk snapshots, using the existing Gson/OkHttp stack and public library root. Relative URLs must stay under that root; asset origins/redirect handling must use existing permitted GitHub routes. Do not turn validation errors into empty catalogues. Coalesce concurrent reads; `forceRefresh` revalidates the network.
+- [x] **Step 4:** Run `python tools/verify.py --tests "*LibraryJsonTest"`, `--tests "*LibraryRepositoryTest"` and full verification before committing these files. Expected: `VERIFY OK` for each, with all HTTP tests local.
 
 ### Task 3: Select a complete compatible variant
 
@@ -140,7 +140,7 @@ and APK publishing contracts remain intact.
 - `ResolvedLibraryVersion` carries package, variant ID, native version/name, publication hash, signer metadata/scope and the ordered complete member/artifact records. It is the input to queue serialization and transfer.
 - `LibraryUpdatePolicy.isNewer(installedVersionCode: Long, available: ResolvedLibraryVersion): Boolean` uses native versionCode only.
 
-- [ ] **Step 1:** Write representative failing assertions:
+- [x] **Step 1:** Write representative failing assertions:
 
 ```kotlin
 assertFalse(LibraryUpdatePolicy.isNewer(100, candidate(versionCode = 100)))
@@ -149,9 +149,9 @@ assertTrue(LibraryUpdatePolicy.isNewer(99, candidate(versionCode = 100)))
 ```
 
 Also pin mixed-cohort selection: reject a newer ARM64/API35 default on an ARMv7/API28 device while selecting its valid older cohort; do not confuse sampled SDK with actual minSDK. Cover missing native libraries, feature/GL mismatch, required/provided splits and malformed sets. No x86-to-ARM inference from emulator translation.
-- [ ] **Step 2:** Test ranking: highest compatible native version, ABI order, locale, density suitability and stable ID. A 420-dpi resource cohort is not rejected solely because the device is 480 dpi. English fallback is explicit; all files come from one selected variant. SDK-scoped certificate metadata outside its scope is unconfirmed for preliminary comparison, not proof of a mismatch. Run focused tests to confirm RED.
-- [ ] **Step 3:** Implement the pure policies and an Android adapter that reads SDK/ABIs/features/GL/density/system locale. Preserve minimum client API 28. No network or UI in the selector.
-- [ ] **Step 4:** Run focused and full `python tools/verify.py`; commit policy/model/tests. A passing selector test is not a claim of runtime app compatibility.
+- [x] **Step 2:** Test ranking: highest compatible native version, ABI order, locale, density suitability and stable ID. A 420-dpi resource cohort is not rejected solely because the device is 480 dpi. English fallback is explicit; all files come from one selected variant. SDK-scoped certificate metadata outside its scope is unconfirmed for preliminary comparison, not proof of a mismatch. Run focused tests to confirm RED.
+- [x] **Step 3:** Implement the pure policies and an Android adapter that reads SDK/ABIs/features/GL/density/system locale. Preserve minimum client API 28. No network or UI in the selector.
+- [x] **Step 4:** Run focused and full `python tools/verify.py`; commit policy/model/tests. A passing selector test is not a claim of runtime app compatibility.
 
 ### Task 4: Add the managed library source and update/transfer path
 
@@ -215,6 +215,17 @@ Also pin mixed-cohort selection: reject a newer ARM64/API35 default on an ARMv7/
 - [ ] **Step 4:** Request one fresh Sol whole-branch review of the final Android changes and library contract change, including the imported ownership fix and Review Focus cases. Resolve material findings with targeted tests and rerun affected checks; do not add speculative review passes. No agent/model branding in deliverables.
 - [ ] **Step 5:** Run `git diff --check` in both repositories, inspect status/identities and commit remaining exact paths. Update task checkboxes and the private handoff with results, emulator limits and both HEADs. Leave everything local: no push, tag, workflow dispatch or release.
 
+## Execution checkpoint
+
+Stopped for the operator's usage limit on 2026-11-01. Tasks 0-3 are complete;
+Tasks 4-5 have compiled and tested core code, including migration/coordinator
+instrumentation, but the full worker/install race matrix remains incomplete.
+Task 6 is a local UI checkpoint, not a finished or reviewed feature. Task 7 is
+partial: 833 JVM tests, release certificate validation, lint/debug/test builds
+and four Android 14 instrumentation tests passed. TV, actual split-set/root
+transactions, ChatGPT/Grok sign-in and final whole-branch review remain pending.
+See `outputs/library-integration/handoff.md` before continuing. No push or release.
+
 ## Self-review record
 
 - All approved spec areas map to Tasks 0-7: editorial contract, parsing/cache,
@@ -224,5 +235,5 @@ Also pin mixed-cohort selection: reject a newer ARM64/API35 default on an ARMv7/
   source-revision concept; existing GitHub version/tag interpretation is preserved.
 - Database work explicitly follows the ownership schema 5 and never competes
   with it. Both confirmation flags survive queue serialization and dispatch.
-- Implementation is not started. The plan requires operator review and an
-  execution-method choice before Task 0 is applied.
+- The operator approved native execution. Resume from the execution checkpoint;
+  do not repeat the imported ownership fix or completed catalogue/parser/policy work.

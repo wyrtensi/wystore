@@ -106,7 +106,7 @@ data class GitHubAppUiState(
 
 /**
  * A GitHub repository shown the way a store listing is: icon, title, publisher, facts row,
- * description, release notes and an install action — rather than a raw list of release tags.
+ * description, release notes and an install action â€” rather than a raw list of release tags.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -132,7 +132,8 @@ fun GitHubAppScreen(
     onCancelInstall: (String) -> Unit = {},
     managedApp: dev.wystore.data.ManagedApp? = null,
     continueChecksAfterGooglePlayUpdate: Boolean = false,
-    onOpenUpdateSettings: () -> Unit = {}
+    onOpenUpdateSettings: () -> Unit = {},
+    sourceSelector: @Composable () -> Unit = {}
 ) {
     val entry = state.entry
     var showAllAssets by rememberSaveable(entry?.slug) { mutableStateOf(false) }
@@ -187,7 +188,8 @@ fun GitHubAppScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (entry == null) {
-                item {
+                item { sourceSelector() }
+            item {
                     EmptyState(
                         icon = Icons.Outlined.Warning,
                         title = stringResource(R.string.github_app_missing)
@@ -568,7 +570,7 @@ fun GitHubAppScreen(
                                         } else {
                                             stringResource(R.string.github_no_android_build)
                                         }
-                                    ).joinToString(" · "),
+                                    ).joinToString(" Â· "),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

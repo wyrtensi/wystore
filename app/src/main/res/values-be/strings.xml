@@ -144,7 +144,7 @@
     <string name="search_clear">Ачысціць</string>
     <string name="search_action">Шукаць у RuStore</string>
     <string name="search_action_all">Шукаць у RuStore і GitHub</string>
-    <string name="search_sources_all">Абодва</string>
+    <string name="search_sources_all">Усе</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
     <string name="search_disclaimer">Каталог і APK запытваюцца напрамую ў RuStore. Wy Store не ўсталёўвае яго кліент і не выкарыстоўвае ўласны сервер.</string>
@@ -856,4 +856,11 @@
     <string name="ownership_transfer_less">Схаваць тлумачэнне</string>
     <string name="ownership_transfer_profile_limits">Калі копія засталася ў іншым профілі, напрыклад Shelter, перадача можа быць недаступная. Нават пры ўласнасці Wy Store сістэмная крама можа абнаўляць праграму без пацвярджэння ў кіраваных профілях.</string>
     <string name="adopt_finish_batch">Завяршыць разгляд</string>
+    <string name="wy_category_foreign">Замежныя</string>
+    <string name="sources_library_description">Выбраныя арыгінальныя праграмы з адкрытай бібліятэкі Wy Store. Уваход у Google не патрэбны.</string>
+    <string name="source_choose">Крыніца</string>
+    <string name="source_managed">Абнаўленні з: %1$s</string>
+    <string name="source_switch_wait">Завяршыце або адмяніце бягучую ўсталёўку перад зменай крыніцы.</string>
+    <string name="source_signature_verify">Подпіс адрозніваецца. Перад пераўсталёўкай трэба праверыць APK.</string>
+    <string name="library_incompatible">У бібліятэцы няма прыдатнага варыянта для гэтай прылады.</string>
 </resources>

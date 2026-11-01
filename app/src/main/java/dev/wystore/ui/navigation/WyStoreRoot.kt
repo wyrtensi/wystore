@@ -140,10 +140,16 @@ fun WyStoreRoot(
     val allCategoriesTitle = stringResource(R.string.home_all_apps)
     // Whose sections to browse by. Both sets come back merged from the catalogue; which of them is
     // shown is a setting rather than a fetch, so switching is instant and costs no request.
-    val visibleCategories = remember(homeState.categories, state.settings.sourceCategories) {
+    val visibleCategories = remember(homeState.categories, state.settings.sourceCategories, state.settings.libraryEnabled) {
         val curated = { slug: String -> slug.startsWith("wy-") }
-        homeState.categories.filter { curated(it.slug) != state.settings.sourceCategories }
+        val existing = homeState.categories.filter { curated(it.slug) != state.settings.sourceCategories }
             .ifEmpty { homeState.categories }
+        if (state.settings.libraryEnabled) existing + StoreCategory("wy-foreign", "Foreign apps", titleRes = R.string.wy_category_foreign)
+        else existing.filterNot { it.slug == "wy-foreign" }
+    }
+    val sourceSelector: @Composable (String, dev.wystore.data.ManagedSource) -> Unit = { packageName, preview ->
+        dev.wystore.ui.components.AppSourceSelector(viewModel.sourceChoices(packageName), preview,
+            state.managed.firstOrNull { it.packageName == packageName }?.source, viewModel::selectAppSource)
     }
 
     // The one failure the user cannot retry their way out of, because it is not theirs.
@@ -246,6 +252,7 @@ fun WyStoreRoot(
                     }
                     GitHubAppScreen(
                         state = githubApp,
+                        sourceSelector = { githubApp.entry?.packageName?.let { sourceSelector(it, dev.wystore.data.ManagedSource.GITHUB) } },
                         installedApp = githubInstalled,
                         managedApp = state.managed.firstOrNull { it.packageName == githubInstalled?.packageName },
                         continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
@@ -282,11 +289,12 @@ fun WyStoreRoot(
                     val selectedManaged = state.managed.firstOrNull { it.packageName == selected.packageName }
                     AppDetailsScreen(
                         app = selected,
+                        sourceSelector = { sourceSelector(selected.packageName, selected.source) },
                         installed = selectedInstalled,
                         managedApp = selectedManaged,
                         continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
                         onOpenUpdateSettings = viewModel::openGooglePlayUpdateSettings,
-                        pendingUpdate = state.pendingUpdates.firstOrNull { it.packageName == selected.packageName },
+                        pendingUpdate = state.pendingUpdates.firstOrNull { it.packageName == selected.packageName && it.source == selected.source },
                         rootAvailable = state.rootAvailable,
                         busy = state.detailsLoading,
                         queueItem = state.installQueue.rowFor(selected.packageName),
@@ -314,7 +322,7 @@ fun WyStoreRoot(
                         modifier = screenModifier,
                         searchQuery = state.query,
                         pendingUpdates = state.pendingUpdates,
-                        featuredApps = homeState.featuredApps,
+                        featuredApps = homeState.featuredApps.map(viewModel::decorateSources),
                         categories = visibleCategories,
                         catalogLoading = homeState.loading,
                         catalogStale = homeState.stale,
@@ -326,7 +334,7 @@ fun WyStoreRoot(
                             focusSearchOnOpen = true
                             destination = WyStoreDestination.Search
                         },
-                        onAppClick = { packageName -> viewModel.openDetails(packageName) },
+                        onAppClick = { packageName -> viewModel.openDetailsFromSource(packageName, dev.wystore.data.ManagedSource.RUSTORE) },
                         onCategoryClick = openCategory,
                         // Running out of rail widens the choice; it used to replace it with one
                         // long list of every app the source has, which is a different question.
@@ -363,11 +371,13 @@ fun WyStoreRoot(
                         pendingUpdates = state.pendingUpdates,
                         modifier = screenModifier,
                         onBack = { destination = WyStoreDestination.Home },
-                        onAppClick = { packageName -> viewModel.openDetails(packageName) },
+                        onAppClick = { packageName -> viewModel.openDetailsFromSource(packageName,
+                            if (categoryState.slug == "wy-foreign") dev.wystore.data.ManagedSource.WY_STORE else dev.wystore.data.ManagedSource.RUSTORE) },
                         onPreviousPage = categoryViewModel::previousPage,
                         onNextPage = categoryViewModel::nextPage,
                         onRetry = categoryViewModel::retry,
-                        onInstall = viewModel::quickInstall,
+                        onInstall = { pkg -> viewModel.quickInstallFromSource(pkg,
+                            if (categoryState.slug == "wy-foreign") dev.wystore.data.ManagedSource.WY_STORE else dev.wystore.data.ManagedSource.RUSTORE) },
                         onInstallDownloaded = onInstallPending,
                         onDownloadNow = viewModel::downloadNow,
                         onPauseDownload = viewModel::pauseDownload,
@@ -378,7 +388,10 @@ fun WyStoreRoot(
                     WyStoreDestination.Search -> SearchScreen(
                         modifier = screenModifier,
                         query = state.query,
-                        apps = state.search?.apps ?: emptyList(),
+                        apps = dev.wystore.data.AppSourceIdentity.merge(
+                            (if (state.settings.searchSources.includesRuStore) state.search?.apps.orEmpty() else emptyList()) +
+                            (if (state.settings.searchSources.includesLibrary) viewModel.librarySearchResults() else emptyList())
+                        ).map(viewModel::decorateSources),
                         total = state.search?.total,
                         busy = state.searching,
                         operation = state.operation,
@@ -392,13 +405,14 @@ fun WyStoreRoot(
                         onOpenGitHubApp = viewModel::openGitHubApp,
                         sources = state.settings.searchSources,
                         githubEnabled = state.settings.githubEnabled,
+                        libraryEnabled = state.settings.libraryEnabled,
                         onSourcesChange = { chosen ->
                             viewModel.saveSettings(state.settings.copy(searchSources = chosen))
                         },
                         onSearchLocal = viewModel::searchLocal,
                         onSearch = viewModel::search,
                         onLoadMore = viewModel::searchMore,
-                        onOpen = { app -> viewModel.openDetails(app.packageName) },
+                        onOpen = { app -> viewModel.openDetailsFromSource(app.packageName, app.source) },
                         onQuickInstall = viewModel::quickInstall,
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
                         onLaunch = viewModel::launchInstalledApp,
@@ -582,11 +596,11 @@ fun WyStoreRoot(
                 )
             },
             confirmButton = {
-                if (handover == OwnershipHandover.REINSTALL) {
+                if (handover == OwnershipHandover.REINSTALL || catalogApp.source != dev.wystore.data.ManagedSource.GITHUB) {
                     DialogButton(primary = true, onClick = {
-                        if (viewModel.confirmReplaceInstall(installedApp.packageName, catalogApp.name)) {
+                        viewModel.prepareSourceReplacement(catalogApp) { ready ->
                             replaceDialog = null
-                            viewModel.uninstall(installedApp.packageName)
+                            if (ready) viewModel.uninstall(installedApp.packageName)
                         }
                     }) { Text(stringResource(R.string.dialog_replace_confirm)) }
                 }

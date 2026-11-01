@@ -104,7 +104,7 @@ import dev.wystore.ui.components.formatSize
 import dev.wystore.ui.components.formatSpeed
 import dev.wystore.ui.components.queueStatusLabel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
@@ -121,6 +121,7 @@ fun SearchScreen(
     sources: SearchSources = SearchSources.ALL,
     /** The GitHub source in settings; switched off, search is RuStore's alone and says so. */
     githubEnabled: Boolean = true,
+    libraryEnabled: Boolean = true,
     onSourcesChange: (SearchSources) -> Unit = {},
     /** Matches the bundled catalogue without asking RuStore anything; see [SearchSources]. */
     onSearchLocal: (String) -> Unit = {},
@@ -140,7 +141,7 @@ fun SearchScreen(
     onAutoFocusConsumed: () -> Unit = {}
 ) {
     @Suppress("NAME_SHADOWING")
-    val sources = sources.within(githubEnabled)
+    val sources = sources.within(githubEnabled, libraryEnabled)
     var fieldValue by remember(query) {
         mutableStateOf(TextFieldValue(text = query, selection = TextRange(query.length)))
     }
@@ -156,8 +157,13 @@ fun SearchScreen(
     LaunchedEffect(text, sources) {
         if (!sources.includesRuStore) onSearchLocal(text)
     }
-    val visibleGitHub = if (sources.includesGitHub) githubResults else emptyList()
-    val visibleApps = if (sources.includesRuStore) apps else emptyList()
+    val visibleGitHub = if (sources.includesGitHub && githubEnabled) githubResults.filter { entry ->
+        entry.packageName == null || apps.none { it.packageName == entry.packageName }
+    } else emptyList()
+    val visibleApps = apps.filter {
+        (it.source == dev.wystore.data.ManagedSource.WY_STORE && sources.includesLibrary && libraryEnabled) ||
+        (it.source != dev.wystore.data.ManagedSource.WY_STORE && sources.includesRuStore)
+    }
     val hasResults = visibleApps.isNotEmpty() || visibleGitHub.isNotEmpty()
 
     // The Wy Hub screen, scrolling as one: the header and the field go up with the results, so a
@@ -176,7 +182,7 @@ fun SearchScreen(
             item {
                 HubHeader(
                     title = stringResource(R.string.search_title),
-                    eyebrow = if (githubEnabled) "RuStore · GitHub" else "RuStore",
+                    eyebrow = listOfNotNull("RuStore", "GitHub".takeIf { githubEnabled }, "Wy Store".takeIf { libraryEnabled }).joinToString(" · "),
                     subtitle = stringResource(R.string.search_subtitle),
                     horizontalPadding = 0.dp,
                     insetStatusBar = false,
@@ -252,8 +258,9 @@ fun SearchScreen(
                         )
                     )
                     // One source left is no choice to offer.
-                    if (githubEnabled) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SearchSources.entries.forEach { option ->
+                    if (githubEnabled || libraryEnabled) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SearchSources.entries.filter { (it != SearchSources.GITHUB || githubEnabled) &&
+                            (it != SearchSources.WY_STORE || libraryEnabled) }.forEach { option ->
                             HubChoiceChip(
                                 selected = sources == option,
                                 onClick = { onSourcesChange(option) },
@@ -264,6 +271,7 @@ fun SearchScreen(
                                                 SearchSources.ALL -> R.string.search_sources_all
                                                 SearchSources.RUSTORE -> R.string.search_sources_rustore
                                                 SearchSources.GITHUB -> R.string.search_sources_github
+                                                SearchSources.WY_STORE -> R.string.library_sort_wystore
                                             }
                                         )
                                     )
@@ -313,6 +321,7 @@ fun SearchScreen(
                                     SearchSources.ALL -> R.string.search_start_title
                                     SearchSources.RUSTORE -> R.string.search_start_rustore_title
                                     SearchSources.GITHUB -> R.string.search_start_github_title
+                                    SearchSources.WY_STORE -> R.string.library_sort_wystore
                                 }
                             ),
                             message = stringResource(
@@ -320,6 +329,7 @@ fun SearchScreen(
                                     SearchSources.ALL -> R.string.search_start_message
                                     SearchSources.RUSTORE -> R.string.search_start_rustore_message
                                     SearchSources.GITHUB -> R.string.search_start_github_message
+                                    SearchSources.WY_STORE -> R.string.sources_library_description
                                 }
                             )
                         )

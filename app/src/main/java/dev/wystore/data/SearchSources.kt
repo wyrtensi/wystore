@@ -11,14 +11,21 @@ package dev.wystore.data
 enum class SearchSources {
     ALL,
     RUSTORE,
-    GITHUB;
+    GITHUB,
+    WY_STORE;
 
-    val includesRuStore: Boolean get() = this != GITHUB
-    val includesGitHub: Boolean get() = this != RUSTORE
+    val includesRuStore: Boolean get() = this == ALL || this == RUSTORE
+    val includesGitHub: Boolean get() = this == ALL || this == GITHUB
+    val includesLibrary: Boolean get() = this == ALL || this == WY_STORE
 
     /**
      * What a search can actually look in. With the GitHub source switched off in settings, a saved
      * "GitHub only" searched nowhere, and "both" still offered a source that was gone.
      */
-    fun within(githubEnabled: Boolean): SearchSources = if (githubEnabled) this else RUSTORE
+    fun within(githubEnabled: Boolean, libraryEnabled: Boolean = true): SearchSources = when {
+        this == GITHUB && !githubEnabled -> RUSTORE
+        this == WY_STORE && !libraryEnabled -> RUSTORE
+        this == ALL && !githubEnabled && !libraryEnabled -> RUSTORE
+        else -> this
+    }
 }

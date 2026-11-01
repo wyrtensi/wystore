@@ -2,7 +2,8 @@
 
 Date: 2026-11-01
 Status: Approved by the operator on 2026-11-01 after the builder check.
-Product implementation has not started. Do not release. Stop all execution before
+Product implementation is in progress; the current checkpoint is not release-ready.
+Do not release. Stop all execution before
 the five-hour allowance falls to 15% remaining, unless the work finishes earlier.
 
 ## Intent

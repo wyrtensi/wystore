@@ -24,7 +24,8 @@ object PackageUiStateReducer {
         // What the catalogue says about the app, whatever is happening to it: a row reads like a
         // store listing - rating and section - rather than like a package dump.
         rating = app?.rating?.takeIf { it > 0.0 },
-        category = app?.categories?.firstOrNull()?.takeIf { it.isNotBlank() }
+        category = app?.categories?.firstOrNull()?.takeIf { it.isNotBlank() },
+        availableSources = app?.availableSources.orEmpty()
     )
 
     private fun reduceState(
@@ -58,7 +59,7 @@ object PackageUiStateReducer {
         val minSdk = app?.minSdkVersion
             ?: app?.minAndroidVersion?.let(AndroidSdkCompatibility::sdkForRelease)
         val effectiveSdk = if (deviceSdkInt > 0) deviceSdkInt else 35
-        val isCompatible = minSdk == null || effectiveSdk >= minSdk
+        val isCompatible = (minSdk == null || effectiveSdk >= minSdk) && app?.installationAvailable != false
 
         if (queueItem != null) {
             val progressFraction = queueItem.progress?.fraction
@@ -91,7 +92,7 @@ object PackageUiStateReducer {
                         secondaryAction = SecondaryAction.Cancel,
                         progress = progressFraction,
                         transferInfo = transferInfo,
-                        sourceProvenance = managed?.source?.name ?: app?.let { "RuStore" },
+                        sourceProvenance = managed?.source?.name ?: app?.source?.name,
                         isCompatible = isCompatible
                     )
                 }
@@ -110,7 +111,7 @@ object PackageUiStateReducer {
                         // a paused download that reads as empty looks like a lost one.
                         progress = progressFraction,
                         transferInfo = null,
-                        sourceProvenance = managed?.source?.name ?: app?.let { "RuStore" },
+                        sourceProvenance = managed?.source?.name ?: app?.source?.name,
                         isCompatible = isCompatible
                     )
                 }
@@ -127,7 +128,7 @@ object PackageUiStateReducer {
                         secondaryAction = null,
                         progress = null,
                         transferInfo = null,
-                        sourceProvenance = managed?.source?.name ?: app?.let { "RuStore" },
+                        sourceProvenance = managed?.source?.name ?: app?.source?.name,
                         isCompatible = isCompatible
                     )
                 }
@@ -144,7 +145,7 @@ object PackageUiStateReducer {
                         secondaryAction = null,
                         progress = null,
                         transferInfo = null,
-                        sourceProvenance = managed?.source?.name ?: app?.let { "RuStore" },
+                        sourceProvenance = managed?.source?.name ?: app?.source?.name,
                         isCompatible = isCompatible
                     )
                 }
@@ -182,7 +183,7 @@ object PackageUiStateReducer {
                         secondaryAction = null,
                         progress = null,
                         transferInfo = null,
-                        sourceProvenance = managed?.source?.name ?: app?.let { "RuStore" },
+                        sourceProvenance = managed?.source?.name ?: app?.source?.name,
                         isCompatible = isCompatible
                     )
                 }
@@ -203,7 +204,7 @@ object PackageUiStateReducer {
                         secondaryAction = SecondaryAction.Cancel,
                         progress = null,
                         transferInfo = null,
-                        sourceProvenance = managed?.source?.name ?: app?.let { "RuStore" },
+                        sourceProvenance = managed?.source?.name ?: app?.source?.name,
                         isCompatible = isCompatible
                     )
                 }
@@ -232,7 +233,7 @@ object PackageUiStateReducer {
                         // and, because the row draws a bar whenever it has transfer text, ran a
                         // progress animation under a download that had stopped.
                         transferInfo = null,
-                        sourceProvenance = managed?.source?.name ?: app?.let { "RuStore" },
+                        sourceProvenance = managed?.source?.name ?: app?.source?.name,
                         isCompatible = isCompatible
                     )
                 }
@@ -273,7 +274,7 @@ object PackageUiStateReducer {
                 secondaryAction = null,
                 progress = null,
                 transferInfo = null,
-                sourceProvenance = app?.let { "RuStore" },
+                sourceProvenance = app?.source?.name,
                 isCompatible = false
             )
         }
@@ -330,7 +331,7 @@ object PackageUiStateReducer {
             secondaryAction = null,
             progress = null,
             transferInfo = null,
-            sourceProvenance = app?.let { "RuStore" },
+            sourceProvenance = app?.source?.name,
             isCompatible = true
         )
     }

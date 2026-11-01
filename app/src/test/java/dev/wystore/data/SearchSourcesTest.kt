@@ -8,7 +8,7 @@ class SearchSourcesTest {
     @Test
     fun withGitHubSwitchedOffEveryChoiceSearchesRuStore() {
         // A saved "GitHub only" used to search nowhere once the source was switched off.
-        SearchSources.entries.forEach { assertEquals(SearchSources.RUSTORE, it.within(githubEnabled = false)) }
+        SearchSources.entries.forEach { assertEquals(SearchSources.RUSTORE, it.within(githubEnabled = false, libraryEnabled = false)) }
     }
 
     @Test

@@ -144,7 +144,7 @@
     <string name="search_clear">Очистить</string>
     <string name="search_action">Искать в RuStore</string>
     <string name="search_action_all">Искать в RuStore и GitHub</string>
-    <string name="search_sources_all">Оба</string>
+    <string name="search_sources_all">Все</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
     <string name="search_disclaimer">Каталог и APK запрашиваются напрямую у RuStore. Wy Store не устанавливает его клиент и не использует свой сервер.</string>
@@ -856,4 +856,11 @@
     <string name="ownership_transfer_less">Скрыть пояснение</string>
     <string name="ownership_transfer_profile_limits">Если копия осталась в другом профиле, например Shelter, передача может быть недоступна. Даже при владении Wy Store системный магазин может обновлять приложение без подтверждения в управляемых профилях.</string>
     <string name="adopt_finish_batch">Завершить разбор</string>
+    <string name="wy_category_foreign">Зарубежные</string>
+    <string name="sources_library_description">Выбранные оригинальные приложения из открытой библиотеки Wy Store. Вход в Google не требуется.</string>
+    <string name="source_choose">Источник</string>
+    <string name="source_managed">Обновления из: %1$s</string>
+    <string name="source_switch_wait">Завершите или отмените текущую установку перед сменой источника.</string>
+    <string name="source_signature_verify">Подпись отличается. Перед переустановкой нужно проверить APK.</string>
+    <string name="library_incompatible">В библиотеке нет подходящего варианта для этого устройства.</string>
 </resources>

@@ -856,4 +856,11 @@
     <string name="ownership_transfer_less">收起说明</string>
     <string name="ownership_transfer_profile_limits">如果另一个配置文件（如 Shelter）中仍有副本，可能无法转移更新所有权。即使 Wy Store 拥有更新权限，系统应用商店仍可能在受管理配置文件中无需确认即可更新应用。</string>
     <string name="adopt_finish_batch">结束处理</string>
+    <string name="wy_category_foreign">海外应用</string>
+    <string name="sources_library_description">来自公开 Wy Store 应用库的精选原版应用，无需登录 Google 账号。</string>
+    <string name="source_choose">来源</string>
+    <string name="source_managed">更新来源：%1$s</string>
+    <string name="source_switch_wait">请先完成或取消当前安装，再更改来源。</string>
+    <string name="source_signature_verify">签名不同，重新安装前需要验证 APK。</string>
+    <string name="library_incompatible">应用库暂无适合此设备的版本。</string>
 </resources>

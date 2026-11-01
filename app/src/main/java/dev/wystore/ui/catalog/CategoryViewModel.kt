@@ -95,7 +95,10 @@ class CategoryViewModel(
             }
             _uiState.update { it.copy(loading = true, error = null, failedPage = null) }
             runCatching {
-                if (curated != null) catalogRepository.curatedCatalog(curated, forceRefresh)
+                if (slug == "wy-foreign") {
+                    val read = dev.wystore.data.library.WyStoreLibrarySource(getApplication()).foreign()
+                    dev.wystore.data.CatalogRepository.Result(dev.wystore.data.CatalogPage(read.value, 1, 1), read.stale, read.error?.cause)
+                } else if (curated != null) catalogRepository.curatedCatalog(curated, forceRefresh)
                 else catalogRepository.catalog(slug, page, forceRefresh)
             }
                 .onSuccess { result ->
@@ -106,7 +109,7 @@ class CategoryViewModel(
                             lastPage = result.value.lastPage,
                             loading = false,
                             stale = result.stale,
-                            error = null
+                            error = result.error?.let { SourceTextResolver.describe(getApplication(), it) ?: getApplication<Application>().getString(R.string.catalog_load_failed) }
                         )
                     }
                 }

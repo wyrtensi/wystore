@@ -130,6 +130,7 @@ private fun AppRowContent(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
+                        state.availableSources.filter { it.name != state.sourceProvenance }.forEach { SourceLabel(it) }
                         shownSource?.let { source ->
                                 // The reducer carries the raw enum name; the card shows the name the
                                 // source actually goes by.
@@ -273,6 +274,7 @@ private fun AppGroupRowContent(
                 ) {
                     shownVersion?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
                     source?.let { HubTag(it, tint = sourceTint(it)) }
+                    state.availableSources.filter { it.name != state.sourceProvenance }.forEach { SourceLabel(it) }
                     state.rating?.let {
                         Text(
                             "★ " + String.format(java.util.Locale.getDefault(), "%.1f", it),

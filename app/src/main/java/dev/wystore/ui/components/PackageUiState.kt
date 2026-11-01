@@ -17,5 +17,6 @@ data class PackageUiState(
     /** The catalogue's average rating, when it gives one. */
     val rating: Double? = null,
     /** The catalogue section the app is listed in, as the source names it. */
-    val category: String? = null
+    val category: String? = null,
+    val availableSources: Set<dev.wystore.data.ManagedSource> = emptySet()
 )

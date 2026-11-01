@@ -37,7 +37,9 @@ data class StoreApp(
     val sourceVersionId: Long?,
     val reviews: List<StoreReview> = emptyList(),
     val changelog: AppChangelog? = null,
-    val source: ManagedSource = ManagedSource.RUSTORE
+    val source: ManagedSource = ManagedSource.RUSTORE,
+    val availableSources: Set<ManagedSource> = setOf(source),
+    val installationAvailable: Boolean = true
 )
 
 /**

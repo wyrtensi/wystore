@@ -144,7 +144,7 @@
     <string name="search_clear">Clear</string>
     <string name="search_action">Search RuStore</string>
     <string name="search_action_all">Search RuStore and GitHub</string>
-    <string name="search_sources_all">Both</string>
+    <string name="search_sources_all">All</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
     <string name="search_disclaimer">The catalog and APKs are requested from RuStore directly. Wy Store does not install its client and does not use a server of its own.</string>
@@ -856,4 +856,11 @@
     <string name="ownership_transfer_less">Hide explanation</string>
     <string name="ownership_transfer_profile_limits">If a copy remains in another profile, such as Shelter, ownership transfer may be unavailable. Even with Wy Store ownership, a system store may update the app without confirmation in managed profiles.</string>
     <string name="adopt_finish_batch">Finish reviewing</string>
+    <string name="wy_category_foreign">Foreign apps</string>
+    <string name="sources_library_description">Selected original apps from the public Wy Store Library. No Google account is required.</string>
+    <string name="source_choose">Source</string>
+    <string name="source_managed">Updates from: %1$s</string>
+    <string name="source_switch_wait">Finish or cancel the current installation before changing its source.</string>
+    <string name="source_signature_verify">The signing key differs. The APK must be checked before replacement.</string>
+    <string name="library_incompatible">No published variant supports this device.</string>
 </resources>

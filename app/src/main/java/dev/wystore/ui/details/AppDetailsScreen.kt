@@ -96,6 +96,7 @@ import dev.wystore.ui.components.SourceDisclaimer
 import dev.wystore.ui.components.SourceLabel
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.sourceLabel
+import dev.wystore.ui.components.sourceDisplayName
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -123,7 +124,8 @@ fun AppDetailsScreen(
     onResume: (String) -> Unit = {},
     managedApp: dev.wystore.data.ManagedApp? = null,
     continueChecksAfterGooglePlayUpdate: Boolean = false,
-    onOpenUpdateSettings: () -> Unit = {}
+    onOpenUpdateSettings: () -> Unit = {},
+    sourceSelector: @Composable () -> Unit = {}
 ) {
     var screenshotPreview by remember { mutableStateOf<String?>(null) }
     var shownReviews by remember(app.packageName) { mutableIntStateOf(REVIEW_PAGE) }
@@ -141,7 +143,7 @@ fun AppDetailsScreen(
     val requiredSdk = AndroidSdkCompatibility.requiredSdk(app)
     val deviceTooOld = AndroidSdkCompatibility.tooOld(requiredSdk, Build.VERSION.SDK_INT)
     val canUpdate = (installed == null || app.versionCode > installed.versionCode) &&
-        !queueActive && !deviceTooOld
+        !queueActive && !deviceTooOld && app.installationAvailable
     val installLabel = stringResource(
         when {
             pendingUpdate != null -> if (installed == null) R.string.details_install_downloaded else R.string.common_update
@@ -164,7 +166,7 @@ fun AppDetailsScreen(
     Scaffold(topBar = {
         HubPageHeader(
             title = stringResource(R.string.details_title),
-            eyebrow = "RuStore",
+            eyebrow = sourceDisplayName(app.source.name),
             onBack = onBack,
             actions = {
                 val shareSubject = stringResource(R.string.details_share_subject, app.name)
@@ -194,6 +196,8 @@ fun AppDetailsScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            item { sourceSelector() }
+            if (!app.installationAvailable) item { Text(stringResource(R.string.library_incompatible)) }
             item {
                 // The concept's detail page: who and what, the one-line pitch and the one button,
                 // in a single glass panel instead of loose lines on the page.

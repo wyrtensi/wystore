@@ -71,6 +71,17 @@ fun SourceSettingsScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 16.dp + LocalBottomBarInset.current),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            WyCard(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth().switchRow(settings.libraryEnabled) {
+                        onUpdateSettings(settings.copy(libraryEnabled = it))
+                    }, verticalAlignment = Alignment.CenterVertically) {
+                        Text("Wy Store", modifier = Modifier.weight(1f))
+                        Switch(checked = settings.libraryEnabled, onCheckedChange = null)
+                    }
+                    Text(stringResource(R.string.sources_library_description), style = MaterialTheme.typography.bodySmall)
+                }
+            }
             // A panel per source, each named by its own coloured tag.
             dev.wystore.ui.components.WyCard(modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
