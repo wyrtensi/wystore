@@ -1,8 +1,9 @@
 # Wy Store Library source integration
 
 Date: 2026-11-01
-Status: Builder check complete; awaiting operator approval of this document.
-Product implementation has not started.
+Status: Approved by the operator on 2026-11-01 after the builder check.
+Product implementation has not started. Do not release. Stop all execution before
+the five-hour allowance falls to 15% remaining, unless the work finishes earlier.
 
 ## Intent
 
