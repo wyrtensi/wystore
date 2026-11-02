@@ -46,13 +46,13 @@ class SourceSelectionCoordinator(private val context: Context) {
 
     private suspend fun change(packageName: String, choice: AppSourceChoice, certificates: Set<String>,
                                lineage: Set<String>?, keepQueueId: String?): SourceSwitchResult = withContext(Dispatchers.IO) {
-        SourceSelectionGate.locked {
+        SourceSelectionGate.commit {
             kotlinx.coroutines.currentCoroutineContext().ensureActive()
-            if (PendingReinstallStore(context).read(packageName) != null) return@locked SourceSwitchResult.InstallInProgress
+            if (PendingReinstallStore(context).read(packageName) != null) return@commit SourceSwitchResult.InstallInProgress
             val rows = dao.getByPackage(packageName)
             val sessionStates = rows.mapNotNull { dao.getSession(it.id)?.state }
             if (SourceRequestPolicy.blocksSwitch(rows.map { QueueState.valueOf(it.state) }, sessionStates)) {
-                return@locked SourceSwitchResult.InstallInProgress
+                return@commit SourceSwitchResult.InstallInProgress
             }
             val installed = repository.installedAppFresh(packageName)
             val current = repository.managedApps().firstOrNull { it.packageName == packageName }
@@ -63,7 +63,7 @@ class SourceSelectionCoordinator(private val context: Context) {
                     dev.wystore.background.TransferDispatcher.cancel(context, row.id)
                 }
                 repository.removeManaged(packageName)
-                return@locked SourceSwitchResult.Saved(repository.advanceSourceRevision(packageName))
+                return@commit SourceSwitchResult.Saved(repository.advanceSourceRevision(packageName))
             }
             val signature = when {
                 certificates.isEmpty() || installed.signingDigests.isEmpty() -> SignatureCompatibility.UNKNOWN
@@ -72,11 +72,12 @@ class SourceSelectionCoordinator(private val context: Context) {
                 else -> SignatureCompatibility.MISMATCH
             }
             if (AppSourceSwitchPolicy.decide(installed, choice, signature, false) == SourceSwitchDecision.VERIFY_FOR_REPLACEMENT) {
-                return@locked SourceSwitchResult.VerificationRequired(choice, repository.sourceRevision(packageName))
+                return@commit SourceSwitchResult.VerificationRequired(choice, repository.sourceRevision(packageName))
             }
             val targetRepo = (choice as? AppSourceChoice.GitHub)?.repository
             if (current?.source == choice.source && current.githubRepository == targetRepo) {
-                return@locked SourceSwitchResult.Saved(current.sourceRevision)
+                keepVerifiedCandidate(keepQueueId, current.sourceRevision)
+                return@commit SourceSwitchResult.Saved(current.sourceRevision)
             }
             for (row in rows.filter { it.id != keepQueueId && it.state !in setOf(QueueState.INSTALLED.name, QueueState.OFFER_NEXT.name) }) {
                 InstallSessionWriter(context).abandon(row.id)
@@ -87,13 +88,19 @@ class SourceSelectionCoordinator(private val context: Context) {
             val changed = repository.updateManaged(packageName) { existing ->
                 (existing ?: ManagedApp(packageName, installed.label, installed.signingDigests)).copy(
                     source = choice.source, githubRepository = targetRepo, githubReleaseId = null,
+                    knownGithubRepository = AppSourceKnowledge.remember(existing, targetRepo),
                     sourceRevision = Math.addExact(repository.sourceRevision(packageName), 1))
             }
-            keepQueueId?.let { id -> dao.getById(id)?.let { row ->
-                dao.update(row.copy(sourceRevision = changed.sourceRevision, sourceReplacement = false))
-            } }
+            keepVerifiedCandidate(keepQueueId, changed.sourceRevision)
             SourceSwitchResult.Saved(changed.sourceRevision)
         }
+    }
+
+    private suspend fun keepVerifiedCandidate(queueId: String?, revision: Long) {
+        queueId?.let { id -> dao.getById(id)?.let { row ->
+            dao.update(row.copy(sourceRevision = revision, sourceReplacement = false,
+                libraryRequestJson = row.libraryRequestJson?.let { LibraryRequestCodec.withRevision(it, revision) }))
+        } }
     }
 
     companion object {

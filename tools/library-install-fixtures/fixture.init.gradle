@@ -1,0 +1,10 @@
+// Opt in explicitly. Fixture APKs and runtime probes never enter ordinary builds.
+gradle.beforeProject { project ->
+    project.plugins.withId('com.android.application') {
+        def android = project.extensions.getByName('android')
+        def sources = new File(project.rootDir, 'tools/library-install-fixtures')
+        android.sourceSets.getByName('androidTest').java.srcDir(sources)
+        android.sourceSets.getByName('androidTest').kotlin.srcDir(sources)
+        android.sourceSets.getByName('androidTest').assets.srcDir(new File(project.rootDir, 'outputs/library-install-fixtures/assets'))
+    }
+}

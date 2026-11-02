@@ -45,6 +45,17 @@ fun SharedRootDialogs(
     onSourceFailureHelpDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    if (state.sourceRecoveryFailure != null && state.sourceReplacement == null) {
+        HubAlertDialog(onDismissRequest = viewModel::cancelSourceRecovery,
+            title = { Text(stringResource(R.string.dialog_replace_title)) },
+            text = { Text(stringResource(R.string.source_recovery_body)) },
+            confirmButton = {
+                DialogButton(primary = true, enabled = !state.sourceRecoveryBusy, onClick = viewModel::retrySourceRecovery) {
+                    Text(stringResource(R.string.common_retry))
+                }
+            },
+            dismissButton = { DialogButton(onClick = viewModel::cancelSourceRecovery) { Text(stringResource(R.string.common_cancel)) } })
+    }
     var removalQueueId by rememberSaveable { mutableStateOf<String?>(null) }
     val removalLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()

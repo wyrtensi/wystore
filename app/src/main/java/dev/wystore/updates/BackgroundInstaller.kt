@@ -28,78 +28,84 @@ class BackgroundInstaller(context: Context) {
 
     /** True when the install was handed to Android here and needs no further help. */
     suspend fun install(queueId: String, packageName: String): Boolean = withContext(Dispatchers.IO) {
-        // A silent install must not read as one waiting on a dialog from an earlier attempt: its
-        // Cancel would drop a session nobody is asked about. See UserConfirmedInstaller.install.
-        ConfirmationDialogs.closed(queueId)
-        val settings = storeRepository.settings()
-        if (!mayInstallAutomatically(queueId, packageName)) return@withContext false
-        if (!SilentUpdatePolicy.allows(
-                enabled = settings.silentUpdatesEnabled,
-                refusedOnThisFirmware = SilentInstallRefusal(appContext).refusedOnThisFirmware(),
-                isUpdate = isInstalled(packageName),
-                installerOfRecord = installerOfRecord(packageName),
-                ownPackageName = appContext.packageName
-            )
-        ) {
-            return@withContext false
-        }
-
-        queueRepository.transitionIfIn(
-            id = queueId,
-            allowedFrom = setOf(QueueState.READY_TO_INSTALL),
-            action = QueueAction.RequestInstallConfirmation
-        )
-
-        val prepared = try {
-            sessionWriter.prepare(queueId)
-        } catch (error: Throwable) {
-            queueRepository.resetReadyToInstall(queueId)
-            return@withContext false
-        }
-
-        // The legacy route hands Android an Intent, and an Intent needs an Activity. Old enough
-        // devices keep the behaviour they always had.
-        if (prepared !is PreparedInstall.Session) {
-            runCatching { sessionWriter.abandon(queueId) }
-            queueRepository.resetReadyToInstall(queueId)
-            return@withContext false
-        }
-
-        // Another install is in progress; this one keeps its verified files and waits its turn.
-        if (!queueRepository.transitionIfFree(
-                id = queueId,
-                allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),
-                action = QueueAction.StartInstall
-            )
-        ) {
-            runCatching { sessionWriter.abandon(queueId) }
-            queueRepository.resetReadyToInstall(queueId)
-            return@withContext false
-        }
-
+        val attempt = InstallAttemptTracker.begin(queueId) ?: return@withContext false
         try {
-            // Preparing the session copies the APKs and may take long enough for Play or the
-            // user's settings to change. Ask again immediately before committing to Android.
-            if (!mayInstallAutomatically(queueId, packageName)) {
-                sessionWriter.abandon(queueId)
+            // A silent install must not read as one waiting on a dialog from an earlier attempt: its
+            // Cancel would drop a session nobody is asked about. See UserConfirmedInstaller.install.
+            ConfirmationDialogs.closed(queueId)
+            val settings = storeRepository.settings()
+            if (!mayInstallAutomatically(queueId, packageName)) return@withContext false
+            if (!SilentUpdatePolicy.allows(
+                    enabled = settings.silentUpdatesEnabled,
+                    refusedOnThisFirmware = SilentInstallRefusal(appContext).refusedOnThisFirmware(),
+                    isUpdate = isInstalled(packageName),
+                    installerOfRecord = installerOfRecord(packageName),
+                    ownPackageName = appContext.packageName
+                )
+            ) {
+                return@withContext false
+            }
+
+            queueRepository.transitionIfIn(
+                id = queueId,
+                allowedFrom = setOf(QueueState.READY_TO_INSTALL),
+                action = QueueAction.RequestInstallConfirmation
+            )
+
+            val prepared = try {
+                sessionWriter.prepare(queueId)
+            } catch (error: Throwable) {
                 queueRepository.resetReadyToInstall(queueId)
                 return@withContext false
             }
-            sessionWriter.commitSession(prepared)
-            // Whether it actually installs is decided by InstallResultReceiver. If Android asks
-            // for confirmation after all, that receiver puts the row back where the user can
-            // reach it rather than leaving it mid-install.
-            true
-        } catch (error: Throwable) {
-            runCatching { sessionWriter.abandon(queueId) }
-            queueRepository.reconcileInstallResult(
-                id = queueId,
-                success = false,
-                errorCode = QueueErrorCode.INSTALL_FAILED,
-                errorDetail = error.message
-            )
-            false
-        }
+
+            // The legacy route hands Android an Intent, and an Intent needs an Activity. Old enough
+            // devices keep the behaviour they always had.
+            if (prepared !is PreparedInstall.Session) {
+                runCatching { sessionWriter.abandon(queueId) }
+                queueRepository.resetReadyToInstall(queueId)
+                return@withContext false
+            }
+
+            // Another install is in progress; this one keeps its verified files and waits its turn.
+            if (!queueRepository.transitionIfFree(
+                    id = queueId,
+                    allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),
+                    action = QueueAction.StartInstall
+                )
+            ) {
+                runCatching { sessionWriter.abandon(queueId) }
+                queueRepository.resetReadyToInstall(queueId)
+                return@withContext false
+            }
+
+            try {
+                // Preparing the session copies the APKs and may take long enough for Play or the
+                // user's settings to change. Ask again immediately before committing to Android.
+                if (!mayInstallAutomatically(queueId, packageName)) {
+                    sessionWriter.abandon(queueId)
+                    queueRepository.resetReadyToInstall(queueId)
+                    return@withContext false
+                }
+                sessionWriter.commitSession(prepared)
+                // Whether it actually installs is decided by InstallResultReceiver. If Android asks
+                // for confirmation after all, that receiver puts the row back where the user can
+                // reach it rather than leaving it mid-install.
+                true
+            } catch (error: Throwable) {
+                if (!sessionWriter.abandon(queueId)) {
+                    dev.wystore.data.EventLog(appContext).record(packageName, "INSTALL_COMMIT_UNCERTAIN", error.message)
+                    return@withContext true
+                }
+                queueRepository.reconcileInstallResult(
+                    id = queueId,
+                    success = false,
+                    errorCode = QueueErrorCode.INSTALL_FAILED,
+                    errorDetail = error.message
+                )
+                false
+            }
+        } finally { InstallAttemptTracker.end(queueId, attempt) }
     }
 
     private suspend fun mayInstallAutomatically(queueId: String, packageName: String): Boolean {

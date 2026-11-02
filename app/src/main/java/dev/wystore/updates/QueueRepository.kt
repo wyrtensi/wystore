@@ -95,6 +95,24 @@ class QueueRepository(
             transitionUnchecked(id, action)
         } else transitionUnchecked(id, action)
 
+    suspend fun claimRootInstall(id: String, token: String): Boolean = SourceSelectionGate.locked {
+        val row = dao.getById(id) ?: return@locked false
+        if (row.state != QueueState.AWAITING_USER_CONFIRMATION.name) return@locked false
+        if (dao.getSession(id) != null) return@locked false
+        SourceSelectionCoordinator.requireCurrent(context, row)
+        dao.insertOrReplaceSession(dev.wystore.data.local.InstallSessionEntity(id, row.packageName, -1, token, RootInstallJournal.CLAIMED))
+        try {
+            transitionUnchecked(id, QueueAction.StartInstall)
+            true
+        } catch (busy: dev.wystore.data.local.QueueBusyException) {
+            dao.deleteSession(id)
+            false
+        } catch (error: Throwable) {
+            dao.deleteSession(id)
+            throw error
+        }
+    }
+
     private suspend fun transitionUnchecked(id: String, action: QueueAction): QueueItemSnapshot = withContext(Dispatchers.IO) {
         if (action == QueueAction.InstallSucceeded) {
             return@withContext reconcileInstallResult(id, success = true)
@@ -428,6 +446,11 @@ class QueueRepository(
     }
 
     /** Files persisted for a queue item that still exist on disk. */
+    suspend fun verifiedArtifactFilesFor(queueId: String): List<File> = withContext(Dispatchers.IO) {
+        val row = dao.getById(queueId) ?: error("Install request was removed")
+        QueueArtifactIntegrity.requireMatches(row, dao.getArtifactsForQueue(queueId))
+    }
+
     suspend fun artifactFilesFor(queueId: String): List<File> = withContext(Dispatchers.IO) {
         dao.getArtifactsForQueue(queueId)
             .map { File(it.path) }
@@ -641,7 +664,8 @@ class QueueRepository(
         githubReleaseId: Long? = null,
         sourceReplacement: Boolean = false,
         sourceRevision: Long = 0,
-        sourceHashes: List<String>? = null
+        sourceHashes: List<String>? = null,
+        libraryRequestJson: String? = null
     ): PendingUpdate = withContext(Dispatchers.IO) {
         require(plan.files.isNotEmpty() && plan.files.all { it.isFile && it.length() > 0L }) {
             "A verified APK is no longer on disk"
@@ -682,6 +706,7 @@ class QueueRepository(
             updatedAt = System.currentTimeMillis(),
             sourceReplacement = sourceReplacement,
             sourceRevision = sourceRevision,
+            libraryRequestJson = libraryRequestJson,
             requiresUserConfirmation = sourceReplacement
         )
         dao.upsertAtomic(entity)

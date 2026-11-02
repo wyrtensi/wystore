@@ -346,7 +346,7 @@ fun WyStoreRoot(
                         // Downloading what is already verified is the point of the queue; a metadata
                         // re-check here would leave ready updates untouched.
                         githubPicks = if (state.settings.githubEnabled) {
-                            dev.wystore.data.GitHubCatalog.entries(state.githubRepositories)
+                            dev.wystore.data.GitHubCatalog.entries(state.githubRepositories).map(viewModel::knownGitHubEntry)
                         } else {
                             emptyList()
                         },
@@ -401,7 +401,7 @@ fun WyStoreRoot(
                         onInstallPending = onInstallPending,
                         // Switched off in the source settings means gone from search too, not only
                         // from Home: the results used to keep appearing.
-                        githubResults = if (state.settings.githubEnabled) state.githubSearchResults else emptyList(),
+                        githubResults = if (state.settings.githubEnabled) state.githubSearchResults.map(viewModel::knownGitHubEntry) else emptyList(),
                         onOpenGitHubApp = viewModel::openGitHubApp,
                         sources = state.settings.searchSources,
                         githubEnabled = state.settings.githubEnabled,
@@ -430,7 +430,7 @@ fun WyStoreRoot(
                         releases = state.githubReleases,
                         loading = state.githubLoading,
                         install = state.installQueue.githubRowFor(state.githubActiveRepository),
-                        catalog = dev.wystore.data.GitHubCatalog.entries(state.githubRepositories),
+                        catalog = dev.wystore.data.GitHubCatalog.entries(state.githubRepositories).map(viewModel::knownGitHubEntry),
                         onLoad = viewModel::loadGitHubRepository,
                         onOpen = viewModel::openGitHubRelease,
                         onOpenCatalogEntry = viewModel::openGitHubApp,

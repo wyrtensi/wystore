@@ -868,4 +868,5 @@
     <string name="disclaimer_source_library">来源：Wy Store 应用库。Google Play 原始文件通过应用库的公开流程发布。在 Google Play 之外安装并不保证应用及其服务在您的地区可用。</string>
     <string name="library_repository">应用库代码仓库</string>
     <string name="library_upstream">原始商店页面</string>
+    <string name="source_recovery_body">无法继续重新安装。请重新检查已准备的文件，或取消重新安装。</string>
 </resources>

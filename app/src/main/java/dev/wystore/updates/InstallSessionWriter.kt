@@ -61,7 +61,7 @@ class InstallSessionWriter(private val context: Context) {
                 detail = "Replacement requires explicit removal confirmation")
         }
         val artifacts = database.updateQueueDao.getArtifactsForQueue(queueId)
-        val files = artifacts.map { File(it.path) }
+        val files = QueueArtifactIntegrity.requireMatches(entity, artifacts)
         require(files.isNotEmpty() && files.all { it.isFile && it.length() > 0L }) {
             "Downloaded APK files are missing or unreadable"
         }
@@ -83,6 +83,10 @@ class InstallSessionWriter(private val context: Context) {
                 verification.error?.let { VerificationTextResolver.resolve(appContext, it) }
                     ?: appContext.getString(dev.wystore.R.string.msg_install_reverify_failed)
             )
+        }
+        if (verification.identity.versionCode != entity.versionCode) {
+            throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.INTEGRITY,
+                detail = "The archive version changed after verification")
         }
 
         val silent = SilentUpdatePolicy.allows(
@@ -163,7 +167,7 @@ class InstallSessionWriter(private val context: Context) {
         // it is not a security check. Nothing needs one here: the result comes back to a receiver
         // declared exported="false" through an explicit intent, so no other app can deliver to it,
         // and the queue id in the same intent already says which item the result belongs to.
-        val callbackToken = UUID.randomUUID().toString()
+        val callbackToken = InstallAttemptTracker.current(queueId) ?: UUID.randomUUID().toString()
 
         try {
             packageInstaller.openSession(sessionId).use { session ->
@@ -194,7 +198,11 @@ class InstallSessionWriter(private val context: Context) {
         }
     }
 
-    suspend fun commitSession(session: PreparedInstall.Session) = withContext(Dispatchers.IO) { SourceSelectionGate.locked {
+    suspend fun commitSession(session: PreparedInstall.Session) = withContext(Dispatchers.IO) {
+        val ownsAttempt = InstallAttemptTracker.current(session.queueId) == null
+        if (ownsAttempt) check(InstallAttemptTracker.begin(session.queueId, session.callbackToken) != null)
+        check(InstallAttemptTracker.current(session.queueId) == session.callbackToken)
+        try { SourceSelectionGate.locked {
         val row = database.updateQueueDao.getById(session.queueId) ?: error("Install request was removed")
         SourceSelectionCoordinator.requireCurrent(appContext, row)
         check(row.state == dev.wystore.updates.model.QueueState.INSTALLING.name) { "Install request is no longer active" }
@@ -213,16 +221,19 @@ class InstallSessionWriter(private val context: Context) {
         packageInstaller.openSession(session.sessionId).use { openSession ->
             openSession.commit(pendingIntent.intentSender)
         }
-    } }
+        } } finally { if (ownsAttempt) InstallAttemptTracker.end(session.queueId, session.callbackToken) }
+    }
 
     /**
      * Drops a prepared-but-never-committed session. Without this the staged bytes stay charged to
      * the app's session quota until Android decides to reap them.
      */
-    suspend fun abandon(queueId: String) = withContext(Dispatchers.IO) {
-        val session = database.updateQueueDao.getSession(queueId) ?: return@withContext
-        runCatching { packageInstaller.abandonSession(session.sessionId) }
+    suspend fun abandon(queueId: String): Boolean = withContext(Dispatchers.IO) {
+        val session = database.updateQueueDao.getSession(queueId) ?: return@withContext true
+        if (packageInstaller.getSessionInfo(session.sessionId) != null) packageInstaller.abandonSession(session.sessionId)
+        if (packageInstaller.getSessionInfo(session.sessionId) != null) return@withContext false
         database.updateQueueDao.deleteSession(queueId)
+        true
     }
 
     companion object {

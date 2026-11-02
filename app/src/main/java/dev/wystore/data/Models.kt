@@ -173,7 +173,8 @@ data class ManagedApp(
     val githubRepository: GitHubRepository? = null,
     val githubReleaseId: Long? = null,
     val googlePlayUpdateDetected: Boolean = false,
-    val sourceRevision: Long = 0
+    val sourceRevision: Long = 0,
+    val knownGithubRepository: GitHubRepository? = null
 )
 
 typealias QueueMode = dev.wystore.updates.model.QueueMode

@@ -54,7 +54,9 @@ class RootInstaller {
     suspend fun install(
         plan: VerifiedInstallPlan,
         update: Boolean,
-        installerPackageName: String
+        installerPackageName: String,
+        onSessionCreated: suspend (Int) -> Unit = {},
+        beforeCommit: suspend (Int) -> Unit = {}
     ): RootResult = withContext(Dispatchers.IO) {
         val files = plan.files
         if (files.isEmpty()) {
@@ -73,6 +75,7 @@ class RootInstaller {
             ?: return@withContext RootResult(false, create.output, RootFailure.SESSION_NOT_CREATED)
         var committed = false
         try {
+            onSessionCreated(session.toInt())
             for ((index, file) in files.withIndex()) {
                 val split = if (index == 0) "base.apk" else "split_$index.apk"
                 val command = "pm install-write -S ${file.length()} $session $split ${shellQuote(file.absolutePath)}"
@@ -81,12 +84,18 @@ class RootInstaller {
                     return@withContext RootResult(false, write.output, RootFailure.WRITE_FAILED)
                 }
             }
+            beforeCommit(session.toInt())
             val commit = execute("pm install-commit $session")
             committed = commit.success && commit.output.contains("Success", true)
             RootResult(committed, commit.output)
         } finally {
             if (!committed) execute("pm install-abandon $session")
         }
+    }
+
+    suspend fun abandon(sessionId: Int): RootResult {
+        require(sessionId >= 0)
+        return execute("pm install-abandon $sessionId")
     }
 
     suspend fun uninstall(packageName: String): RootResult = withContext(Dispatchers.IO) {

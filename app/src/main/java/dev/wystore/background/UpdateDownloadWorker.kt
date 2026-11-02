@@ -609,7 +609,7 @@ class UpdateDownloadWorker(
 
             val entity = queueRepository.getEntityById(queueId) ?: return false
             if (entity.requiresUpdateOwnership || entity.requiresUserConfirmation) return false
-            val files = queueRepository.artifactFilesFor(queueId)
+            val files = queueRepository.verifiedArtifactFilesFor(queueId)
             if (files.isEmpty()) return false
 
             val installedApp = storeRepository.installedAppFresh(entity.packageName)
@@ -633,46 +633,57 @@ class UpdateDownloadWorker(
             )
             // The root path is no more entitled to the slot than any other; if it is taken, this
             // item keeps its files and is installed when its turn comes.
-            if (!queueRepository.transitionIfFree(
-                    queueId,
-                    setOf(QueueState.AWAITING_USER_CONFIRMATION),
-                    QueueAction.StartInstall
-                )
-            ) {
-                queueRepository.resetReadyToInstall(queueId)
+            val rootClaim = dev.wystore.updates.RootInstallJournal.claim(context, queueId)
+            if (rootClaim == null) {
+                if (dev.wystore.updates.InstallAttemptTracker.current(queueId) != null ||
+                    dev.wystore.data.local.WyStoreDatabase.getInstance(context).updateQueueDao.getSession(queueId) != null)
+                    return true
+                if (queueRepository.getEntityById(queueId)?.state == QueueState.AWAITING_USER_CONFIRMATION.name)
+                    queueRepository.resetReadyToInstall(queueId)
                 return false
             }
-
-            val beforeInstall = queueRepository.getEntityById(queueId)
-            if (beforeInstall == null || beforeInstall.requiresUpdateOwnership || beforeInstall.requiresUserConfirmation ||
-                isUnattendedBlocked(queueId, storeRepository.installedAppFresh(entity.packageName))) {
-                queueRepository.resetReadyToInstall(queueId)
-                return false
-            }
-            val result = rootInstaller.install(plan, update = isUpdate, installerPackageName = context.packageName)
-            return if (result.success) {
-                // What makes the app eligible for later update checks. The dialog path does this
-                // when Android reports the result; this path gets no such report, so root installs
-                // landed on the device and were never offered an update. Registered before
-                // reconciling, while the row still carries the verified identity and source.
-                runCatching { InstalledAppRegistrar.register(context, entity) }
-                    .onFailure { error ->
-                        runCatching {
-                            EventLog(context).record(
-                                packageName = entity.packageName,
-                                code = "REGISTER_FAILED",
-                                detail = error.message ?: error::class.java.simpleName
-                            )
+            try {
+                val beforeInstall = queueRepository.getEntityById(queueId)
+                if (beforeInstall == null || beforeInstall.requiresUpdateOwnership || beforeInstall.requiresUserConfirmation ||
+                    isUnattendedBlocked(queueId, storeRepository.installedAppFresh(entity.packageName))) {
+                    queueRepository.resetReadyToInstall(queueId)
+                    return false
+                }
+                val result = rootInstaller.install(plan, update = isUpdate, installerPackageName = context.packageName,
+                    onSessionCreated = rootClaim::sessionCreated,
+                    beforeCommit = { id ->
+                        if (!storeRepository.settings().rootSilentInstallEnabled ||
+                            isUnattendedBlocked(queueId, storeRepository.installedAppFresh(entity.packageName)))
+                            throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.SOURCE_CHANGED)
+                        rootClaim.beforeCommit(id)
+                    })
+                return if (result.success) {
+                    // What makes the app eligible for later update checks. The dialog path does this
+                    // when Android reports the result; this path gets no such report, so root installs
+                    // landed on the device and were never offered an update. Registered before
+                    // reconciling, while the row still carries the verified identity and source.
+                    runCatching { InstalledAppRegistrar.register(context, entity) }
+                        .onFailure { error ->
+                            runCatching {
+                                EventLog(context).record(
+                                    packageName = entity.packageName,
+                                    code = "REGISTER_FAILED",
+                                    detail = error.message ?: error::class.java.simpleName
+                                )
+                            }
                         }
-                    }
-                queueRepository.reconcileInstallResult(queueId, success = true)
-                invalidateInstalledApps()
-                coordinator.publishReady(queueRepository.readyToInstallSnapshots())
-                true
-            } else {
-                // Fall back to the normal confirmation flow rather than stranding the item.
-                queueRepository.resetReadyToInstall(queueId)
-                false
+                    queueRepository.reconcileInstallResult(queueId, success = true)
+                    invalidateInstalledApps()
+                    coordinator.publishReady(queueRepository.readyToInstallSnapshots())
+                    true
+                } else {
+                    rootClaim.close()
+                    dev.wystore.updates.InstallSessionRecovery.recover(context, queueId)
+                    queueRepository.getEntityById(queueId)?.state == QueueState.INSTALLING.name
+                }
+            } finally {
+                rootClaim.close()
+                withContext(NonCancellable) { dev.wystore.updates.InstallSessionRecovery.recover(context, queueId) }
             }
         }
 

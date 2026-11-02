@@ -58,6 +58,7 @@ class InstallResultReceiver : BroadcastReceiver() {
         repository.getEntityById(queueId)?.let { entity ->
             runCatching { AutoInstallStore(context).request(entity.packageName) }
         }
+        if (!InstallSessionWriter(context).abandon(queueId)) return
         repository.resetReadyToInstall(queueId)
         runCatching {
             dev.wystore.background.NotificationCoordinator(context)

@@ -320,6 +320,8 @@ data class StoreUiState(
     val selected: StoreApp? = null,
     val sourceReplacement: SourceReplacementPrompt? = null,
     val sourceRemoval: dev.wystore.updates.PendingReinstall? = null,
+    val sourceRecoveryFailure: PendingReinstall? = null,
+    val sourceRecoveryBusy: Boolean = false,
     val installed: List<InstalledApp> = emptyList(),
     val managed: List<ManagedApp> = emptyList(),
     val settings: StoreSettings = StoreSettings(),
@@ -647,6 +649,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     private var sourceChoiceJob: Job? = null
     private var replacementJob: Job? = null
     private var replacementOperation = 0L
+    private var sourceRecoveryJob: Job? = null
+    private var sourceRecoveryGeneration = 0L
     private var libraryCatalogLoaded = false
 
     fun openDetails(packageName: String) = openDetailsFromSource(packageName,
@@ -690,8 +694,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         if (_state.value.settings.libraryEnabled && _state.value.libraryCards.any { it.packageName == app.packageName }) sources += ManagedSource.WY_STORE
         if (app.packageName in _state.value.knownRuStorePackages) sources += ManagedSource.RUSTORE
         if (_state.value.settings.githubEnabled && dev.wystore.data.GitHubCatalog.entries(_state.value.githubRepositories).any { it.packageName == app.packageName }) sources += ManagedSource.GITHUB
+        if (_state.value.settings.githubEnabled && _state.value.managed.any { it.packageName == app.packageName &&
+                (it.githubRepository != null || it.knownGithubRepository != null) }) sources += ManagedSource.GITHUB
         return app.copy(availableSources = sources)
     }
+
+    fun knownGitHubEntry(entry: GitHubCatalogEntry): GitHubCatalogEntry = if (entry.packageName != null) entry
+        else entry.copy(packageName = dev.wystore.data.AppSourceKnowledge.packageFor(entry.repository, _state.value.managed))
 
     fun librarySearchResults(): List<StoreApp> = if (!_state.value.settings.libraryEnabled) emptyList() else
         dev.wystore.data.library.LibraryCatalogPolicy.search(dev.wystore.data.library.LibraryCatalog(_state.value.libraryCards), _state.value.query)
@@ -707,7 +716,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         if (state.settings.libraryEnabled && state.libraryCards.any { it.packageName == packageName })
             add(dev.wystore.data.AppSourceChoice.Library(packageName))
         if (state.settings.githubEnabled) {
-            val repo = managed?.githubRepository ?: dev.wystore.data.GitHubCatalog.entries(state.githubRepositories)
+            val repo = managed?.githubRepository ?: managed?.knownGithubRepository ?: dev.wystore.data.GitHubCatalog.entries(state.githubRepositories)
                 .firstOrNull { it.packageName == packageName }?.repository
             repo?.let { add(dev.wystore.data.AppSourceChoice.GitHub(it, packageName)) }
         }
@@ -895,6 +904,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     val current = queueRepository.getEntityById(row.id)
                     check(current?.state == QueueState.READY_TO_INSTALL.name && current.sourceReplacement) { "Replacement is no longer ready" }
+                    check(consent.isCurrent(_state.value.sourceReplacement?.operation, repository.sourceRevision(row.packageName), installed))
                     dev.wystore.updates.SourceSelectionCoordinator.requireCurrent(getApplication(), requireNotNull(current), pendingRemoval = true)
                     val pending = PendingReinstall(row.packageName, row.packageName, prompt.label, System.currentTimeMillis(),
                         queueId = row.id, requiresUpdateOwnership = Build.VERSION.SDK_INT >= 34, sourceRevision = row.sourceRevision)
@@ -923,6 +933,52 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             refreshLibrary()
+        }
+    }
+
+    fun retrySourceRecovery() { _state.value.sourceRecoveryFailure?.let(::restoreSourceRecovery) }
+
+    fun cancelSourceRecovery() {
+        val pending = _state.value.sourceRecoveryFailure ?: return
+        sourceRecoveryGeneration++
+        sourceRecoveryJob?.cancel()
+        _state.update { it.copy(sourceRecoveryFailure = null, sourceRecoveryBusy = false) }
+        viewModelScope.launch(Dispatchers.IO) {
+            val cleared = dev.wystore.updates.SourceSelectionGate.commit {
+                val store = PendingReinstallStore(getApplication())
+                if (store.read(pending.removedPackageName) != pending) return@commit false
+                if (repository.installedAppFresh(pending.removedPackageName) == null) return@commit false
+                store.clear(pending.removedPackageName)
+                true
+            }
+            if (cleared) pending.queueId?.let { dev.wystore.updates.SourceReplacementStager(getApplication()).discard(it) }
+        }
+    }
+
+    private fun restoreSourceRecovery(pending: PendingReinstall) {
+        sourceRecoveryJob?.cancel()
+        val generation = ++sourceRecoveryGeneration
+        sourceRecoveryJob = viewModelScope.launch {
+            _state.update { it.copy(sourceRecoveryBusy = true) }
+            try {
+                val staged = dev.wystore.updates.SourceReplacementStager(getApplication()).restore(requireNotNull(pending.queueId))
+                val installed = withContext(Dispatchers.IO) { repository.installedAppFresh(pending.removedPackageName) } ?: return@launch
+                if (withContext(Dispatchers.IO) { PendingReinstallStore(getApplication()).read(pending.removedPackageName) } != pending) return@launch
+                val operation = ++replacementOperation
+                _state.update { state ->
+                    if (state.sourceReplacement != null) state.copy(sourceRecoveryFailure = pending)
+                    else state.copy(sourceRecoveryFailure = null, sourceReplacement = SourceReplacementPrompt(operation,
+                        staged.choice, pending.label, forceReinstall = true, staged = staged,
+                        consent = dev.wystore.data.SourceReplacementConsent(operation, staged.sourceRevision, installed)))
+                }
+            } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+            catch (error: Exception) {
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                _state.update { it.copy(sourceRecoveryFailure = pending,
+                    message = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.vm_open_details_failed)) }
+            } finally {
+                if (sourceRecoveryGeneration == generation) _state.update { it.copy(sourceRecoveryBusy = false) }
+            }
         }
     }
 
@@ -2698,21 +2754,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             val pending = withContext(Dispatchers.IO) { PendingReinstallStore(application).readAll().firstOrNull {
                 it.sourceRevision != null && repository.installedAppFresh(it.removedPackageName) != null
             } }
-            pending?.let {
-                try {
-                    val staged = dev.wystore.updates.SourceReplacementStager(application).restore(requireNotNull(it.queueId))
-                    val installed = withContext(Dispatchers.IO) { repository.installedAppFresh(it.removedPackageName) } ?: return@launch
-                    if (_state.value.sourceReplacement == null) {
-                        val operation = ++replacementOperation
-                        _state.update { state -> state.copy(sourceReplacement = SourceReplacementPrompt(operation, staged.choice,
-                            pending.label, forceReinstall = true, staged = staged,
-                            consent = dev.wystore.data.SourceReplacementConsent(operation, staged.sourceRevision, installed))) }
-                    }
-                } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
-                catch (error: Exception) {
-                    _state.update { state -> state.copy(message = SourceTextResolver.describe(application, error) ?: string(R.string.vm_open_details_failed)) }
-                }
-            }
+            pending?.let(::restoreSourceRecovery)
         }
         viewModelScope.launch {
             autoInstallStore.observeRequests().collect {

@@ -38,66 +38,72 @@ class UserConfirmedInstaller(private val activity: Activity) {
      * for this one yet". Waiting on the second forever is how a queue of installs stops dead.
      */
     suspend fun install(queueId: String): Boolean = withContext(Dispatchers.IO) {
-        // A dialog from an earlier attempt that nothing reported closed must not make this one
-        // read as waiting for the user before Android has asked anything.
-        ConfirmationDialogs.closed(queueId)
-        queueRepository.transitionIfIn(
-            id = queueId,
-            allowedFrom = setOf(QueueState.READY_TO_INSTALL),
-            action = QueueAction.RequestInstallConfirmation
-        )
-
-        val prepared = try {
-            sessionWriter.prepare(queueId)
-        } catch (whole: WholeApkRequiredException) {
-            // Split parts on a device that refuses sessions: fetched again as one APK, which then
-            // installs by itself. Put off, not failed.
-            rollbackToReady(queueId)
-            FirmwareInstallFallback.refetchWhole(activity, queueId)
-            return@withContext false
-        } catch (error: Throwable) {
-            rollbackToReady(queueId)
-            throw error
-        }
-
-        // Another install may still hold the install slot (downloads have their own, see
-        // QueueSlots). The prepared session is dropped and the row goes back to waiting, so the
-        // install happens when that one is done, rather than reporting a failure for waiting.
-        if (!queueRepository.transitionIfFree(
-                id = queueId,
-                allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),
-                action = QueueAction.StartInstall
-            )
-        ) {
-            runCatching { sessionWriter.abandon(queueId) }
-            rollbackToReady(queueId)
-            return@withContext false
-        }
-
+        val attempt = InstallAttemptTracker.begin(queueId) ?: return@withContext false
         try {
-            withContext(Dispatchers.Main) {
-                when (prepared) {
-                    is PreparedInstall.LegacySingleApk -> launchSystemInstaller(prepared)
-                    is PreparedInstall.Session -> sessionWriter.commitSession(prepared)
-                }
+            // A dialog from an earlier attempt that nothing reported closed must not make this one
+            // read as waiting for the user before Android has asked anything.
+            ConfirmationDialogs.closed(queueId)
+            queueRepository.transitionIfIn(
+                id = queueId,
+                allowedFrom = setOf(QueueState.READY_TO_INSTALL),
+                action = QueueAction.RequestInstallConfirmation
+            )
+
+            val prepared = try {
+                sessionWriter.prepare(queueId)
+            } catch (whole: WholeApkRequiredException) {
+                // Split parts on a device that refuses sessions: fetched again as one APK, which then
+                // installs by itself. Put off, not failed.
+                rollbackToReady(queueId)
+                FirmwareInstallFallback.refetchWhole(activity, queueId)
+                return@withContext false
+            } catch (error: Throwable) {
+                rollbackToReady(queueId)
+                throw error
             }
-        } catch (error: Throwable) {
-            // Android never took the install, so nothing will ever call back for this item.
-            sessionWriter.abandon(queueId)
-            if (SessionInstallRejection.isFirmwareRefusal(error.message)) {
-                // The same refusal the receiver handles, only raised at commit rather than reported.
-                FirmwareInstallFallback.afterRefusal(activity, queueId, error.message)
+
+            // Another install may still hold the install slot (downloads have their own, see
+            // QueueSlots). The prepared session is dropped and the row goes back to waiting, so the
+            // install happens when that one is done, rather than reporting a failure for waiting.
+            if (!queueRepository.transitionIfFree(
+                    id = queueId,
+                    allowedFrom = setOf(QueueState.AWAITING_USER_CONFIRMATION),
+                    action = QueueAction.StartInstall
+                )
+            ) {
+                runCatching { sessionWriter.abandon(queueId) }
+                rollbackToReady(queueId)
                 return@withContext false
             }
-            queueRepository.reconcileInstallResult(
-                id = queueId,
-                success = false,
-                errorCode = QueueErrorCode.INSTALL_FAILED,
-                errorDetail = error.message
-            )
-            throw error
-        }
-        true
+
+            try {
+                withContext(Dispatchers.Main) {
+                    when (prepared) {
+                        is PreparedInstall.LegacySingleApk -> launchSystemInstaller(prepared)
+                        is PreparedInstall.Session -> sessionWriter.commitSession(prepared)
+                    }
+                }
+            } catch (error: Throwable) {
+                // A Binder failure can arrive after commit. Keep the claim until Android lets go.
+                if (!sessionWriter.abandon(queueId)) {
+                    dev.wystore.data.EventLog(activity).record(prepared.packageName, "INSTALL_COMMIT_UNCERTAIN", error.message)
+                    return@withContext true
+                }
+                if (SessionInstallRejection.isFirmwareRefusal(error.message)) {
+                    // The same refusal the receiver handles, only raised at commit rather than reported.
+                    FirmwareInstallFallback.afterRefusal(activity, queueId, error.message)
+                    return@withContext false
+                }
+                queueRepository.reconcileInstallResult(
+                    id = queueId,
+                    success = false,
+                    errorCode = QueueErrorCode.INSTALL_FAILED,
+                    errorDetail = error.message
+                )
+                throw error
+            }
+            true
+        } finally { InstallAttemptTracker.end(queueId, attempt) }
     }
 
     /**

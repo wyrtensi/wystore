@@ -868,4 +868,5 @@
     <string name="disclaimer_source_library">Manba — Wy Store kutubxonasi. Google Play asl fayllari kutubxonaning ochiq jarayoni orqali e’lon qilinadi. Google Play tashqarisida oʻrnatish ilova va uning xizmatlari hududingizda ishlashiga kafolat bermaydi.</string>
     <string name="library_repository">Kutubxona repozitoriysi</string>
     <string name="library_upstream">Asl doʻkondagi sahifa</string>
+    <string name="source_recovery_body">Qayta oʻrnatishni davom ettirib boʻlmadi. Tayyorlangan fayllarni qayta tekshiring yoki qayta oʻrnatishni bekor qiling.</string>
 </resources>

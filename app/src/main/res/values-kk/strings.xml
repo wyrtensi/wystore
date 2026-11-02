@@ -868,4 +868,5 @@
     <string name="disclaimer_source_library">Дереккөз — Wy Store кітапханасы. Google Play түпнұсқа файлдары кітапхананың ашық үдерісі арқылы жарияланады. Google Play-ден тыс орнату қолданба мен оның қызметтерінің аймағыңызда қолжетімді болуына кепілдік бермейді.</string>
     <string name="library_repository">Кітапхана репозиторийі</string>
     <string name="library_upstream">Бастапқы дүкендегі бет</string>
+    <string name="source_recovery_body">Қайта орнатуды жалғастыру мүмкін болмады. Дайындалған файлдарды қайта тексеріңіз немесе қайта орнатудан бас тартыңыз.</string>
 </resources>

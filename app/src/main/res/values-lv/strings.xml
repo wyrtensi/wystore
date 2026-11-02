@@ -868,4 +868,5 @@
     <string name="disclaimer_source_library">Avots — Wy Store bibliotēka. Oriģinālie Google Play faili tiek publicēti bibliotēkas atklātajā procesā. Instalēšana ārpus Google Play negarantē lietotnes un tās pakalpojumu pieejamību jūsu reģionā.</string>
     <string name="library_repository">Bibliotēkas repozitorijs</string>
     <string name="library_upstream">Lapa sākotnējā veikalā</string>
+    <string name="source_recovery_body">Pārinstalēšanu nevarēja turpināt. Pārbaudiet sagatavotos failus vēlreiz vai atceliet pārinstalēšanu.</string>
 </resources>

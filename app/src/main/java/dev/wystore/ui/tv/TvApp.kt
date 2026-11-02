@@ -167,11 +167,11 @@ fun TvApp(
     // The GitHub catalogue on a TV as on a phone, and gone from both when switched off in the
     // source settings.
     val githubEnabled = state.settings.githubEnabled
-    val githubEntries = remember(githubEnabled, state.githubRepositories) {
-        if (githubEnabled) GitHubCatalog.entries(state.githubRepositories) else emptyList()
+    val githubEntries = remember(githubEnabled, state.githubRepositories, state.managed) {
+        if (githubEnabled) GitHubCatalog.entries(state.githubRepositories).map(viewModel::knownGitHubEntry) else emptyList()
     }
-    val githubResults = remember(githubEnabled, searchQuery, state.githubRepositories) {
-        if (githubEnabled) GitHubCatalog.search(searchQuery, state.githubRepositories) else emptyList()
+    val githubResults = remember(githubEnabled, searchQuery, state.githubRepositories, state.managed) {
+        if (githubEnabled) GitHubCatalog.search(searchQuery, state.githubRepositories).map(viewModel::knownGitHubEntry) else emptyList()
     }
     var githubInstallDialog by remember { mutableStateOf<GitHubAsset?>(null) }
     var githubTransferPackage by remember { mutableStateOf<String?>(null) }
@@ -429,9 +429,9 @@ fun TvApp(
                                 query = searchQuery,
                                 onQueryChange = { searchQuery = it },
                                 catalogMode = catalogMode,
-                                catalogApps = catalog.apps,
+                                catalogApps = catalog.apps.map(viewModel::decorateSources),
                                 rustoreQuery = state.query,
-                                rustoreResults = state.search?.apps.orEmpty(),
+                                rustoreResults = state.search?.apps.orEmpty().map(viewModel::decorateSources),
                                 libraryResults = libraryApps.filter { it.name.contains(searchQuery, true) || it.packageName.contains(searchQuery, true) },
                                 libraryError = if (state.settings.libraryEnabled) state.libraryError else null,
                                 onRetryLibrary = viewModel::retryLibraryCatalog,

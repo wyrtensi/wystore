@@ -868,4 +868,5 @@
     <string name="disclaimer_source_library">Крыніца — бібліятэка Wy Store. Арыгінальныя файлы Google Play публікуюцца праз адкрыты працэс бібліятэкі. Усталяванне па-за Google Play не гарантуе даступнасць праграмы і яе сэрвісаў у вашым рэгіёне.</string>
     <string name="library_repository">Рэпазіторый бібліятэкі</string>
     <string name="library_upstream">Старонка ў зыходнай краме</string>
+    <string name="source_recovery_body">Не ўдалося працягнуць пераўсталяванне. Паўтарыце праверку падрыхтаваных файлаў або скасуйце пераўсталяванне.</string>
 </resources>

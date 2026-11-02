@@ -51,5 +51,7 @@ object LibraryRequestCodec {
         return LibraryInstallRequest(app, id, revision)
     }
 
+    fun withRevision(json: String, revision: Long): String = decode(json).let { encode(it.application, it.variantId, revision) }
+
     private fun invalid(reason: String): Nothing = throw SourceFormatException(SourceError.FORMAT_CHANGED, reason)
 }

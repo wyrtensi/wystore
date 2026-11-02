@@ -99,12 +99,40 @@ class SourceSelectionPersistenceTest {
         val repository = StoreRepository(context)
         val before = repository.sourceRevision(context.packageName)
         SourceSelectionGate.locked {
+            val entered = kotlinx.coroutines.CompletableDeferred<Unit>()
             val pending = launch(Dispatchers.IO) {
+                entered.complete(Unit)
                 SourceSelectionCoordinator(context).select(context.packageName,
                     AppSourceChoice.GitHub(GitHubRepository("example", "canceled"), context.packageName))
             }
+            entered.await()
+            kotlinx.coroutines.yield()
             pending.cancelAndJoin()
         }
         assertEquals(before, repository.sourceRevision(context.packageName))
+    }
+
+    @Test fun verifiedRotationWithinTheSavedSourceClearsTheReplacementFlag() = runBlocking {
+        val repository = StoreRepository(context)
+        val backup = repository.createBackup()
+        val pkg = context.packageName
+        val local = requireNotNull(repository.installedAppFresh(pkg))
+        val revision = repository.sourceRevision(pkg) + 1
+        val id = "same-source-verified-replacement"
+        val dao = WyStoreDatabase.getInstance(context).updateQueueDao
+        val repo = GitHubRepository("example", "same-source")
+        try {
+            repository.saveManaged(ManagedApp(pkg, local.label, local.signingDigests, source = ManagedSource.GITHUB,
+                githubRepository = repo, sourceRevision = revision))
+            dao.insertOrReplace(UpdateQueueEntity(id, pkg, local.label, local.versionName, local.versionCode,
+                ManagedSource.GITHUB.name, QueueState.READY_TO_INSTALL.name, sourceReplacement = true, sourceRevision = revision))
+            val identity = ArchiveIdentity(pkg, local.versionName, local.versionCode, null, local.signingDigests)
+            assertEquals(SourceSwitchResult.Saved(revision), SourceSelectionCoordinator(context)
+                .selectVerified(pkg, AppSourceChoice.GitHub(repo, pkg), identity, id))
+            assertFalse(dao.getById(id)!!.sourceReplacement)
+        } finally {
+            dao.deleteById(id)
+            repository.restoreBackup(backup)
+        }
     }
 }

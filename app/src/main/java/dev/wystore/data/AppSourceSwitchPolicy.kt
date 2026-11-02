@@ -28,7 +28,8 @@ object SourceRequestPolicy {
     fun preserveSelection(current: ManagedApp?, replacement: ManagedApp): ManagedApp =
         if (current != null && replacement.sourceRevision < current.sourceRevision) replacement.copy(
             source = current.source, sourceRevision = current.sourceRevision,
-            githubRepository = current.githubRepository, githubReleaseId = current.githubReleaseId
+            githubRepository = current.githubRepository, githubReleaseId = current.githubReleaseId,
+            knownGithubRepository = current.knownGithubRepository ?: replacement.knownGithubRepository
         ) else replacement
 
     fun isCurrent(selected: ManagedApp?, source: ManagedSource, revision: Long,

@@ -868,4 +868,5 @@
     <string name="disclaimer_source_library">Source: Wy Store Library. Original Google Play files are published through the open library pipeline. Installing outside Google Play does not guarantee that the app or its services will be available in your region.</string>
     <string name="library_repository">Library repository</string>
     <string name="library_upstream">Original store listing</string>
+    <string name="source_recovery_body">Reinstallation could not be resumed. Check the prepared files again or cancel reinstallation.</string>
 </resources>

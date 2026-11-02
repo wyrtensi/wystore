@@ -52,7 +52,12 @@ object AwaitingInstallRelease {
             ConfirmationDialogs.calledOff(session.sessionId)
             // The session would otherwise go on waiting on Android's side; an answer given to it
             // later would install behind a row that has moved on.
-            runCatching { appContext.packageManager.packageInstaller.abandonSession(session.sessionId) }
+            try { appContext.packageManager.packageInstaller.abandonSession(session.sessionId) }
+            catch (error: Exception) {
+                EventLog(appContext).record(row.packageName, "INSTALL_CANCEL_FAILED", error.message)
+                return@withContext false
+            }
+            if (appContext.packageManager.packageInstaller.getSessionInfo(session.sessionId) != null) return@withContext false
             repository.reconcileInstallResult(
                 id = queueId,
                 success = false,

@@ -30,6 +30,7 @@ object QueueRecovery {
     suspend fun resume(context: Context) = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
         val repository = QueueRepository.getInstance(appContext)
+        dev.wystore.updates.InstallSessionRecovery.recoverAll(appContext)
         val workManager = WorkManager.getInstance(appContext)
         val jobs = if (Build.VERSION.SDK_INT >= 34) appContext.getSystemService(JobScheduler::class.java) else null
 
@@ -80,7 +81,10 @@ object QueueRecovery {
                 val state = runCatching { QueueState.valueOf(row.state) }.getOrNull() ?: return@filter false
                 QueueRecoveryPolicy.isAbandonedHandover(state, row.updatedAt, now)
             }
-            .forEach { row -> runCatching { repository.resetReadyToInstall(row.id) } }
+            .forEach { row -> runCatching {
+                if (WyStoreDatabase.getInstance(context).updateQueueDao.getSession(row.id) == null)
+                    repository.resetReadyToInstall(row.id)
+            } }
     }
 
     /** Frees an install slot a dialog nobody answered left taken - see [StuckInstallPolicy]. */

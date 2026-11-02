@@ -868,4 +868,5 @@
     <string name="disclaimer_source_library">Джерело — бібліотека Wy Store. Оригінальні файли Google Play публікуються через відкритий процес бібліотеки. Встановлення поза Google Play не гарантує доступності застосунку та його сервісів у вашому регіоні.</string>
     <string name="library_repository">Репозиторій бібліотеки</string>
     <string name="library_upstream">Сторінка у вихідному магазині</string>
+    <string name="source_recovery_body">Не вдалося продовжити перевстановлення. Повторіть перевірку підготовлених файлів або скасуйте перевстановлення.</string>
 </resources>
