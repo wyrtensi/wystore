@@ -795,6 +795,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                     dev.wystore.data.library.LibraryDeviceSpec.current(getApplication())) as? dev.wystore.data.library.LibrarySelection.Compatible)
                     ?.version ?: run { _state.update { it.copy(message = string(R.string.library_incompatible)) }; return@launch }
                 val managed = repository.managedApps().firstOrNull { it.packageName == packageName }
+                val installed = repository.installedAppFresh(packageName)
+                if (managed?.source == ManagedSource.WY_STORE && installed != null &&
+                    !dev.wystore.data.library.LibraryUpdatePolicy.isNewer(installed.versionCode, version)) {
+                    refreshLibrary()
+                    return@launch
+                }
                 if (managed?.source != ManagedSource.WY_STORE) {
                     val result = dev.wystore.updates.SourceSelectionCoordinator(getApplication()).select(packageName,
                         dev.wystore.data.AppSourceChoice.Library(packageName))
@@ -1030,8 +1036,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * `getInstalledPackages` with a label lookup and a certificate digest per app, and this used to
      * run inline on every resume and every broadcast.
      */
+    private var libraryRefreshJob: Job? = null
+
     fun refreshLibrary(reportConfirmed: Boolean = false) {
-        viewModelScope.launch {
+        // Returning from Android's installer can race with its completion callback. An older
+        // package scan must not overwrite the one requested after installation completed.
+        libraryRefreshJob?.cancel()
+        libraryRefreshJob = viewModelScope.launch {
             val installed = withContext(Dispatchers.IO) {
                 dev.wystore.data.invalidateInstalledApps()
                 repository.installedApps()
@@ -1501,8 +1512,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             ) DownloadProgress(
                 downloadedBytes = item.downloadedBytes,
                 totalBytes = item.totalBytes,
-                artifactIndex = 1,
-                artifactCount = 1,
+                artifactIndex = item.artifactIndex,
+                artifactCount = item.artifactCount,
                 bytesPerSecond = transferRates[item.id]?.bytesPerSecond ?: 0,
                 etaSeconds = transferRates[item.id]?.let { TransferRate.etaSeconds(it, item.totalBytes) }
             ) else null,
@@ -2770,7 +2781,10 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             queueRepository.observeAll().collect { items ->
+                val installedNow = items.any { item -> item.state == QueueState.INSTALLED &&
+                    queueRows.none { previous -> previous.id == item.id && previous.state == QueueState.INSTALLED } }
                 queueRows = items
+                if (installedNow) refreshLibrary()
                 updateTransferRates(items)
                 // The batch reads the queue's own statuses; see toDisplayedStatus.
                 val uiQueue = queueItems(items) { it.state.toInstallQueueStatus() }

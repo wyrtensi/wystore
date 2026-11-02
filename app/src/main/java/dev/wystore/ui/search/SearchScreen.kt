@@ -144,7 +144,9 @@ fun SearchScreen(
 ) {
     @Suppress("NAME_SHADOWING")
     val sources = sources.within(githubEnabled, libraryEnabled)
-    var fieldValue by remember(query) {
+    // Results can acknowledge an older query after another character was typed. Keep the
+    // editable value owned here so that acknowledgement cannot replace newer input or its cursor.
+    var fieldValue by remember {
         mutableStateOf(TextFieldValue(text = query, selection = TextRange(query.length)))
     }
     val text = fieldValue.text
@@ -291,7 +293,7 @@ fun SearchScreen(
                         ) {
                             Text(
                                 stringResource(
-                                    if (sources.includesGitHub) R.string.search_action_all else R.string.search_action
+                                    if (sources.includesGitHub || sources.includesLibrary) R.string.search_action_all else R.string.search_action
                                 )
                             )
                         }
@@ -543,6 +545,12 @@ fun SearchCard(
                 }
             }
 
+            if (app.availableSources.isNotEmpty()) FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                app.availableSources.forEach { dev.wystore.ui.components.SourceLabel(it) }
+            }
             app.shortDescription.takeIf { it.isNotBlank() }?.let {
                 Text(
                     it,

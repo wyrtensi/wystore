@@ -260,7 +260,7 @@ class SecureArtifactDownloader(context: Context? = null) {
                         }
                     }
                     val actual = digest.digest().joinToString("") { "%02x".format(it) }
-                    if (actual != expected) fail(SourceError.ARTIFACT_INTEGRITY_MISMATCH, "SHA-256 mismatch")
+                    if (actual != expected) fail(SourceError.ARTIFACT_INTEGRITY_MISMATCH, "SHA-256 expected $expected, got $actual")
                 }
                 return@withContext destination
             }
@@ -270,7 +270,7 @@ class SecureArtifactDownloader(context: Context? = null) {
             // Kept so the next attempt can resume, unless the failure says the bytes are wrong.
             if (ResumePolicy.discardsPartialFile(error)) temporary.delete()
             if (requiresExactSelection && error is SourceFormatException) {
-                GitHubExactDownloadPolicy.failureFor(error.error)?.let { throw it }
+                GitHubExactDownloadPolicy.failureFor(error.error, error.message)?.let { throw it }
             }
             throw error
         } finally {

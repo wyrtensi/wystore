@@ -47,6 +47,9 @@ object InstalledAppRegistrar {
                 // requested handover with Android confirming our update ownership resets that fact.
                 val verifiedHandover = entity.requiresUpdateOwnership && digests.isNotEmpty() &&
                     installed.updateOwnerPackageName == context.packageName
+                val installedRepository = entity.githubRepositoryOwner?.let { owner ->
+                    entity.githubRepositoryName?.let { name -> GitHubRepository(owner, name) }
+                }
                 repository.updateManaged(entity.packageName, clearGooglePlayUpdate = verifiedHandover) { existing ->
                     ManagedApp(
                         packageName = entity.packageName,
@@ -57,10 +60,8 @@ object InstalledAppRegistrar {
                         addedAt = existing?.addedAt ?: now,
                         lastUpdatedAt = now,
                         source = source,
-                        githubRepository = entity.githubRepositoryOwner
-                            ?.let { owner ->
-                                entity.githubRepositoryName?.let { name -> GitHubRepository(owner, name) }
-                            },
+                        githubRepository = installedRepository,
+                        knownGithubRepository = dev.wystore.data.AppSourceKnowledge.remember(existing, installedRepository),
                         githubReleaseId = entity.githubReleaseId,
                         sourceRevision = if (entity.sourceReplacement && existing?.source != source)
                             Math.addExact(existing?.sourceRevision ?: entity.sourceRevision, 1)

@@ -133,6 +133,16 @@ class AgentProvider : ContentProvider() {
         requireAllowedCaller()
         if (mode != "r") throw FileNotFoundException("read-only")
         val segments = uri.pathSegments
+        if (segments == listOf("diagnostics")) {
+            val context = requireNotNull(context).applicationContext
+            val report = runBlocking {
+                dev.wystore.data.DiagnosticsReport.render(
+                    dev.wystore.data.DiagnosticsCollector(context).collect(), System.currentTimeMillis())
+            }
+            return openPipeHelper(uri, "text/plain", null, report) { output, _, _, _, text ->
+                ParcelFileDescriptor.AutoCloseOutputStream(output).bufferedWriter(Charsets.UTF_8).use { it.write(text) }
+            }
+        }
         if (segments.size != 3 || segments[0] != "artifact") throw FileNotFoundException("unknown uri")
         val id = segments[1]
         val index = segments[2].toIntOrNull() ?: throw FileNotFoundException("bad index")
@@ -154,7 +164,11 @@ class AgentProvider : ContentProvider() {
     }
 
     override fun query(uri: Uri, projection: Array<out String>?, selection: String?, selectionArgs: Array<out String>?, sortOrder: String?): Cursor? = null
-    override fun getType(uri: Uri): String? = if (uri.pathSegments.firstOrNull() == "artifact") "application/vnd.android.package-archive" else null
+    override fun getType(uri: Uri): String? = when {
+        uri.pathSegments == listOf("diagnostics") -> "text/plain"
+        uri.pathSegments.firstOrNull() == "artifact" -> "application/vnd.android.package-archive"
+        else -> null
+    }
     override fun insert(uri: Uri, values: ContentValues?): Uri? = null
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
     override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int = 0

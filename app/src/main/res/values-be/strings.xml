@@ -143,11 +143,11 @@
     <string name="search_field_placeholder">Пошук праграм і гульняў</string>
     <string name="search_clear">Ачысціць</string>
     <string name="search_action">Шукаць у RuStore</string>
-    <string name="search_action_all">Шукаць у RuStore і GitHub</string>
+    <string name="search_action_all">Шукаць у даступных крыніцах</string>
     <string name="search_sources_all">Усе</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
-    <string name="search_disclaimer">Каталог і APK запытваюцца напрамую ў RuStore. Wy Store не ўсталёўвае яго кліент і не выкарыстоўвае ўласны сервер.</string>
+    <string name="search_disclaimer">Каталог RuStore і яго APK запытваюцца непасрэдна ў RuStore. Для гэтага Wy Store не ўсталёўвае яго кліент і не выкарыстоўвае свой сервер.</string>
     <string name="search_results_count">Вынікі: %1$d</string>
     <string name="search_quick_install">Хутка ўсталяваць</string>
     <string name="search_check_update">Праверыць абнаўленне</string>
@@ -430,7 +430,7 @@
     <string name="home_github_hint">Праграмы з адкрытым кодам — усталяванне проста з рэлізаў</string>
     <string name="queue_error_network">Памылка сеткі</string>
     <string name="queue_error_rate_limited">Крыніца абмяжоўвае запыты. Паўтарыце пазней</string>
-    <string name="queue_error_source_changed">Крыніца змяніла фармат адказу</string>
+    <string name="queue_error_source_changed">Крыніца або выбраны файл змяніліся. Праверце крыніцу праграмы і паўтарыце спробу.</string>
     <string name="queue_error_storage_full">Не хапае месца ў сховішчы</string>
     <string name="queue_error_integrity">Спампаваны файл не супаў з кантрольнай сумай крыніцы</string>
     <string name="queue_error_signature">Подпіс APK не прайшоў праверку</string>
@@ -511,8 +511,8 @@
     <string name="home_empty_featured_title">Пакуль няма чаго паказаць</string>
     <string name="search_empty_title">Нічога не знойдзена</string>
     <string name="search_empty_message">Паспрабуйце карацейшы запыт або імя пакета.</string>
-    <string name="search_start_title">Пошук адразу па дзвюх крыніцах</string>
-    <string name="search_start_message">RuStore і ўбудаваны каталог GitHub.</string>
+    <string name="search_start_title">Пошук па даступных крыніцах</string>
+    <string name="search_start_message">Праграмы з каталогаў, уключаных у наладах.</string>
     <string name="library_open_page">Адкрыць старонку</string>
     <string name="library_expand">Паказаць падрабязнасці</string>
     <string name="library_collapse">Схаваць падрабязнасці</string>
@@ -666,7 +666,7 @@
     <string name="about_disclaimer_link">Заява пра праект і незалежнасць</string>
     <string name="about_issues_link">Паведаміць пра праблему на GitHub</string>
     <string name="source_failure_title">Падобна, справа ў крыніцы</string>
-    <string name="source_failure_body">Wy Store чытае RuStore праз яго публічныя старонкі, а яны могуць змяняцца. Калі гэта адбываецца, спампоўванні перастаюць працаваць ва ўсіх аднолькава — да зборкі, якая разумее новы фармат.</string>
+    <string name="source_failure_body">Крыніца не вярнула чаканыя звесткі пра праграму або файл. Даныя або файлы маглі змяніцца. Праверце абнаўленні Wy Store; калі праблема паўтараецца, захавайце дыягнастычную справаздачу.</string>
     <string name="source_failure_update_available">Апублікаваная навейшая версія Wy Store: %1$s. Магчыма, яна ўжо разумее новы фармат.</string>
     <string name="source_failure_no_update">Навейшай пакуль няма. Калі справа ў праграме, абнаўленне выйдзе — і выйдзе хутчэй, калі пра праблему паведаміць.</string>
     <string name="source_failure_save_report">Захаваць справаздачу дыягностыкі</string>

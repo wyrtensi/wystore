@@ -116,6 +116,32 @@ class LibraryInstallProbe {
         assertInstalledCompleteSet()
     }
 
+    @Test fun installedStateRefreshesAfterQueueCompletesWithoutAnActivityResume() = runBlocking {
+        val installer = RootInstaller()
+        assertTrue(installer.isAvailable())
+        if (repository.installedAppFresh(pkg) != null) assertTrue(installer.uninstall(pkg).success)
+        invalidateInstalledApps()
+        val store = androidx.lifecycle.ViewModelStore()
+        lateinit var viewModel: dev.wystore.StoreViewModel
+        instrumentation.runOnMainSync {
+            viewModel = dev.wystore.StoreViewModel(context.applicationContext as android.app.Application)
+            store.put("installation-refresh", viewModel)
+        }
+        try {
+            delay(1_000)
+            assertNull(viewModel.state.value.installed.firstOrNull { it.packageName == pkg })
+            installCompleteSetThroughRoot()
+            val deadline = System.currentTimeMillis() + 10_000
+            while (System.currentTimeMillis() < deadline &&
+                viewModel.state.value.installed.none { it.packageName == pkg && it.versionCode == version.toLong() }) delay(100)
+            val fresh = repository.installedAppFresh(pkg)
+            invalidateInstalledApps()
+            val bulk = repository.installedApps().firstOrNull { it.packageName == pkg }
+            assertEquals("Direct=${fresh?.versionCode}, bulk=${bulk?.versionCode}, UI=${viewModel.state.value.installed.firstOrNull { it.packageName == pkg }?.versionCode}",
+                version.toLong(), viewModel.state.value.installed.firstOrNull { it.packageName == pkg }?.versionCode)
+        } finally { instrumentation.runOnMainSync { store.clear() } }
+    }
+
     @Test fun anotherSignerCannotProduceAnUpdatePlan() {
         assertNotNull(repository.installedAppFresh(pkg))
         val checked = SigningVerifier.verifyArtifacts(context.packageManager, files("different"),

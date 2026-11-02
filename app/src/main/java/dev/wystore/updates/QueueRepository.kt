@@ -189,18 +189,22 @@ class QueueRepository(
     suspend fun recordProgress(
         id: String,
         downloadedBytes: Long,
-        totalBytes: Long
+        totalBytes: Long,
+        artifactIndex: Int = 1,
+        artifactCount: Int = 1
     ): Boolean = withContext(Dispatchers.IO) {
         val entity = dao.getById(id) ?: return@withContext false
         if (entity.state != QueueState.DOWNLOADING.name) return@withContext false
         val next = QueueReducer.reduce(
             entity.toSnapshot(),
-            QueueAction.DownloadProgress(downloadedBytes, totalBytes)
+            QueueAction.DownloadProgress(downloadedBytes, totalBytes, artifactIndex, artifactCount)
         )
         dao.update(
             entity.copy(
                 downloadedBytes = next.downloadedBytes,
                 totalBytes = next.totalBytes,
+                artifactIndex = next.artifactIndex,
+                artifactCount = next.artifactCount,
                 errorCode = null,
                 errorDetail = null,
                 updatedAt = System.currentTimeMillis()
@@ -761,13 +765,37 @@ class QueueRepository(
         manual: Boolean = false,
         requiresUserConfirmation: Boolean = false
     ): UpdateQueueEntity? = withContext(Dispatchers.IO) {
-        database.withTransaction {
-            val version = dev.wystore.data.library.LibraryVariantPolicy.resolve(app, app.variants.single { it.id == variantId })
-            val row = if (manual) enqueueManualInstall(app.packageName, app.name, ManagedSource.WY_STORE,
-                priority = priority, requiresUserConfirmation = requiresUserConfirmation)
-            else enqueueAvailableUpdate(app.packageName, app.name, version.versionName, version.versionCode,
-                ManagedSource.WY_STORE, priority)
-            row?.let { updateLibraryRequest(it.id, app, variantId, sourceRevision) }
+        SourceSelectionGate.locked {
+            val sourceRepository = dev.wystore.data.StoreRepository(context)
+            val selected = sourceRepository.managedApps().firstOrNull { it.packageName == app.packageName }
+            if (!dev.wystore.data.SourceRequestPolicy.isCurrent(selected, ManagedSource.WY_STORE, sourceRevision,
+                    lastKnownRevision = sourceRepository.sourceRevision(app.packageName))) {
+                throw dev.wystore.data.TransferFailure(false, QueueErrorCode.SOURCE_CHANGED)
+            }
+            database.withTransaction {
+                val version = dev.wystore.data.library.LibraryVariantPolicy.resolve(app, app.variants.single { it.id == variantId })
+                val existing = CheckedUpdateRow.existing(dao.getByPackage(app.packageName), version.versionCode, ManagedSource.WY_STORE.name, null)
+                if (existing != null && existing.sourceRevision != sourceRevision) {
+                    if (dev.wystore.data.SourceRequestPolicy.blocksSwitch(listOf(QueueState.valueOf(existing.state)),
+                            listOfNotNull(dao.getSession(existing.id)?.state)) || !InstallSessionWriter(context).abandon(existing.id)) {
+                        throw dev.wystore.data.TransferFailure(false, QueueErrorCode.SOURCE_CHANGED)
+                    }
+                    dev.wystore.background.TransferDispatcher.cancel(context, existing.id)
+                    discard(existing.id)
+                } else if (!manual && existing != null && LibraryQueueRequestPolicy.retainPinned(existing.libraryRequestJson,
+                        existing.sourceRevision, sourceRevision, QueueState.valueOf(existing.state), manual = false)) {
+                    return@withTransaction existing
+                }
+                val row = if (manual) enqueueManualInstall(app.packageName, app.name, ManagedSource.WY_STORE,
+                    priority = priority, requiresUserConfirmation = requiresUserConfirmation)
+                else enqueueAvailableUpdate(app.packageName, app.name, version.versionName, version.versionCode,
+                    ManagedSource.WY_STORE, priority)
+                row?.let {
+                    if (LibraryQueueRequestPolicy.retainPinned(it.libraryRequestJson, it.sourceRevision, sourceRevision,
+                            QueueState.valueOf(it.state), manual)) it
+                    else updateLibraryRequest(it.id, app, variantId, sourceRevision)
+                }
+            }
         }
     }
 

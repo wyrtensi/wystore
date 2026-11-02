@@ -72,12 +72,17 @@ object QueueReducer {
         requireState(current, QueueState.DOWNLOADING)
         require(action.downloadedBytes >= 0) { "Downloaded bytes cannot be negative." }
         require(action.totalBytes >= 0) { "Total bytes cannot be negative." }
+        require(action.artifactCount > 0 && action.artifactIndex in 1..action.artifactCount) {
+            "Artifact position must be within the complete set."
+        }
         require(action.totalBytes == 0L || action.downloadedBytes <= action.totalBytes) {
             "Downloaded bytes cannot exceed total bytes."
         }
         return current.copy(
             downloadedBytes = action.downloadedBytes,
             totalBytes = action.totalBytes,
+            artifactIndex = action.artifactIndex,
+            artifactCount = action.artifactCount,
             errorCode = null,
             errorDetail = null
         )

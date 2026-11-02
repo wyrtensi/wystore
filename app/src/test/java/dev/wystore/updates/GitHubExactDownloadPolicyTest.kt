@@ -20,7 +20,7 @@ class GitHubExactDownloadPolicyTest {
     @Test
     fun changedBytesCannotBeInstalledAsTheSelectedAsset() {
         for (error in listOf(SourceError.ARTIFACT_SIZE_MISMATCH, SourceError.ARTIFACT_INTEGRITY_MISMATCH)) {
-            assertEquals(QueueErrorCode.SOURCE_CHANGED, GitHubExactDownloadPolicy.failureFor(error)?.code)
+            assertEquals(QueueErrorCode.INTEGRITY, GitHubExactDownloadPolicy.failureFor(error)?.code)
         }
     }
 

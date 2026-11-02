@@ -33,6 +33,12 @@ Other methods in `dev.wystore.fixture.LibraryInstallProbe` can be selected with
 the complete selected base/split set and journals the actual root session.
 Negative probes cover another signer, a missing split and same-size corruption.
 
+`installedStateRefreshesAfterQueueCompletesWithoutAnActivityResume` first removes
+the installation fixture, then installs its complete set through root while a
+StoreViewModel remains alive. It requires the installed-app UI state to refresh
+after the queue completes, without an Activity resume. Run it only on the
+disposable test emulator; it deliberately clears the fixture's own data.
+
 The `leave...` methods deliberately terminate the application process. A crash
 is expected for those commands. Run each one separately, then run
 `recoverInterruptedInstallAfterProcessRestart` in a new instrumentation command

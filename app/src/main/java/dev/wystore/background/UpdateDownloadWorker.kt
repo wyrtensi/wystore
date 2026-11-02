@@ -576,7 +576,8 @@ class UpdateDownloadWorker(
             progress: dev.wystore.data.DownloadProgress,
             coordinator: NotificationCoordinator
         ) {
-            if (!queueRepository.recordProgress(queueId, progress.downloadedBytes, progress.totalBytes)) {
+            if (!queueRepository.recordProgress(queueId, progress.downloadedBytes, progress.totalBytes,
+                    progress.artifactIndex, progress.artifactCount)) {
                 throw CancellationException("Queue item $queueId is no longer downloading")
             }
             val snapshot = queueRepository.getById(queueId) ?: return

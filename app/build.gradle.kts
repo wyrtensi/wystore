@@ -142,3 +142,4 @@ ksp {
 
 // Exported Room schemas are the input to the migration test.
 android.sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
+android.sourceSets.getByName("androidTest").assets.srcDir("$projectDir/src/test/resources/library")

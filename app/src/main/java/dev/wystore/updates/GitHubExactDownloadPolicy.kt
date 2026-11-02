@@ -9,9 +9,9 @@ object GitHubExactDownloadPolicy {
     fun failureFor(statusCode: Int): TransferFailure? =
         if (statusCode == 404 || statusCode == 410) changed("GitHub HTTP $statusCode").copy(httpStatus = statusCode) else null
 
-    fun failureFor(error: SourceError): TransferFailure? = when (error) {
+    fun failureFor(error: SourceError, detail: String? = null): TransferFailure? = when (error) {
         SourceError.ARTIFACT_SIZE_MISMATCH,
-        SourceError.ARTIFACT_INTEGRITY_MISMATCH -> changed(error.name)
+        SourceError.ARTIFACT_INTEGRITY_MISMATCH -> TransferFailure(false, QueueErrorCode.INTEGRITY, detail = detail ?: error.name)
         else -> null
     }
 

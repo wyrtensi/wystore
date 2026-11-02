@@ -143,11 +143,11 @@
     <string name="search_field_placeholder">Ilova va oʻyinlarni qidirish</string>
     <string name="search_clear">Tozalash</string>
     <string name="search_action">RuStore ichidan qidirish</string>
-    <string name="search_action_all">RuStore va GitHub ichidan qidirish</string>
+    <string name="search_action_all">Mavjud manbalardan qidirish</string>
     <string name="search_sources_all">Barchasi</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
-    <string name="search_disclaimer">Katalog va APK fayllari toʻgʻridan-toʻgʻri RuStore manbasidan soʻraladi. Wy Store uning mijozini oʻrnatmaydi va oʻz serveridan foydalanmaydi.</string>
+    <string name="search_disclaimer">RuStore katalogi va APK fayllari bevosita RuStore’dan olinadi. Buning uchun Wy Store uning mijozini oʻrnatmaydi va oʻz serveridan foydalanmaydi.</string>
     <string name="search_results_count">Natijalar: %1$d</string>
     <string name="search_quick_install">Tez oʻrnatish</string>
     <string name="search_check_update">Yangilanishni tekshirish</string>
@@ -430,7 +430,7 @@
     <string name="home_github_hint">Ochiq kodli ilovalar — toʻgʻridan-toʻgʻri relizlardan oʻrnatiladi</string>
     <string name="queue_error_network">Tarmoq xatosi</string>
     <string name="queue_error_rate_limited">Manba soʻrovlarni cheklamoqda. Keyinroq urinib koʻring</string>
-    <string name="queue_error_source_changed">Manba javob formatini oʻzgartirdi</string>
+    <string name="queue_error_source_changed">Manba yoki tanlangan fayl oʻzgardi. Ilova manbasini tekshirib, qayta urinib koʻring.</string>
     <string name="queue_error_storage_full">Xotirada joy yetarli emas</string>
     <string name="queue_error_integrity">Yuklab olingan fayl manbaning nazorat summasiga mos kelmadi</string>
     <string name="queue_error_signature">APK imzosi tekshiruvdan oʻtmadi</string>
@@ -511,8 +511,8 @@
     <string name="home_empty_featured_title">Hozircha koʻrsatadigan narsa yoʻq</string>
     <string name="search_empty_title">Hech narsa topilmadi</string>
     <string name="search_empty_message">Qisqaroq soʻrov yoki package name bilan urinib koʻring.</string>
-    <string name="search_start_title">Bir vaqtda ikki manbadan qidiring</string>
-    <string name="search_start_message">RuStore va ichki GitHub katalogi.</string>
+    <string name="search_start_title">Mavjud manbalardan qidirish</string>
+    <string name="search_start_message">Sozlamalarda yoqilgan kataloglardagi ilovalar.</string>
     <string name="library_open_page">Sahifani ochish</string>
     <string name="library_expand">Tafsilotlarni koʻrsatish</string>
     <string name="library_collapse">Tafsilotlarni yashirish</string>
@@ -666,7 +666,7 @@
     <string name="about_disclaimer_link">Loyiha va mustaqillik haqida bayonot</string>
     <string name="about_issues_link">GitHub orqali muammo haqida xabar berish</string>
     <string name="source_failure_title">Muammo manba tomonida koʻrinadi</string>
-    <string name="source_failure_body">Wy Store RuStore maʼlumotlarini uning ommaviy sahifalari orqali oʻqiydi, ular esa oʻzgarib turishi mumkin. Oʻzgarganda har bir yuklab olish bir xil tarzda uziladi — yangi formatni tushunadigan yigʻma chiqmaguncha.</string>
+    <string name="source_failure_body">Manba ilova haqidagi kutilgan maʼlumot yoki faylni qaytarmadi. Maʼlumot yoki fayllar oʻzgargan boʻlishi mumkin. Wy Store yangilanishlarini tekshiring; muammo takrorlansa, diagnostika hisobotini saqlang.</string>
     <string name="source_failure_update_available">Yangiroq Wy Store eʼlon qilingan: %1$s. U yangi formatni allaqachon bilishi mumkin.</string>
     <string name="source_failure_no_update">Hozircha yangiroq Wy Store yoʻq. Ayb ilovada boʻlsa, yangilanish chiqadi — muammo haqida xabar bersangiz, tezroq chiqadi.</string>
     <string name="source_failure_save_report">Diagnostika hisobotini saqlash</string>

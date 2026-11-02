@@ -143,11 +143,11 @@
     <string name="search_field_placeholder">Search apps and games</string>
     <string name="search_clear">Clear</string>
     <string name="search_action">Search RuStore</string>
-    <string name="search_action_all">Search RuStore and GitHub</string>
+    <string name="search_action_all">Search available sources</string>
     <string name="search_sources_all">All</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
-    <string name="search_disclaimer">The catalog and APKs are requested from RuStore directly. Wy Store does not install its client and does not use a server of its own.</string>
+    <string name="search_disclaimer">RuStore\'s catalogue and APKs are requested directly from RuStore. Wy Store does not install its client or use its own server for them.</string>
     <string name="search_results_count">Results: %1$d</string>
     <string name="search_quick_install">Quick install</string>
     <string name="search_check_update">Check for update</string>
@@ -430,7 +430,7 @@
     <string name="home_github_hint">Open-source apps installed straight from releases</string>
     <string name="queue_error_network">Network error</string>
     <string name="queue_error_rate_limited">The source is limiting requests. Try again later</string>
-    <string name="queue_error_source_changed">The source changed its response format</string>
+    <string name="queue_error_source_changed">The source or selected file changed. Check the app source and try again.</string>
     <string name="queue_error_storage_full">Not enough storage space</string>
     <string name="queue_error_integrity">The downloaded file did not match the source checksum</string>
     <string name="queue_error_signature">The APK signature did not pass verification</string>
@@ -511,8 +511,8 @@
     <string name="home_empty_featured_title">Nothing to show yet</string>
     <string name="search_empty_title">Nothing found</string>
     <string name="search_empty_message">Try a shorter query or the package name.</string>
-    <string name="search_start_title">Search two sources at once</string>
-    <string name="search_start_message">RuStore and the built-in GitHub catalogue.</string>
+    <string name="search_start_title">Search available sources</string>
+    <string name="search_start_message">Apps from the catalogues enabled in settings.</string>
     <string name="library_open_page">Open page</string>
     <string name="library_expand">Show details</string>
     <string name="library_collapse">Hide details</string>
@@ -666,7 +666,7 @@
     <string name="about_disclaimer_link">Project statement and independence</string>
     <string name="about_issues_link">Report a problem on GitHub</string>
     <string name="source_failure_title">Looks like a problem on the source side</string>
-    <string name="source_failure_body">Wy Store reads RuStore through its public pages, and those can change. When they do, every download fails the same way until a build that speaks the new shape is out.</string>
+    <string name="source_failure_body">The source did not return the expected app data or download. Its metadata or files may have changed. Check for a Wy Store update; if the problem continues, save the diagnostics report.</string>
     <string name="source_failure_update_available">A newer Wy Store is published: %1$s. It may already know the new shape.</string>
     <string name="source_failure_no_update">No newer Wy Store yet. If the fault is in the app, an update will follow — reporting it is what makes that happen sooner.</string>
     <string name="source_failure_save_report">Save the diagnostics report</string>

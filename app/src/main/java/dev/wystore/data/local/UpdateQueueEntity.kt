@@ -45,7 +45,11 @@ data class UpdateQueueEntity(
     val sourceRevision: Long = 0,
     val libraryRequestJson: String? = null,
     @ColumnInfo(defaultValue = "0")
-    val sourceReplacement: Boolean = false
+    val sourceReplacement: Boolean = false,
+    @ColumnInfo(defaultValue = "1")
+    val artifactIndex: Int = 1,
+    @ColumnInfo(defaultValue = "1")
+    val artifactCount: Int = 1
 )
 
 @Entity(
@@ -114,5 +118,7 @@ fun UpdateQueueEntity.toSnapshot(): QueueItemSnapshot = QueueItemSnapshot(
         dev.wystore.data.GitHubRepository(githubRepositoryOwner, githubRepositoryName)
     } else null,
     requiresUpdateOwnership = requiresUpdateOwnership,
-    requiresUserConfirmation = requiresUserConfirmation
+    requiresUserConfirmation = requiresUserConfirmation,
+    artifactIndex = artifactIndex,
+    artifactCount = artifactCount
 )

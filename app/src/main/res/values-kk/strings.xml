@@ -143,11 +143,11 @@
     <string name="search_field_placeholder">Қолданба мен ойын іздеу</string>
     <string name="search_clear">Тазалау</string>
     <string name="search_action">RuStore-дан іздеу</string>
-    <string name="search_action_all">RuStore және GitHub-тан іздеу</string>
+    <string name="search_action_all">Қолжетімді дереккөздерден іздеу</string>
     <string name="search_sources_all">Барлығы</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
-    <string name="search_disclaimer">Каталог пен APK тікелей RuStore-дан сұралады. Wy Store оның клиентін орнатпайды және өз серверін пайдаланбайды.</string>
+    <string name="search_disclaimer">RuStore каталогы мен APK файлдары тікелей RuStore дүкенінен сұралады. Ол үшін Wy Store оның клиентін орнатпайды және өз серверін пайдаланбайды.</string>
     <string name="search_results_count">Нәтиже: %1$d</string>
     <string name="search_quick_install">Жылдам орнату</string>
     <string name="search_check_update">Жаңартуды тексеру</string>
@@ -430,7 +430,7 @@
     <string name="home_github_hint">Ашық кодты қолданбалар — тікелей релиздерден орнатылады</string>
     <string name="queue_error_network">Желі қатесі</string>
     <string name="queue_error_rate_limited">Дереккөз сұрауларды шектеуде. Кейінірек қайталаңыз</string>
-    <string name="queue_error_source_changed">Дереккөз жауап пішімін өзгертті</string>
+    <string name="queue_error_source_changed">Дереккөз немесе таңдалған файл өзгерді. Қолданбаның дереккөзін тексеріп, қайталап көріңіз.</string>
     <string name="queue_error_storage_full">Жадта орын жеткіліксіз</string>
     <string name="queue_error_integrity">Жүктеп алынған файл дереккөздің бақылау сомасына сәйкес келмеді</string>
     <string name="queue_error_signature">APK қолтаңбасы тексеруден өтпеді</string>
@@ -511,8 +511,8 @@
     <string name="home_empty_featured_title">Әзірге көрсететін ештеңе жоқ</string>
     <string name="search_empty_title">Ештеңе табылмады</string>
     <string name="search_empty_message">Қысқарақ сұрауды немесе пакет атауын қолданып көріңіз.</string>
-    <string name="search_start_title">Екі дереккөзден бірден іздеу</string>
-    <string name="search_start_message">RuStore және кірістірілген GitHub каталогы.</string>
+    <string name="search_start_title">Қолжетімді дереккөздерден іздеу</string>
+    <string name="search_start_message">Баптауларда қосылған каталогтардағы қолданбалар.</string>
     <string name="library_open_page">Бетті ашу</string>
     <string name="library_expand">Мәліметтерді көрсету</string>
     <string name="library_collapse">Мәліметтерді жасыру</string>
@@ -666,7 +666,7 @@
     <string name="about_disclaimer_link">Жоба туралы мәлімдеме және тәуелсіздік</string>
     <string name="about_issues_link">GitHub-та мәселе туралы хабарлау</string>
     <string name="source_failure_title">Мәселе дереккөз жағында сияқты</string>
-    <string name="source_failure_body">Wy Store RuStore-ды оның ашық беттері арқылы оқиды, ал олар өзгеруі мүмкін. Өзгергенде, жаңа пішімді түсінетін құрастырма шыққанша, барлық жүктеп алу бірдей сәтсіз аяқталады.</string>
+    <string name="source_failure_body">Дереккөз қолданба туралы күтілген мәліметті немесе файлды қайтармады. Деректер не файлдар өзгерген болуы мүмкін. Wy Store жаңартуларын тексеріңіз; мәселе қайталанса, диагностикалық есепті сақтаңыз.</string>
     <string name="source_failure_update_available">Wy Store-дың жаңа нұсқасы жарияланды: %1$s. Ол жаңа пішімді біліп қоюы мүмкін.</string>
     <string name="source_failure_no_update">Wy Store-дың жаңа нұсқасы әзірге жоқ. Кінә қолданбада болса, жаңарту шығады — ал бұл туралы хабарлау оны тезірек шығарады.</string>
     <string name="source_failure_save_report">Диагностика есебін сақтау</string>

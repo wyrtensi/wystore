@@ -87,7 +87,9 @@ data class QueueItemSnapshot(
     /** Set on GitHub rows: the package name is a placeholder until verification reads the real one. */
     val githubRepository: GitHubRepository? = null,
     val requiresUpdateOwnership: Boolean = false,
-    val requiresUserConfirmation: Boolean = false
+    val requiresUserConfirmation: Boolean = false,
+    val artifactIndex: Int = 1,
+    val artifactCount: Int = 1
 )
 
 sealed interface QueueAction {
@@ -97,7 +99,9 @@ sealed interface QueueAction {
 
     data class DownloadProgress(
         val downloadedBytes: Long,
-        val totalBytes: Long
+        val totalBytes: Long,
+        val artifactIndex: Int = 1,
+        val artifactCount: Int = 1
     ) : QueueAction
 
     data object StartVerification : QueueAction

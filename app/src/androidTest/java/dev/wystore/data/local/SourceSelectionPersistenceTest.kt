@@ -14,6 +14,27 @@ import org.junit.Test
 class SourceSelectionPersistenceTest {
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
+    @Test fun registeringAnUpdateKeepsThePreviouslyVerifiedCustomRepository() = runBlocking {
+        val repository = StoreRepository(context)
+        val backup = repository.createBackup()
+        val local = requireNotNull(repository.installedAppFresh(context.packageName))
+        val custom = GitHubRepository("example", "previous-source")
+        try {
+            for (source in listOf(ManagedSource.WY_STORE, ManagedSource.RUSTORE)) {
+                val revision = repository.sourceRevision(local.packageName) + 1
+                repository.saveManaged(ManagedApp(local.packageName, local.label, local.signingDigests,
+                    source = source, sourceRevision = revision, knownGithubRepository = custom))
+                val row = UpdateQueueEntity("registered-known-source", local.packageName, local.label, local.versionName,
+                    local.versionCode, source.name, QueueState.INSTALLED.name, sourceRevision = revision,
+                    signingDigests = local.signingDigests.joinToString(","))
+                assertTrue(InstalledAppRegistrar.register(context, row))
+                val managed = repository.managedApps().single { it.packageName == local.packageName }
+                assertEquals(custom, managed.knownGithubRepository)
+                assertNull(managed.githubRepository)
+            }
+        } finally { repository.restoreBackup(backup) }
+    }
+
     @Test fun sourceSwitchPreservesUserSettingsAndRejectsLateRegistration() = runBlocking {
         val repository = StoreRepository(context)
         val original = repository.createBackup()

@@ -143,11 +143,11 @@
     <string name="search_field_placeholder">Meklē lietotnes un spēles</string>
     <string name="search_clear">Notīrīt</string>
     <string name="search_action">Meklēt RuStore</string>
-    <string name="search_action_all">Meklēt RuStore un GitHub</string>
+    <string name="search_action_all">Meklēt pieejamajos avotos</string>
     <string name="search_sources_all">Visi</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
-    <string name="search_disclaimer">Katalogs un APK tiek pieprasīti tieši no RuStore. Wy Store neinstalē tā klientu un neizmanto savu serveri.</string>
+    <string name="search_disclaimer">RuStore katalogs un APK faili tiek pieprasīti tieši no RuStore. Wy Store tam neinstalē tā klientu un neizmanto savu serveri.</string>
     <string name="search_results_count">Rezultāti: %1$d</string>
     <string name="search_quick_install">Ātrā instalēšana</string>
     <string name="search_check_update">Pārbaudīt atjauninājumu</string>
@@ -430,7 +430,7 @@
     <string name="home_github_hint">Atvērtā koda lietotnes, ko instalē tieši no laidieniem</string>
     <string name="queue_error_network">Tīkla kļūda</string>
     <string name="queue_error_rate_limited">Avots ierobežo pieprasījumus. Mēģini vēlāk</string>
-    <string name="queue_error_source_changed">Avots mainīja atbildes formātu</string>
+    <string name="queue_error_source_changed">Avots vai atlasītais fails ir mainījies. Pārbaudiet lietotnes avotu un mēģiniet vēlreiz.</string>
     <string name="queue_error_storage_full">Nepietiek vietas krātuvē</string>
     <string name="queue_error_integrity">Lejupielādētais fails nesakrita ar avota kontrolsummu</string>
     <string name="queue_error_signature">APK paraksts neizturēja pārbaudi</string>
@@ -511,8 +511,8 @@
     <string name="home_empty_featured_title">Pagaidām nav ko rādīt</string>
     <string name="search_empty_title">Nekas nav atrasts</string>
     <string name="search_empty_message">Pamēģini īsāku vaicājumu vai pakotnes nosaukumu.</string>
-    <string name="search_start_title">Meklē divos avotos vienlaikus</string>
-    <string name="search_start_message">RuStore un iebūvētais GitHub katalogs.</string>
+    <string name="search_start_title">Meklēšana pieejamajos avotos</string>
+    <string name="search_start_message">Lietotnes no iestatījumos iespējotajiem katalogiem.</string>
     <string name="library_open_page">Atvērt lapu</string>
     <string name="library_expand">Rādīt detaļas</string>
     <string name="library_collapse">Slēpt detaļas</string>
@@ -666,7 +666,7 @@
     <string name="about_disclaimer_link">Paziņojums par projektu un neatkarību</string>
     <string name="about_issues_link">Ziņot par problēmu GitHub</string>
     <string name="source_failure_title">Izskatās, ka vaina ir avota pusē</string>
-    <string name="source_failure_body">Wy Store lasa RuStore caur tā publiskajām lapām, un tās var mainīties. Kad tas notiek, katra lejupielāde neizdodas vienādi, līdz iznāk būvējums, kas saprot jauno formātu.</string>
+    <string name="source_failure_body">Avots neatgrieza gaidītos lietotnes datus vai failu. Dati vai faili, iespējams, ir mainīti. Pārbaudiet Wy Store atjauninājumus; ja problēma atkārtojas, saglabājiet diagnostikas pārskatu.</string>
     <string name="source_failure_update_available">Ir publicēts jaunāks Wy Store: %1$s. Iespējams, tas jauno formātu jau saprot.</string>
     <string name="source_failure_no_update">Jaunāka Wy Store pagaidām nav. Ja vaina ir lietotnē, atjauninājums sekos — un ziņošana ir tas, kas to paātrina.</string>
     <string name="source_failure_save_report">Saglabāt diagnostikas atskaiti</string>

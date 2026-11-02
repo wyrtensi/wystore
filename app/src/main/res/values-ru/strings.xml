@@ -143,11 +143,11 @@
     <string name="search_field_placeholder">Поиск приложений и игр</string>
     <string name="search_clear">Очистить</string>
     <string name="search_action">Искать в RuStore</string>
-    <string name="search_action_all">Искать в RuStore и GitHub</string>
+    <string name="search_action_all">Искать в доступных источниках</string>
     <string name="search_sources_all">Все</string>
     <string name="search_sources_rustore">RuStore</string>
     <string name="search_sources_github">GitHub</string>
-    <string name="search_disclaimer">Каталог и APK запрашиваются напрямую у RuStore. Wy Store не устанавливает его клиент и не использует свой сервер.</string>
+    <string name="search_disclaimer">Каталог RuStore и его APK запрашиваются напрямую у RuStore. Для этого Wy Store не устанавливает его клиент и не использует свой сервер.</string>
     <string name="search_results_count">Результаты: %1$d</string>
     <string name="search_quick_install">Быстро установить</string>
     <string name="search_check_update">Проверить обновление</string>
@@ -430,7 +430,7 @@
     <string name="home_github_hint">Приложения с открытым кодом — установка прямо из релизов</string>
     <string name="queue_error_network">Ошибка сети</string>
     <string name="queue_error_rate_limited">Источник ограничил запросы. Повторите позже</string>
-    <string name="queue_error_source_changed">Источник изменил формат ответа</string>
+    <string name="queue_error_source_changed">Источник или выбранный файл изменился. Проверьте источник приложения и повторите попытку.</string>
     <string name="queue_error_storage_full">Недостаточно места в хранилище</string>
     <string name="queue_error_integrity">Скачанный файл не совпал с контрольной суммой источника</string>
     <string name="queue_error_signature">Подпись APK не прошла проверку</string>
@@ -511,8 +511,8 @@
     <string name="home_empty_featured_title">Пока нечего показать</string>
     <string name="search_empty_title">Ничего не найдено</string>
     <string name="search_empty_message">Попробуйте более короткий запрос или имя пакета.</string>
-    <string name="search_start_title">Поиск сразу по двум источникам</string>
-    <string name="search_start_message">RuStore и встроенный каталог GitHub.</string>
+    <string name="search_start_title">Поиск по доступным источникам</string>
+    <string name="search_start_message">Приложения из каталогов, включённых в настройках.</string>
     <string name="library_open_page">Открыть страницу</string>
     <string name="library_expand">Показать подробности</string>
     <string name="library_collapse">Скрыть подробности</string>
@@ -666,7 +666,7 @@
     <string name="about_disclaimer_link">Заявление о проекте и независимости</string>
     <string name="about_issues_link">Сообщить о проблеме на GitHub</string>
     <string name="source_failure_title">Похоже, дело в источнике</string>
-    <string name="source_failure_body">Wy Store читает RuStore через его публичные страницы, а они могут меняться. Когда это происходит, загрузки перестают идти у всех сразу — до сборки, которая понимает новый формат.</string>
+    <string name="source_failure_body">Источник не вернул ожидаемые сведения о приложении или файл. Данные или файлы могли измениться. Проверьте обновления Wy Store; если проблема повторяется, сохраните диагностический отчёт.</string>
     <string name="source_failure_update_available">Вышла более новая версия Wy Store: %1$s. Возможно, она уже понимает новый формат.</string>
     <string name="source_failure_no_update">Новее пока нет. Если дело в приложении, обновление выйдет — и выйдет быстрее, если о проблеме сообщить.</string>
     <string name="source_failure_save_report">Сохранить отчёт о диагностике</string>
