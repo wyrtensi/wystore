@@ -165,11 +165,11 @@ Also pin mixed-cohort selection: reject a newer ARM64/API35 default on an ARMv7/
 - Persist a `LibraryInstallRequest` containing the complete `ResolvedLibraryVersion` and `sourceRevision` on library queue rows. JSON decoding must validate its contract. Existing rows default to no library request and revision 0.
 - Preserve snapshot-added `requiresUserConfirmation` and `requiresUpdateOwnership`; add `MIGRATION_5_6` only if 5 is still the actual latest schema when implementation begins. Otherwise chain from the actual latest version and update both migration directions/tests without destructive fallback.
 
-- [ ] **Step 1:** Add failing worker HTTP-boundary tests: a batch of several managed library apps fetches one revalidated index, equal/older/native-unknown candidates request zero APKs, and a newer variant requests exactly its member set. A Play update observed before transfer suppresses unattended work under the existing pause rules. Manual checks are not manual reinstall requests.
-- [ ] **Step 2:** Add one-time 404 recovery cases: unchanged publication -> visible failure; changed publication -> discard obsolete partials and reselect; another installer now has the equal/newer version -> no retry APK request; a second 404 never loops. Verify corrupt hash, missing split, wrong package/version and incompatible signer block install. Run these tests to meaningful RED.
-- [ ] **Step 3:** Wire library checks/transfers through existing queue/version/downloader/verifier/installer, maintaining fresh installed reads before bytes and install. Verify every member and complete set against the immutable request. After network waits reread selected-source revision. Keep generic GitHub tag/version semantics and RuStore checks unchanged. Handle new enum branches explicitly, with working behavior rather than placeholder success/error swallowing.
-- [ ] **Step 4:** Add migration/backup/settings round-trip tests, including old RuStore/GitHub rows and unknown source values. Unknown persisted source values must report unsupported data rather than becoming RuStore. Ensure artifact registration records WY_STORE and does not clear sticky Play/ownership facts.
-- [ ] **Step 5:** Run full `python tools/verify.py`, migration instrumentation on a disposable emulator when available, and inspect generated Room schema diff. Commit exact core paths. Before any emulator installation, run `python tools/verify.py --release` and follow `wystore-emulator`; reuse that verified build for subsequent checks until code changes.
+- [x] **Step 1:** Add failing worker HTTP-boundary tests: a batch of several managed library apps fetches one revalidated index, equal/older/native-unknown candidates request zero APKs, and a newer variant requests exactly its member set. A Play update observed before transfer suppresses unattended work under the existing pause rules. Manual checks are not manual reinstall requests.
+- [x] **Step 2:** Add one-time 404 recovery cases: unchanged publication -> visible failure; changed publication -> discard obsolete partials and reselect; another installer now has the equal/newer version -> no retry APK request; a second 404 never loops. Verify corrupt hash, missing split, wrong package/version and incompatible signer block install. Run these tests to meaningful RED.
+- [x] **Step 3:** Wire library checks/transfers through existing queue/version/downloader/verifier/installer, maintaining fresh installed reads before bytes and install. Verify every member and complete set against the immutable request. After network waits reread selected-source revision. Keep generic GitHub tag/version semantics and RuStore checks unchanged. Handle new enum branches explicitly, with working behavior rather than placeholder success/error swallowing.
+- [x] **Step 4:** Add migration/backup/settings round-trip tests, including old RuStore/GitHub rows and unknown source values. Unknown persisted source values must report unsupported data rather than becoming RuStore. Ensure artifact registration records WY_STORE and does not clear sticky Play/ownership facts.
+- [x] **Step 5:** Run full `python tools/verify.py`, migration instrumentation on a disposable emulator when available, and inspect generated Room schema diff. Commit exact core paths. Before any emulator installation, run `python tools/verify.py --release` and follow `wystore-emulator`; reuse that verified build for subsequent checks until code changes.
 
 ### Task 5: Make source switching durable and race-safe
 
@@ -182,10 +182,10 @@ Also pin mixed-cohort selection: reject a newer ARM64/API35 default on an ARMv7/
 - `SourceSelectionCoordinator.select(packageName: String, choice: AppSourceChoice): SourceSwitchResult` is suspending; `isCurrent(packageName: String, source: ManagedSource, revision: Long): Boolean` fences queued/late operations.
 - Persist a monotonic selection revision and use the same locking/transaction discipline as management writes. A staged replacement keeps the existing choice until successful replacement; a later mismatch after saving an unknown source never triggers automatic rollback.
 
-- [ ] **Step 1:** Add failing policy tests for same signer preserving data/settings, equal/older version without download, known mismatch -> explicit replacement, unknown GitHub signature -> saved choice with actual APK-time check, valid rotation -> no mandatory deletion, unavailable source -> no fallback, different package -> no merge. RuStore/library details metadata must be used before claiming compatibility unknown.
-- [ ] **Step 2:** Add integration tests switching with DOWNLOADING, READY_TO_INSTALL and AWAITING_USER_CONFIRMATION requests: obsolete workers cannot commit/register; unrelated rows survive. A committed INSTALLING session defers the switch until reconciliation. Simulate process death and a delayed success callback after a persisted source revision change.
-- [ ] **Step 3:** Implement coordinator plus narrow callbacks into existing cancellation/session handling. Reuse explicit adoption replacement and its verified staging/data-loss confirmation. Preserve the ownership fix's two confirmation flags and Android-version behaviour. A source selector is not an ownership reset.
-- [ ] **Step 4:** Run focused policy/coordinator tests and full `python tools/verify.py`. Confirm refused/canceled replacement leaves the correct saved choice and installed data. Commit only this source-switch unit.
+- [x] **Step 1:** Add failing policy tests for same signer preserving data/settings, equal/older version without download, known mismatch -> explicit replacement, unknown GitHub signature -> saved choice with actual APK-time check, valid rotation -> no mandatory deletion, unavailable source -> no fallback, different package -> no merge. RuStore/library details metadata must be used before claiming compatibility unknown.
+- [x] **Step 2:** Add integration tests switching with DOWNLOADING, READY_TO_INSTALL and AWAITING_USER_CONFIRMATION requests: obsolete workers cannot commit/register; unrelated rows survive. A committed INSTALLING session defers the switch until reconciliation. Simulate process death and a delayed success callback after a persisted source revision change.
+- [x] **Step 3:** Implement coordinator plus narrow callbacks into existing cancellation/session handling. Reuse explicit adoption replacement and its verified staging/data-loss confirmation. Preserve the ownership fix's two confirmation flags and Android-version behaviour. A source selector is not an ownership reset.
+- [x] **Step 4:** Run focused policy/coordinator tests and full `python tools/verify.py`. Confirm refused/canceled replacement leaves the correct saved choice and installed data. Commit only this source-switch unit.
 
 ### Task 6: Expose search, category, badges and source selection
 
@@ -197,11 +197,11 @@ Also pin mixed-cohort selection: reject a newer ARM64/API35 default on an ARMv7/
 - Shared details receive available `AppSourceChoice` values, preview choice, saved managed choice and a source-selection callback through `SourceSelectionCoordinator`.
 - Category slug `wy-foreign`, Russian label `Зарубежные`: read included library cards in both existing category modes, without RuStore requests. It is a category tile, not a new destination/tab.
 
-- [ ] **Step 1:** Add failing search/category tests: package duplicate -> one card with both badges; unknown GitHub package -> separate result; exclusions disappear only from foreign category, not search or updates; GitHub disabled does not hide library; source-specific network failure preserves other results. Test cancellation of stale search and source-preview results.
-- [ ] **Step 2:** Wire cached library discovery into existing search and category/home paths. Details load metadata only on demand. Installed/managed source takes priority; new install follows the entry context. Previewing a source never changes management; deliberate selection invokes Task 5. Keep generic GitHub details/releases UI intact when chosen.
-- [ ] **Step 3:** Add source badges/selector and the ordinary category tile using existing UI components. Unsupported devices retain the card with an installability reason. Version/size describe the chosen variant; descriptions/screenshots/changelog come from localized metadata, without presenting a listing changelog as proof about an older delivered version. Missing ratings/reviews stay absent.
-- [ ] **Step 4:** Use `tools/add_string.py` for new text in en/ru/be/uk/kk/lv/uz/zh, including source setting, foreign category, source selection, unconfirmed signature, unsupported variant and update errors. Add library/upstream links to source info. No user-facing model/backend jargon.
-- [ ] **Step 5:** Test phone compact-width badge wrapping/selector interaction and TV focus/selection/back navigation. Run `python tools/verify.py`, required lint, and focused Compose instrumentation on disposable emulators. Commit exact UI/resources/tests paths after inspecting screenshots.
+- [x] **Step 1:** Add failing search/category tests: package duplicate -> one card with both badges; unknown GitHub package -> separate result; exclusions disappear only from foreign category, not search or updates; GitHub disabled does not hide library; source-specific network failure preserves other results. Test cancellation of stale search and source-preview results.
+- [x] **Step 2:** Wire cached library discovery into existing search and category/home paths. Details load metadata only on demand. Installed/managed source takes priority; new install follows the entry context. Previewing a source never changes management; deliberate selection invokes Task 5. Keep generic GitHub details/releases UI intact when chosen.
+- [x] **Step 3:** Add source badges/selector and the ordinary category tile using existing UI components. Unsupported devices retain the card with an installability reason. Version/size describe the chosen variant; descriptions/screenshots/changelog come from localized metadata, without presenting a listing changelog as proof about an older delivered version. Missing ratings/reviews stay absent.
+- [x] **Step 4:** Use `tools/add_string.py` for new text in en/ru/be/uk/kk/lv/uz/zh, including source setting, foreign category, source selection, unconfirmed signature, unsupported variant and update errors. Add library/upstream links to source info. No user-facing model/backend jargon.
+- [x] **Step 5:** Test phone compact-width badge wrapping/selector interaction and TV focus/selection/back navigation. Run `python tools/verify.py`, required lint, and focused Compose instrumentation on disposable emulators. Commit exact UI/resources/tests paths after inspecting screenshots.
 
 ### Task 7: Final integration, verification and handoff
 
@@ -209,22 +209,35 @@ Also pin mixed-cohort selection: reject a newer ARM64/API35 default on an ARMv7/
 
 **Interfaces:** All completed tasks, ownership baseline, both repository commits and current public library contract.
 
-- [ ] **Step 1:** Check allowance before starting the final matrix. Run full library Python tests, `python tools/verify.py --release`, and `gradlew.bat :app:lintDebug :app:assembleDebugAndroidTest --console=plain`. Require fresh counts, correct release certificate and zero failures; report any unavailable environment rather than skipping a required check.
-- [ ] **Step 2:** Following `wystore-emulator`, use disposable compatible phone/older-Android/TV emulators for new install, in-place update, source switch, signer-changing replacement decline/success, process-death resume, Play pause, alternate density and complete split sets. Preserve the user's phone and Google-login emulator. Include legacy ownership regression scenarios from Task 0.
-- [ ] **Step 3:** Install library ChatGPT and Grok sets only when the emulator supports their actual compatibility requirements. Record installation, launch and sign-in separately. Do not ask for credentials in logs; if interactive account access requires the user, record that boundary accurately. Emulator translation failure is not a real ARM-device result.
-- [ ] **Step 4:** Request one fresh Sol whole-branch review of the final Android changes and library contract change, including the imported ownership fix and Review Focus cases. Resolve material findings with targeted tests and rerun affected checks; do not add speculative review passes. No agent/model branding in deliverables.
-- [ ] **Step 5:** Run `git diff --check` in both repositories, inspect status/identities and commit remaining exact paths. Update task checkboxes and the private handoff with results, emulator limits and both HEADs. Leave everything local: no push, tag, workflow dispatch or release.
+- [x] **Step 1:** Check allowance before starting the final matrix. Run full library Python tests, `python tools/verify.py --release`, and `gradlew.bat :app:lintDebug :app:assembleDebugAndroidTest --console=plain`. Require fresh counts, correct release certificate and zero failures; report any unavailable environment rather than skipping a required check.
+- [x] **Step 2:** Following `wystore-emulator`, use disposable compatible phone/older-Android/TV emulators for new install, in-place update, source switch, signer-changing replacement decline/success, process-death resume, Play pause, alternate density and complete split sets. Preserve the user's phone and Google-login emulator. Include legacy ownership regression scenarios from Task 0.
+- [x] **Step 3:** Install library ChatGPT and Grok sets only when the emulator supports their actual compatibility requirements. Record installation, launch and sign-in separately. Do not ask for credentials in logs; if interactive account access requires the user, record that boundary accurately. Emulator translation failure is not a real ARM-device result.
+- [x] **Step 4:** Request one fresh Sol whole-branch review of the final Android changes and library contract change, including the imported ownership fix and Review Focus cases. Resolve material findings with targeted tests and rerun affected checks; do not add speculative review passes. No agent/model branding in deliverables.
+- [x] **Step 5:** Run `git diff --check` in both repositories, inspect status/identities and commit remaining exact paths. Update task checkboxes and the private handoff with results, emulator limits and both HEADs. Leave everything local: no push, tag, workflow dispatch or release.
 
-## Execution checkpoint
+## Execution closeout
 
-Stopped for the operator's usage limit on 2026-11-01. Tasks 0-3 are complete;
-Tasks 4-5 have compiled and tested core code, including migration/coordinator
-instrumentation, but the full worker/install race matrix remains incomplete.
-Task 6 is a local UI checkpoint, not a finished or reviewed feature. Task 7 is
-partial: 833 JVM tests, release certificate validation, lint/debug/test builds
-and four Android 14 instrumentation tests passed. TV, actual split-set/root
-transactions, ChatGPT/Grok sign-in and final whole-branch review remain pending.
-See `outputs/library-integration/handoff.md` before continuing. No push or release.
+Completed locally on 2026-11-02. Tasks 0-7 have implementation and verification
+records in `outputs/library-integration/handoff.md`. No push, tag, workflow
+publication or release was performed. The imported ownership fix remains a
+separate commit, and all 33 original checkout files still match their snapshot.
+
+Final checks: 855 JVM tests, zero failures/errors/skips; signed release APK
+with the Wy Store certificate; debug/test builds and lint succeeded. The final
+focused Android suite returned `OK (18 tests)`. Separate opt-in probes verified
+installed-card refresh without Activity resume and declined/accepted signer
+replacement with actual Android confirmation and update ownership.
+
+Earlier matrix evidence covers API28 installation/update, TV selection/category
+navigation, full split sets, genuine root, integrity refusals and four
+process-death recovery boundaries. Real ChatGPT guest chat returned a response
+on the Play Store emulator; Grok installed but was blocked by its Get this app
+from Play screen. Account sign-in and physical ARM devices were not tested.
+
+The final whole-branch review returned three material findings. All were fixed
+in the single targeted fix pass with observed regression failures then passing
+checks. User-reported installed-card/diagnosis bugs and requested adb diagnostics
+were also verified. Keep the task branches and worktree for later integration.
 
 ## Self-review record
 

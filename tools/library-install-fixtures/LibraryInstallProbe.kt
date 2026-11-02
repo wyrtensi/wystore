@@ -40,8 +40,9 @@ class LibraryInstallProbe {
     private fun plan(files: List<File>) = requireNotNull(SigningVerifier.verifyArtifacts(context.packageManager, files,
         repository.installedAppFresh(pkg), expectedPackageName = pkg, allowReinstall = true).plan)
 
-    private suspend fun ready(files: List<File>, confirm: Boolean = false): UpdateQueueEntity {
-        val plan = plan(files)
+    private suspend fun ready(files: List<File>, confirm: Boolean = false, replacement: Boolean = false): UpdateQueueEntity {
+        val plan = if (replacement) requireNotNull(SigningVerifier.verifyArtifacts(context.packageManager, files,
+            installed = null, expectedPackageName = pkg, allowReinstall = true).plan) else plan(files)
         val revision = repository.sourceRevision(pkg)
         val artifacts = files.map { file ->
             val hash = LibraryFileIntegrity.sha256(file)
@@ -67,6 +68,7 @@ class LibraryInstallProbe {
             queue.discard(previous.id)
         }
         queue.enqueueReadyUpdate(plan, app.name, ManagedSource.WY_STORE, sourceRevision = revision,
+            sourceReplacement = replacement,
             sourceHashes = artifacts.map { it.sha256 }, libraryRequestJson = LibraryRequestCodec.encode(app, variant.id, revision))
         val row = requireNotNull(dao.find(pkg, version.toLong(), ManagedSource.WY_STORE.name))
         val manual = row.copy(priority = 10, requiresUserConfirmation = confirm)
@@ -140,6 +142,67 @@ class LibraryInstallProbe {
             assertEquals("Direct=${fresh?.versionCode}, bulk=${bulk?.versionCode}, UI=${viewModel.state.value.installed.firstOrNull { it.packageName == pkg }?.versionCode}",
                 version.toLong(), viewModel.state.value.installed.firstOrNull { it.packageName == pkg }?.versionCode)
         } finally { instrumentation.runOnMainSync { store.clear() } }
+    }
+
+    @Test fun verifiedSignerReplacementCanBeDeclinedOrCompleted() = runBlocking {
+        val installer = RootInstaller()
+        assertTrue(installer.isAvailable())
+        if (repository.installedAppFresh(pkg) != null) assertTrue(installer.uninstall(pkg).success)
+        repository.removeManaged(pkg)
+        installCompleteSetThroughRoot()
+        val original = requireNotNull(repository.installedAppFresh(pkg))
+        val revision = repository.advanceSourceRevision(pkg)
+        repository.updateManaged(pkg) { requireNotNull(it).copy(source = ManagedSource.RUSTORE, sourceRevision = revision) }
+        // The host owns UiAutomation while confirming Android's dialog. It also checks the
+        // fixture's private marker through adb run-as and acknowledges only successful checks.
+        suspend fun hostPhase(phase: String) {
+            val acknowledgement = File(context.cacheDir, "library_probe_$phase")
+            acknowledgement.delete()
+            instrumentation.sendStatus(3, android.os.Bundle().apply { putString("fixture_phase", phase) })
+            val deadline = System.currentTimeMillis() + 15_000
+            while (!acknowledgement.isFile && System.currentTimeMillis() < deadline) delay(100)
+            assertTrue("Host did not verify $phase", acknowledgement.isFile)
+            acknowledgement.delete()
+        }
+        hostPhase("marker-create")
+        val stager = SourceReplacementStager(context)
+        val declined = ready(files("different"), replacement = true)
+        stager.validateBeforeRemoval(declined.id)
+        stager.discard(declined.id)
+        assertEquals(original.signingDigests, repository.installedAppFresh(pkg)?.signingDigests)
+        hostPhase("marker-retained")
+        assertEquals(ManagedSource.RUSTORE, repository.managedApps().single { it.packageName == pkg }.source)
+
+        val accepted = ready(files("different"), replacement = true)
+        val validated = stager.validateBeforeRemoval(accepted.id)
+        val pending = PendingReinstall(pkg, pkg, "Installation fixture", System.currentTimeMillis(),
+            queueId = validated.id, requiresUpdateOwnership = true, sourceRevision = validated.sourceRevision)
+        val store = PendingReinstallStore(context)
+        try {
+            QueueRepository.getInstance(context).requireUpdateOwnership(validated.id)
+            store.save(pending)
+            assertTrue(installer.uninstall(pkg).success)
+            val queue = QueueRepository.getInstance(context)
+            val paths = queue.verifiedArtifactFilesFor(validated.id)
+            val replacement = requireNotNull(SigningVerifier.verifyArtifacts(context.packageManager, paths,
+                installed = null, expectedPackageName = pkg, allowReinstall = true).plan)
+            assertNotEquals(original.signingDigests, replacement.identity.signingDigests)
+            ActivityScenario.launch(ComponentActivity::class.java).use {
+                queue.transition(validated.id, QueueAction.RequestInstallConfirmation)
+                val writer = InstallSessionWriter(context)
+                val session = writer.prepare(validated.id) as PreparedInstall.Session
+                queue.transition(validated.id, QueueAction.StartInstall)
+                writer.commitSession(session)
+                val deadline = System.currentTimeMillis() + 45_000
+                while (System.currentTimeMillis() < deadline && queue.getById(validated.id)?.state != QueueState.INSTALLED) delay(250)
+                assertEquals(QueueState.INSTALLED, queue.getById(validated.id)?.state)
+            }
+            assertEquals(replacement.identity.signingDigests, repository.installedAppFresh(pkg)?.signingDigests)
+            assertEquals(context.packageName, repository.installedAppFresh(pkg)?.updateOwnerPackageName)
+            assertEquals(ManagedSource.WY_STORE, repository.managedApps().single { it.packageName == pkg }.source)
+            hostPhase("marker-removed")
+            assertInstalledCompleteSet()
+        } finally { store.clear(pkg) }
     }
 
     @Test fun anotherSignerCannotProduceAnUpdatePlan() {

@@ -39,6 +39,19 @@ StoreViewModel remains alive. It requires the installed-app UI state to refresh
 after the queue completes, without an Activity resume. Run it only on the
 disposable test emulator; it deliberately clears the fixture's own data.
 
+On a rooted Android 14+ disposable emulator, run the signer-changing replacement
+scenario with the host driver:
+
+```powershell
+python tools/library-install-fixtures/run_session.py --serial emulator-5556 --version 2 --method verifiedSignerReplacementCanBeDeclinedOrCompleted --log outputs/library-install-fixtures/replacement.log
+```
+
+The driver creates and checks the fixture's private data marker through adb
+`run-as`. Declining the verified replacement must retain its contents. Accepting
+removal and confirming Android's installation must install the other signer,
+clear the old data and assign update ownership to Wy Store. The probe uses local
+verified APK fixtures; it does not fetch them from a live source.
+
 The `leave...` methods deliberately terminate the application process. A crash
 is expected for those commands. Run each one separately, then run
 `recoverInterruptedInstallAfterProcessRestart` in a new instrumentation command
