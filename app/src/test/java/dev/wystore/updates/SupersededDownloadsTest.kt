@@ -13,7 +13,9 @@ class SupersededDownloadsTest {
         state: QueueState = QueueState.READY_TO_INSTALL,
         packageName: String = "ru.app",
         source: String = "RUSTORE",
-        updatedAt: Long = 1
+        updatedAt: Long = 1,
+        owner: String? = null,
+        repository: String? = null
     ) = UpdateQueueEntity(
         id = id,
         packageName = packageName,
@@ -21,6 +23,8 @@ class SupersededDownloadsTest {
         versionName = "$versionCode",
         versionCode = versionCode,
         source = source,
+        githubRepositoryOwner = owner,
+        githubRepositoryName = repository,
         state = state.name,
         priority = 0,
         position = 0,
@@ -89,5 +93,43 @@ class SupersededDownloadsTest {
             row("b", 5, packageName = "ru.b")
         )
         assertEquals(setOf("a-old"), ids(SupersededDownloads.superseded(rows)))
+    }
+
+    @Test
+    fun oldQueuedSelfUpdatesAreSupersededBeforeTheyAreDownloaded() {
+        val rows = listOf(
+            row("old", 1, QueueState.AVAILABLE, "app.wystore", "GITHUB", owner = "wyrtensi", repository = "wystore"),
+            row("new", 2, QueueState.AVAILABLE, "app.wystore", "GITHUB", owner = "wyrtensi", repository = "wystore")
+        )
+        assertEquals(setOf("old"), ids(SupersededDownloads.superseded(rows)))
+    }
+
+    @Test
+    fun selfUpdateOrderUsesVersionNamesRatherThanReleaseOrApkCodes() {
+        val old = row("old", 9000, QueueState.READY_TO_INSTALL, "app.wystore", "GITHUB",
+            owner = "wyrtensi", repository = "wystore").copy(versionName = "1.9")
+        val latest = row("latest", 20, QueueState.AVAILABLE, "app.wystore", "GITHUB",
+            owner = "wyrtensi", repository = "wystore").copy(versionName = "1.10")
+        assertEquals(setOf("old"), ids(SupersededDownloads.superseded(listOf(old, latest))))
+    }
+
+    @Test
+    fun activeSelfUpdateAndOtherRepositoriesAreNotRemoved() {
+        val active = row("active", 1, QueueState.DOWNLOADING, "app.wystore", "GITHUB",
+            owner = "wyrtensi", repository = "wystore")
+        val dialog = active.copy(id = "dialog", state = QueueState.AWAITING_USER_CONFIRMATION.name)
+        val other = active.copy(id = "other", state = QueueState.AVAILABLE.name, githubRepositoryOwner = "other")
+        val latest = active.copy(id = "latest", versionName = "2", versionCode = 2, state = QueueState.AVAILABLE.name)
+        assertEquals(emptySet<String>(), ids(SupersededDownloads.superseded(listOf(active, dialog, other, latest))))
+    }
+
+    @Test
+    fun olderPausedAndFailedSelfUpdatesAreRemovedButUnknownVersionsAreKept() {
+        val old = row("paused", 1, QueueState.PAUSED, "app.wystore", "GITHUB",
+            owner = "wyrtensi", repository = "wystore")
+        val failed = old.copy(id = "failed", state = QueueState.FAILED.name)
+        val unknown = old.copy(id = "unknown", versionName = "unknown")
+        val latest = old.copy(id = "latest", versionName = "2", versionCode = 2, state = QueueState.AVAILABLE.name)
+        assertEquals(setOf("paused", "failed"), ids(SupersededDownloads.superseded(listOf(old, failed, unknown, latest))))
     }
 }

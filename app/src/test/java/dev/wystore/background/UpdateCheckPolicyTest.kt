@@ -12,6 +12,59 @@ import java.net.SocketTimeoutException
 class UpdateCheckPolicyTest {
 
     @Test
+    fun aPausedAppIsExcludedFromBackgroundCandidatesButStillCheckedManually() {
+        assertFalse(
+            UpdateCheckPolicy.evaluateAppEligibility(
+                isManualCheck = false,
+                targetPackageName = null,
+                appPackageName = "dev.wystore.paused",
+                autoCheckEnabledForApp = true,
+                pausedByGooglePlay = true
+            )
+        )
+        assertTrue(
+            UpdateCheckPolicy.evaluateAppEligibility(
+                isManualCheck = true,
+                targetPackageName = null,
+                appPackageName = "dev.wystore.paused",
+                autoCheckEnabledForApp = true,
+                pausedByGooglePlay = true
+            )
+        )
+    }
+
+    @Test
+    fun pauseDoesNotChangeTheOtherEligibilityRules() {
+        assertTrue(
+            UpdateCheckPolicy.evaluateAppEligibility(
+                isManualCheck = false,
+                targetPackageName = null,
+                appPackageName = "dev.wystore.app",
+                autoCheckEnabledForApp = true,
+                pausedByGooglePlay = false
+            )
+        )
+        assertFalse(
+            UpdateCheckPolicy.evaluateAppEligibility(
+                isManualCheck = true,
+                targetPackageName = null,
+                appPackageName = "dev.wystore.app",
+                autoCheckEnabledForApp = false,
+                pausedByGooglePlay = true
+            )
+        )
+        assertFalse(
+            UpdateCheckPolicy.evaluateAppEligibility(
+                isManualCheck = true,
+                targetPackageName = "dev.wystore.other",
+                appPackageName = "dev.wystore.app",
+                autoCheckEnabledForApp = true,
+                pausedByGooglePlay = true
+            )
+        )
+    }
+
+    @Test
     fun nothingIsFetchedWhenBothAutoDownloadAndTheRootPathAreOff() {
         val shouldDownload = UpdateCheckPolicy.shouldEnqueueDownload(
             autoDownloadEnabled = false,

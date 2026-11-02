@@ -249,7 +249,7 @@
     <string name="settings_hub_notifications_title">通知</string>
     <string name="settings_hub_notifications_subtitle">已就绪的更新、错误、通知渠道</string>
     <string name="settings_hub_sources_title">应用来源</string>
-    <string name="settings_hub_sources_subtitle">RuStore 和 GitHub Releases</string>
+    <string name="settings_hub_sources_subtitle">RuStore · GitHub · Wy Store</string>
     <string name="settings_hub_github_subtitle_count">仓库：%1$d</string>
     <string name="settings_hub_github_subtitle_empty">添加仓库以安装 APK</string>
 
@@ -480,7 +480,7 @@
     <string name="disclaimer_body">Wy Store 只下载来源发布的文件，并在安装前检查包名、版本和签名。它不审查、不审核、不推荐这些应用本身，也不对其内容、行为和使用后果负责。安装风险由你自行承担，遵守当地法律也由你负责。</string>
     <string name="disclaimer_source_rustore">来源：RuStore。Wy Store 与 RuStore 无关联。</string>
     <string name="disclaimer_source_github">来源：项目在 GitHub 上发布的版本。文件由开发者提供，而非 Wy Store。</string>
-    <string name="disclaimer_sources_both">来源：RuStore 和 GitHub Releases。Wy Store 与两者均无关联。</string>
+    <string name="disclaimer_sources_both">来源：RuStore、GitHub Releases 和 Wy Store Library。Wy Store 与 RuStore 或 GitHub 没有关联。</string>
     <string name="library_filter_title">显示</string>
     <string name="library_filter_all">全部</string>
     <string name="library_filter_empty">没有符合这个筛选的内容</string>

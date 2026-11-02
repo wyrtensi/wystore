@@ -15,17 +15,17 @@
 
 [项目网站](https://wystore.ru/zh/)
 
-[Русский](README.md) · [English](README.en.md) · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · [Oʻzbekcha](README.uz.md) · [Latviešu](README.lv.md) · **简体中文**
+[Русский](README.md) · [English](README.en.md) · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · [Oʻzbekcha](README.uz.md) · [Latviešu](README.lv.md) · **简体中文** · [Српски](README.sr.md)
 
 [版本发布](https://github.com/wyrtensi/wystore/releases) · [更新日志](CHANGELOG.md) · [隐私](PRIVACY.md) · [安全](SECURITY.md) · [项目声明](DISCLAIMER.md) · [许可证](LICENSE)
 
 </div>
 
-Wy Store 是 RuStore 目录的 Android 客户端。它展示的应用和 RuStore 应用商店提供的一样，但由它自己通过 Android 系统的软件包安装器下载和安装，既不需要账号，也不需要 RuStore 客户端。第二个来源是 GitHub 上的 release，因此列表里也会有 RuStore 没有收录的东西。
+Wy Store 是 Android 应用目录客户端，通过系统安装器下载和安装应用，无需账号或 RuStore 客户端。
 
-项目没有服务端、没有账号、没有统计分析、没有广告。应用只访问 `rustore.ru`、`github.com` 以及这些服务自己分发文件所用的存储。
+当前工作版本有三个来源：RuStore、GitHub release 和 [Wy Store Library](https://github.com/wyrtensi/wystore-library)。Library 索引是托管在 GitHub 上的静态 JSON；上游服务的凭据不包含在客户端中，用户无需登录 Google。没有统计分析或广告。
 
-这个目录面向俄罗斯的用户，所以其中大部分内容是俄语的；界面本身提供八种语言。
+这个目录面向俄罗斯的用户，所以其中大部分内容是俄语的；界面本身提供上述语言。
 
 Wy Store 与 RuStore 没有隶属关系，也不代表它行事：RuStore 在这里只是数据源。详见 [DISCLAIMER.md](DISCLAIMER.md)。
 
@@ -37,7 +37,9 @@ Wy Store 与 RuStore 没有隶属关系，也不代表它行事：RuStore 在这
 
 ## 功能
 
-- **一个列表里的两个来源。** RuStore 的条目和精选 GitHub 项目的 release 在搜索、主页和分区里并列显示，每一条都标明来源。任何公开仓库都可以用链接添加。
+- **一个列表中的三个来源。** RuStore、GitHub 和 Wy Store Library 的条目按软件包合并为一张卡片，显示来源标记并允许选择来源。公开 GitHub 仓库可以通过链接添加。
+- **资料库与安装.** Library 有普通的外国应用分类，编辑可将个别应用排除在该分类之外。下载前检查版本，下载完整的所选 split APK 集合；安装前检查完整性、软件包和签名。签名兼容时可以更新；否则删除并重新安装需要明确同意和验证，应用数据可能丢失。支持系统和 root 安装器。若 Google Play 接管更新，检查会暂停；用户可针对该应用明确同意继续检查。
+
 - **目录分区。** RuStore 的分区以磁贴形式出现在主页上，也有单独的全部分区页面。在设置里可以改用 Wy Store 自己的一套分区。
 - **安装前的 APK 检查。** 在文件交给安装器之前，会核对包名、versionCode、split-APK 组合是否完整以及签名证书。不一致就是拒绝，并说明原因。
 - **后台更新。** 按计划检查，并自动下载检查到的内容。在 Android 12 及更高版本上，对于 Wy Store 自己安装的应用，可以不弹对话框直接安装 —— 但这不是必然的，详见下文。
@@ -65,7 +67,7 @@ Wy Store 与 RuStore 没有隶属关系，也不代表它行事：RuStore 在这
 - **首页。** 更新卡片、分区磁贴、按分区排列的行，以及「来自 GitHub」一行。电视上没有通知，所以可以安装或更新的应用集中在首页顶部的一行里。
 - **应用页面。** 电视版截图、评价和「更新内容」；等待下载或安装的应用在「应用」标签页里也有「更新内容」。
 - **外观。** 与手机相同的 Wy Hub，强调色的选择也一样：分区磁贴带有图标，卡片行一直延伸到屏幕边缘，卡片上的名称最多占三行。
-- **搜索。** 可以打字，也可以用语音。结果来自电视目录；如果开启了手机目录，还来自整个 RuStore，外加 GitHub。
+- **搜索。** 可以打字，也可以用语音。结果来自电视目录；如果开启了手机目录，还来自整个 RuStore，外加 GitHub 和 Wy Store Library。
 - **目录。** RuStore 为电视提供单独的目录。**「电视上的目录」** 设置：「电视应用」（默认）、「手机应用」或「两者」。在「两者」模式下，手机应用单独成行，并标有「手机应用」：它们很多并不是为遥控器设计的。无论选哪一项，从任一目录安装的应用都会继续得到更新。
 - **GitHub。** 手机和电视上都有 GitHub 目录；可以在 **设置 → 应用来源** 里关闭。
 
@@ -178,6 +180,9 @@ root 不是必需的，默认关闭。开启方法：**设置 → 权限中心 �
 python tools/wystore_adb_install.py ru.ozon.app.android ru.nspk.mirpay
 ```
 
+[ADB diagnostics](docs/adb-diagnostics.md)
+
+
 脚本会把 Wy Store 切到前台，把这些包加入队列，等待下载完成，通过 `pm` 会话（`pm install-create -i app.wystore`）逐个安装，并请求 Wy Store 确认安装。只有手机上的版本和签名与下载时校验过的一致，才会给出确认。退出码 0 表示全部安装成功。
 
 不用脚本时，同样的事情可以用针对 `content://app.wystore.agent` 的 `content call` 完成：
@@ -215,7 +220,7 @@ Wy Store 校验的是分发过程，而不是应用本身。已安装的程序�
 
 - 没有账号、没有注册、没有登录。
 - 没有统计分析、广告 SDK 或崩溃上报。
-- 没有服务端：请求直接发往 RuStore 和 GitHub，中间没有任何东西。
+- 请求发往 RuStore、GitHub、Wy Store Library 和文件存储。Library 上游凭据不在客户端中；无需登录 Google。
 - 客户端把自己标识为 `WyStore/<version>`，并且从不创建 RuStore 的 `User-Token`。
 - 应用保存的一切都留在设备上。备份按你的命令创建，并保存到你指定的地方。
 

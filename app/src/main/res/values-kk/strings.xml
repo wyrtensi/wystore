@@ -249,7 +249,7 @@
     <string name="settings_hub_notifications_title">Хабарландырулар</string>
     <string name="settings_hub_notifications_subtitle">Дайын жаңартулар, қателер, арналар</string>
     <string name="settings_hub_sources_title">Қолданба дереккөздері</string>
-    <string name="settings_hub_sources_subtitle">RuStore және GitHub Releases</string>
+    <string name="settings_hub_sources_subtitle">RuStore · GitHub · Wy Store</string>
     <string name="settings_hub_github_subtitle_count">Репозиторий: %1$d</string>
     <string name="settings_hub_github_subtitle_empty">APK орнату үшін репозиторий қосыңыз</string>
 
@@ -480,7 +480,7 @@
     <string name="disclaimer_body">Wy Store дереккөз жариялаған файлдарды ғана жүктеп алады және орнату алдында пакет атауын, нұсқасын және қолтаңбасын тексереді. Қолданбалардың өзін қарамайды, модерацияламайды және ұсынбайды, олардың мазмұнына, жұмысына және пайдалану салдарына жауап бермейді. Орнату — өз тәуекеліңізбен, жергілікті заңды сақтау — сіздің жауапкершілігіңіз.</string>
     <string name="disclaimer_source_rustore">Дереккөз: RuStore. Wy Store RuStore-мен байланысты емес.</string>
     <string name="disclaimer_source_github">Дереккөз: жоба жариялаған GitHub релиздері. Файлдарды Wy Store емес, әзірлеуші ұсынады.</string>
-    <string name="disclaimer_sources_both">Дереккөздер: RuStore және GitHub Releases. Wy Store олардың ешқайсысымен байланысты емес.</string>
+    <string name="disclaimer_sources_both">Дереккөздер: RuStore, GitHub Releases және Wy Store Library. Wy Store жобасының RuStore немесе GitHub-пен байланысы жоқ.</string>
     <string name="library_filter_title">Көрсету</string>
     <string name="library_filter_all">Барлығы</string>
     <string name="library_filter_empty">Бұл сүзгіге ештеңе сәйкес келмейді</string>

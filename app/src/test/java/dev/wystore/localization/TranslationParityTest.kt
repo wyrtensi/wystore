@@ -9,7 +9,7 @@ import org.junit.Test
 /**
  * What every translation has to hold before it ships.
  *
- * The interface is in six languages and nobody on this project reads all six, so a translation is
+ * The interface is in nine languages and nobody on this project reads all nine, so a translation is
  * checked the way the compiler checks code: a missing key is a crash at the moment the screen is
  * drawn, a dropped format argument is an IllegalFormatException in a language nobody runs, and an
  * unescaped apostrophe is a build that fails only once somebody touches resources. All three are

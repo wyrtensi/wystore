@@ -22,11 +22,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -81,9 +87,35 @@ fun TvMyAppsScreen(
     val pendingOnly = remember(packages, active) {
         packages.pendingUpdates.filter { pending -> active.none { it.packageName == pending.packageName } }
     }
+    val candidateKeys = active.map { "q-${it.id}" } + pendingOnly.map { "p-${it.listKey}" }
+    val currentKeys by rememberUpdatedState(candidateKeys)
+    val shouldTakeFocus by rememberUpdatedState(takeFocus)
+    val candidateFocus = remember { mutableMapOf<String, FocusRequester>() }
+    var focusedCandidate by remember { mutableStateOf<String?>(null) }
+    var previousKeys by remember { mutableStateOf(candidateKeys) }
     LaunchedEffect(Unit) { if (takeFocus) runCatching { firstFocus.requestFocus() } }
 
     val listState = rememberLazyListState()
+    LaunchedEffect(candidateKeys) {
+        val removed = focusedCandidate
+        if (removed != null && removed !in candidateKeys) {
+            focusedCandidate = null
+            val oldIndex = previousKeys.indexOf(removed)
+            val target = previousKeys.drop(oldIndex + 1).firstOrNull { it in candidateKeys }
+                ?: previousKeys.take(oldIndex).lastOrNull { it in candidateKeys }
+                ?: candidateKeys.firstOrNull()
+            if (shouldTakeFocus && target != null) {
+                listState.scrollToItem(candidateKeys.indexOf(target) + 2)
+                withFrameNanos { }
+                if (shouldTakeFocus) candidateFocus[target]?.requestFocus()
+            } else if (shouldTakeFocus) {
+                listState.scrollToItem(0)
+                withFrameNanos { }
+                if (shouldTakeFocus) firstFocus.requestFocus()
+            }
+        }
+        previousKeys = candidateKeys
+    }
     // Back from inside the screen sends the focus up to the menu; the screen goes back to its top
     // with it, so the menu is not left above a list scrolled halfway down.
     LaunchedEffect(takeFocus) { if (!takeFocus) listState.animateScrollToItem(0) }
@@ -158,7 +190,15 @@ fun TvMyAppsScreen(
                     iconUrl = packageIcons[item.packageName],
                     actions = actions,
                     onCancel = { onCancel(item.id) }.takeIf { item.status != InstallQueueStatus.INSTALLING },
-                    onWhatsNew = { onWhatsNew(item.packageName, item.label, item.githubRepository) }
+                    onWhatsNew = { onWhatsNew(item.packageName, item.label, item.githubRepository) },
+                    focusRequester = candidateFocus.getOrPut("q-${item.id}") { FocusRequester() },
+                    onFocusChanged = { focused ->
+                        val key = "q-${item.id}"
+                        // Removing a focused row can move focus to another row before the effect
+                        // runs; retain the removed key until the intended successor is chosen.
+                        if (focused && focusedCandidate?.let { it in currentKeys } != false) focusedCandidate = key
+                        else if (key in currentKeys && focusedCandidate == key) focusedCandidate = null
+                    }
                 )
                 }
             }
@@ -175,7 +215,13 @@ fun TvMyAppsScreen(
                     iconUrl = packageIcons[pending.packageName],
                     actions = actions,
                     onCancel = null,
-                    onWhatsNew = { onWhatsNew(pending.packageName, pending.label, pending.githubRepository) }
+                    onWhatsNew = { onWhatsNew(pending.packageName, pending.label, pending.githubRepository) },
+                    focusRequester = candidateFocus.getOrPut("p-${pending.listKey}") { FocusRequester() },
+                    onFocusChanged = { focused ->
+                        val key = "p-${pending.listKey}"
+                        if (focused && focusedCandidate?.let { it in currentKeys } != false) focusedCandidate = key
+                        else if (key in currentKeys && focusedCandidate == key) focusedCandidate = null
+                    }
                 )
                 }
             }
@@ -231,12 +277,15 @@ private fun TvPackageRow(
     iconUrl: String?,
     actions: TvPackageActions,
     onCancel: (() -> Unit)?,
-    onWhatsNew: (() -> Unit)? = null
+    onWhatsNew: (() -> Unit)? = null,
+    focusRequester: FocusRequester,
+    onFocusChanged: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     Row(
         Modifier
             .fillMaxWidth()
+            .onFocusChanged { onFocusChanged(it.hasFocus) }
             .padding(horizontal = 22.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -269,14 +318,16 @@ private fun TvPackageRow(
             TvSecondaryButton(
                 text = stringResource(R.string.details_changelog),
                 onClick = showNotes,
-                modifier = Modifier.padding(start = 16.dp)
+                modifier = Modifier.padding(start = 16.dp).then(
+                    if (onCancel == null) Modifier.focusRequester(focusRequester) else Modifier
+                )
             )
         }
         if (onCancel != null) {
             TvSecondaryButton(
                 text = stringResource(R.string.common_cancel),
                 onClick = onCancel,
-                modifier = Modifier.padding(start = 16.dp)
+                modifier = Modifier.padding(start = 16.dp).focusRequester(focusRequester)
             )
         }
     }

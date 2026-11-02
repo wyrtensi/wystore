@@ -15,19 +15,15 @@
 
 [Project site](https://wystore.ru/en/)
 
-[Русский](README.md) · **English** · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · [Oʻzbekcha](README.uz.md) · [Latviešu](README.lv.md) · [简体中文](README.zh.md)
+[Русский](README.md) · **English** · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · [Oʻzbekcha](README.uz.md) · [Latviešu](README.lv.md) · [简体中文](README.zh.md) · [Српски](README.sr.md)
 
 [Releases](https://github.com/wyrtensi/wystore/releases) · [Changelog](CHANGELOG.md) · [Privacy](PRIVACY.md) · [Security](SECURITY.md) · [Project statement](DISCLAIMER.md) · [Licence](LICENSE)
 
 </div>
 
-Wy Store is an Android client for the RuStore catalogue. It shows the same apps the RuStore app
-store serves, but downloads and installs them itself through Android's own package installer, and
-needs neither an account nor the RuStore client. GitHub releases are the second source, which is how the
-list also covers what RuStore does not carry.
+Wy Store is an Android app catalogue client. It downloads and installs apps through Android’s installer and needs neither an account nor the RuStore client.
 
-The project has no backend, no accounts, no analytics and no ads. The app talks only to
-`rustore.ru`, `github.com` and the storage those services serve their files from.
+The current working tree has three sources: RuStore, GitHub releases and [Wy Store Library](https://github.com/wyrtensi/wystore-library). The Library index is static JSON hosted on GitHub; upstream credentials are not in the client and users do not need to sign in to Google. There are no analytics or ads.
 
 The catalogue is aimed at users in Russia, so most of the content is in Russian; the interface
 itself ships in every language listed above.
@@ -43,9 +39,9 @@ here. See [DISCLAIMER.md](DISCLAIMER.md).
 
 ## Features
 
-- **Two sources in one list.** RuStore entries and releases from curated GitHub projects sit side by
-  side in search, on the home screen and in sections, each labelled with its source. Any public
-  repository can be added by URL.
+- **Three sources in one list.** RuStore, GitHub and Wy Store Library entries merge by package into one card with source badges and a choice of source. Any public GitHub repository can be added by URL.
+- **Library and installation.** Library has an ordinary Foreign category, with editorial exclusion available per app. Versions are checked before download and the complete selected split APK set is downloaded; integrity, package and signatures are checked before installation. Compatible signatures allow an update; otherwise removal and reinstallation require explicit consent and verification, and app data may be lost. The system and root installers are supported. If Google Play takes over updates, checks pause and can be resumed with explicit per-app consent.
+
 - **Catalogue sections.** RuStore sections as tiles on the home screen and on a separate all-sections
   page. Settings can switch to Wy Store's own set of sections instead.
 - **APK checks before install.** Package name, versionCode, completeness of the split-APK set and the
@@ -78,7 +74,7 @@ here. See [DISCLAIMER.md](DISCLAIMER.md).
 - **Installs over adb for agents and scripts.** A computer hands Wy Store a list of packages; the
   store fetches and verifies them, and they install with no dialog on the phone and no root, with Wy
   Store as their installer. See [Installing over adb](#installing-over-adb-no-root) below.
-- **Interface.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文.
+- **Interface.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文, Српски.
   The Wy Hub look on phone and TV: the dark theme is graphite rather than black, with a light and a
   system theme too; the Manrope typeface (Kazakh, Uzbek and Chinese keep the system typeface, which
   has all their letters); every state has its own colour: green for done, yellow for paused, blue
@@ -109,7 +105,7 @@ Phone, TV).
   tiles have glyphs, rows of cards run to the edges of the screen, and card names take up to three
   lines.
 - **Search.** By text or by voice. Results come from the TV catalogue — and, if the phone catalogue
-  is enabled, from all of RuStore — plus GitHub.
+  is enabled, from all of RuStore — plus GitHub and Wy Store Library.
 - **Catalogue.** RuStore has a separate catalogue for TVs. The **"Catalogue on the TV"** setting:
   "TV apps" (the default), "Phone apps" or "Both". In "Both" mode phone apps get rows of their own
   and are labelled "For phone": many of them are not made for a remote. Apps installed from either
@@ -262,6 +258,9 @@ updates come from the store from then on. It is meant for agents and scripts tha
 python tools/wystore_adb_install.py ru.ozon.app.android ru.nspk.mirpay
 ```
 
+[ADB diagnostics](docs/adb-diagnostics.md)
+
+
 The script brings Wy Store to the front, queues the packages, waits for the downloads, installs each
 through a `pm` session (`pm install-create -i app.wystore`) and asks Wy Store to confirm the install.
 Confirmation is given only when the version and signature on the phone are the ones verified at
@@ -314,7 +313,7 @@ and why not to a public issue.
 
 - No account, no registration, no sign-in.
 - No analytics, ad SDKs or crash reporters.
-- No backend: requests go straight to RuStore and GitHub, with nothing in between.
+- Requests go to RuStore, GitHub, Wy Store Library and file storage. Library upstream credentials are not in the client; Google sign-in is not required.
 - The client identifies itself as `WyStore/<version>` and never creates a RuStore `User-Token`.
 - Everything the app stores stays on the device. A backup is created on your command and saved
   wherever you point it.

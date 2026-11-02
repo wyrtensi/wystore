@@ -15,19 +15,15 @@
 
 [Loyiha sayti](https://wystore.ru/uz/)
 
-[Русский](README.md) · [English](README.en.md) · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · **Oʻzbekcha** · [Latviešu](README.lv.md) · [简体中文](README.zh.md)
+[Русский](README.md) · [English](README.en.md) · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · **Oʻzbekcha** · [Latviešu](README.lv.md) · [简体中文](README.zh.md) · [Српски](README.sr.md)
 
 [Relizlar](https://github.com/wyrtensi/wystore/releases) · [Oʻzgarishlar tarixi](CHANGELOG.md) · [Maxfiylik](PRIVACY.md) · [Xavfsizlik](SECURITY.md) · [Loyiha haqida bayonot](DISCLAIMER.md) · [Litsenziya](LICENSE)
 
 </div>
 
-Wy Store — Android uchun RuStore katalogi klienti. U RuStore ilovalar doʻkoni koʻrsatadigan
-ilovalarni koʻrsatadi, lekin ularni oʻzi yuklab oladi va tizim oʻrnatgichi orqali oʻzi oʻrnatadi,
-hamda na akkaunt, na oʻrnatilgan RuStore klientini talab qiladi. Ikkinchi manba — GitHub relizlari:
-shu tufayli roʻyxatga RuStore katalogida yoʻq narsalar ham tushadi.
+Wy Store — Android uchun ilovalar kataloglari klienti. U ilovalarni tizim oʻrnatgichi orqali yuklab oʻrnatadi va akkaunt yoki RuStore klientini talab qilmaydi.
 
-Loyihaning oʻz serveri, akkauntlari, analitikasi va reklamasi yoʻq. Ilova faqat `rustore.ru`,
-`github.com` va bu xizmatlarning oʻzi fayllarni tarqatadigan omborlarga murojaat qiladi.
+Joriy ishchi versiyada uchta manba bor: RuStore, GitHub relizlari va [Wy Store Library](https://github.com/wyrtensi/wystore-library). Library indeksi GitHubʼdagi statik JSON fayldir; yuqori xizmatning hisob maʼlumotlari klientga kiritilmagan, Googleʼga kirish talab qilinmaydi. Analitika va reklama yoʻq.
 
 Wy Store RuStore bilan bogʻliq emas va uning nomidan ish koʻrmaydi: bu yerda RuStore — maʼlumot
 manbai. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
@@ -40,9 +36,9 @@ manbai. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
 
 ## Imkoniyatlar
 
-- **Bitta roʻyxatda ikki manba.** RuStore kartochkalari va tanlab olingan GitHub loyihalarining
-  relizlari qidiruvda, bosh sahifada va boʻlimlarda yonma-yon turadi; har birida manbasi
-  koʻrsatilgan. Oʻzingizning ochiq repozitoriyingiz havola orqali qoʻshiladi.
+- **Bitta roʻyxatda uchta manba.** RuStore, GitHub va Wy Store Library yozuvlari paket boʻyicha manba belgilari va tanlovi bor bitta kartochkaga birlashtiriladi. Ochiq GitHub repozitoriyini havola orqali qoʻshish mumkin.
+- **Kutubxona va oʻrnatish.** Libraryʼda xorijiy ilovalarning oddiy boʻlimi bor; tahririyat ayrim ilovani undan chiqarishi mumkin. Versiya yuklashdan oldin tekshiriladi, tanlangan split APK toʻplami toʻliq yuklanadi; oʻrnatishdan oldin yaxlitlik, paket va imzo tekshiriladi. Mos imzo yangilashga imkon beradi; aks holda oʻchirish va qayta oʻrnatish aniq rozilik hamda tekshiruvni talab qiladi, maʼlumotlar yoʻqolishi mumkin. Tizim va root oʻrnatgichlari mavjud. Google Play yangilanishni oʻz zimmasiga olsa, tekshiruvlar toʻxtaydi; ularni oʻsha ilova uchun rozilik bilan davom ettirish mumkin.
+
 - **Katalog boʻlimlari.** RuStore boʻlimlari — bosh sahifada plitkalar koʻrinishida va barcha
   boʻlimlar bilan alohida ekranda. Sozlamalarda Wy Store oʻz boʻlimlar toʻplamiga oʻtish mumkin.
 - **Oʻrnatishdan oldin APK tekshiruvi.** Paket nomi, versionCode, split-APK toʻplamining toʻliqligi
@@ -77,7 +73,7 @@ manbai. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
   beradi, doʻkon ularni yuklab olib tekshiradi, ular esa telefonda oynalarsiz va rootsiz
   oʻrnatiladi; oʻrnatuvchi sifatida Wy Store yoziladi. Tafsilotlar —
   [adb orqali oʻrnatish](#adb-orqali-oʻrnatish-rootsiz) boʻlimida.
-- **Interfeys.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文.
+- **Interfeys.** Русский, English, Українська, Беларуская, Қазақша, Oʻzbekcha, Latviešu, 简体中文, Српски.
   Telefon va televizorda Wy Hub uslubi: qorongʻi mavzu qora emas, grafit rangda, yorugʻ va tizim
   mavzusi ham bor; Manrope shrifti (qozoq, oʻzbek va xitoy tillarida — barcha harflari bor tizim
   shrifti); har bir holatning oʻz rangi bor: yashil — tayyor, sariq — pauza, havorang — sizni
@@ -110,7 +106,7 @@ aniqlangan boʻlsa, turni **Sozlamalar → Tashqi koʻrinish → Qurilma turi** 
   plitkalarida belgilar bor, kartochka qatorlari ekran chetigacha yetadi, kartochkalardagi nomlar
   uch qatorgacha oladi.
 - **Qidiruv.** Matn yoki ovoz bilan. Natijalar — TV katalogidan, telefon katalogi yoqilgan boʻlsa,
-  butun RuStore dan ham, shuningdek GitHub dan.
+  butun RuStore dan ham, shuningdek GitHub va Wy Store Library dan.
 - **Katalog.** RuStore da televizorlar uchun alohida katalog bor. **«Televizordagi katalog»**
   sozlamasi: «Televizor uchun» (sukut boʻyicha), «Telefon uchun» yoki «Ikkalasi». «Ikkalasi»
   rejimida telefon ilovalari oʻz qatorlarida boradi va «Telefon uchun» deb belgilanadi: ularning
@@ -266,6 +262,9 @@ yangilanib boradi. Bu telefonni sozlaydigan agentlar va skriptlar uchun qulay.
 python tools/wystore_adb_install.py ru.ozon.app.android ru.nspk.mirpay
 ```
 
+[ADB diagnostics](docs/adb-diagnostics.md)
+
+
 Skript Wy Store ni old planga chiqaradi, paketlarni navbatga qoʻyadi, yuklab olishni kutadi, har birini
 `pm` sessiyasi orqali (`pm install-create -i app.wystore`) oʻrnatadi va Wy Store dan oʻrnatishni
 tasdiqlashni soʻraydi. Tasdiq faqat telefondagi versiya va imzo yuklab olishda tekshirilgan versiya va
@@ -321,7 +320,7 @@ nega ochiq masalaga emas.
 
 - Na akkaunt, na roʻyxatdan oʻtish, na tizimga kirish.
 - Analitika, reklama SDK lari va krash-reporterlar yoʻq.
-- Loyihaning serveri yoʻq: soʻrovlar vositachilarsiz toʻgʻridan-toʻgʻri RuStore va GitHub ga boradi.
+- Soʻrovlar RuStore, GitHub, Wy Store Library va fayl omborlariga yuboriladi. Library yuqori xizmatining hisob maʼlumotlari klientda yoʻq; Googleʼga kirish talab qilinmaydi.
 - Klient oʻzini `WyStore/<versiya>` deb tanishtiradi va RuStore ning `User-Token` ini yaratmaydi.
 - Ilova saqlaydigan hamma narsa qurilmada qoladi. Zaxira nusxa sizning buyrugʻingiz bilan yaratiladi
   va siz koʻrsatgan joyga saqlanadi.

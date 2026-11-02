@@ -9,7 +9,7 @@ values folder ("en" for the default one):
 
     {
       "library_select": {"en": "Select", "ru": "Выбрать", "be": "Выбраць", "uk": "Вибрати",
-                         "kk": "Таңдау", "lv": "Atlasīt", "uz": "Tanlash", "zh": "选择"}
+                         "kk": "Таңдау", "lv": "Atlasīt", "uz": "Tanlash", "sr": "Изабери", "zh": "选择"}
     }
 
 Nothing is written unless every key has text for every language: a missing translation would

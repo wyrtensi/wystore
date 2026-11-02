@@ -249,7 +249,7 @@
     <string name="settings_hub_notifications_title">Сповіщення</string>
     <string name="settings_hub_notifications_subtitle">Готові оновлення, помилки, канали</string>
     <string name="settings_hub_sources_title">Джерела застосунків</string>
-    <string name="settings_hub_sources_subtitle">RuStore та GitHub Releases</string>
+    <string name="settings_hub_sources_subtitle">RuStore · GitHub · Wy Store</string>
     <string name="settings_hub_github_subtitle_count">Репозиторіїв: %1$d</string>
     <string name="settings_hub_github_subtitle_empty">Додайте репозиторій для встановлення APK</string>
 
@@ -480,7 +480,7 @@
     <string name="disclaimer_body">Wy Store лише завантажує файли, опубліковані джерелом, і перед встановленням перевіряє ім\'я пакета, версію та підпис. Застосунки не перевіряються, не модеруються і не рекомендуються: Wy Store не відповідає за їхній вміст, роботу та наслідки використання. Встановлення — на ваш страх і ризик, дотримання законодавства — ваша відповідальність.</string>
     <string name="disclaimer_source_rustore">Джерело: RuStore. Wy Store не пов\'язаний з RuStore.</string>
     <string name="disclaimer_source_github">Джерело: релізи проєкту на GitHub. Файли публікує розробник, а не Wy Store.</string>
-    <string name="disclaimer_sources_both">Джерела: RuStore і релізи на GitHub. Wy Store не пов\'язаний з жодним із них.</string>
+    <string name="disclaimer_sources_both">Джерела: RuStore, GitHub Releases і Wy Store Library. Wy Store не пов’язаний із RuStore або GitHub.</string>
     <string name="library_filter_title">Показати</string>
     <string name="library_filter_all">Усі</string>
     <string name="library_filter_empty">Під цей фільтр нічого не підходить</string>

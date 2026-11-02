@@ -5,6 +5,7 @@ import android.app.NotificationChannelGroup
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import dev.wystore.R
@@ -290,18 +291,25 @@ class NotificationCoordinator(
 
     fun publishGooglePlayPause(items: List<ManagedApp>) {
         val settings = settings()
-        val digest = NotificationPolicy.digestOf(items.map { it.packageName })
-        val decision = NotificationPolicy.decide(
-            categoryEnabled = settings.errorNotificationsEnabled,
-            digest = digest,
-            lastPublishedDigest = state.lastDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE),
-            quietHours = quietNow(settings)
-        )
-        if (!decision.post) {
-            notificationManager.cancel(NOTIFICATION_ID_GOOGLE_PLAY_PAUSE)
-            // Keep the digest when an override is toggled: the same attribution is not new news.
-            return
+        val packages = items.mapTo(mutableSetOf()) { it.packageName }
+        val currentDigest = NotificationPolicy.digestOf(packages)
+        val notified = state.lastDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE)
+            .orEmpty().split('|').filterTo(mutableSetOf()) { it.isNotBlank() }
+        val action = GooglePlayPauseNotificationPolicy.decide(settings.errorNotificationsEnabled, packages, notified)
+        when (action) {
+            PauseNotificationAction.CANCEL -> {
+                notificationManager.cancel(NOTIFICATION_ID_GOOGLE_PLAY_PAUSE)
+                return
+            }
+            PauseNotificationAction.KEEP -> {
+                val active = notificationManager.activeNotifications
+                    .firstOrNull { it.id == NOTIFICATION_ID_GOOGLE_PLAY_PAUSE } ?: return
+                if (active.notification.extras.getString(EXTRA_GOOGLE_PLAY_PAUSE_DIGEST) == currentDigest) return
+            }
+            PauseNotificationAction.PUBLISH -> Unit
         }
+        if (!notificationManager.areNotificationsEnabled() ||
+            notificationManager.getNotificationChannel(CHANNEL_ERRORS)?.importance == NotificationManager.IMPORTANCE_NONE) return
         val names = items.sortedBy { it.packageName }.joinToString(", ") { it.label.ifBlank { it.packageName } }
         val text = appContext.getString(R.string.google_play_pause_notification_text, names)
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ERRORS)
@@ -313,10 +321,13 @@ class NotificationCoordinator(
             .setContentIntent(NotificationIntentFactory.createLibraryPendingIntent(appContext))
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
-            .setSilent(!decision.alert)
+            .setSilent(action == PauseNotificationAction.KEEP || quietNow(settings))
+            .addExtras(Bundle().apply { putString(EXTRA_GOOGLE_PLAY_PAUSE_DIGEST, currentDigest) })
             .build()
-        safeNotify(NOTIFICATION_ID_GOOGLE_PLAY_PAUSE, notification)
-        state.recordDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE, digest)
+        if (safeNotify(NOTIFICATION_ID_GOOGLE_PLAY_PAUSE, notification)) {
+            state.recordDigest(NotificationState.CATEGORY_GOOGLE_PLAY_PAUSE,
+                NotificationPolicy.digestOf(notified + packages))
+        }
     }
 
     fun cancelReady() {
@@ -361,20 +372,22 @@ class NotificationCoordinator(
     /** The tint Android puts on the small icon and the app name; without it the entry is grey. */
     private fun accentColor(): Int = ContextCompat.getColor(appContext, R.color.notification_accent)
 
-    private fun safeNotify(id: Int, notification: android.app.Notification) {
+    private fun safeNotify(id: Int, notification: android.app.Notification): Boolean =
         try {
             notificationManager.notify(id, notification)
+            true
         } catch (e: SecurityException) {
             // Permission denied on Android 13+; leave Room state unchanged
             android.util.Log.w("NotificationCoordinator", "Notification permission denied", e)
+            false
         }
-    }
 
     private fun createChannels() {
         ensureChannels(appContext)
     }
 
     companion object {
+        private const val EXTRA_GOOGLE_PLAY_PAUSE_DIGEST = "dev.wystore.google_play_pause_digest"
 
         /**
          * Creates the channels this app posts to, from anywhere, without building a coordinator.

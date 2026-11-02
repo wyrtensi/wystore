@@ -249,7 +249,7 @@
     <string name="settings_hub_notifications_title">Bildirishnomalar</string>
     <string name="settings_hub_notifications_subtitle">Tayyor yangilanishlar, xatolar, kanallar</string>
     <string name="settings_hub_sources_title">Ilova manbalari</string>
-    <string name="settings_hub_sources_subtitle">RuStore va GitHub Releases</string>
+    <string name="settings_hub_sources_subtitle">RuStore · GitHub · Wy Store</string>
     <string name="settings_hub_github_subtitle_count">Repozitoriylar: %1$d</string>
     <string name="settings_hub_github_subtitle_empty">APK oʻrnatish uchun repozitoriy qoʻshing</string>
 
@@ -480,7 +480,7 @@
     <string name="disclaimer_body">Wy Store faqat manba eʼlon qilgan fayllarni yuklab oladi va oʻrnatishdan oldin package name, versiya va imzoni tekshiradi. Ilovalarning oʻzini koʻrib chiqmaydi, moderatsiya qilmaydi va tavsiya etmaydi hamda ularning mazmuni, ishlashi va foydalanish oqibatlari uchun javob bermaydi. Oʻrnatish — oʻz xavfingiz ostida, mahalliy qonunchilikka rioya qilish esa sizning masʼuliyatingiz.</string>
     <string name="disclaimer_source_rustore">Manba: RuStore. Wy Store RuStore bilan bogʻliq emas.</string>
     <string name="disclaimer_source_github">Manba: loyiha eʼlon qilgan GitHub relizlari. Fayllarni Wy Store emas, ishlab chiquvchi joylaydi.</string>
-    <string name="disclaimer_sources_both">Manbalar: RuStore va GitHub Releases. Wy Store ularning hech biri bilan bogʻliq emas.</string>
+    <string name="disclaimer_sources_both">Manbalar: RuStore, GitHub Releases va Wy Store Library. Wy Store RuStore yoki GitHub bilan bogʻliq emas.</string>
     <string name="library_filter_title">Koʻrsatish</string>
     <string name="library_filter_all">Barchasi</string>
     <string name="library_filter_empty">Bu filtrga hech narsa mos kelmaydi</string>

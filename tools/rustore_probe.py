@@ -9,14 +9,17 @@ like the package being gone. With them a 404 carries RuStore's own reason - for 
 offered for installation. The app treats any 4xx as "not in RuStore" (RuStoreRateLimitPolicy).
 """
 import json
+import re
 import sys
+from pathlib import Path
 import urllib.error
 import urllib.request
 
 API = "https://backapi.rustore.ru/applicationData/overallInfo/{}"
 PAGE = "https://www.rustore.ru/catalog/app/{}"
-# RuStoreApiCompatibilityPolicy.DEFAULT_VERSION_CODE; the app may have learned a newer one.
-VERSION_CODE = "111103"
+# Use the same pinned header as the app rather than maintaining a second version constant.
+POLICY = Path(__file__).resolve().parents[1] / "app/src/main/java/dev/wystore/data/RuStoreApiCompatibilityPolicy.kt"
+VERSION_CODE = re.search(r"const val DEFAULT_VERSION_CODE = ([\d_]+)L", POLICY.read_text(encoding="utf-8")).group(1).replace("_", "")
 
 
 def get(url: str, api: bool):

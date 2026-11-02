@@ -249,7 +249,7 @@
     <string name="settings_hub_notifications_title">Notifications</string>
     <string name="settings_hub_notifications_subtitle">Ready updates, errors, channels</string>
     <string name="settings_hub_sources_title">App sources</string>
-    <string name="settings_hub_sources_subtitle">RuStore and GitHub Releases</string>
+    <string name="settings_hub_sources_subtitle">RuStore · GitHub · Wy Store</string>
     <string name="settings_hub_github_subtitle_count">Repositories: %1$d</string>
     <string name="settings_hub_github_subtitle_empty">Add a repository to install APKs</string>
 
@@ -480,7 +480,7 @@
     <string name="disclaimer_body">Wy Store only downloads files published by the source and checks the package name, version and signature before installing. It does not review, moderate or endorse the apps themselves, and is not responsible for their content, behaviour or consequences of use. You install at your own risk and are responsible for complying with your local law.</string>
     <string name="disclaimer_source_rustore">Source: RuStore. Wy Store is not affiliated with RuStore.</string>
     <string name="disclaimer_source_github">Source: GitHub releases published by the project. Files come from the developer, not from Wy Store.</string>
-    <string name="disclaimer_sources_both">Sources: RuStore and GitHub Releases. Wy Store is not affiliated with either.</string>
+    <string name="disclaimer_sources_both">Sources: RuStore, GitHub Releases and Wy Store Library. Wy Store is not affiliated with RuStore or GitHub.</string>
     <string name="library_filter_title">Show</string>
     <string name="library_filter_all">All</string>
     <string name="library_filter_empty">Nothing matches this filter</string>

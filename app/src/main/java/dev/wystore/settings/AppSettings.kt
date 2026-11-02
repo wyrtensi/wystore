@@ -34,6 +34,7 @@ enum class AppLanguage(val tag: String, val endonym: String) {
     KK("kk", "Қазақша"),
     UZ("uz", "Oʻzbekcha"),
     LV("lv", "Latviešu"),
+    SR("sr", "Српски"),
     ZH("zh", "简体中文")
 }
 

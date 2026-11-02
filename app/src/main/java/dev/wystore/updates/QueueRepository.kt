@@ -849,6 +849,84 @@ class QueueRepository(
         prepared
     }
 
+    /** Keeps only the latest queued release of the store itself, including after delayed checks. */
+    suspend fun enqueueSelfUpdate(
+        packageName: String,
+        label: String,
+        versionName: String,
+        versionCode: Long,
+        source: ManagedSource,
+        githubRepository: GitHubRepository,
+        githubReleaseId: Long
+    ): UpdateQueueEntity = withContext(Dispatchers.IO) {
+        require(packageName == context.packageName && source == ManagedSource.GITHUB &&
+            githubRepository.owner.equals("wyrtensi", true) && githubRepository.name.equals("wystore", true))
+        val revision = dev.wystore.data.StoreRepository(context).sourceRevision(packageName)
+        val removed = mutableListOf<Pair<String, List<String>>>()
+        val selected = database.withTransaction {
+            val rows = dao.getByPackage(packageName)
+            val newer = rows.filter(SupersededDownloads::isSelfUpdate)
+                .filter { dev.wystore.selfupdate.SelfUpdateVersion.isNewer(it.versionName, versionName) }
+                .maxWithOrNull { a, b ->
+                    dev.wystore.selfupdate.SelfUpdateVersion.compare(
+                        checkNotNull(dev.wystore.selfupdate.SelfUpdateVersion.parse(a.versionName)),
+                        checkNotNull(dev.wystore.selfupdate.SelfUpdateVersion.parse(b.versionName))
+                    )
+                }
+            val row = newer ?: CheckedUpdateRow.merge(
+                existing = CheckedUpdateRow.existing(rows.filter(SupersededDownloads::isSelfUpdate), versionCode, source.name, githubReleaseId),
+                newId = UUID.randomUUID().toString(), packageName = packageName, label = label,
+                versionName = versionName, versionCode = versionCode, source = source.name, priority = 0,
+                githubRepositoryOwner = githubRepository.owner, githubRepositoryName = githubRepository.name,
+                githubReleaseId = githubReleaseId, now = System.currentTimeMillis()
+            ).copy(sourceRevision = revision).also { dao.upsertAtomic(it) }
+            removeObsoleteSelfUpdates(dao.getByPackage(packageName), row.id, removed)
+            checkNotNull(dao.getById(row.id))
+        }
+        finishSelfUpdateCleanup(removed)
+        selected
+    }
+
+    /** Called inside a database transaction so a transfer or install cannot claim a removed row. */
+    private suspend fun removeObsoleteSelfUpdates(
+        rows: List<UpdateQueueEntity>, keepId: String?, removed: MutableList<Pair<String, List<String>>>
+    ) {
+        val self = rows.filter(SupersededDownloads::isSelfUpdate)
+        for (old in SupersededDownloads.superseded(self, keepId)) {
+            if (dao.getSession(old.id) != null) continue
+            val newer = self.filter { it.id != old.id &&
+                dev.wystore.selfupdate.SelfUpdateVersion.isNewer(it.versionName, old.versionName) }
+                .maxWithOrNull { a, b ->
+                    dev.wystore.selfupdate.SelfUpdateVersion.compare(
+                        checkNotNull(dev.wystore.selfupdate.SelfUpdateVersion.parse(a.versionName)),
+                        checkNotNull(dev.wystore.selfupdate.SelfUpdateVersion.parse(b.versionName))
+                    )
+                } ?: continue
+            val current = dao.getById(newer.id) ?: continue
+            dao.update(current.copy(
+                priority = maxOf(current.priority, old.priority),
+                requiresUpdateOwnership = current.requiresUpdateOwnership || old.requiresUpdateOwnership,
+                requiresUserConfirmation = current.requiresUserConfirmation || old.requiresUserConfirmation
+            ))
+            removed += old.id to dao.getArtifactsForQueue(old.id).map { it.path }
+            dao.deleteById(old.id)
+        }
+    }
+
+    private fun finishSelfUpdateCleanup(removed: List<Pair<String, List<String>>>) {
+        for ((id, paths) in removed) {
+            dev.wystore.background.TransferDispatcher.cancel(context, id)
+            paths.forEach { File(it).delete() }
+            File(rootDirectory, id).deleteRecursively()
+        }
+    }
+
+    private suspend fun discardObsoleteSelfUpdates(keepId: String? = null) {
+        val removed = mutableListOf<Pair<String, List<String>>>()
+        database.withTransaction { removeObsoleteSelfUpdates(dao.getByPackage(context.packageName), keepId, removed) }
+        finishSelfUpdateCleanup(removed)
+    }
+
     /**
      * Prepares the queue for a manual install or update of [packageName].
      *
@@ -970,7 +1048,8 @@ class QueueRepository(
      * [SupersededDownloads]. [keepId] is the row the caller is still working on.
      */
     suspend fun discardSuperseded(packageName: String, keepId: String? = null) = withContext(Dispatchers.IO) {
-        SupersededDownloads.superseded(dao.getByPackage(packageName), keepId).forEach { discard(it.id) }
+        SupersededDownloads.superseded(dao.getByPackage(packageName).filterNot(SupersededDownloads::isSelfUpdate), keepId).forEach { discard(it.id) }
+        if (packageName == context.packageName) discardObsoleteSelfUpdates(keepId)
     }
 
     /**
@@ -996,7 +1075,8 @@ class QueueRepository(
 
     /** The same for every package, for the duplicates written before downloads replaced each other. */
     suspend fun discardAllSuperseded() = withContext(Dispatchers.IO) {
-        SupersededDownloads.superseded(dao.getAll()).forEach { discard(it.id) }
+        SupersededDownloads.superseded(dao.getAll().filterNot(SupersededDownloads::isSelfUpdate)).forEach { discard(it.id) }
+        discardObsoleteSelfUpdates()
     }
 
     suspend fun remove(packageName: String) = withContext(Dispatchers.IO) {

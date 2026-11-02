@@ -72,7 +72,7 @@ class StoreBackupTest {
 
         assertEquals(1105002L, restored.ruStoreCompatibility.apiVersionCode)
         assertEquals(
-            111103L,
+            RuStoreApiCompatibilityPolicy.DEFAULT_VERSION_CODE,
             RuStoreApiCompatibilityPolicy.codeFromBackup(restored.version, restored.ruStoreCompatibility.apiVersionCode)
         )
     }

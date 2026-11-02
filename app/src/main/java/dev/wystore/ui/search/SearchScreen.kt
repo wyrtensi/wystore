@@ -1,9 +1,10 @@
 package dev.wystore.ui.search
 
 import androidx.compose.material.icons.outlined.Warning
-import dev.wystore.ui.components.fadingTopEdge
 import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubTextAction
+import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -104,7 +105,7 @@ import dev.wystore.ui.components.formatSize
 import dev.wystore.ui.components.formatSpeed
 import dev.wystore.ui.components.queueStatusLabel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
@@ -170,12 +171,10 @@ fun SearchScreen(
     }
     val hasResults = visibleApps.isNotEmpty() || visibleGitHub.isNotEmpty()
 
-    // The Wy Hub screen, scrolling as one: the header and the field go up with the results, so a
-    // long list of them has the whole screen.
+    // Keep the editable query above scrolling results so another search never requires a trip back to the top.
     Column(modifier = modifier.fillMaxSize().statusBarsPadding()) {
         LazyColumn(
-            // Shelves scrolled up under the status bar dissolve rather than end on a cut.
-            modifier = Modifier.fillMaxSize().fadingTopEdge(12.dp),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = ScreenPadding,
                 end = ScreenPadding,
@@ -193,7 +192,7 @@ fun SearchScreen(
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
-            item {
+            stickyHeader(key = "search-field") {
                 LaunchedEffect(autoFocus) {
                     if (!autoFocus) return@LaunchedEffect
                     // The field sits inside a LazyColumn item and only opens its IME input session
@@ -211,7 +210,8 @@ fun SearchScreen(
                     onAutoFocusConsumed()
                 }
                 Column(
-                    modifier = Modifier.padding(bottom = 16.dp),
+                    modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
+                        .padding(top = 6.dp, bottom = 10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     // A filled field with no visible box outline, so the search input reads like the
@@ -261,6 +261,13 @@ fun SearchScreen(
                             disabledIndicatorColor = Color.Transparent
                         )
                     )
+                }
+            }
+            item(key = "search-filters") {
+                Column(
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     // One source left is no choice to offer.
                     if (githubEnabled || libraryEnabled) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         SearchSources.entries.filter { (it != SearchSources.GITHUB || githubEnabled) &&

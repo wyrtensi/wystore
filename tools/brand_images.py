@@ -11,7 +11,7 @@ to either is one edit and a rerun.
 
 Each picture is an HTML page rendered by headless Edge (or Chrome) - the same Manrope the site
 serves, real gradients - and then cut to size with Pillow. The banners carry no sentence: the
-name, the two sources, and badges for Android, Android TV and open source. Only the last badge
+name, the three sources, and badges for Android, Android TV and open source. Only the last badge
 has words, so there is a Russian and an English file of each and nothing more.
 """
 import argparse
@@ -189,7 +189,7 @@ html, body {{ margin: 0; width: {w}px; height: {h}px; overflow: hidden; backgrou
 <svg class="ghost" viewBox="0 0 {w} {h}"><g transform="translate({w - ghost_h * 1.05:.1f} {h * 0.5 - ghost_h * 0.5:.1f}) scale({ghost_scale:.3f}) translate(-27 -36.7)">
   <path d="{MARK}" fill="none" stroke="{ghost}" stroke-width="{1.4 / ghost_scale:.3f}"/></g></svg>
 <div class="row"><div class="icon">{icon_svg("b")}</div>
-  <div class="text"><div class="eyebrow">RuStore · GitHub</div><div class="name">Wy Store</div>{badges}</div></div>
+  <div class="text"><div class="eyebrow">RuStore · GitHub · Wy Store</div><div class="name">Wy Store</div>{badges}</div></div>
 {frame}
 </div></body></html>"""
 
@@ -255,7 +255,7 @@ html, body {{ margin: 0; width: {w}px; height: {h}px; overflow: hidden; backgrou
   </g>
 </svg>
 <div class="row"><div class="icon">{icon_svg("b")}</div>
-  <div class="text"><div class="eyebrow">RuStore · GitHub</div><div class="name">Wy Store</div>{badges}</div></div>
+  <div class="text"><div class="eyebrow">RuStore · GitHub · Wy Store</div><div class="name">Wy Store</div>{badges}</div></div>
 </body></html>"""
 
 

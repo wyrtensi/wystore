@@ -54,6 +54,7 @@ import coil.compose.AsyncImage
 import dev.wystore.R
 import dev.wystore.data.InstalledApp
 import dev.wystore.data.StoreApp
+import dev.wystore.data.ManagedSource
 import dev.wystore.ui.components.AppIcon
 import dev.wystore.ui.components.formatDownloads
 import dev.wystore.ui.components.formatCountInFull
@@ -324,7 +325,7 @@ fun TvDetailsScreen(
 
             // The reviews the page came with, in a row: each focusable, so the remote can move along
             // them and a long one is brought fully into view.
-            if (app.reviews.isNotEmpty()) {
+            if (app.source == ManagedSource.RUSTORE && app.reviews.isNotEmpty()) {
                 item(key = "reviews") {
                     TvSectionTitle(stringResource(R.string.details_reviews))
                     LazyRow(

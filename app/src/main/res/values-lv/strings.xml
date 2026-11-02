@@ -249,7 +249,7 @@
     <string name="settings_hub_notifications_title">Paziņojumi</string>
     <string name="settings_hub_notifications_subtitle">Gatavie atjauninājumi, kļūdas, kanāli</string>
     <string name="settings_hub_sources_title">Lietotņu avoti</string>
-    <string name="settings_hub_sources_subtitle">RuStore un GitHub Releases</string>
+    <string name="settings_hub_sources_subtitle">RuStore · GitHub · Wy Store</string>
     <string name="settings_hub_github_subtitle_count">Repozitoriji: %1$d</string>
     <string name="settings_hub_github_subtitle_empty">Pievieno repozitoriju, lai instalētu APK</string>
 
@@ -480,7 +480,7 @@
     <string name="disclaimer_body">Wy Store tikai lejupielādē avota publicētos failus un pirms instalēšanas pārbauda pakotnes nosaukumu, versiju un parakstu. Pašas lietotnes tas nepārskata, nemoderē un neiesaka, kā arī neatbild par to saturu, darbību vai lietošanas sekām. Tu instalē uz savu risku un atbildi par vietējo likumu ievērošanu.</string>
     <string name="disclaimer_source_rustore">Avots: RuStore. Wy Store nav saistīts ar RuStore.</string>
     <string name="disclaimer_source_github">Avots: GitHub laidieni, ko publicē pats projekts. Failus dod izstrādātājs, nevis Wy Store.</string>
-    <string name="disclaimer_sources_both">Avoti: RuStore un GitHub Releases. Wy Store nav saistīts ne ar vienu no tiem.</string>
+    <string name="disclaimer_sources_both">Avoti: RuStore, GitHub Releases un Wy Store Library. Wy Store nav saistīts ar RuStore vai GitHub.</string>
     <string name="library_filter_title">Rādīt</string>
     <string name="library_filter_all">Visas</string>
     <string name="library_filter_empty">Šim filtram nekas neatbilst</string>

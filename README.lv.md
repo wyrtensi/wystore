@@ -15,19 +15,15 @@
 
 [Projekta vietne](https://wystore.ru/lv/)
 
-[Русский](README.md) · [English](README.en.md) · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · [Oʻzbekcha](README.uz.md) · **Latviešu** · [简体中文](README.zh.md)
+[Русский](README.md) · [English](README.en.md) · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · [Oʻzbekcha](README.uz.md) · **Latviešu** · [简体中文](README.zh.md) · [Српски](README.sr.md)
 
 [Laidieni](https://github.com/wyrtensi/wystore/releases) · [Izmaiņu žurnāls](CHANGELOG.md) · [Privātums](PRIVACY.md) · [Drošība](SECURITY.md) · [Paziņojums par projektu](DISCLAIMER.md) · [Licence](LICENSE)
 
 </div>
 
-Wy Store ir RuStore kataloga klients Android platformai. Tas rāda tās pašas lietotnes, ko izdala
-RuStore lietotņu veikals, bet lejupielādē un instalē tās pats, izmantojot Android sistēmas pakotņu
-instalētāju, un tam nav vajadzīgs ne konts, ne RuStore klients. Otrs avots ir GitHub laidieni — tā
-sarakstā nonāk arī tas, kā RuStore nav.
+Wy Store ir Android lietotņu katalogu klients. Tas lejupielādē un instalē lietotnes ar sistēmas instalētāju, neprasot kontu vai RuStore klientu.
 
-Projektam nav sava servera, kontu, analītikas un reklāmas. Lietotne vēršas tikai pie `rustore.ru`,
-`github.com` un krātuvēm, no kurām šie servisi paši izdala savus failus.
+Pašreizējā darba versijā ir trīs avoti: RuStore, GitHub laidieni un [Wy Store Library](https://github.com/wyrtensi/wystore-library). Library indekss ir statisks JSON fails GitHub; augšējā pakalpojuma piekļuves dati klientā neatrodas, un lietotājam nav jāpiesakās Google. Analītikas un reklāmu nav.
 
 Katalogs ir domāts lietotājiem Krievijā, tāpēc lielākā daļa satura ir krievu valodā; pats interfeiss
 ir pieejams visās iepriekš uzskaitītajās valodās.
@@ -43,9 +39,9 @@ Wy Store nav saistīts ar RuStore un nedarbojas tā vārdā: RuStore šeit ir da
 
 ## Iespējas
 
-- **Divi avoti vienā sarakstā.** RuStore ieraksti un atlasīto GitHub projektu laidieni ir blakus
-  meklēšanā, sākuma ekrānā un sadaļās; katram ir norādīts tā avots. Jebkuru publisku repozitoriju
-  var pievienot ar saiti.
+- **Trīs avoti vienā sarakstā.** RuStore, GitHub un Wy Store Library ieraksti pēc pakotnes tiek apvienoti vienā kartītē ar avotu atzīmēm un izvēli. Publisku GitHub repozitoriju var pievienot ar saiti.
+- **Bibliotēka un instalēšana.** Library ir parasta ārvalstu lietotņu kategorija, no kuras redakcija var izslēgt atsevišķas lietotnes. Versiju pārbauda pirms lejupielādes un lejupielādē visu izvēlēto split APK kopu; pirms instalēšanas pārbauda integritāti, pakotni un parakstu. Saderīgs paraksts ļauj atjaunināt; citādi dzēšanai un atkārtotai instalēšanai vajadzīga skaidra piekrišana un pārbaude, un dati var pazust. Pieejams sistēmas un root instalētājs. Ja Google Play pārņem atjauninājumus, pārbaudes aptur; tās var turpināt ar skaidru piekrišanu konkrētai lietotnei.
+
 - **Kataloga sadaļas.** RuStore sadaļas kā elementi sākuma ekrānā un atsevišķā visu sadaļu lapā.
   Iestatījumos to vietā var pārslēgties uz Wy Store paša sadaļu kopu.
 - **APK pārbaude pirms instalēšanas.** Pakotnes nosaukums, versionCode, split-APK komplekta pilnība
@@ -110,7 +106,7 @@ veids** (Automātiski, Tālrunis, Televizors).
 - **Izskats.** Tas pats Wy Hub, kas tālrunī, ar tādu pašu akcenta krāsas izvēli: sadaļu elementiem ir
   ikonas, kartīšu rindas sniedzas līdz ekrāna malām, un nosaukumi uz kartītēm aizņem līdz trim rindām.
 - **Meklēšana.** Ar tekstu vai balsi. Rezultāti nāk no TV kataloga, bet, ja ieslēgts tālruņa
-  katalogs, arī no visa RuStore, plus GitHub.
+  katalogs, arī no visa RuStore, kā arī no GitHub un Wy Store Library.
 - **Katalogs.** RuStore ir atsevišķs katalogs televizoriem. Iestatījums **„Katalogs televizorā“**:
   „Televizoram“ (pēc noklusējuma), „Tālrunim“ vai „Abi“. Režīmā „Abi“ tālruņa lietotnes ir savās
   rindās un atzīmētas ar „Tālrunim“: daudzas no tām nav paredzētas pultij. No jebkura kataloga
@@ -268,6 +264,9 @@ domāts aģentiem un skriptiem, kas iestata telefonu.
 python tools/wystore_adb_install.py ru.ozon.app.android ru.nspk.mirpay
 ```
 
+[ADB diagnostics](docs/adb-diagnostics.md)
+
+
 Skripts izceļ Wy Store priekšplānā, ieliek pakotnes rindā, gaida lejupielādes, instalē katru caur
 `pm` sesiju (`pm install-create -i app.wystore`) un lūdz Wy Store apstiprināt instalēšanu.
 Apstiprinājums tiek dots tikai tad, ja versija un paraksts telefonā ir tie, kas pārbaudīti
@@ -321,7 +320,7 @@ kāpēc ne publiskā uzdevumā.
 
 - Nav konta, nav reģistrācijas, nav pieteikšanās.
 - Nav analītikas, reklāmas SDK vai avāriju ziņotāju.
-- Nav sava servera: pieprasījumi iet tieši uz RuStore un GitHub, bez nekā pa vidu.
+- Pieprasījumi nonāk RuStore, GitHub, Wy Store Library un failu krātuvēs. Library augšējā pakalpojuma piekļuves dati klientā nav iekļauti; Google pieteikšanās nav vajadzīga.
 - Klients piesakās kā `WyStore/<version>` un nekad neizveido RuStore `User-Token`.
 - Viss, ko lietotne glabā, paliek ierīcē. Rezerves kopija tiek izveidota pēc jūsu komandas un
   saglabāta tur, kur jūs norādāt.

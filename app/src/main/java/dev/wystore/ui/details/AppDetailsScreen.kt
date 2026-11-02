@@ -78,6 +78,7 @@ import dev.wystore.data.PendingUpdate
 import dev.wystore.data.ReviewSummary
 import dev.wystore.data.StoreReview
 import dev.wystore.data.StoreApp
+import dev.wystore.data.ManagedSource
 import dev.wystore.ui.components.UninstallIconButton
 import dev.wystore.data.SignatureCompatibility
 import dev.wystore.data.SignatureCompatibilityPolicy
@@ -473,7 +474,7 @@ fun AppDetailsScreen(
 
             // Shown even with nothing embedded in the card: the source publishes reviews on a page
             // of their own, and an app whose card carries none used to offer no way to reach them.
-            if (app.reviews.isNotEmpty() || canLoadMoreReviews) {
+            if (app.source == ManagedSource.RUSTORE && (app.reviews.isNotEmpty() || canLoadMoreReviews)) {
                 val filtered = ReviewSummary.filter(app.reviews, reviewStars)
                 item {
                     SectionHeader(

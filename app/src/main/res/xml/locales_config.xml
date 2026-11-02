@@ -7,5 +7,6 @@
    <locale android:name="kk"/>
    <locale android:name="uz"/>
    <locale android:name="lv"/>
+   <locale android:name="sr"/>
    <locale android:name="zh"/>
 </locale-config>

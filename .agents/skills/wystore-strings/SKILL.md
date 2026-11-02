@@ -5,8 +5,8 @@ description: Add or change user-visible text in Wy Store in every language it sh
 
 # Strings in every language
 
-Wy Store ships eight languages: English (`values`), Russian, Belarusian, Ukrainian, Kazakh,
-Latvian, Uzbek and Chinese (`values-ru`, `-be`, `-uk`, `-kk`, `-lv`, `-uz`, `-zh`). A new string
+Wy Store ships nine languages: English (`values`), Russian, Belarusian, Ukrainian, Kazakh,
+Latvian, Uzbek, Serbian Cyrillic and Chinese (`values-ru`, `-be`, `-uk`, `-kk`, `-lv`, `-uz`, `-sr`, `-zh`). A new string
 goes into all of them in the same change. A missing one falls back to English on that phone, and
 `TranslationParityTest` fails the build.
 
@@ -20,7 +20,7 @@ goes into all of them in the same change. A missing one falls back to English on
    ```json
    {
      "library_select": {"en": "Select", "ru": "Выбрать", "be": "Выбраць", "uk": "Вибрати",
-                        "kk": "Таңдау", "lv": "Atlasīt", "uz": "Tanlash", "zh": "选择"}
+                        "kk": "Таңдау", "lv": "Atlasīt", "uz": "Tanlash", "sr": "Изабери", "zh": "选择"}
    }
    ```
 
@@ -45,5 +45,7 @@ goes into all of them in the same change. A missing one falls back to English on
   1.15. Long text belongs in a description line, not on a button.
 - Uzbek uses the modifier letter `ʻ` (U+02BB) in oʻ / gʻ and `’` in loanword apostrophes, as the
   existing strings do.
+- Serbian uses Cyrillic under `values-sr`; keep brand names unchanged and preserve explicit
+  warnings about uninstalling, data loss and signature checks.
 - After adding, look at the screen in at least Russian or English on a device when the text is new
   UI (`wystore-device`).

@@ -19,7 +19,7 @@ interface.
 ## Conventions
 
 - Code, comments, commit messages: English. User-facing text: Russian first, and every string in
-  all eight languages the app ships (`wystore-strings`).
+  all nine languages the app ships (`wystore-strings`).
 - Commits are made as the repository owner, without assistant attribution or co-author lines.
   Messages explain what was wrong for the user and why, in full sentences, and reference issues
   with `Fixes #N`.

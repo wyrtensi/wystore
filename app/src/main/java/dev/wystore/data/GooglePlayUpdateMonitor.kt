@@ -18,7 +18,10 @@ class GooglePlayUpdateMonitor(context: Context) {
                 val managed = repository.observeGooglePlayUpdates(installed)
                 val settings = repository.settings()
                 NotificationCoordinator(appContext).publishGooglePlayPause(managed.filter {
-                    GooglePlayUpdatePolicy.isPaused(it, null, settings.continueChecksAfterGooglePlayUpdate)
+                    it.autoUpdate &&
+                        (it.source != ManagedSource.GITHUB || settings.githubEnabled) &&
+                        (it.source != ManagedSource.WY_STORE || settings.libraryEnabled) &&
+                        GooglePlayUpdatePolicy.isPaused(it, null, settings.continueChecksAfterGooglePlayUpdate)
                 })
                 managed
             }

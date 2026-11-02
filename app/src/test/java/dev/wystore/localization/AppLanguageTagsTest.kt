@@ -2,6 +2,7 @@ package dev.wystore.localization
 
 import dev.wystore.settings.AppLanguage
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 /**
@@ -13,6 +14,14 @@ import org.junit.Test
  * "System" selected above a Ukrainian interface.
  */
 class AppLanguageTagsTest {
+
+    @Test
+    fun `Serbian Cyrillic is offered and resolves from Android locale tags`() {
+        val serbian = AppLanguage.entries.find { it.tag == "sr" }
+        assertNotNull("The language picker must offer Serbian", serbian)
+        assertEquals("Српски", serbian?.endonym)
+        assertEquals(serbian, AppLanguageTags.resolve(AppLanguage.SYSTEM, "sr-Cyrl-RS"))
+    }
 
     @Test
     fun `a language chosen in this app answers for itself`() {

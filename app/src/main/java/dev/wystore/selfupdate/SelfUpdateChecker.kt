@@ -55,7 +55,7 @@ class SelfUpdateChecker(
      * persisted.
      */
     suspend fun enqueue(release: GitHubRelease): String =
-        queueRepository.enqueueAvailableUpdate(
+        queueRepository.enqueueSelfUpdate(
             packageName = context.packageName,
             label = APP_LABEL,
             versionName = release.tagName.removePrefix("v"),

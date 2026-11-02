@@ -1,6 +1,8 @@
 package dev.wystore.updates
 
 import dev.wystore.data.local.UpdateQueueEntity
+import dev.wystore.BuildConfig
+import dev.wystore.selfupdate.SelfUpdateVersion
 import dev.wystore.updates.model.QueueState
 
 /**
@@ -13,7 +15,8 @@ import dev.wystore.updates.model.QueueState
  *
  * Per package the newest download is kept - on a tie, the one already in Android's dialog, then the
  * most recent. A row in the dialog is never removed, nor is [keepId]: the worker that just verified
- * it goes on to install it.
+ * it goes on to install it. For Wy Store's own GitHub updates, a newer queued release also makes
+ * older inactive rows obsolete; release IDs and verified APK version codes are not comparable.
  */
 object SupersededDownloads {
 
@@ -25,8 +28,22 @@ object SupersededDownloads {
 
     private val IN_DIALOG = QueueState.AWAITING_USER_CONFIRMATION.name
 
-    fun superseded(rows: List<UpdateQueueEntity>, keepId: String? = null): List<UpdateQueueEntity> =
-        rows.filter { it.state in DOWNLOADED }
+    private val SELF_REMOVABLE = DOWNLOADED + setOf(
+        QueueState.AVAILABLE.name, QueueState.PAUSED.name, QueueState.FAILED.name
+    ) - IN_DIALOG
+
+    fun isSelfUpdate(row: UpdateQueueEntity): Boolean =
+        row.packageName == BuildConfig.APPLICATION_ID && row.source == "GITHUB" &&
+            row.githubRepositoryOwner.equals("wyrtensi", ignoreCase = true) &&
+            row.githubRepositoryName.equals("wystore", ignoreCase = true)
+
+    fun superseded(rows: List<UpdateQueueEntity>, keepId: String? = null): List<UpdateQueueEntity> {
+        val self = rows.filter(::isSelfUpdate)
+        val oldSelf = self.filter { old ->
+            old.id != keepId && old.state in SELF_REMOVABLE &&
+                self.any { newer -> SelfUpdateVersion.isNewer(newer.versionName, old.versionName) }
+        }
+        val other = rows.filterNot(::isSelfUpdate).filter { it.state in DOWNLOADED }
             .groupBy { it.packageName }
             .values
             .flatMap { downloads ->
@@ -37,4 +54,6 @@ object SupersededDownloads {
                 )
                 downloads.filter { it.id != kept.id && it.id != keepId && it.state != IN_DIALOG }
             }
+        return oldSelf + other
+    }
 }

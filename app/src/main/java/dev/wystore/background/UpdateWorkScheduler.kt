@@ -32,8 +32,10 @@ object UpdateCheckPolicy {
         targetPackageName: String?,
         appPackageName: String,
         autoCheckEnabledForApp: Boolean,
-        showExcludedUpdates: Boolean = false
+        showExcludedUpdates: Boolean = false,
+        pausedByGooglePlay: Boolean = false
     ): Boolean {
+        if (!isManualCheck && pausedByGooglePlay) return false
         if (targetPackageName != null) {
             return targetPackageName == appPackageName
         }

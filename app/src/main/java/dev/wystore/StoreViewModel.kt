@@ -996,13 +996,14 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun loadAllReviews() {
         val app = _state.value.selected ?: return
+        if (app.source != ManagedSource.RUSTORE) return
         if (_state.value.reviewsLoading || app.packageName in _state.value.fullReviewsLoaded) return
         _state.update { it.copy(reviewsLoading = true) }
         viewModelScope.launch(Dispatchers.IO) {
             val fetched = runCatching { source.reviews(app.packageName) }
             _state.update { state ->
                 val open = state.selected
-                if (open == null || open.packageName != app.packageName) {
+                if (open == null || open.packageName != app.packageName || open.source != app.source) {
                     return@update state.copy(reviewsLoading = false)
                 }
                 val all = fetched.getOrNull()

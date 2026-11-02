@@ -105,7 +105,10 @@ class UpdateCheckWorker(
                 targetPackageName = requestedPackage,
                 appPackageName = managed.packageName,
                 autoCheckEnabledForApp = managed.autoUpdate,
-                showExcludedUpdates = settings.showExcludedUpdates
+                showExcludedUpdates = settings.showExcludedUpdates,
+                pausedByGooglePlay = GooglePlayUpdatePolicy.isPaused(
+                    managed, installed[managed.packageName], settings.continueChecksAfterGooglePlayUpdate
+                )
             )
         }
 
@@ -164,12 +167,6 @@ class UpdateCheckWorker(
                 )
             }
             val local = installed[managed.packageName] ?: continue
-            if (!isManualCheck && GooglePlayUpdatePolicy.isPaused(
-                    managed, local, settings.continueChecksAfterGooglePlayUpdate
-                )) {
-                continue
-            }
-
             if (managed.source == ManagedSource.GITHUB && !settings.githubEnabled) {
                 continue
             }

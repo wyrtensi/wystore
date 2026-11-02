@@ -50,6 +50,7 @@ import dev.wystore.data.InstalledApp
 import dev.wystore.data.ManagedApp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.wystore.data.StoreApp
+import dev.wystore.data.ManagedSource
 import dev.wystore.data.StoreCategory
 import androidx.compose.ui.platform.LocalContext
 import dev.wystore.ui.catalog.CategoryScreen
@@ -299,7 +300,8 @@ fun WyStoreRoot(
                         busy = state.detailsLoading,
                         queueItem = state.installQueue.rowFor(selected.packageName),
                         reviewsLoading = state.reviewsLoading,
-                        canLoadMoreReviews = selected.packageName !in state.fullReviewsLoaded,
+                        canLoadMoreReviews = selected.source == ManagedSource.RUSTORE &&
+                            selected.packageName !in state.fullReviewsLoaded,
                         onLoadMoreReviews = viewModel::loadAllReviews,
                         onBack = {
                             openedPackage = null
