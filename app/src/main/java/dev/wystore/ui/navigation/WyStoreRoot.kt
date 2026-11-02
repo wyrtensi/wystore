@@ -144,7 +144,7 @@ fun WyStoreRoot(
         val curated = { slug: String -> slug.startsWith("wy-") }
         val existing = homeState.categories.filter { curated(it.slug) != state.settings.sourceCategories }
             .ifEmpty { homeState.categories }
-        if (state.settings.libraryEnabled) existing + StoreCategory("wy-foreign", "Foreign apps", titleRes = R.string.wy_category_foreign)
+        if (state.settings.libraryEnabled) listOf(StoreCategory("wy-foreign", "Foreign apps", titleRes = R.string.wy_category_foreign)) + existing
         else existing.filterNot { it.slug == "wy-foreign" }
     }
     val sourceSelector: @Composable (String, dev.wystore.data.ManagedSource) -> Unit = { packageName, preview ->

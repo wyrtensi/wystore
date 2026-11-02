@@ -3,9 +3,8 @@ package dev.wystore.ui.search
 import androidx.compose.material.icons.outlined.Warning
 import dev.wystore.ui.components.HubChoiceChip
 import dev.wystore.ui.components.HubTextAction
-import androidx.compose.foundation.background
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -52,6 +51,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -209,27 +209,23 @@ fun SearchScreen(
                     }
                     onAutoFocusConsumed()
                 }
-                Column(
-                    modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
-                        .padding(top = 6.dp, bottom = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    shape = RoundedCornerShape(percent = 50),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shadowElevation = 4.dp,
+                    border = if (LocalHubStyle.current) {
+                        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    } else null
                 ) {
-                    // A filled field with no visible box outline, so the search input reads like the
-                    // pill on Home rather than like a form control.
+                    // Use the bottom navigation's floating capsule treatment, leaving the
+                    // surrounding header transparent as results move behind the island.
                     TextField(
                         value = fieldValue,
                         onValueChange = { fieldValue = it },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester)
-                            .clip(RoundedCornerShape(percent = 50))
-                            .then(
-                                if (LocalHubStyle.current) Modifier.border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.outlineVariant,
-                                    RoundedCornerShape(percent = 50)
-                                ) else Modifier
-                            ),
+                            .focusRequester(focusRequester),
                         singleLine = true,
                         placeholder = { Text(stringResource(R.string.search_field_placeholder)) },
                         leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
@@ -254,8 +250,8 @@ fun SearchScreen(
                         keyboardActions = KeyboardActions(onSearch = { runSearch() }),
                         shape = RoundedCornerShape(percent = 50),
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             disabledIndicatorColor = Color.Transparent
