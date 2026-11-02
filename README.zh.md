@@ -23,7 +23,9 @@
 
 Wy Store 是 Android 应用目录客户端，通过系统安装器下载和安装应用，无需账号或 RuStore 客户端。
 
-当前工作版本有三个来源：RuStore、GitHub release 和 [Wy Store Library](https://github.com/wyrtensi/wystore-library)。Library 索引是托管在 GitHub 上的静态 JSON；上游服务的凭据不包含在客户端中，用户无需登录 Google。没有统计分析或广告。
+应用有三个来源：RuStore、GitHub release 和 [Wy Store Library](https://github.com/wyrtensi/wystore-library)。Library 索引是托管在 GitHub 上的静态 JSON；上游服务的凭据不包含在客户端中，用户无需登录 Google。没有统计分析或广告。
+
+**部分在俄罗斯 Google Play 不可用或被封锁的应用，可以通过 [Wy Store Library](https://github.com/wyrtensi/wystore-library) 下载和安装，无需登录 Google。**
 
 这个目录面向俄罗斯的用户，所以其中大部分内容是俄语的；界面本身提供上述语言。
 

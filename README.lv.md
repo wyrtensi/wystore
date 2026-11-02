@@ -23,7 +23,9 @@
 
 Wy Store ir Android lietotņu katalogu klients. Tas lejupielādē un instalē lietotnes ar sistēmas instalētāju, neprasot kontu vai RuStore klientu.
 
-Pašreizējā darba versijā ir trīs avoti: RuStore, GitHub laidieni un [Wy Store Library](https://github.com/wyrtensi/wystore-library). Library indekss ir statisks JSON fails GitHub; augšējā pakalpojuma piekļuves dati klientā neatrodas, un lietotājam nav jāpiesakās Google. Analītikas un reklāmu nav.
+Ir trīs avoti: RuStore, GitHub laidieni un [Wy Store Library](https://github.com/wyrtensi/wystore-library). Library indekss ir statisks JSON fails GitHub; augšējā pakalpojuma piekļuves dati klientā neatrodas, un lietotājam nav jāpiesakās Google. Analītikas un reklāmu nav.
+
+**Dažas Krievijas Google Play nepieejamas vai bloķētas lietotnes var lejupielādēt un instalēt no [Wy Store Library](https://github.com/wyrtensi/wystore-library), nepiesakoties Google.**
 
 Katalogs ir domāts lietotājiem Krievijā, tāpēc lielākā daļa satura ir krievu valodā; pats interfeiss
 ir pieejams visās iepriekš uzskaitītajās valodās.

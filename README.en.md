@@ -23,7 +23,9 @@
 
 Wy Store is an Android app catalogue client. It downloads and installs apps through Android’s installer and needs neither an account nor the RuStore client.
 
-The current working tree has three sources: RuStore, GitHub releases and [Wy Store Library](https://github.com/wyrtensi/wystore-library). The Library index is static JSON hosted on GitHub; upstream credentials are not in the client and users do not need to sign in to Google. There are no analytics or ads.
+There are three sources: RuStore, GitHub releases and [Wy Store Library](https://github.com/wyrtensi/wystore-library). The Library index is static JSON hosted on GitHub; upstream credentials are not in the client and users do not need to sign in to Google. There are no analytics or ads.
+
+**Some apps unavailable or blocked in Russian Google Play can be downloaded and installed through [Wy Store Library](https://github.com/wyrtensi/wystore-library), without signing in to Google.**
 
 The catalogue is aimed at users in Russia, so most of the content is in Russian; the interface
 itself ships in every language listed above.

@@ -23,7 +23,9 @@
 
 Wy Store — Android үшін қолданбалар каталогтарының клиенті. Ол қолданбаларды жүйелік орнатқыш арқылы жүктеп орнатады және аккаунтты немесе RuStore клиентін талап етпейді.
 
-Ағымдағы жұмыс нұсқасында үш дереккөз бар: RuStore, GitHub шығарылымдары және [Wy Store Library](https://github.com/wyrtensi/wystore-library). Library индексі — GitHub-тағы статикалық JSON; бастапқы сервистің тіркелгі деректері клиентке кірмейді, Google жүйесіне кіру қажет емес. Аналитика мен жарнама жоқ.
+Үш дереккөз бар: RuStore, GitHub шығарылымдары және [Wy Store Library](https://github.com/wyrtensi/wystore-library). Library индексі — GitHub-тағы статикалық JSON; бастапқы сервистің тіркелгі деректері клиентке кірмейді, Google жүйесіне кіру қажет емес. Аналитика мен жарнама жоқ.
+
+**Ресейлік Google Play-де қолжетімсіз немесе бұғатталған кейбір қолданбаларды Google жүйесіне кірмей [Wy Store Library](https://github.com/wyrtensi/wystore-library) арқылы жүктеп орнатуға болады.**
 
 Wy Store RuStore-мен байланысты емес және оның атынан әрекет етпейді: RuStore мұнда — дереккөз.
 Толығырақ — [DISCLAIMER.md](DISCLAIMER.md) файлында.

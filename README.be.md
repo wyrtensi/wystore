@@ -23,7 +23,9 @@
 
 Wy Store — кліент каталогаў дадаткаў для Android. Ён спампоўвае і ўсталёўвае дадаткі праз сістэмны ўсталёўшчык і не патрабуе акаўнта або кліента RuStore.
 
-У бягучай рабочай версіі тры крыніцы: RuStore, рэлізы GitHub і [Wy Store Library](https://github.com/wyrtensi/wystore-library). Індэкс Library — статычны JSON на GitHub; уліковыя даныя вышэйшага сэрвісу не ўваходзяць у кліент, уваход у Google не патрэбны. Аналітыкі і рэкламы няма.
+Ёсць тры крыніцы: RuStore, рэлізы GitHub і [Wy Store Library](https://github.com/wyrtensi/wystore-library). Індэкс Library — статычны JSON на GitHub; уліковыя даныя вышэйшага сэрвісу не ўваходзяць у кліент, уваход у Google не патрэбны. Аналітыкі і рэкламы няма.
+
+**Некаторыя дадаткі, недаступныя або заблакаваныя ў расійскім Google Play, можна спампаваць і ўсталяваць праз [Wy Store Library](https://github.com/wyrtensi/wystore-library) без уваходу ў Google.**
 
 Wy Store не звязаны з RuStore і не дзейнічае ад яго імя: RuStore тут — крыніца даных.
 Падрабязнасці — у [DISCLAIMER.md](DISCLAIMER.md).

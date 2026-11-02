@@ -23,7 +23,9 @@
 
 Wy Store — клієнт каталогів застосунків для Android. Він завантажує та встановлює застосунки через системний інсталятор і не потребує акаунта або клієнта RuStore.
 
-У поточній робочій версії є три джерела: RuStore, релізи GitHub і [Wy Store Library](https://github.com/wyrtensi/wystore-library). Індекс Library — статичний JSON на GitHub; облікові дані вищого сервісу не входять до клієнта, вхід у Google не потрібен. Аналітики та реклами немає.
+Є три джерела: RuStore, релізи GitHub і [Wy Store Library](https://github.com/wyrtensi/wystore-library). Індекс Library — статичний JSON на GitHub; облікові дані вищого сервісу не входять до клієнта, вхід у Google не потрібен. Аналітики та реклами немає.
+
+**Деякі застосунки, недоступні або заблоковані в російському Google Play, можна завантажити та встановити через [Wy Store Library](https://github.com/wyrtensi/wystore-library) без входу в Google.**
 
 Wy Store не пов'язаний з RuStore і не діє від його імені: RuStore тут — джерело даних.
 Подробиці — у [DISCLAIMER.md](DISCLAIMER.md).
