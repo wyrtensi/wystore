@@ -8,6 +8,10 @@ import org.junit.Test
 class LibraryJsonTest {
     private fun fixture(name: String) = javaClass.getResource("/library/$name.json")!!.readText()
 
+    @Test fun `published applications use the documented canonical contract`() {
+        LibraryJson.parseIndex(fixture("public-index"))
+    }
+
     @Test fun `canonical version and complete files are read independently of legacy entries`() {
         val app = LibraryJson.parseIndex(fixture("index")).applications.getValue("org.example.library")
         assertEquals(100L, app.variants.single().versionCode)

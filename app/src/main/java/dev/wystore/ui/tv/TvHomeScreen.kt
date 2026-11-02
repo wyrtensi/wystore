@@ -124,7 +124,9 @@ fun TvHomeScreen(
      * menu - which then scrolled Home to the top.
      */
     rowStates: MutableMap<String, LazyListState>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    libraryApps: List<StoreApp> = emptyList(),
+    onOpenLibrary: (String) -> Unit = onOpenApp
 ) {
     val popularTitle = stringResource(R.string.tv_row_popular)
     val popularPhoneTitle = stringResource(R.string.tv_row_popular_phone)
@@ -132,8 +134,10 @@ fun TvHomeScreen(
     val readyTitle = stringResource(R.string.tv_row_ready)
     val otherTitle = stringResource(R.string.tv_row_other)
     val titles = HomeRowTitles(readyTitle, popularTitle, popularPhoneTitle, phoneTitle, otherTitle)
-    val rows = remember(catalog.apps, catalog.phoneApps, catalogMode, packages, titles) {
-        buildHomeRows(catalog, catalogMode, packages, titles)
+    val foreignTitle = stringResource(R.string.wy_category_foreign)
+    val rows = remember(catalog.apps, catalog.phoneApps, catalogMode, packages, titles, libraryApps, foreignTitle) {
+        buildHomeRows(catalog, catalogMode, packages, titles) +
+            if (libraryApps.isEmpty()) emptyList() else listOf(TvHomeRow("wy-foreign", foreignTitle, libraryApps, true, "wy-foreign"))
     }
     val categoryRows = remember(rows) { rows.filter { it.category != null } }
     val loading = if (catalogMode == TvCatalog.PHONE) catalog.phoneLoading else catalog.loading
@@ -277,7 +281,7 @@ fun TvHomeScreen(
                     state = rowStates.getOrPut(row.key) { LazyListState() },
                     apps = row.apps,
                     packages = packages,
-                    onOpenApp = onOpenApp,
+                    onOpenApp = if (row.key == "wy-foreign") onOpenLibrary else onOpenApp,
                     forPhone = row.forPhone,
                     firstCardFocus = rowFocus.getValue(row.key),
                     restore = restoreFocusTo to restoreFocus

@@ -138,6 +138,19 @@ class QueueCoordinator(
         download(id)
     }
 
+    /** A verified replacement already has its files; retrying a READY row would do nothing. */
+    suspend fun resumeReplacement(id: String) {
+        val ready = SourceSelectionGate.locked {
+            val row = repository.getEntityById(id) ?: error("Replacement queue item is missing")
+            if (row.state != QueueState.READY_TO_INSTALL.name) return@locked false
+            SourceSelectionCoordinator.requireCurrent(context, row)
+            AutoInstallStore(context).request(row.packageName)
+            true
+        }
+        if (ready) dev.wystore.background.NotificationCoordinator(context).publishReady(repository.readyToInstallSnapshots())
+        else retry(id)
+    }
+
     suspend fun cancel(id: String) {
         val current = repository.getById(id) ?: return
         // An install belongs to Android by then, and a finished row has nothing left to stop. One

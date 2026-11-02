@@ -86,7 +86,7 @@ class CategoryViewModel(
             val curated = CuratedCategories.find(slug)
             // Plain sections have a cached page on disk; showing it first turns a section reopened
             // from Home into an instant paint with a refresh behind it.
-            if (!forceRefresh && curated == null && _uiState.value.apps.isEmpty()) {
+            if (!forceRefresh && curated == null && slug != "wy-foreign" && _uiState.value.apps.isEmpty()) {
                 runCatching { catalogRepository.cachedCatalog(slug, page) }.getOrNull()?.let { cached ->
                     _uiState.update {
                         it.copy(apps = cached.apps, page = cached.page, lastPage = cached.lastPage)
@@ -96,7 +96,7 @@ class CategoryViewModel(
             _uiState.update { it.copy(loading = true, error = null, failedPage = null) }
             runCatching {
                 if (slug == "wy-foreign") {
-                    val read = dev.wystore.data.library.WyStoreLibrarySource(getApplication()).foreign()
+                    val read = dev.wystore.data.library.WyStoreLibrarySource(getApplication()).foreign(forceRefresh)
                     dev.wystore.data.CatalogRepository.Result(dev.wystore.data.CatalogPage(read.value, 1, 1), read.stale, read.error?.cause)
                 } else if (curated != null) catalogRepository.curatedCatalog(curated, forceRefresh)
                 else catalogRepository.catalog(slug, page, forceRefresh)
@@ -114,6 +114,7 @@ class CategoryViewModel(
                     }
                 }
                 .onFailure { error ->
+                    if (error is kotlinx.coroutines.CancellationException) throw error
                     _uiState.update {
                         it.copy(
                             loading = false,

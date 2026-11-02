@@ -125,7 +125,8 @@ fun AppDetailsScreen(
     managedApp: dev.wystore.data.ManagedApp? = null,
     continueChecksAfterGooglePlayUpdate: Boolean = false,
     onOpenUpdateSettings: () -> Unit = {},
-    sourceSelector: @Composable () -> Unit = {}
+    sourceSelector: @Composable () -> Unit = {},
+    onVerifySource: () -> Unit = {}
 ) {
     var screenshotPreview by remember { mutableStateOf<String?>(null) }
     var shownReviews by remember(app.packageName) { mutableIntStateOf(REVIEW_PAGE) }
@@ -178,7 +179,7 @@ fun AppDetailsScreen(
                         shareLink(
                             context = context,
                             subject = shareSubject,
-                            url = "https://www.rustore.ru/catalog/app/${app.packageName}",
+                            url = dev.wystore.data.AppSourceLinks.page(app.source, app.packageName),
                             chooserTitle = chooserTitle
                         )
                     }
@@ -393,9 +394,13 @@ fun AppDetailsScreen(
                                             acceptedFingerprint = acceptedDigest
                                         )
                                         if (compatibility == SignatureCompatibility.MISMATCH) {
-                                            Text(stringResource(R.string.unverified_source_catalogue),
+                                            val differentSource = app.source != dev.wystore.data.ManagedSource.RUSTORE ||
+                                                (managedApp != null && managedApp.source != app.source)
+                                            Text(stringResource(if (differentSource) R.string.source_signature_verify else R.string.unverified_source_catalogue),
                                                 style = MaterialTheme.typography.bodySmall)
-                                            if (!canUpdate) HubTextAction(
+                                            if (differentSource) HubTextAction(onClick = onVerifySource, enabled = !busy) {
+                                                Text(stringResource(R.string.source_verify_title))
+                                            } else if (!canUpdate) HubTextAction(
                                                 onClick = { onConfirmUnverifiedSource(app.packageName) }, enabled = !busy
                                             ) { Text(stringResource(R.string.unverified_source_force)) }
                                         } else if (compatibility == SignatureCompatibility.SOURCE_UNCONFIRMED) {
@@ -604,7 +609,19 @@ fun AppDetailsScreen(
             }
 
             item {
-                SourceDisclaimer(sourceLine = stringResource(R.string.disclaimer_source_rustore))
+                SourceDisclaimer(sourceLine = stringResource(if (app.source == dev.wystore.data.ManagedSource.WY_STORE)
+                    R.string.disclaimer_source_library else R.string.disclaimer_source_rustore))
+                if (app.source == dev.wystore.data.ManagedSource.WY_STORE) {
+                    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                    androidx.compose.material3.TextButton(onClick = { uriHandler.openUri(dev.wystore.data.AppSourceLinks.LIBRARY) }) {
+                        Text(stringResource(R.string.library_repository))
+                    }
+                    app.upstreamUrl?.let { url ->
+                        androidx.compose.material3.TextButton(onClick = { uriHandler.openUri(url) }) {
+                            Text(stringResource(R.string.library_upstream))
+                        }
+                    }
+                }
             }
         }
     }

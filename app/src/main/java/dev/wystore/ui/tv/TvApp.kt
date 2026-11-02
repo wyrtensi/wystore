@@ -150,6 +150,19 @@ fun TvApp(
         lastOpened = packageName
         viewModel.openDetails(packageName)
     }
+    val openLibrary: (String) -> Unit = { packageName ->
+        lastOpened = packageName
+        viewModel.openDetailsFromSource(packageName, dev.wystore.data.ManagedSource.WY_STORE)
+    }
+    val libraryLanguage = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language
+    val libraryApps = if (state.settings.libraryEnabled) state.libraryCards.map {
+        viewModel.decorateSources(dev.wystore.data.library.LibraryCatalogPolicy.cardToApp(it,
+            if (libraryLanguage == "ru") "ru_RU" else "en_US"))
+    } else emptyList()
+    val sourceSelector: @Composable (String, dev.wystore.data.ManagedSource) -> Unit = { pkg, preview ->
+        TvSourceSelector(viewModel.sourceChoices(pkg), preview, state.managed.firstOrNull { it.packageName == pkg }?.source,
+            viewModel::selectAppSource)
+    }
     val catalogMode = state.settings.tvCatalog
     // The GitHub catalogue on a TV as on a phone, and gone from both when switched off in the
     // source settings.
@@ -342,6 +355,9 @@ fun TvApp(
                         if (githubPage != null) {
                             TvGitHubAppScreen(
                                 state = state.githubApp,
+                                sourceSelector = { (githubPage.packageName ?: githubInstalledApp?.packageName)?.let {
+                                    sourceSelector(it, dev.wystore.data.ManagedSource.GITHUB)
+                                } },
                                 // Recognised as the phone page recognises it: through the record of what Wy Store
                                 // installed, or by the package a curated entry states.
                                 installedApp = githubInstalledApp,
@@ -368,6 +384,8 @@ fun TvApp(
                         } else if (selected != null) {
                             TvDetailsScreen(
                                 app = selected,
+                                sourceSelector = { sourceSelector(selected.packageName, selected.source) },
+                                onVerifySource = { viewModel.beginSourceVerification(selected) },
                                 state = PackageUiStateReducer.reduce(
                                     app = selected,
                                     installed = state.installed.firstOrNull { it.packageName == selected.packageName },
@@ -389,7 +407,10 @@ fun TvApp(
                             )
                         } else when (destination) {
                             TvDestination.HOME -> TvHomeScreen(
-                                catalog = catalog,
+                                catalog = catalog.copy(apps = catalog.apps.map(viewModel::decorateSources),
+                                    phoneApps = catalog.phoneApps.map(viewModel::decorateSources)),
+                                libraryApps = libraryApps.filter { app -> state.libraryCards.any { it.packageName == app.packageName && it.foreignCategory } },
+                                onOpenLibrary = openLibrary,
                                 catalogMode = catalogMode,
                                 packages = packages,
                                 firstFocus = contentFocus,
@@ -411,6 +432,10 @@ fun TvApp(
                                 catalogApps = catalog.apps,
                                 rustoreQuery = state.query,
                                 rustoreResults = state.search?.apps.orEmpty(),
+                                libraryResults = libraryApps.filter { it.name.contains(searchQuery, true) || it.packageName.contains(searchQuery, true) },
+                                libraryError = if (state.settings.libraryEnabled) state.libraryError else null,
+                                onRetryLibrary = viewModel::retryLibraryCatalog,
+                                onOpenLibrary = openLibrary,
                                 rustoreSearching = state.searching,
                                 rustoreError = state.searchError,
                                 packages = packages,

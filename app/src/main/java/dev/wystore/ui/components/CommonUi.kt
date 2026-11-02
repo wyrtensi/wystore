@@ -186,7 +186,8 @@ fun DetailFacts(app: StoreApp) {
             stringResource(R.string.details_label_updated) to (formatStoreDate(app.updatedAt) ?: noData),
             stringResource(R.string.details_label_size) to formatSize(app.sizeBytes),
             stringResource(R.string.details_label_min_android) to
-                stringResource(R.string.details_min_android_value, app.minAndroidVersion ?: notSpecified),
+                (app.minSdkVersion?.let(dev.wystore.data.AndroidSdkCompatibility::label)
+                    ?: app.minAndroidVersion?.let { stringResource(R.string.details_min_android_value, it) } ?: notSpecified),
             app.downloadsText?.let { stringResource(R.string.details_label_downloads) to formatDownloads(it) }
         )
         FactTiles(facts)
@@ -205,7 +206,7 @@ fun DetailFacts(app: StoreApp) {
                     )
                 )
                 Text(
-                    stringResource(R.string.details_fingerprint_note),
+                    stringResource(R.string.details_fingerprint_note, sourceDisplayName(app.source.name)),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -503,10 +503,10 @@
     <string name="details_label_min_android">系统要求</string>
     <string name="details_label_rating">评分</string>
     <string name="details_label_downloads">下载量</string>
-    <string name="details_label_fingerprint">RuStore 指纹</string>
+    <string name="details_label_fingerprint">来源签名指纹</string>
     <string name="details_min_android_value">Android %1$s 及以上</string>
     <string name="details_rating_value">%1$s（%2$s）</string>
-    <string name="details_fingerprint_note">由 RuStore 声明——安装前会核对</string>
+    <string name="details_fingerprint_note">由 %1$s 声明，安装前会检查</string>
     <string name="home_tagline">俄罗斯应用，还有更多</string>
     <string name="home_empty_featured_title">暂时没有可显示的内容</string>
     <string name="search_empty_title">没有找到内容</string>
@@ -863,4 +863,9 @@
     <string name="source_switch_wait">请先完成或取消当前安装，再更改来源。</string>
     <string name="source_signature_verify">签名不同，重新安装前需要验证 APK。</string>
     <string name="library_incompatible">应用库暂无适合此设备的版本。</string>
+    <string name="source_verify_title">检查安装文件</string>
+    <string name="source_verify_body">Wy Store 将下载并检查所有安装文件。如果签名支持更新，将直接切换来源而不卸载应用。如果需要重新安装，卸载前会另行提示数据丢失风险。</string>
+    <string name="disclaimer_source_library">来源：Wy Store 应用库。Google Play 原始文件通过应用库的公开流程发布。在 Google Play 之外安装并不保证应用及其服务在您的地区可用。</string>
+    <string name="library_repository">应用库代码仓库</string>
+    <string name="library_upstream">原始商店页面</string>
 </resources>

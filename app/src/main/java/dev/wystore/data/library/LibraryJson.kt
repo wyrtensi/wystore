@@ -68,7 +68,8 @@ object LibraryJson {
                 val compatibility = LibraryCompatibility(
                     c.positiveInt("min_sdk"), c.strings("abis"), c.strings("native_abis").toSet(),
                     c.positiveInt("density"), c.text("locale"), c.strings("languages").toSet(),
-                    c.strings("required_features").toSet(), c.boundedInt("gl_es_version", 0),
+                    c.strings("required_features").toSet(),
+                    if (c.get("gl_es_version")?.isJsonNull == true) 0 else c.boundedInt("gl_es_version", 0),
                     c.strings("required_split_types").toSet(), c.strings("provided_split_types").toSet(),
                     c.strings("uses_splits").toSet()
                 )

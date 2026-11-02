@@ -503,10 +503,10 @@
     <string name="details_label_min_android">Talab qilinadi</string>
     <string name="details_label_rating">Reyting</string>
     <string name="details_label_downloads">Yuklab olishlar</string>
-    <string name="details_label_fingerprint">RuStore barmoq izi</string>
+    <string name="details_label_fingerprint">Manba imzosi izi</string>
     <string name="details_min_android_value">Android %1$s va undan yuqori</string>
     <string name="details_rating_value">%1$s (%2$s)</string>
-    <string name="details_fingerprint_note">RuStore eʼlon qilgan — oʻrnatishdan oldin solishtiriladi</string>
+    <string name="details_fingerprint_note">%1$s koʻrsatgan — oʻrnatishdan oldin tekshiriladi</string>
     <string name="home_tagline">Rossiya ilovalari va bundan ham koʻproq</string>
     <string name="home_empty_featured_title">Hozircha koʻrsatadigan narsa yoʻq</string>
     <string name="search_empty_title">Hech narsa topilmadi</string>
@@ -863,4 +863,9 @@
     <string name="source_switch_wait">Manbani almashtirishdan oldin joriy oʻrnatishni tugating yoki bekor qiling.</string>
     <string name="source_signature_verify">Imzo farq qiladi. Qayta oʻrnatishdan oldin APK tekshirilishi kerak.</string>
     <string name="library_incompatible">Kutubxonada bu qurilmaga mos variant yoʻq.</string>
+    <string name="source_verify_title">Oʻrnatish fayllarini tekshirish</string>
+    <string name="source_verify_body">Wy Store barcha oʻrnatish fayllarini yuklab olib tekshiradi. Imzo yangilashga mos boʻlsa, manba ilovani oʻchirmasdan oʻzgaradi. Qayta oʻrnatish kerak boʻlsa, oʻchirishdan oldin ma’lumotlar yoʻqolishi haqida alohida ogohlantirish koʻrsatiladi.</string>
+    <string name="disclaimer_source_library">Manba — Wy Store kutubxonasi. Google Play asl fayllari kutubxonaning ochiq jarayoni orqali e’lon qilinadi. Google Play tashqarisida oʻrnatish ilova va uning xizmatlari hududingizda ishlashiga kafolat bermaydi.</string>
+    <string name="library_repository">Kutubxona repozitoriysi</string>
+    <string name="library_upstream">Asl doʻkondagi sahifa</string>
 </resources>

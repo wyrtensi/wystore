@@ -39,7 +39,8 @@ data class StoreApp(
     val changelog: AppChangelog? = null,
     val source: ManagedSource = ManagedSource.RUSTORE,
     val availableSources: Set<ManagedSource> = setOf(source),
-    val installationAvailable: Boolean = true
+    val installationAvailable: Boolean = true,
+    val upstreamUrl: String? = null
 )
 
 /**

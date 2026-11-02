@@ -503,10 +503,10 @@
     <string name="details_label_min_android">Nepieciešams</string>
     <string name="details_label_rating">Vērtējums</string>
     <string name="details_label_downloads">Lejupielādes</string>
-    <string name="details_label_fingerprint">RuStore nospiedums</string>
+    <string name="details_label_fingerprint">Avota paraksta nospiedums</string>
     <string name="details_min_android_value">Android %1$s un jaunāks</string>
     <string name="details_rating_value">%1$s (%2$s)</string>
-    <string name="details_fingerprint_note">Norādījis RuStore — pārbauda pirms instalēšanas</string>
+    <string name="details_fingerprint_note">Norādīts %1$s — tiek pārbaudīts pirms instalēšanas</string>
     <string name="home_tagline">Krievu lietotnes un vēl vairāk</string>
     <string name="home_empty_featured_title">Pagaidām nav ko rādīt</string>
     <string name="search_empty_title">Nekas nav atrasts</string>
@@ -863,4 +863,9 @@
     <string name="source_switch_wait">Pirms avota maiņas pabeidziet vai atceliet pašreizējo instalēšanu.</string>
     <string name="source_signature_verify">Paraksts atšķiras. Pirms pārinstalēšanas APK ir jāpārbauda.</string>
     <string name="library_incompatible">Bibliotēkā nav šai ierīcei piemērota varianta.</string>
+    <string name="source_verify_title">Pārbaudīt instalācijas failus</string>
+    <string name="source_verify_body">Wy Store lejupielādēs un pārbaudīs visus instalācijas failus. Ja paraksts ļauj atjaunināt lietotni, avots tiks mainīts bez tās noņemšanas. Ja vajadzīga pārinstalēšana, pirms noņemšanas tiks parādīts atsevišķs brīdinājums par datu zudumu.</string>
+    <string name="disclaimer_source_library">Avots — Wy Store bibliotēka. Oriģinālie Google Play faili tiek publicēti bibliotēkas atklātajā procesā. Instalēšana ārpus Google Play negarantē lietotnes un tās pakalpojumu pieejamību jūsu reģionā.</string>
+    <string name="library_repository">Bibliotēkas repozitorijs</string>
+    <string name="library_upstream">Lapa sākotnējā veikalā</string>
 </resources>

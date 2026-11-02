@@ -503,10 +503,10 @@
     <string name="details_label_min_android">Қажет</string>
     <string name="details_label_rating">Рейтинг</string>
     <string name="details_label_downloads">Жүктеп алулар</string>
-    <string name="details_label_fingerprint">RuStore саусақ ізі</string>
+    <string name="details_label_fingerprint">Дереккөз қолтаңбасының ізі</string>
     <string name="details_min_android_value">Android %1$s және жоғары</string>
     <string name="details_rating_value">%1$s (%2$s)</string>
-    <string name="details_fingerprint_note">RuStore мәлімдеген — орнату алдында тексеріледі</string>
+    <string name="details_fingerprint_note">%1$s көрсеткен — орнату алдында тексеріледі</string>
     <string name="home_tagline">Ресейлік қолданбалар және одан да көбі</string>
     <string name="home_empty_featured_title">Әзірге көрсететін ештеңе жоқ</string>
     <string name="search_empty_title">Ештеңе табылмады</string>
@@ -863,4 +863,9 @@
     <string name="source_switch_wait">Дереккөзді өзгертпес бұрын ағымдағы орнатуды аяқтаңыз не тоқтатыңыз.</string>
     <string name="source_signature_verify">Қолтаңба өзгеше. Қайта орнатпас бұрын APK тексерілуі керек.</string>
     <string name="library_incompatible">Кітапханада бұл құрылғыға сәйкес нұсқа жоқ.</string>
+    <string name="source_verify_title">Орнату файлдарын тексеру</string>
+    <string name="source_verify_body">Wy Store барлық орнату файлдарын жүктеп, тексереді. Қолтаңба жаңартуға мүмкіндік берсе, дереккөз қолданбаны жоймай ауысады. Қайта орнату қажет болса, жою алдында деректердің жоғалуы туралы бөлек ескерту көрсетіледі.</string>
+    <string name="disclaimer_source_library">Дереккөз — Wy Store кітапханасы. Google Play түпнұсқа файлдары кітапхананың ашық үдерісі арқылы жарияланады. Google Play-ден тыс орнату қолданба мен оның қызметтерінің аймағыңызда қолжетімді болуына кепілдік бермейді.</string>
+    <string name="library_repository">Кітапхана репозиторийі</string>
+    <string name="library_upstream">Бастапқы дүкендегі бет</string>
 </resources>

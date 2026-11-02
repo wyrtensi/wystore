@@ -115,7 +115,8 @@ fun TvGitHubAppScreen(
     managedApp: dev.wystore.data.ManagedApp? = null,
     continueChecksAfterGooglePlayUpdate: Boolean = false,
     onOpenUpdateSettings: () -> Unit = {},
-    onAdoptInstalled: () -> Unit = {}
+    onAdoptInstalled: () -> Unit = {},
+    sourceSelector: @Composable () -> Unit = {}
 ) {
     val entry = state.entry ?: return
     val context = LocalContext.current
@@ -264,6 +265,7 @@ fun TvGitHubAppScreen(
                 }
             }
 
+            item(key = "sources") { sourceSelector() }
             val description = state.info?.description?.takeIf { it.isNotBlank() } ?: entry.summary.takeIf { it.isNotBlank() }
             if (description != null) {
                 item(key = "description") {

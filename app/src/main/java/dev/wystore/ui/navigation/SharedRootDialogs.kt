@@ -3,6 +3,8 @@ package dev.wystore.ui.navigation
 import dev.wystore.ui.components.DialogButton
 import dev.wystore.ui.components.HubAlertDialog
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +45,57 @@ fun SharedRootDialogs(
     onSourceFailureHelpDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    var removalQueueId by rememberSaveable { mutableStateOf<String?>(null) }
+    val removalLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) {
+        removalQueueId?.let(viewModel::sourceRemovalReturned)
+        removalQueueId = null
+    }
+    state.sourceRemoval?.let { pending ->
+        androidx.compose.runtime.LaunchedEffect(pending.queueId) {
+            removalQueueId = requireNotNull(pending.queueId)
+            viewModel.sourceRemovalLaunched()
+            try {
+                removalLauncher.launch(android.content.Intent(android.content.Intent.ACTION_DELETE,
+                    android.net.Uri.parse("package:${pending.removedPackageName}"))
+                    .putExtra(android.content.Intent.EXTRA_RETURN_RESULT, true))
+            } catch (error: android.content.ActivityNotFoundException) {
+                viewModel.sourceRemovalReturned(requireNotNull(pending.queueId))
+                removalQueueId = null
+                viewModel.reportSourceRemovalFailure()
+            }
+        }
+    }
+    state.sourceReplacement?.let { prompt ->
+        val ready = prompt.staged != null
+        HubAlertDialog(
+            onDismissRequest = viewModel::dismissSourceReplacement,
+            title = { Text(stringResource(if (ready) R.string.dialog_replace_title else R.string.source_verify_title)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)) {
+                    if (prompt.preparing) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
+                    if (ready) {
+                        dev.wystore.ui.components.OwnershipTransferDetails(
+                            installed = requireNotNull(prompt.consent).installed,
+                            targetVersion = requireNotNull(prompt.staged).identity.versionName,
+                            targetVersionCode = prompt.staged.identity.versionCode,
+                            handover = dev.wystore.data.OwnershipHandover.REINSTALL)
+                    } else Text(stringResource(R.string.source_verify_body))
+                }
+            },
+            confirmButton = {
+                DialogButton(primary = true, enabled = !prompt.preparing,
+                    onClick = if (ready) viewModel::confirmSourceReplacement else viewModel::verifySourceReplacement) {
+                    Text(stringResource(if (ready) R.string.dialog_replace_confirm else R.string.source_verify_title))
+                }
+            },
+            dismissButton = {
+                DialogButton(onClick = viewModel::dismissSourceReplacement) { Text(stringResource(R.string.common_cancel)) }
+            }
+        )
+    }
 
     if (sourceFailureHelp) {
         SourceFailureDialog(

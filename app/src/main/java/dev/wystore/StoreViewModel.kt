@@ -225,7 +225,8 @@ data class InstallQueueItem(
     val awaitingConfirmation: Boolean = false,
     /** The dialog can be brought back; after a restart of the app it can only be cancelled. */
     val canShowDialogAgain: Boolean = false,
-    val requiresUpdateOwnership: Boolean = false
+    val requiresUpdateOwnership: Boolean = false,
+    val source: ManagedSource = if (githubRepository != null) ManagedSource.GITHUB else ManagedSource.RUSTORE
 )
 
 /**
@@ -303,10 +304,22 @@ data class WhatsNewPrompt(
 /** Several apps being accepted at once: how far the lookups have got. */
 data class AdoptionBatch(val checked: Int, val total: Int)
 
+data class SourceReplacementPrompt(
+    val operation: Long,
+    val choice: dev.wystore.data.AppSourceChoice,
+    val label: String,
+    val forceReinstall: Boolean = false,
+    val preparing: Boolean = false,
+    val staged: dev.wystore.updates.StagedSourceReplacement? = null,
+    val consent: dev.wystore.data.SourceReplacementConsent? = null
+)
+
 data class StoreUiState(
     val query: String = "",
     val search: SearchPage? = null,
     val selected: StoreApp? = null,
+    val sourceReplacement: SourceReplacementPrompt? = null,
+    val sourceRemoval: dev.wystore.updates.PendingReinstall? = null,
     val installed: List<InstalledApp> = emptyList(),
     val managed: List<ManagedApp> = emptyList(),
     val settings: StoreSettings = StoreSettings(),
@@ -632,12 +645,20 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     private var sourceDetailsJob: Job? = null
     private var sourceChoiceJob: Job? = null
+    private var replacementJob: Job? = null
+    private var replacementOperation = 0L
     private var libraryCatalogLoaded = false
 
     fun openDetails(packageName: String) = openDetailsFromSource(packageName,
         _state.value.managed.firstOrNull { it.packageName == packageName }?.source ?: ManagedSource.RUSTORE)
 
     fun openDetailsFromSource(packageName: String, preferred: ManagedSource) {
+        sourceChoiceJob?.cancel()
+        openDetailsPreview(packageName, preferred)
+    }
+
+    private fun openDetailsPreview(packageName: String, preferred: ManagedSource) {
+        dismissSourceReplacement()
         sourceDetailsJob?.cancel()
         if (preferred == ManagedSource.GITHUB) {
             sourceChoices(packageName).filterIsInstance<dev.wystore.data.AppSourceChoice.GitHub>().firstOrNull()?.let {
@@ -649,10 +670,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         sourceDetailsJob = viewModelScope.launch {
             _state.update { it.copy(detailsLoading = true, operation = string(R.string.vm_opening_details), message = null) }
             try {
-                val app = if (preferred == ManagedSource.WY_STORE)
-                    dev.wystore.data.library.WyStoreLibrarySource(getApplication()).details(packageName)
+                val libraryRead = if (preferred == ManagedSource.WY_STORE)
+                    dev.wystore.data.library.WyStoreLibrarySource(getApplication()).details(packageName) else null
+                val app = if (libraryRead != null) libraryRead.value
                 else catalogRepository.details(packageName)
                 _state.update { state -> state.copy(selected = decorateSources(app), detailsLoading = false, operation = null,
+                    message = libraryRead?.error?.let { string(R.string.vm_open_details_failed) },
                     knownRuStorePackages = if (preferred == ManagedSource.RUSTORE) state.knownRuStorePackages + packageName else state.knownRuStorePackages) }
             } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
             catch (error: Exception) {
@@ -692,14 +715,15 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectAppSource(choice: dev.wystore.data.AppSourceChoice) {
         val pkg = choice.packageName ?: return
+        dismissSourceReplacement()
         sourceChoiceJob?.cancel()
         sourceChoiceJob = viewModelScope.launch {
             try {
                 when (dev.wystore.updates.SourceSelectionCoordinator(getApplication()).select(pkg, choice)) {
-                    is dev.wystore.updates.SourceSwitchResult.Saved -> { refreshLibrary(); openDetailsFromSource(pkg, choice.source) }
+                    is dev.wystore.updates.SourceSwitchResult.Saved -> { refreshLibrary(); openDetailsPreview(pkg, choice.source) }
                     is dev.wystore.updates.SourceSwitchResult.VerificationRequired -> {
-                        openDetailsFromSource(pkg, choice.source)
-                        _state.update { it.copy(message = string(R.string.source_signature_verify)) }
+                        openDetailsPreview(pkg, choice.source)
+                        requestSourceReplacement(choice, _state.value.installed.firstOrNull { it.packageName == pkg }?.label ?: pkg)
                     }
                     dev.wystore.updates.SourceSwitchResult.InstallInProgress -> _state.update { it.copy(message = string(R.string.source_switch_wait)) }
                 }
@@ -708,12 +732,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun loadLibraryCatalog() {
+    private fun loadLibraryCatalog(forceRefresh: Boolean = false) {
+        if (forceRefresh) libraryCatalogLoaded = false
         if (libraryCatalogLoaded) return
         libraryCatalogLoaded = true
         viewModelScope.launch {
             try {
-                val read = dev.wystore.data.library.LibraryRepository.getInstance(getApplication()).catalog()
+                val read = dev.wystore.data.library.LibraryRepository.getInstance(getApplication()).catalog(forceRefresh)
                 _state.update { it.copy(libraryCards = read.value.cards, libraryError =
                     read.error?.let { "Wy Store: " + string(R.string.vm_open_details_failed) }) }
             } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
@@ -724,8 +749,34 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun retryLibraryCatalog() { loadLibraryCatalog(forceRefresh = true) }
+
     fun quickInstallFromSource(packageName: String, selectedSource: ManagedSource) {
-        if (selectedSource != ManagedSource.WY_STORE) { quickInstallRuStore(packageName); return }
+        if (selectedSource == ManagedSource.GITHUB) { openDetailsFromSource(packageName, selectedSource); return }
+        if (selectedSource == ManagedSource.RUSTORE) {
+            viewModelScope.launch {
+                try {
+                    val managed = repository.managedApps().firstOrNull { it.packageName == packageName }
+                    if (managed != null && managed.source != selectedSource) {
+                        val choice = dev.wystore.data.AppSourceChoice.RuStore(packageName)
+                        when (dev.wystore.updates.SourceSelectionCoordinator(getApplication()).select(packageName, choice)) {
+                            is dev.wystore.updates.SourceSwitchResult.Saved -> refreshLibrary()
+                            is dev.wystore.updates.SourceSwitchResult.VerificationRequired -> {
+                                openDetailsFromSource(packageName, selectedSource)
+                                requestSourceReplacement(choice, managed.label)
+                                return@launch
+                            }
+                            dev.wystore.updates.SourceSwitchResult.InstallInProgress -> {
+                                _state.update { it.copy(message = string(R.string.source_switch_wait)) }; return@launch
+                            }
+                        }
+                    }
+                    quickInstallRuStore(packageName)
+                } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+                catch (error: Exception) { _state.update { it.copy(message = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.vm_open_details_failed)) } }
+            }
+            return
+        }
         if (hasActiveQueueItem(packageName)) return
         askOnMeteredNetwork { viewModelScope.launch {
             try {
@@ -740,8 +791,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                         dev.wystore.data.AppSourceChoice.Library(packageName))
                     if (result !is dev.wystore.updates.SourceSwitchResult.Saved) {
                         openDetailsFromSource(packageName, ManagedSource.WY_STORE)
-                        _state.update { it.copy(message = string(if (result is dev.wystore.updates.SourceSwitchResult.InstallInProgress)
-                            R.string.source_switch_wait else R.string.source_signature_verify)) }
+                        if (result is dev.wystore.updates.SourceSwitchResult.VerificationRequired)
+                            requestSourceReplacement(dev.wystore.data.AppSourceChoice.Library(packageName), app.name)
+                        else _state.update { it.copy(message = string(R.string.source_switch_wait)) }
                         return@launch
                     }
                 }
@@ -753,27 +805,125 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         } }
     }
 
-    fun prepareSourceReplacement(app: StoreApp, onReady: (Boolean) -> Unit) {
+    fun beginSourceReplacement(app: StoreApp) {
         val choice = sourceChoices(app.packageName).firstOrNull { it.source == app.source } ?: return
-        askOnMeteredNetwork { viewModelScope.launch {
-            _state.update { it.copy(busy = true) }
+        requestSourceReplacement(choice, app.name, forceReinstall = true)
+    }
+
+    fun beginSourceVerification(app: StoreApp) {
+        val choice = sourceChoices(app.packageName).firstOrNull { it.source == app.source } ?: return
+        requestSourceReplacement(choice, app.name)
+    }
+
+    private fun requestSourceReplacement(choice: dev.wystore.data.AppSourceChoice, label: String, forceReinstall: Boolean = false) {
+        dismissSourceReplacement()
+        _state.update { it.copy(sourceReplacement = SourceReplacementPrompt(++replacementOperation, choice, label, forceReinstall)) }
+    }
+
+    fun dismissSourceReplacement() {
+        val prompt = _state.value.sourceReplacement
+        replacementOperation++
+        replacementJob?.cancel()
+        replacementJob = null
+        _state.update { it.copy(sourceReplacement = null) }
+        prompt?.staged?.let { staged -> viewModelScope.launch {
+            dev.wystore.updates.SourceSelectionGate.locked {
+                val store = PendingReinstallStore(getApplication())
+                store.read(staged.choice.packageName)?.takeIf { it.queueId == staged.queueId }?.let {
+                    if (repository.installedAppFresh(it.removedPackageName) != null) store.clear(it.removedPackageName)
+                }
+            }
+            dev.wystore.updates.SourceReplacementStager(getApplication()).discard(staged.queueId)
+        } }
+    }
+
+    fun verifySourceReplacement() {
+        val prompt = _state.value.sourceReplacement ?: return
+        if (prompt.preparing || prompt.staged != null) return
+        askOnMeteredNetwork {
+            if (_state.value.sourceReplacement?.operation != prompt.operation) return@askOnMeteredNetwork
+            replacementJob = viewModelScope.launch {
+            _state.update { it.copy(sourceReplacement = prompt.copy(preparing = true)) }
+            var staged: dev.wystore.updates.StagedSourceReplacement? = null
+            var retained = false
             try {
-                val staged = dev.wystore.updates.SourceReplacementStager(getApplication()).stage(choice, repository.sourceRevision(app.packageName))
-                val selected = dev.wystore.updates.SourceSelectionCoordinator(getApplication()).selectVerified(app.packageName, choice, staged.identity, staged.queueId)
+                val pkg = requireNotNull(prompt.choice.packageName)
+                val candidate = dev.wystore.updates.SourceReplacementStager(getApplication()).stage(prompt.choice, repository.sourceRevision(pkg))
+                staged = candidate
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                if (_state.value.sourceReplacement?.operation != prompt.operation) return@launch
+                val selected = if (prompt.forceReinstall) dev.wystore.updates.SourceSwitchResult.VerificationRequired(prompt.choice, candidate.sourceRevision)
+                    else dev.wystore.updates.SourceSelectionCoordinator(getApplication()).selectVerified(pkg, prompt.choice, candidate.identity, candidate.queueId)
                 if (selected is dev.wystore.updates.SourceSwitchResult.VerificationRequired) {
-                    val row = dev.wystore.updates.SourceReplacementStager(getApplication()).validateBeforeRemoval(staged.queueId)
-                    PendingReinstallStore(getApplication()).save(PendingReinstall(app.packageName, app.packageName, app.name,
-                        System.currentTimeMillis(), queueId = row.id, requiresUpdateOwnership = Build.VERSION.SDK_INT >= 34))
-                    onReady(true)
+                    val installed = withContext(Dispatchers.IO) { repository.installedAppFresh(pkg) }
+                        ?: throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.SOURCE_CHANGED)
+                    if (_state.value.sourceReplacement?.operation != prompt.operation) return@launch
+                    _state.update { it.copy(sourceReplacement = prompt.copy(staged = candidate,
+                        consent = dev.wystore.data.SourceReplacementConsent(prompt.operation, candidate.sourceRevision, installed))) }
+                    retained = true
                 } else {
-                    refreshLibrary(); onReady(false)
+                    _state.update { it.copy(sourceReplacement = null) }
+                    refreshLibrary()
                     if (selected is dev.wystore.updates.SourceSwitchResult.InstallInProgress)
                         _state.update { it.copy(message = string(R.string.source_switch_wait)) }
                 }
             } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
-            catch (error: Exception) { onReady(false); _state.update { it.copy(message = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.vm_open_details_failed)) } }
-            finally { _state.update { it.copy(busy = false) } }
+            catch (error: Exception) {
+                if (_state.value.sourceReplacement?.operation == prompt.operation)
+                    _state.update { it.copy(sourceReplacement = prompt, message = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.vm_open_details_failed)) }
+            } finally {
+                if (!retained) staged?.let { candidate -> withContext(kotlinx.coroutines.NonCancellable) {
+                    dev.wystore.updates.SourceReplacementStager(getApplication()).discard(candidate.queueId)
+                } }
+            }
         } }
+    }
+
+    fun confirmSourceReplacement() {
+        val prompt = _state.value.sourceReplacement ?: return
+        val candidate = prompt.staged ?: return
+        val consent = prompt.consent ?: return
+        if (prompt.preparing) return
+        replacementJob = viewModelScope.launch {
+            _state.update { it.copy(sourceReplacement = prompt.copy(preparing = true)) }
+            try {
+                val row = dev.wystore.updates.SourceReplacementStager(getApplication()).validateBeforeRemoval(candidate.queueId)
+                dev.wystore.updates.SourceSelectionGate.locked {
+                    val installed = withContext(Dispatchers.IO) { repository.installedAppFresh(row.packageName) }
+                    check(consent.isCurrent(_state.value.sourceReplacement?.operation, repository.sourceRevision(row.packageName), installed)) {
+                        "Removal consent no longer matches the installed application"
+                    }
+                    val current = queueRepository.getEntityById(row.id)
+                    check(current?.state == QueueState.READY_TO_INSTALL.name && current.sourceReplacement) { "Replacement is no longer ready" }
+                    dev.wystore.updates.SourceSelectionCoordinator.requireCurrent(getApplication(), requireNotNull(current), pendingRemoval = true)
+                    val pending = PendingReinstall(row.packageName, row.packageName, prompt.label, System.currentTimeMillis(),
+                        queueId = row.id, requiresUpdateOwnership = Build.VERSION.SDK_INT >= 34, sourceRevision = row.sourceRevision)
+                    PendingReinstallStore(getApplication()).save(pending)
+                    _state.update { it.copy(sourceReplacement = null, sourceRemoval = pending) }
+                }
+            } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+            catch (error: Exception) {
+                if (_state.value.sourceReplacement?.operation == prompt.operation)
+                    _state.update { it.copy(sourceReplacement = prompt, message = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.vm_open_details_failed)) }
+            }
+        }
+    }
+
+    fun sourceRemovalLaunched() { _state.update { it.copy(sourceRemoval = null) } }
+    fun reportSourceRemovalFailure() { _state.update { it.copy(message = string(R.string.vm_open_details_failed)) } }
+
+    fun sourceRemovalReturned(queueId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dev.wystore.updates.SourceSelectionGate.locked {
+                val store = PendingReinstallStore(getApplication())
+                val pending = store.readAll().firstOrNull { it.queueId == queueId } ?: return@locked
+                if (store.read(pending.removedPackageName) == pending && repository.installedAppFresh(pending.removedPackageName) != null) {
+                    store.clear(pending.removedPackageName)
+                    _state.update { if (it.sourceReplacement?.staged?.queueId == queueId) it.copy(sourceReplacement = null) else it }
+                }
+            }
+            refreshLibrary()
+        }
     }
 
     /**
@@ -813,6 +963,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearDetails() {
+        sourceChoiceJob?.cancel()
+        dismissSourceReplacement()
         sourceDetailsJob?.cancel()
         _state.value = _state.value.copy(selected = null)
     }
@@ -963,6 +1115,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun closeGitHubApp() {
+        dismissSourceReplacement()
         _state.update { it.copy(githubApp = GitHubAppUiState()) }
     }
 
@@ -1299,6 +1452,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             ) else null,
             errorCode = item.errorCode,
             requiresUpdateOwnership = item.requiresUpdateOwnership,
+            source = item.source,
             detail = item.errorDetail,
             githubRepository = item.githubRepository,
             awaitingConfirmation = item.state == QueueState.INSTALLING && item.id in confirmationDialogs,
@@ -2147,6 +2301,11 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * once the app has been removed. The caller opens Android's uninstall dialog.
      */
     fun confirmReplaceFromQueue(item: InstallQueueItem, onPrepared: (Boolean) -> Unit) {
+        if (item.source == ManagedSource.WY_STORE) {
+            beginLibraryQueueReplacement(item)
+            onPrepared(false)
+            return
+        }
         if (queueReplacementJob?.isActive == true) {
             onPrepared(false)
             return
@@ -2182,8 +2341,8 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                             ))
                         }
                     )
+                    true
                 }
-                true
             } catch (error: kotlinx.coroutines.CancellationException) {
                 throw error
             } catch (error: Exception) {
@@ -2193,6 +2352,11 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             }
             onPrepared(prepared)
         }
+    }
+
+    fun beginLibraryQueueReplacement(item: InstallQueueItem) {
+        require(item.source == ManagedSource.WY_STORE)
+        requestSourceReplacement(dev.wystore.data.AppSourceChoice.Library(item.packageName), item.label)
     }
 
     fun updateManaged(app: ManagedApp) {
@@ -2225,11 +2389,19 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun openAppPage(packageName: String, label: String = "", githubRepository: GitHubRepository? = null) {
         val managed = _state.value.managed.firstOrNull { it.packageName == packageName }
+        if (githubRepository == null && pageSource(packageName) == ManagedSource.WY_STORE) {
+            openDetailsFromSource(packageName, ManagedSource.WY_STORE)
+            return
+        }
         when (val page = AppPages.resolve(packageName, label, githubRepository, managed, _state.value.githubRepositories)) {
             is AppPage.Store -> openDetails(page.packageName)
             is AppPage.GitHub -> openGitHubApp(page.entry)
         }
     }
+
+    private fun pageSource(packageName: String): ManagedSource? = queueRows.firstOrNull {
+        it.packageName == packageName && it.state !in setOf(QueueState.INSTALLED, QueueState.CANCELED, QueueState.SKIPPED)
+    }?.source ?: _state.value.managed.firstOrNull { it.packageName == packageName }?.source
 
     /**
      * Shows the source's notes for the version it offers, without leaving the list.
@@ -2250,7 +2422,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val loaded = runCatching {
                 when (page) {
-                    is AppPage.Store -> catalogRepository.details(page.packageName).changelog.let { changelog ->
+                    is AppPage.Store -> (if (pageSource(page.packageName) == ManagedSource.WY_STORE)
+                        dev.wystore.data.library.WyStoreLibrarySource(getApplication()).details(page.packageName).requireFresh().changelog
+                        else catalogRepository.details(page.packageName).changelog).let { changelog ->
                         prompt.copy(
                             loading = false,
                             versionName = changelog?.versionName,
@@ -2303,13 +2477,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun installSelected() {
-        _state.value.selected?.let { app ->
-            askOnMeteredNetwork {
-                clearTransientFailure(app.packageName)
-                ManualInstallScheduler.enqueue(getApplication(), app.packageName, app.name, repository.settings())
-                _state.value = _state.value.copy(message = string(R.string.vm_queued_app, app.name))
-            }
-        }
+        _state.value.selected?.takeIf { it.installationAvailable }?.let { quickInstallFromSource(it.packageName, it.source) }
     }
 
     /**
@@ -2427,7 +2595,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 (librarySearchResults().any { it.packageName == packageName } && state.search?.apps?.none { it.packageName == packageName } != false)) ManagedSource.WY_STORE else ManagedSource.RUSTORE
         if (preferred == ManagedSource.WY_STORE) quickInstallFromSource(packageName, preferred)
         else if (preferred == ManagedSource.GITHUB) openDetailsFromSource(packageName, preferred)
-        else quickInstallRuStore(packageName)
+        else quickInstallFromSource(packageName, ManagedSource.RUSTORE)
     }
 
     private fun quickInstallRuStore(packageName: String) {
@@ -2526,6 +2694,26 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     // Main.immediate collectors can emit during construction, so every backing field must
     // be initialized before subscriptions or notification-triggered startup begin.
     init {
+        viewModelScope.launch {
+            val pending = withContext(Dispatchers.IO) { PendingReinstallStore(application).readAll().firstOrNull {
+                it.sourceRevision != null && repository.installedAppFresh(it.removedPackageName) != null
+            } }
+            pending?.let {
+                try {
+                    val staged = dev.wystore.updates.SourceReplacementStager(application).restore(requireNotNull(it.queueId))
+                    val installed = withContext(Dispatchers.IO) { repository.installedAppFresh(it.removedPackageName) } ?: return@launch
+                    if (_state.value.sourceReplacement == null) {
+                        val operation = ++replacementOperation
+                        _state.update { state -> state.copy(sourceReplacement = SourceReplacementPrompt(operation, staged.choice,
+                            pending.label, forceReinstall = true, staged = staged,
+                            consent = dev.wystore.data.SourceReplacementConsent(operation, staged.sourceRevision, installed))) }
+                    }
+                } catch (cancel: kotlinx.coroutines.CancellationException) { throw cancel }
+                catch (error: Exception) {
+                    _state.update { state -> state.copy(message = SourceTextResolver.describe(application, error) ?: string(R.string.vm_open_details_failed)) }
+                }
+            }
+        }
         viewModelScope.launch {
             autoInstallStore.observeRequests().collect {
                 requestAutoInstalls(_state.value.pendingUpdates)

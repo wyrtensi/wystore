@@ -503,10 +503,10 @@
     <string name="details_label_min_android">Патрабуецца</string>
     <string name="details_label_rating">Ацэнка</string>
     <string name="details_label_downloads">Спампаванні</string>
-    <string name="details_label_fingerprint">Адбітак RuStore</string>
+    <string name="details_label_fingerprint">Адбітак подпісу крыніцы</string>
     <string name="details_min_android_value">Android ад %1$s</string>
     <string name="details_rating_value">%1$s (%2$s)</string>
-    <string name="details_fingerprint_note">Заяўлены RuStore — правяраецца перад усталяваннем</string>
+    <string name="details_fingerprint_note">Указаны ў %1$s — правяраецца перад усталяваннем</string>
     <string name="home_tagline">Расійскія праграмы і нават больш</string>
     <string name="home_empty_featured_title">Пакуль няма чаго паказаць</string>
     <string name="search_empty_title">Нічога не знойдзена</string>
@@ -863,4 +863,9 @@
     <string name="source_switch_wait">Завяршыце або адмяніце бягучую ўсталёўку перад зменай крыніцы.</string>
     <string name="source_signature_verify">Подпіс адрозніваецца. Перад пераўсталёўкай трэба праверыць APK.</string>
     <string name="library_incompatible">У бібліятэцы няма прыдатнага варыянта для гэтай прылады.</string>
+    <string name="source_verify_title">Праверыць файлы ўсталявання</string>
+    <string name="source_verify_body">Wy Store спампуе і праверыць усе файлы ўсталявання. Калі подпіс дазваляе абнаўленне, крыніца зменіцца без выдалення праграмы. Калі патрэбнае пераўсталяванне, перад выдаленнем з’явіцца асобнае папярэджанне пра страту даных.</string>
+    <string name="disclaimer_source_library">Крыніца — бібліятэка Wy Store. Арыгінальныя файлы Google Play публікуюцца праз адкрыты працэс бібліятэкі. Усталяванне па-за Google Play не гарантуе даступнасць праграмы і яе сэрвісаў у вашым рэгіёне.</string>
+    <string name="library_repository">Рэпазіторый бібліятэкі</string>
+    <string name="library_upstream">Старонка ў зыходнай краме</string>
 </resources>

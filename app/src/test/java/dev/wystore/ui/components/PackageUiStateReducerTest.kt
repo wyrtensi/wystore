@@ -17,6 +17,13 @@ import org.junit.Test
 
 class PackageUiStateReducerTest {
 
+    @Test fun aLibraryQueueRowKeepsItsSourceWithoutACatalogOrManagedRecord() {
+        val row = InstallQueueItem(packageName = "example.library", label = "Library",
+            status = InstallQueueStatus.DOWNLOADING, source = ManagedSource.WY_STORE)
+        val state = PackageUiStateReducer.reduce(queueItem = row, deviceSdkInt = 34)
+        assertEquals(ManagedSource.WY_STORE.name, state.sourceProvenance)
+    }
+
     private val catalogApp = StoreApp(
         appId = 1L,
         packageName = "ru.vk.store",

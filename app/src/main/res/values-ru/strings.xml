@@ -503,10 +503,10 @@
     <string name="details_label_min_android">Требуется</string>
     <string name="details_label_rating">Рейтинг</string>
     <string name="details_label_downloads">Скачивания</string>
-    <string name="details_label_fingerprint">Отпечаток RuStore</string>
+    <string name="details_label_fingerprint">Отпечаток подписи источника</string>
     <string name="details_min_android_value">Android от %1$s</string>
     <string name="details_rating_value">%1$s (%2$s)</string>
-    <string name="details_fingerprint_note">Заявлен источником RuStore — сверяется перед установкой</string>
+    <string name="details_fingerprint_note">Указан в %1$s — проверяется перед установкой</string>
     <string name="home_tagline">Российские приложения и даже больше</string>
     <string name="home_empty_featured_title">Пока нечего показать</string>
     <string name="search_empty_title">Ничего не найдено</string>
@@ -863,4 +863,9 @@
     <string name="source_switch_wait">Завершите или отмените текущую установку перед сменой источника.</string>
     <string name="source_signature_verify">Подпись отличается. Перед переустановкой нужно проверить APK.</string>
     <string name="library_incompatible">В библиотеке нет подходящего варианта для этого устройства.</string>
+    <string name="source_verify_title">Проверить файлы установки</string>
+    <string name="source_verify_body">Wy Store скачает и проверит все файлы установки. Если подпись позволяет обновление, источник сменится без удаления приложения. Если нужна переустановка, перед удалением появится отдельное предупреждение о потере данных.</string>
+    <string name="disclaimer_source_library">Источник — библиотека Wy Store. Оригинальные файлы Google Play публикуются через открытый процесс библиотеки. Установка вне Google Play не гарантирует доступность приложения и его сервисов в вашем регионе.</string>
+    <string name="library_repository">Репозиторий библиотеки</string>
+    <string name="library_upstream">Страница в исходном магазине</string>
 </resources>

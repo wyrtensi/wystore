@@ -84,7 +84,7 @@ class WyStoreApplication : Application(), ImageLoaderFactory {
                         val queue = dev.wystore.updates.QueueRepository.getInstance(this@WyStoreApplication)
                         checkNotNull(queue.getById(pending.queueId)) { "Replacement queue item is missing" }
                         if (pending.requiresUpdateOwnership) queue.requireUpdateOwnership(pending.queueId)
-                        QueueCoordinator(this@WyStoreApplication).retry(pending.queueId)
+                        QueueCoordinator(this@WyStoreApplication).resumeReplacement(pending.queueId)
                         pending.queueId
                     } else if (pending.githubRepository != null) {
                         val asset = checkNotNull(pending.githubAsset) { "Replacement GitHub asset is missing" }

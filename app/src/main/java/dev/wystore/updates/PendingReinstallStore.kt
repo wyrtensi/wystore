@@ -22,7 +22,8 @@ data class PendingReinstall(
     val requiresUpdateOwnership: Boolean = false,
     val githubRepository: GitHubRepository? = null,
     val githubAsset: GitHubAsset? = null,
-    val githubReleaseId: Long? = null
+    val githubReleaseId: Long? = null,
+    val sourceRevision: Long? = null
 )
 
 /**

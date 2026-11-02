@@ -116,7 +116,7 @@ fun CategoryScreen(
             // accent line, the title in plain weight.
             HubPageHeader(
                 title = state.title,
-                eyebrow = "RuStore",
+                eyebrow = if (state.slug == "wy-foreign") "Wy Store" else "RuStore",
                 onBack = onBack
             )
         }

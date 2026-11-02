@@ -15,6 +15,7 @@ object CategoryLabels {
         // The catalogue's own "everything" section; without it the English list of sections had
         // one tile left in Russian.
         "all" to R.string.home_all_apps,
+        "wy-foreign" to R.string.wy_category_foreign,
         "adsandservices" to R.string.category_adsandservices,
         "books" to R.string.category_books,
         "business" to R.string.category_business,

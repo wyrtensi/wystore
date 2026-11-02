@@ -48,6 +48,12 @@ object FirmwareInstallFallback {
         val repository = QueueRepository.getInstance(appContext)
         val entity = repository.getEntityById(queueId) ?: return
         val marker = "${entity.packageName}:${entity.versionCode}"
+        if (!WholeApkFallbackPolicy.mayRefetch(dev.wystore.data.ManagedSource.valueOf(entity.source))) {
+            repository.markFailed(queueId, QueueErrorCode.INCOMPATIBLE,
+                appContext.getString(R.string.msg_install_split_refused))
+            QueuePump.startNext(appContext)
+            return
+        }
         val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val refetched = prefs.getStringSet(KEY_REFETCHED, emptySet()).orEmpty()
         if (marker in refetched) {

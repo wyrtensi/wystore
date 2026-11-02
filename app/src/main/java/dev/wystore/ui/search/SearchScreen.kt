@@ -134,6 +134,8 @@ fun SearchScreen(
     onLaunch: (String) -> Unit,
     /** Why the last search came back with nothing, when it failed rather than found nothing. */
     error: String? = null,
+    libraryError: String? = null,
+    onRetryLibrary: () -> Unit = {},
     /** Forgets the query along with the field, so Home does not go on showing it. */
     onClear: () -> Unit = {},
     /** True when arrived here by tapping the search pill on Home. */
@@ -299,6 +301,11 @@ fun SearchScreen(
             }
 
             if (busy) item { Box(Modifier.padding(bottom = 14.dp)) { Loading(operation) } }
+            if (libraryError != null && sources.includesLibrary && libraryEnabled) item {
+                androidx.compose.material3.TextButton(onClick = onRetryLibrary) {
+                    Text(libraryError + " · " + stringResource(R.string.common_retry))
+                }
+            }
 
             if (!busy && !hasResults) {
                 item {

@@ -10,6 +10,7 @@ import dev.wystore.updates.model.QueueErrorCode
 import dev.wystore.updates.model.QueueState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.ensureActive
 
 sealed interface SourceSwitchResult {
     data class Saved(val revision: Long) : SourceSwitchResult
@@ -46,6 +47,8 @@ class SourceSelectionCoordinator(private val context: Context) {
     private suspend fun change(packageName: String, choice: AppSourceChoice, certificates: Set<String>,
                                lineage: Set<String>?, keepQueueId: String?): SourceSwitchResult = withContext(Dispatchers.IO) {
         SourceSelectionGate.locked {
+            kotlinx.coroutines.currentCoroutineContext().ensureActive()
+            if (PendingReinstallStore(context).read(packageName) != null) return@locked SourceSwitchResult.InstallInProgress
             val rows = dao.getByPackage(packageName)
             val sessionStates = rows.mapNotNull { dao.getSession(it.id)?.state }
             if (SourceRequestPolicy.blocksSwitch(rows.map { QueueState.valueOf(it.state) }, sessionStates)) {
@@ -94,7 +97,12 @@ class SourceSelectionCoordinator(private val context: Context) {
     }
 
     companion object {
-        fun requireCurrent(context: Context, row: UpdateQueueEntity) {
+        fun requireCurrent(context: Context, row: UpdateQueueEntity, pendingRemoval: Boolean = false) {
+            PendingReinstallStore(context).read(row.packageName)?.let { pending ->
+                if (pending.queueId != row.id || (!pendingRemoval && StoreRepository(context).installedAppFresh(row.packageName) != null)) {
+                    throw TransferFailure(false, QueueErrorCode.SOURCE_CHANGED, detail = "An application handover is pending")
+                }
+            }
             val selected = StoreRepository(context).managedApps().firstOrNull { it.packageName == row.packageName }
             if (!SourceRequestPolicy.isCurrent(selected, ManagedSource.valueOf(row.source), row.sourceRevision, row.sourceReplacement,
                     StoreRepository(context).sourceRevision(row.packageName))) {

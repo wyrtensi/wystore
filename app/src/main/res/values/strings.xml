@@ -503,10 +503,10 @@
     <string name="details_label_min_android">Requires</string>
     <string name="details_label_rating">Rating</string>
     <string name="details_label_downloads">Downloads</string>
-    <string name="details_label_fingerprint">RuStore fingerprint</string>
+    <string name="details_label_fingerprint">Source fingerprint</string>
     <string name="details_min_android_value">Android %1$s and up</string>
     <string name="details_rating_value">%1$s (%2$s)</string>
-    <string name="details_fingerprint_note">Declared by RuStore — checked before installing</string>
+    <string name="details_fingerprint_note">Declared by %1$s — checked before installing</string>
     <string name="home_tagline">Russian apps and even more</string>
     <string name="home_empty_featured_title">Nothing to show yet</string>
     <string name="search_empty_title">Nothing found</string>
@@ -863,4 +863,9 @@
     <string name="source_switch_wait">Finish or cancel the current installation before changing its source.</string>
     <string name="source_signature_verify">The signing key differs. The APK must be checked before replacement.</string>
     <string name="library_incompatible">No published variant supports this device.</string>
+    <string name="source_verify_title">Check installation files</string>
+    <string name="source_verify_body">Wy Store will download and check all installation files. If the signature allows an update, the source will change without removing the app. If reinstallation is needed, you will see a separate data loss warning before removal.</string>
+    <string name="disclaimer_source_library">Source: Wy Store Library. Original Google Play files are published through the open library pipeline. Installing outside Google Play does not guarantee that the app or its services will be available in your region.</string>
+    <string name="library_repository">Library repository</string>
+    <string name="library_upstream">Original store listing</string>
 </resources>

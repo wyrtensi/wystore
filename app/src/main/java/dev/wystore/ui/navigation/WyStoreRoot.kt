@@ -129,7 +129,6 @@ fun WyStoreRoot(
     var forceDialog by remember { mutableStateOf<ManagedApp?>(null) }
     // What is on the phone and what the catalogue offers in its place, for a handover that cannot
     // happen as an install and has to go through a removal.
-    var replaceDialog by remember { mutableStateOf<Pair<InstalledApp, StoreApp>?>(null) }
     // The same offer made from a stopped queue row, where the signature is what stands in the way.
     var queueReplaceDialog by remember { mutableStateOf<dev.wystore.InstallQueueItem?>(null) }
     var preparingQueueReplacement by remember { mutableStateOf(false) }
@@ -252,7 +251,7 @@ fun WyStoreRoot(
                     }
                     GitHubAppScreen(
                         state = githubApp,
-                        sourceSelector = { githubApp.entry?.packageName?.let { sourceSelector(it, dev.wystore.data.ManagedSource.GITHUB) } },
+                        sourceSelector = { (githubApp.entry?.packageName ?: githubInstalled?.packageName)?.let { sourceSelector(it, dev.wystore.data.ManagedSource.GITHUB) } },
                         installedApp = githubInstalled,
                         managedApp = state.managed.firstOrNull { it.packageName == githubInstalled?.packageName },
                         continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
@@ -290,6 +289,7 @@ fun WyStoreRoot(
                     AppDetailsScreen(
                         app = selected,
                         sourceSelector = { sourceSelector(selected.packageName, selected.source) },
+                        onVerifySource = { viewModel.beginSourceVerification(selected) },
                         installed = selectedInstalled,
                         managedApp = selectedManaged,
                         continueChecksAfterGooglePlayUpdate = state.settings.continueChecksAfterGooglePlayUpdate,
@@ -312,7 +312,7 @@ fun WyStoreRoot(
                             else viewModel.installSelected()
                         },
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedInstalled,
-                        onReplace = { selectedInstalled?.let { replaceDialog = it to selected } },
+                        onReplace = { viewModel.beginSourceReplacement(selected) },
                         onShowInstallDialog = viewModel::showInstallDialogAgain,
                         onCancelInstall = viewModel::cancelAwaitingInstall,
                         onResume = viewModel::queueResume
@@ -389,8 +389,8 @@ fun WyStoreRoot(
                         modifier = screenModifier,
                         query = state.query,
                         apps = dev.wystore.data.AppSourceIdentity.merge(
-                            (if (state.settings.searchSources.includesRuStore) state.search?.apps.orEmpty() else emptyList()) +
-                            (if (state.settings.searchSources.includesLibrary) viewModel.librarySearchResults() else emptyList())
+                            (if (state.settings.searchSources.within(state.settings.githubEnabled, state.settings.libraryEnabled).includesRuStore) state.search?.apps.orEmpty() else emptyList()) +
+                            (if (state.settings.searchSources.within(state.settings.githubEnabled, state.settings.libraryEnabled).includesLibrary) viewModel.librarySearchResults() else emptyList())
                         ).map(viewModel::decorateSources),
                         total = state.search?.total,
                         busy = state.searching,
@@ -417,6 +417,8 @@ fun WyStoreRoot(
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
                         onLaunch = viewModel::launchInstalledApp,
                         error = state.searchError,
+                        libraryError = state.libraryError,
+                        onRetryLibrary = viewModel::retryLibraryCatalog,
                         onClear = viewModel::clearSearch,
                         autoFocus = focusSearchOnOpen,
                         onAutoFocusConsumed = { focusSearchOnOpen = false }
@@ -461,7 +463,8 @@ fun WyStoreRoot(
                         onQueueSkip = viewModel::queueSkip,
                         onQueueDownload = viewModel::queueDownload,
                         onQueueDiscard = viewModel::queueDiscard,
-                        onQueueReplace = { queueReplaceDialog = it },
+                        onQueueReplace = { if (it.source == dev.wystore.data.ManagedSource.WY_STORE)
+                            viewModel.beginLibraryQueueReplacement(it) else queueReplaceDialog = it },
                         onSourceFailureHelp = { sourceFailureHelp = true },
                         onConfirmUnverifiedSource = viewModel::askAboutUnverifiedSource,
                         onOpenPackage = { packageName -> viewModel.openDetails(packageName) },
@@ -578,36 +581,6 @@ fun WyStoreRoot(
             onRetry = { viewModel.beginAdoption(prompt.app) },
             onDismiss = viewModel::dismissAdoption,
             onDismissAll = viewModel::dismissAllAdoptions
-        )
-    }
-
-    replaceDialog?.let { (installedApp, catalogApp) ->
-        val handover = ownershipHandover(context, installedApp)
-        HubAlertDialog(
-            onDismissRequest = { replaceDialog = null },
-            title = { Text(stringResource(R.string.dialog_replace_title)) },
-            text = {
-                dev.wystore.ui.components.OwnershipTransferDetails(
-                    installed = installedApp,
-                    targetVersion = catalogApp.versionName,
-                    targetVersionCode = catalogApp.versionCode,
-                    handover = handover,
-                    modifier = Modifier.verticalScroll(rememberScrollState())
-                )
-            },
-            confirmButton = {
-                if (handover == OwnershipHandover.REINSTALL || catalogApp.source != dev.wystore.data.ManagedSource.GITHUB) {
-                    DialogButton(primary = true, onClick = {
-                        viewModel.prepareSourceReplacement(catalogApp) { ready ->
-                            replaceDialog = null
-                            if (ready) viewModel.uninstall(installedApp.packageName)
-                        }
-                    }) { Text(stringResource(R.string.dialog_replace_confirm)) }
-                }
-            },
-            dismissButton = {
-                DialogButton(onClick = { replaceDialog = null }) { Text(stringResource(R.string.common_cancel)) }
-            }
         )
     }
 

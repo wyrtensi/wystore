@@ -385,8 +385,7 @@ class UpdateDownloadWorker(
                     allowReinstall = QueueOrigin.isUserRequested(currentItem.priority)
                 )
                 libraryVersion?.let { expected ->
-                    if (verification.identity.packageName != expected.packageName ||
-                        verification.identity.versionCode != expected.versionCode || downloadedFiles.size != expected.members.size) {
+                    if (!dev.wystore.data.library.LibraryArchivePolicy.matches(expected, verification.identity, downloadedFiles.size)) {
                         throw dev.wystore.data.TransferFailure(false, dev.wystore.updates.model.QueueErrorCode.INTEGRITY,
                             detail = "Library archive identity differs from the selected immutable set")
                     }

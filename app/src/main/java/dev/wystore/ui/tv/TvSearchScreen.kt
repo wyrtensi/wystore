@@ -96,7 +96,11 @@ fun TvSearchScreen(
     /** The result last opened - a package name or a GitHub key - to return the focus to after Back. */
     restoreFocusTo: String? = null,
     /** Why the RuStore search failed, so it is not told as "nothing found". */
-    rustoreError: String? = null
+    rustoreError: String? = null,
+    libraryResults: List<StoreApp> = emptyList(),
+    libraryError: String? = null,
+    onRetryLibrary: () -> Unit = {},
+    onOpenLibrary: (String) -> Unit = onOpenApp
 ) {
     val focusManager = LocalFocusManager.current
     val trimmed = query.trim()
@@ -125,15 +129,18 @@ fun TvSearchScreen(
     val tvRow = rememberLazyListState()
     val rustoreRow = rememberLazyListState()
     val githubRow = rememberLazyListState()
+    val libraryRow = rememberLazyListState()
     val tvFirst = remember { FocusRequester() }
     val rustoreFirst = remember { FocusRequester() }
     val githubFirst = remember { FocusRequester() }
+    val libraryFirst = remember { FocusRequester() }
     // Down from the field goes to the first result of the first row. The field is as wide as the
     // screen, and Android's own search picked the result under its middle.
     val focusFirstResult: () -> Boolean = {
         val target = when {
             tvMatches.isNotEmpty() -> tvRow to tvFirst
             rustoreMatches.isNotEmpty() -> rustoreRow to rustoreFirst
+            trimmed.isNotEmpty() && libraryResults.isNotEmpty() -> libraryRow to libraryFirst
             trimmed.isNotEmpty() && githubResults.isNotEmpty() -> githubRow to githubFirst
             else -> null
         }
@@ -336,6 +343,12 @@ fun TvSearchScreen(
                     else -> Text(stringResource(R.string.search_empty_title), style = MaterialTheme.typography.bodyLarge)
                 }
             }
+        }
+        if (trimmed.isNotEmpty() && (libraryResults.isNotEmpty() || libraryError != null)) item(key = "library") {
+            TvSectionTitle("Wy Store")
+            if (libraryError != null) TvSecondaryButton(stringResource(R.string.common_retry), onRetryLibrary)
+            if (libraryResults.isNotEmpty()) TvResultRow(libraryResults, packages, onOpenLibrary,
+                markPhone = { true }, restore = restoreFocusTo to restoreFocus, state = libraryRow, firstFocus = libraryFirst)
         }
         if (trimmed.isNotEmpty() && githubResults.isNotEmpty()) {
             item(key = "github") {

@@ -11,6 +11,7 @@ import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.ensureActive
 
 data class StagedSourceReplacement(val queueId: String, val identity: ArchiveIdentity, val choice: AppSourceChoice, val sourceRevision: Long)
 
@@ -30,6 +31,8 @@ class SourceReplacementStager(private val context: Context) {
             var signature: String? = null
             var label = pkg
             var releaseId: Long? = null
+            var libraryVersion: ResolvedLibraryVersion? = null
+            var sourceVersionCode: Long? = null
             val files = when (choice) {
                 is AppSourceChoice.Library -> {
                     val app = LibraryRepository.getInstance(context).index(forceRefresh = true).requireFresh()
@@ -37,6 +40,7 @@ class SourceReplacementStager(private val context: Context) {
                     val version = (LibraryVariantPolicy.select(app, LibraryDeviceSpec.current(context)) as? LibrarySelection.Compatible)
                         ?.version ?: throw TransferFailure(false, QueueErrorCode.INCOMPATIBLE)
                     signature = version.preliminaryCertificates(android.os.Build.VERSION.SDK_INT).singleOrNull()
+                    libraryVersion = version
                     label = app.name
                     version.artifacts.map { artifact ->
                         downloader.downloadGitHubApk(GitHubAsset(0, artifact.name, artifact.size, artifact.url, "sha256:${artifact.sha256}"),
@@ -47,6 +51,7 @@ class SourceReplacementStager(private val context: Context) {
                     val source = RuStoreSource.getInstance(context)
                     val app = source.details(pkg, false)
                     signature = app.signatureHint; label = app.name
+                    sourceVersionCode = app.versionCode.takeIf { it > 0 }
                     downloader.download(source.resolveArtifacts(app), directory)
                 }
                 is AppSourceChoice.GitHub -> {
@@ -62,9 +67,15 @@ class SourceReplacementStager(private val context: Context) {
             val verification = SigningVerifier.verifyArtifacts(context.packageManager, files, installed = null,
                 expectedPackageName = pkg, expectedSourceDigest = signature, allowReinstall = true)
             val plan = verification.plan ?: throw TransferFailure(false, QueueErrorCode.SIGNATURE, detail = verification.error?.name)
+            if (libraryVersion?.let { !LibraryArchivePolicy.matches(it, plan.identity, plan.files.size) } == true ||
+                sourceVersionCode?.let { it != plan.identity.versionCode } == true) {
+                throw TransferFailure(false, QueueErrorCode.INTEGRITY, detail = "Replacement archive differs from source metadata")
+            }
             val hashes = plan.files.map(LibraryFileIntegrity::sha256)
             SourceSelectionGate.locked {
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
                 requireRevision(pkg, expectedRevision)
+                check(PendingReinstallStore(context).read(pkg) == null) { "An application handover is pending" }
                 val rows = dao.getByPackage(pkg)
                 if (SourceRequestPolicy.blocksSwitch(rows.map { QueueState.valueOf(it.state) }, rows.mapNotNull { dao.getSession(it.id)?.state })) {
                     throw TransferFailure(false, QueueErrorCode.SOURCE_CHANGED, detail = "Another installation is still active")
@@ -91,7 +102,7 @@ class SourceReplacementStager(private val context: Context) {
 
     suspend fun validateBeforeRemoval(queueId: String): UpdateQueueEntity = withContext(Dispatchers.IO) {
         val row = dao.getById(queueId) ?: throw TransferFailure(false, QueueErrorCode.SOURCE_CHANGED)
-        SourceSelectionCoordinator.requireCurrent(context, row)
+        SourceSelectionCoordinator.requireCurrent(context, row, pendingRemoval = true)
         if (!row.sourceReplacement || row.state != QueueState.READY_TO_INSTALL.name) {
             throw TransferFailure(false, QueueErrorCode.SOURCE_CHANGED)
         }
@@ -107,7 +118,29 @@ class SourceReplacementStager(private val context: Context) {
         row
     }
 
+    suspend fun restore(queueId: String): StagedSourceReplacement = withContext(Dispatchers.IO) {
+        val row = validateBeforeRemoval(queueId)
+        val files = dao.getArtifactsForQueue(queueId).map { File(it.path) }
+        val identity = SigningVerifier.verifyArtifacts(context.packageManager, files, installed = null,
+            expectedPackageName = row.packageName, allowReinstall = true).identity
+        val choice = when (ManagedSource.valueOf(row.source)) {
+            ManagedSource.RUSTORE -> AppSourceChoice.RuStore(row.packageName)
+            ManagedSource.WY_STORE -> AppSourceChoice.Library(row.packageName)
+            ManagedSource.GITHUB -> AppSourceChoice.GitHub(GitHubRepository(requireNotNull(row.githubRepositoryOwner),
+                requireNotNull(row.githubRepositoryName)), row.packageName)
+        }
+        StagedSourceReplacement(row.id, identity, choice, row.sourceRevision)
+    }
+
     private fun requireRevision(packageName: String, expected: Long) {
         if (repository.sourceRevision(packageName) != expected) throw TransferFailure(false, QueueErrorCode.SOURCE_CHANGED)
+    }
+
+    suspend fun discard(queueId: String) = SourceSelectionGate.locked {
+        val row = dao.getById(queueId) ?: return@locked
+        if (row.sourceReplacement && row.state == QueueState.READY_TO_INSTALL.name &&
+            PendingReinstallStore(context).read(row.packageName)?.queueId != queueId) {
+            dao.update(row.copy(state = QueueState.CANCELED.name, updatedAt = System.currentTimeMillis()))
+        }
     }
 }

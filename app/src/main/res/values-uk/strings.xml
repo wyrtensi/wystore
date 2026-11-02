@@ -503,10 +503,10 @@
     <string name="details_label_min_android">Потрібно</string>
     <string name="details_label_rating">Рейтинг</string>
     <string name="details_label_downloads">Завантаження</string>
-    <string name="details_label_fingerprint">Відбиток RuStore</string>
+    <string name="details_label_fingerprint">Відбиток підпису джерела</string>
     <string name="details_min_android_value">Android від %1$s</string>
     <string name="details_rating_value">%1$s (%2$s)</string>
-    <string name="details_fingerprint_note">Заявлений джерелом RuStore — звіряється перед встановленням</string>
+    <string name="details_fingerprint_note">Указаний у %1$s — перевіряється перед встановленням</string>
     <string name="home_tagline">Російські застосунки і навіть більше</string>
     <string name="home_empty_featured_title">Поки нічого показати</string>
     <string name="search_empty_title">Нічого не знайдено</string>
@@ -863,4 +863,9 @@
     <string name="source_switch_wait">Завершіть або скасуйте поточне встановлення перед зміною джерела.</string>
     <string name="source_signature_verify">Підпис відрізняється. Перед перевстановленням потрібно перевірити APK.</string>
     <string name="library_incompatible">У бібліотеці немає відповідного варіанта для цього пристрою.</string>
+    <string name="source_verify_title">Перевірити файли встановлення</string>
+    <string name="source_verify_body">Wy Store завантажить і перевірить усі файли встановлення. Якщо підпис дозволяє оновлення, джерело зміниться без видалення застосунку. Якщо потрібне перевстановлення, перед видаленням з’явиться окреме попередження про втрату даних.</string>
+    <string name="disclaimer_source_library">Джерело — бібліотека Wy Store. Оригінальні файли Google Play публікуються через відкритий процес бібліотеки. Встановлення поза Google Play не гарантує доступності застосунку та його сервісів у вашому регіоні.</string>
+    <string name="library_repository">Репозиторій бібліотеки</string>
+    <string name="library_upstream">Сторінка у вихідному магазині</string>
 </resources>

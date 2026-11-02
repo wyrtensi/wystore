@@ -20,13 +20,15 @@ object PackageUiStateReducer {
         pendingUpdate: PendingUpdate? = null,
         deviceSdkInt: Int = android.os.Build.VERSION.SDK_INT,
         resources: Resources? = null
-    ): PackageUiState = reduceState(app, installed, managed, queueItem, pendingUpdate, deviceSdkInt, resources).copy(
+    ): PackageUiState = reduceState(app, installed, managed, queueItem, pendingUpdate, deviceSdkInt, resources).let { reduced -> reduced.copy(
         // What the catalogue says about the app, whatever is happening to it: a row reads like a
         // store listing - rating and section - rather than like a package dump.
         rating = app?.rating?.takeIf { it > 0.0 },
         category = app?.categories?.firstOrNull()?.takeIf { it.isNotBlank() },
-        availableSources = app?.availableSources.orEmpty()
-    )
+        availableSources = app?.availableSources.orEmpty(),
+        sourceProvenance = queueItem?.takeUnless { it.status == InstallQueueStatus.COMPLETE || it.status == InstallQueueStatus.CANCELED }
+            ?.source?.name ?: reduced.sourceProvenance
+    ) }
 
     private fun reduceState(
         app: StoreApp?,
@@ -294,7 +296,7 @@ object PackageUiStateReducer {
                     secondaryAction = null,
                     progress = null,
                     transferInfo = null,
-                    sourceProvenance = managed?.source?.name ?: "RuStore",
+                    sourceProvenance = managed?.source?.name ?: app.source.name,
                     isCompatible = true
                 )
             } else {

@@ -84,7 +84,9 @@ fun TvDetailsScreen(
     onFullScreenChange: (Boolean) -> Unit = {},
     managedApp: dev.wystore.data.ManagedApp? = null,
     continueChecksAfterGooglePlayUpdate: Boolean = false,
-    onOpenUpdateSettings: () -> Unit = {}
+    onOpenUpdateSettings: () -> Unit = {},
+    sourceSelector: @Composable () -> Unit = {},
+    onVerifySource: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val primaryFocus = remember { FocusRequester() }
@@ -155,8 +157,8 @@ fun TvDetailsScreen(
                                     }
                                     app.primaryCategory()?.let { dev.wystore.ui.components.CategoryPill(it) }
                                     dev.wystore.ui.components.HubTag(
-                                        stringResource(R.string.source_rustore),
-                                        tint = dev.wystore.ui.components.sourceTint("RuStore")
+                                        dev.wystore.ui.components.sourceDisplayName(app.source.name),
+                                        tint = dev.wystore.ui.components.sourceTint(app.source.name)
                                     )
                                     if (forPhone) {
                                         TvBadge(
@@ -197,6 +199,11 @@ fun TvDetailsScreen(
                             managedApp, installed, continueChecksAfterGooglePlayUpdate, onOpenUpdateSettings,
                             action = { label, onClick -> TvSecondaryButton(label, onClick) }
                         )
+                        if (installed != null && app.source == dev.wystore.data.ManagedSource.WY_STORE &&
+                            dev.wystore.data.SignatureCompatibilityPolicy.evaluate(installed.signingDigests, app.signatureHint, null) ==
+                                dev.wystore.data.SignatureCompatibility.MISMATCH) {
+                            TvSecondaryButton(stringResource(R.string.source_verify_title), onVerifySource)
+                        }
                     }
                     Surface(
                         modifier = Modifier.weight(1f),
@@ -222,7 +229,9 @@ fun TvDetailsScreen(
                                 )
                             }
                             app.downloadsText?.let { TvFact(stringResource(R.string.details_label_downloads), formatDownloads(it)) }
-                            app.minAndroidVersion?.let {
+                            if (app.minSdkVersion != null) {
+                                TvFact(stringResource(R.string.details_label_min_android), dev.wystore.data.AndroidSdkCompatibility.label(app.minSdkVersion))
+                            } else app.minAndroidVersion?.let {
                                 TvFact(stringResource(R.string.details_label_min_android), stringResource(R.string.details_min_android_value, it))
                             }
                         }
@@ -230,6 +239,10 @@ fun TvDetailsScreen(
                 }
             }
 
+            item(key = "sources") { sourceSelector() }
+            if (!app.installationAvailable) item(key = "incompatible") {
+                Text(stringResource(R.string.library_incompatible), color = MaterialTheme.colorScheme.error)
+            }
             // The phone page has always shown what changed in the version on offer; the TV page
             // had no way to it at all.
             app.changelog?.takeIf { it.notes.isNotBlank() }?.let { changelog ->

@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package dev.wystore.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -111,8 +113,7 @@ private fun AppRowContent(
                     val version = shortVersionName(state.versionName)
                     val shownSource = state.sourceProvenance
                         ?.takeUnless { implicitSource != null && it.equals(implicitSource, ignoreCase = true) }
-                    if (version != null || shownSource != null) Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    if (version != null || shownSource != null || state.availableSources.isNotEmpty()) androidx.compose.foundation.layout.FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         // The catalogue does not state a version for every app, and a lone dash
@@ -268,9 +269,9 @@ private fun AppGroupRowContent(
                 val shownVersion = version.takeIf { state.rating == null && category == null }
                 // Facts in faint tags, the rating as plain text beside them: a line of grey words
                 // separated by dots was hard to take in at a glance.
-                if (shownVersion != null || source != null || category != null || state.rating != null) Row(
+                if (shownVersion != null || source != null || category != null || state.rating != null) androidx.compose.foundation.layout.FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     shownVersion?.let { HubTag(it, Modifier.weight(1f, fill = false)) }
                     source?.let { HubTag(it, tint = sourceTint(it)) }

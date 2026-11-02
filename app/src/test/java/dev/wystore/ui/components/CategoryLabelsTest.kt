@@ -11,6 +11,7 @@ class CategoryLabelsTest {
         assertEquals(R.string.category_finance, CategoryLabels.stringRes("finance"))
         assertEquals(R.string.category_travelling, CategoryLabels.stringRes("travelling"))
         assertEquals(R.string.home_all_apps, CategoryLabels.stringRes("all"))
+        assertEquals(R.string.wy_category_foreign, CategoryLabels.stringRes("wy-foreign"))
     }
 
     /** The app JSON spells it "adsAndServices"; the catalogue URL spells it "adsandservices". */
