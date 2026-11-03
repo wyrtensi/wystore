@@ -151,6 +151,7 @@ fun AppDetailsScreen(
             pendingUpdate != null -> if (installed == null) R.string.details_install_downloaded else R.string.common_update
             paused != null -> R.string.common_resume
             queueActive -> R.string.queue_status_queued
+            installed == null && !app.installationAvailable -> R.string.library_install_unavailable
             installed == null -> R.string.common_install
             canUpdate -> R.string.common_update
             else -> R.string.queue_status_complete
@@ -199,7 +200,7 @@ fun AppDetailsScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
             item { sourceSelector() }
-            if (!app.installationAvailable) item { Text(stringResource(R.string.library_incompatible)) }
+            if (!app.installationAvailable) item { Text(app.installationUnavailableReason ?: stringResource(R.string.library_incompatible)) }
             item {
                 // The concept's detail page: who and what, the one-line pitch and the one button,
                 // in a single glass panel instead of loose lines on the page.
@@ -247,7 +248,7 @@ fun AppDetailsScreen(
                             onClick = runInstall,
                             enabled = !busy && (canUpdate || pendingUpdate != null || paused != null),
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text(installLabel, maxLines = 1) }
+                        ) { Text(installLabel, textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                     } else {
                         val showUpdate = canUpdate || queueActive || pendingUpdate != null || paused != null
                         val openButton: @Composable (Modifier) -> Unit = { m ->
@@ -257,14 +258,14 @@ fun AppDetailsScreen(
                                     onLaunch(installed.packageName)
                                 },
                                 modifier = m
-                            ) { Text(stringResource(R.string.common_open), maxLines = 1) }
+                            ) { Text(stringResource(R.string.common_open), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                         }
                         val updateButton: @Composable (Modifier) -> Unit = { m ->
                             Button(
                                 onClick = runInstall,
                                 enabled = !busy && (canUpdate || pendingUpdate != null || paused != null),
                                 modifier = m
-                            ) { Text(installLabel, maxLines = 1) }
+                            ) { Text(installLabel, textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                         }
                         if (showUpdate && isNarrowScreen()) {
                             // Three controls in one row squeezed the update label to two lines of

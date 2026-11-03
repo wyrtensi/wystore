@@ -11,6 +11,8 @@ import androidx.activity.compose.BackHandler
 import dev.wystore.background.UpdateCheckPolicy
 import dev.wystore.ui.components.SourceFailureDialog
 import dev.wystore.ui.components.UnverifiedSourceDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -81,6 +83,8 @@ fun WyStoreRoot(
     }
     val navigationRequest by viewModel.navigationRequest.collectAsState()
     var settingsGooglePlayEntry by rememberSaveable { mutableStateOf(false) }
+    var settingsEntry by rememberSaveable { mutableStateOf<dev.wystore.ui.settings.SettingsEntry?>(null) }
+    var settingsRequestId by rememberSaveable { mutableStateOf(0) }
     // Tapping the search pill on Home looks like tapping a text field, so the real field on Search
     // takes focus and opens the keyboard once it arrives.
     var focusSearchOnOpen by rememberSaveable { mutableStateOf(false) }
@@ -96,6 +100,16 @@ fun WyStoreRoot(
         if (navigationRequest == "google_play_settings") {
             openedPackage = null
             settingsGooglePlayEntry = true
+            settingsEntry = null
+            settingsRequestId++
+            destination = WyStoreDestination.Settings
+            viewModel.consumeNavigationRequest()
+        }
+        if (navigationRequest == "source_settings" || navigationRequest == "about_settings") {
+            openedPackage = null
+            settingsGooglePlayEntry = false
+            settingsEntry = if (navigationRequest == "source_settings") dev.wystore.ui.settings.SettingsEntry.SOURCES else dev.wystore.ui.settings.SettingsEntry.ABOUT
+            settingsRequestId++
             destination = WyStoreDestination.Settings
             viewModel.consumeNavigationRequest()
         }
@@ -172,12 +186,6 @@ fun WyStoreRoot(
         }
     }
 
-    SharedRootDialogs(
-        viewModel = viewModel,
-        state = state,
-        sourceFailureHelp = sourceFailureHelp,
-        onSourceFailureHelpDismiss = { sourceFailureHelp = false }
-    )
 
     LaunchedEffect(state.message) {
         state.message?.let {
@@ -193,8 +201,10 @@ fun WyStoreRoot(
     // App, release and GitHub pages open inside the Scaffold, in place of the tab's screen: the
     // navigation bar stays on them, and so does the snackbar host - which, when the pages replaced
     // the Scaffold, was not on screen for anything said while one was open.
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().then(Modifier.background(androidx.compose.material3.MaterialTheme.colorScheme.background)),
+        contentAlignment = Alignment.TopCenter) {
         Scaffold(
+            modifier = Modifier.widthIn(max = 840.dp).fillMaxSize(),
             // Every screen carries its own Scaffold and top bar, and those already stand clear of
             // the status bar. Letting this one reserve the system bars too pushed each title down
             // by a second status bar's worth - an empty strip above every screen.
@@ -224,6 +234,7 @@ fun WyStoreRoot(
                         }
                         focusSearchOnOpen = false
                         settingsGooglePlayEntry = false
+                        settingsEntry = null
                         destination = it
                     }
                 )
@@ -524,8 +535,9 @@ fun WyStoreRoot(
                         onLaunch = viewModel::launchInstalledApp,
                         onInstallPending = onInstallPending
                     )
-                    WyStoreDestination.Settings -> SettingsScreen(
+                    WyStoreDestination.Settings -> androidx.compose.runtime.key(settingsRequestId) { SettingsScreen(
                         openGooglePlayUpdates = settingsGooglePlayEntry,
+                        initialEntry = settingsEntry,
                         modifier = screenModifier,
                         settings = state.settings,
                         rootAvailable = state.rootAvailable,
@@ -549,7 +561,7 @@ fun WyStoreRoot(
                         onInstallSelfUpdate = viewModel::installSelfUpdate,
                         onInstallDownloadedSelfUpdate = { onInstallPending(BuildConfig.APPLICATION_ID) },
                         onCancelSelfUpdateDownload = viewModel::queueCancel
-                    )
+                    ) }
                     is WyStoreDestination.AppDetails -> Unit
                 }
             }
@@ -571,7 +583,7 @@ fun WyStoreRoot(
         )
     }
 
-    state.adoption?.let { prompt ->
+    state.adoption?.takeIf { destination != WyStoreDestination.Settings }?.let { prompt ->
         AdoptionDialog(
             prompt = prompt,
             onPick = { option ->
@@ -668,4 +680,10 @@ fun WyStoreRoot(
             dismissButton = { DialogButton(onClick = closeDialog) { Text(stringResource(R.string.common_cancel)) } }
         )
     }
+    SharedRootDialogs(
+        viewModel = viewModel,
+        state = state,
+        sourceFailureHelp = sourceFailureHelp,
+        onSourceFailureHelpDismiss = { sourceFailureHelp = false }
+    )
 }

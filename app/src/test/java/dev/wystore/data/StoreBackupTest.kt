@@ -117,6 +117,22 @@ class StoreBackupTest {
     }
 
     @Test
+    fun layoutDensityRestoresFromBackupAndUnknownDefaultsToAuto() {
+        val known = Gson().fromJson("""{"version":3,"settings":{"layoutDensity":"COMPACT","uiScale":"LARGE"}}""", WyStoreBackup::class.java).settings.withKnownChoices()
+        assertEquals(dev.wystore.settings.LayoutDensity.COMPACT, known.layoutDensity)
+        assertEquals(dev.wystore.settings.UiScale.LARGE, known.uiScale)
+        val unknown = Gson().fromJson("""{"version":3,"settings":{"layoutDensity":"FUTURE"}}""", WyStoreBackup::class.java).settings.withKnownChoices()
+        assertEquals(dev.wystore.settings.LayoutDensity.AUTO, unknown.layoutDensity)
+    }
+
+    @Test
+    fun anUnknownInterfaceScaleRestoresAsMedium() {
+        val json = """{"version":3,"settings":{"uiScale":"EXTRA_LARGE"}}"""
+        val restored = Gson().fromJson(json, WyStoreBackup::class.java).settings.withKnownChoices()
+        assertEquals(dev.wystore.settings.UiScale.MEDIUM, restored.uiScale)
+    }
+
+    @Test
     fun aKnownAccentSurvivesTheBackup() {
         val json = """{"version":3,"settings":{"accent":"TEAL"}}"""
         val restored = Gson().fromJson(json, WyStoreBackup::class.java).settings.withKnownChoices()

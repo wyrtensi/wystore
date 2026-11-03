@@ -339,10 +339,13 @@ fun TvAppCard(
 fun StoreApp.primaryCategory(): String? =
     categories.firstOrNull()?.substringBefore('·')?.trim()?.takeIf { it.isNotEmpty() }
 
-val TvCardWidth = 148.dp
+val TvCardWidth: androidx.compose.ui.unit.Dp
+    @Composable get() = 148.dp * androidx.compose.ui.platform.LocalDensity.current.fontScale.coerceIn(1f, 1.5f)
 
 /** Height a row of [TvAppCard]s needs so a grown, focused card is not clipped. */
-val TvRowHeight = 228.dp
+val TvRowHeight: androidx.compose.ui.unit.Dp
+    @Composable get() = 228.dp + 92.dp *
+        (androidx.compose.ui.platform.LocalDensity.current.fontScale - 1f).coerceAtLeast(0f)
 
 private val CARD_STATES = setOf(
     StatusCode.QUEUED,
@@ -550,7 +553,7 @@ private fun ButtonContent(text: String, icon: Painter?) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(8.dp))
     }
-    Text(text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+    Text(text, style = MaterialTheme.typography.labelLarge, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
 }
 
 @Composable

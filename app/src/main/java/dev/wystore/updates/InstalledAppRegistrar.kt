@@ -41,6 +41,8 @@ object InstalledAppRegistrar {
                 if (digests.isNotEmpty() && installed.signingDigests != digests) return@withManagedAppsLock false
                 if (entity.versionCode > 0 && installed.versionCode < entity.versionCode) return@withManagedAppsLock false
 
+                // Success of a self-update still settles its queue row; it must not adopt the store.
+                if (entity.packageName == context.packageName) return@withManagedAppsLock true
                 val source = ManagedSource.valueOf(entity.source)
                 val now = System.currentTimeMillis()
                 // A regular update must not erase observed Play attribution. Only the explicitly

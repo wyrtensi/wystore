@@ -7,6 +7,27 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SettingsCodecTest {
+    @Test fun layoutDensityPersistsIndependentlyAndUnknownFallsBack() {
+        val prefs = mutablePreferencesOf()
+        val original = SettingsCodec.read(prefs).copy(uiScale = UiScale.LARGE)
+        SettingsCodec.write(prefs, original, original.copy(layoutDensity = LayoutDensity.COMPACT))
+        assertEquals(setOf(SettingsCodec.KEY_LAYOUT_DENSITY), prefs.asMap().keys)
+        assertEquals(LayoutDensity.COMPACT, SettingsCodec.read(prefs).toStoreSettings().toAppSettings().layoutDensity)
+        prefs[SettingsCodec.KEY_LAYOUT_DENSITY] = "FUTURE"
+        assertEquals(LayoutDensity.AUTO, SettingsCodec.read(prefs).layoutDensity)
+    }
+
+
+    @Test fun interfaceScaleIsAnIndependentPersistedSetting() {
+        val prefs = mutablePreferencesOf()
+        val current = SettingsCodec.read(prefs)
+        assertEquals(UiScale.MEDIUM, current.uiScale)
+        SettingsCodec.write(prefs, current, current.copy(uiScale = UiScale.LARGE))
+        assertEquals(setOf(SettingsCodec.KEY_UI_SCALE), prefs.asMap().keys)
+        val restored = SettingsCodec.read(prefs)
+        assertEquals(UiScale.LARGE, restored.uiScale)
+        assertEquals(UiScale.LARGE, restored.toStoreSettings().toAppSettings().uiScale)
+    }
 
     /**
      * The whole point: one switch, one key. Persisting all of them is what froze a phone on the

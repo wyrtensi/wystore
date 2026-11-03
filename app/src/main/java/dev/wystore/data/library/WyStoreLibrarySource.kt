@@ -24,7 +24,24 @@ class WyStoreLibrarySource(private val context: Context) {
             ?: throw LibraryApplicationMissing(packageName)
         val metadata = metadataRead.value.localized(locale())
         val app = indexRead.value.applications[packageName]
-        val version = app?.let { LibraryVariantPolicy.select(it, LibraryDeviceSpec.current(context)) as? LibrarySelection.Compatible }?.version
+        val device = LibraryDeviceSpec.current(context)
+        val selection = app?.let { LibraryVariantPolicy.select(it, device) }
+        val version = (selection as? LibrarySelection.Compatible)?.version
+        val unavailable = (selection as? LibrarySelection.Unsupported)?.let { unsupported ->
+            val labels = unsupported.reasons.sortedBy { it.ordinal }.map { reason ->
+                context.getString(when (reason) {
+                    LibraryIncompatibility.ANDROID -> dev.wystore.R.string.library_requires_android
+                    LibraryIncompatibility.ABI -> dev.wystore.R.string.library_requires_abi
+                    LibraryIncompatibility.FEATURES -> dev.wystore.R.string.library_requires_features
+                    LibraryIncompatibility.GRAPHICS -> dev.wystore.R.string.library_requires_graphics
+                    LibraryIncompatibility.SPLITS -> dev.wystore.R.string.library_requires_splits
+                    LibraryIncompatibility.NO_VARIANT -> dev.wystore.R.string.library_requires_publication
+                })
+            }
+            EventLog(context).record(packageName, "LIBRARY_VARIANT_UNAVAILABLE",
+                "sdk=${device.sdk}; abis=${device.abis.joinToString()}; reasons=${unsupported.reasons.joinToString()}")
+            context.getString(dev.wystore.R.string.library_incompatible_reasons, labels.joinToString(", "))
+        }
         val published = app?.variants?.maxByOrNull { it.versionCode }
         return LibraryRead(LibraryCatalogPolicy.cardToApp(card, locale()).copy(name = LibraryListingText.plain(metadata.title), publisher = metadata.developer,
             shortDescription = LibraryListingText.plain(metadata.shortDescription), fullDescription = LibraryListingText.plain(metadata.description),
@@ -35,6 +52,7 @@ class WyStoreLibrarySource(private val context: Context) {
             minSdkVersion = app?.variants?.firstOrNull { it.id == version?.variantId }?.compatibility?.minSdk,
             signatureHint = version?.preliminaryCertificates(android.os.Build.VERSION.SDK_INT)?.singleOrNull(),
             installationAvailable = version != null,
+            installationUnavailableReason = unavailable,
             upstreamUrl = metadata.playUrl,
             changelog = metadata.changelog?.let { AppChangelog(metadata.versionName, metadata.updatedDate, LibraryListingText.plain(it)) }),
             stale = catalogRead.stale || metadataRead.stale || indexRead.stale,

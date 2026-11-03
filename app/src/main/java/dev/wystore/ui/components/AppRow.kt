@@ -85,7 +85,7 @@ private fun AppRowContent(
 ) {
     run {
         Column(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(if (LocalCompactLayout.current) 9.dp else 14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
@@ -234,7 +234,8 @@ private fun AppGroupRowContent(
     implicitSource: String?,
     onWhatsNew: (() -> Unit)?
 ) {
-    Column(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    val compact = LocalCompactLayout.current
+    Column(Modifier.padding(horizontal = if (compact) 8.dp else 12.dp, vertical = if (compact) 4.dp else 9.dp), verticalArrangement = Arrangement.spacedBy(if (compact) 3.dp else 6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AppIcon(
                 model = state.iconUrl,
@@ -242,8 +243,8 @@ private fun AppGroupRowContent(
                 size = 40.dp,
                 fallbackPackageName = state.packageName
             )
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Spacer(Modifier.width(if (compact) 8.dp else 12.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(if (compact) 2.dp else 3.dp)) {
                 // Up to two lines: catalogue names run long, and on a compact phone one line left
                 // "VK Муз..." of them.
                 Text(
@@ -299,7 +300,7 @@ private fun AppGroupRowContent(
             // Quiet: an icon in the grey of the text beside it, the way the concept keeps
             // secondary actions out of the row's way.
             onWhatsNew?.let { showNotes ->
-                IconButton(onClick = showNotes, modifier = Modifier.size(if (isNarrowScreen()) 32.dp else 40.dp)) {
+                IconButton(onClick = showNotes, modifier = minimumTouchTarget()) {
                     Icon(
                         Icons.Outlined.Info,
                         contentDescription = stringResource(R.string.details_changelog),
@@ -358,28 +359,28 @@ private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
     val sizing = Modifier.defaultMinSize(minWidth = 76.dp, minHeight = 40.dp)
     when (action) {
         PrimaryAction.Install -> OutlinedButton(onClick, sizing, contentPadding = contentPadding) {
-            Text(stringResource(R.string.common_install), maxLines = 1)
+            Text(stringResource(R.string.common_install), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         PrimaryAction.Update -> Button(onClick, sizing, contentPadding = contentPadding) {
-            Text(stringResource(R.string.common_update), maxLines = 1)
+            Text(stringResource(R.string.common_update), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         PrimaryAction.Resume -> Button(onClick, sizing, contentPadding = contentPadding) {
-            Text(stringResource(R.string.common_resume), maxLines = 1)
+            Text(stringResource(R.string.common_resume), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         PrimaryAction.Retry -> Button(onClick, sizing, contentPadding = contentPadding) {
-            Text(stringResource(R.string.common_retry), maxLines = 1)
+            Text(stringResource(R.string.common_retry), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         PrimaryAction.ConfirmSource -> Button(onClick, sizing, contentPadding = contentPadding) {
-            Text(stringResource(R.string.unverified_source_confirm), maxLines = 1)
+            Text(stringResource(R.string.unverified_source_confirm), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         PrimaryAction.DownloadNow -> Button(onClick, sizing, contentPadding = contentPadding) {
-            Text(stringResource(R.string.queue_download_now), maxLines = 1)
+            Text(stringResource(R.string.queue_download_now), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         PrimaryAction.Open -> FilledTonalButton(onClick, sizing, contentPadding = contentPadding) {
-            Text(stringResource(R.string.common_open), maxLines = 1)
+            Text(stringResource(R.string.common_open), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         PrimaryAction.Pause -> FilledTonalButton(onClick, sizing, contentPadding = contentPadding) {
-            Text(stringResource(R.string.common_pause), maxLines = 1)
+            Text(stringResource(R.string.common_pause), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         PrimaryAction.Installing -> FilledTonalButton(
             onClick = {},
@@ -389,7 +390,7 @@ private fun PrimaryActionButton(action: PrimaryAction, onClick: () -> Unit) {
         ) {
             WySpinner(size = 14.dp, strokeWidth = 2.dp)
             Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.common_installing), maxLines = 1)
+            Text(stringResource(R.string.common_installing), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
         PrimaryAction.None -> Unit
     }

@@ -66,8 +66,26 @@ fun WyStoreTheme(
         }
     }
 
+    val systemDensity = androidx.compose.ui.platform.LocalDensity.current
+    val scaleAlreadyApplied = LocalUiScaleApplied.current
+    val uiDensity = remember(systemDensity, settings.uiScale, scaleAlreadyApplied) {
+        if (scaleAlreadyApplied || settings.uiScale == dev.wystore.settings.UiScale.MEDIUM) systemDensity
+        else UiDensity(systemDensity, settings.uiScale)
+    }
+    val configuration = LocalConfiguration.current
+    val compact = dev.wystore.ui.components.LayoutDensityPolicy.isCompact(
+        settings.layoutDensity, configuration.screenWidthDp.toFloat(), configuration.fontScale, tv
+    )
     val hub = !useDynamic
-    CompositionLocalProvider(LocalHubStyle provides hub) {
+    CompositionLocalProvider(
+        LocalHubStyle provides hub,
+        dev.wystore.ui.components.LocalCompactLayout provides compact,
+        LocalUiScaleApplied provides true,
+        androidx.compose.ui.platform.LocalDensity provides uiDensity,
+        // Small mode must not shrink physical touch targets below Android's minimum.
+        androidx.compose.material3.LocalMinimumInteractiveComponentSize provides
+            (48f / settings.uiScale.factor).let { androidx.compose.ui.unit.Dp(it) }
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             shapes = WyStoreShapes,
@@ -83,3 +101,5 @@ fun WyStoreTheme(
  * palette has no such hairline - its outline tone is opaque and would box every card in grey.
  */
 val LocalHubStyle = staticCompositionLocalOf { false }
+
+private val LocalUiScaleApplied = staticCompositionLocalOf { false }

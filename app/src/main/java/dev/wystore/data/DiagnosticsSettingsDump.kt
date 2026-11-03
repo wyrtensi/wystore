@@ -30,6 +30,8 @@ object DiagnosticsSettingsDump {
         "rootSilentUninstallEnabled" to settings.rootSilentUninstallEnabled.toString(),
         "themeMode" to settings.themeMode.name,
         "deviceType" to settings.deviceType.name,
+        "uiScale" to settings.uiScale.name,
+        "layoutDensity" to settings.layoutDensity.name,
         "tvCatalog" to settings.tvCatalog.name,
         "language" to settings.language.name,
         "dynamicColorEnabled" to settings.dynamicColorEnabled.toString(),

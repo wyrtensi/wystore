@@ -40,6 +40,7 @@ data class StoreApp(
     val source: ManagedSource = ManagedSource.RUSTORE,
     val availableSources: Set<ManagedSource> = setOf(source),
     val installationAvailable: Boolean = true,
+    val installationUnavailableReason: String? = null,
     val upstreamUrl: String? = null
 )
 
@@ -191,6 +192,8 @@ data class StoreSettings(
     val rootSilentInstallEnabled: Boolean = false,
     val rootSilentUninstallEnabled: Boolean = false,
     val themeMode: dev.wystore.settings.ThemeMode = dev.wystore.settings.ThemeMode.SYSTEM,
+    val uiScale: dev.wystore.settings.UiScale = dev.wystore.settings.UiScale.MEDIUM,
+    val layoutDensity: dev.wystore.settings.LayoutDensity = dev.wystore.settings.LayoutDensity.AUTO,
     val deviceType: dev.wystore.settings.DeviceType = dev.wystore.settings.DeviceType.AUTO,
     val tvCatalog: dev.wystore.settings.TvCatalog = dev.wystore.settings.TvCatalog.TV,
     val language: dev.wystore.settings.AppLanguage = dev.wystore.settings.AppLanguage.SYSTEM,
@@ -335,6 +338,8 @@ fun StoreSettings.withKnownChoices(): StoreSettings {
     return copy(
         queueMode = (queueMode as QueueMode?) ?: defaults.queueMode,
         themeMode = (themeMode as dev.wystore.settings.ThemeMode?) ?: defaults.themeMode,
+        uiScale = (uiScale as dev.wystore.settings.UiScale?) ?: defaults.uiScale,
+        layoutDensity = (layoutDensity as dev.wystore.settings.LayoutDensity?) ?: defaults.layoutDensity,
         deviceType = (deviceType as dev.wystore.settings.DeviceType?) ?: defaults.deviceType,
         tvCatalog = (tvCatalog as dev.wystore.settings.TvCatalog?) ?: defaults.tvCatalog,
         language = (language as dev.wystore.settings.AppLanguage?) ?: defaults.language,

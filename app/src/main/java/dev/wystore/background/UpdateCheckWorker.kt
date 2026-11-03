@@ -444,6 +444,7 @@ class UpdateCheckWorker(
         priority: Int
     ): String? {
         val repo = managed.githubRepository ?: return null
+        dev.wystore.data.ReservedGitHubRepository.requireAllowed(repo)
         val assetPattern = GitHubCatalog.find(repo.displayName)?.assetPattern()
         // Skips rolling nightly tags and releases with no installable APK; see GitHubReleasePolicy.
         val latest = GitHubReleasePolicy.selectRelease(gitHubSource.releases(repo), assetPattern)

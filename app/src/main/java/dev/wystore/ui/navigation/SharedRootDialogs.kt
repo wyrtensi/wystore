@@ -3,6 +3,7 @@ package dev.wystore.ui.navigation
 import dev.wystore.ui.components.DialogButton
 import dev.wystore.ui.components.HubAlertDialog
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -45,6 +47,9 @@ fun SharedRootDialogs(
     onSourceFailureHelpDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    state.reservedSourcePrompt?.let { prompt ->
+        ReservedSourceDialog(prompt, viewModel::dismissReservedSourcePrompt, viewModel::openReservedSourceSettings)
+    }
     if (state.sourceRecoveryFailure != null && state.sourceReplacement == null) {
         HubAlertDialog(onDismissRequest = viewModel::cancelSourceRecovery,
             title = { Text(stringResource(R.string.dialog_replace_title)) },
@@ -200,4 +205,43 @@ fun SharedRootDialogs(
             }
         )
     }
+}
+
+@Composable
+fun ReservedSourceDialog(
+    prompt: dev.wystore.data.ReservedSourcePrompt,
+    onDismiss: () -> Unit,
+    onOpen: (dev.wystore.data.ReservedSourceTarget) -> Unit
+) {
+    val sources = prompt.target == dev.wystore.data.ReservedSourceTarget.SOURCES
+    val actionFocus = androidx.compose.runtime.remember { androidx.compose.ui.focus.FocusRequester() }
+    val inputMode = androidx.compose.ui.platform.LocalInputModeManager.current
+    androidx.compose.runtime.LaunchedEffect(prompt) {
+        if (inputMode.inputMode == androidx.compose.ui.input.InputMode.Keyboard) {
+            repeat(5) {
+                if (runCatching { actionFocus.requestFocus() }.getOrDefault(false)) return@LaunchedEffect
+                androidx.compose.runtime.withFrameNanos { }
+            }
+        }
+    }
+    HubAlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.reserved_source_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (prompt.backupFailed) Text(stringResource(R.string.reserved_source_backup_failed))
+                Text(stringResource(if (sources) R.string.reserved_source_library_body else R.string.reserved_source_self_body))
+            }
+        },
+        confirmButton = {
+            androidx.compose.foundation.layout.Box(
+                Modifier.focusRequester(actionFocus).focusGroup()
+            ) {
+                DialogButton(primary = true, onClick = { onOpen(prompt.target) }) {
+                    Text(stringResource(if (sources) R.string.reserved_source_open_sources else R.string.reserved_source_open_about))
+                }
+            }
+        },
+        dismissButton = { DialogButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) } }
+    )
 }

@@ -474,8 +474,9 @@ private fun PendingUpdateRow(
     onWhatsNew: () -> Unit
 ) {
     val narrow = dev.wystore.ui.components.isNarrowScreen()
+    val compact = dev.wystore.ui.components.LocalCompactLayout.current
     val notes: @Composable () -> Unit = {
-        IconButton(onClick = onWhatsNew, modifier = Modifier.size(if (narrow) 30.dp else 40.dp)) {
+        IconButton(onClick = onWhatsNew, modifier = dev.wystore.ui.components.minimumTouchTarget()) {
             Icon(
                 Icons.Outlined.Info,
                 contentDescription = stringResource(R.string.details_changelog),
@@ -486,7 +487,7 @@ private fun PendingUpdateRow(
     }
     // A downloaded APK used to be a one-way street: install it or live with it.
     val discard: @Composable () -> Unit = {
-        IconButton(onClick = { onDiscardPending(update.packageName) }, modifier = Modifier.size(if (narrow) 30.dp else 40.dp)) {
+        IconButton(onClick = { onDiscardPending(update.packageName) }, modifier = dev.wystore.ui.components.minimumTouchTarget()) {
             Icon(
                 imageVector = Icons.Outlined.Close,
                 contentDescription = stringResource(R.string.updates_discard_pending),
@@ -497,11 +498,11 @@ private fun PendingUpdateRow(
     }
     dev.wystore.ui.components.HubGroupRow(position = position, onClick = onOpen) {
         Row(
-            modifier = Modifier.padding(start = 12.dp, end = if (narrow) 10.dp else 4.dp, top = 9.dp, bottom = 9.dp),
+            modifier = Modifier.padding(start = if (compact) 8.dp else 12.dp, end = if (narrow) 10.dp else 4.dp, top = if (compact) 4.dp else 9.dp, bottom = if (compact) 4.dp else 9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AppIcon(model = iconUrl, contentDescription = null, size = 40.dp, fallbackPackageName = update.packageName)
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(if (compact) 8.dp else 12.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     update.label.ifBlank { update.packageName },
@@ -633,7 +634,7 @@ fun QueueItemCard(
                 // Beside the name, quiet, as on every other row. Not on a failed row, whose page is
                 // a tap away and whose line below is about the failure.
                 if (onWhatsNew != null && !failed) {
-                    IconButton(onClick = onWhatsNew, modifier = Modifier.size(if (dev.wystore.ui.components.isNarrowScreen()) 32.dp else 40.dp)) {
+                    IconButton(onClick = onWhatsNew, modifier = dev.wystore.ui.components.minimumTouchTarget()) {
                         Icon(
                             Icons.Outlined.Info,
                             contentDescription = stringResource(R.string.details_changelog),
@@ -714,35 +715,35 @@ fun QueueItemCard(
                 when {
                     ownershipUnconfirmed -> Unit
                     unconfirmed -> {
-                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry), maxLines = 1) }
+                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                         Button(onClick = onConfirmUnverifiedSource) {
-                            Text(stringResource(R.string.unverified_source_confirm), maxLines = 1)
+                            Text(stringResource(R.string.unverified_source_confirm), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         }
                     }
                     needsReplace -> {
-                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry), maxLines = 1) }
-                        Button(onClick = onReplace) { Text(stringResource(R.string.queue_replace), maxLines = 1) }
+                        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.common_retry), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
+                        Button(onClick = onReplace) { Text(stringResource(R.string.queue_replace), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                     }
-                    stopped -> Button(onClick = onRetry) { Text(stringResource(R.string.common_retry), maxLines = 1) }
+                    stopped -> Button(onClick = onRetry) { Text(stringResource(R.string.common_retry), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                     // An item merely waiting in line can be started on its own, rather than only
                     // by starting the whole queue.
                     item.status == InstallQueueStatus.QUEUED -> {
-                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip), maxLines = 1) }
-                        Button(onClick = onDownload) { Text(stringResource(R.string.queue_download_now), maxLines = 1) }
+                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
+                        Button(onClick = onDownload) { Text(stringResource(R.string.queue_download_now), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                     }
                     // A transfer running now can be stopped without losing what it has fetched.
                     item.status == InstallQueueStatus.DOWNLOADING -> {
-                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel), maxLines = 1) }
+                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                         // Nothing is asked of the user while it runs, so neither button is the accent.
-                        FilledTonalButton(onClick = onPause) { Text(stringResource(R.string.common_pause), maxLines = 1) }
+                        FilledTonalButton(onClick = onPause) { Text(stringResource(R.string.common_pause), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                     }
                     item.status == InstallQueueStatus.PAUSED -> {
-                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel), maxLines = 1) }
-                        Button(onClick = onResume) { Text(stringResource(R.string.common_resume), maxLines = 1) }
+                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
+                        Button(onClick = onResume) { Text(stringResource(R.string.common_resume), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                     }
                     else -> {
-                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip), maxLines = 1) }
-                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel), maxLines = 1) }
+                        FilledTonalButton(onClick = onSkip) { Text(stringResource(R.string.common_skip), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
+                        FilledTonalButton(onClick = onCancel) { Text(stringResource(R.string.common_cancel), textAlign = androidx.compose.ui.text.style.TextAlign.Center) }
                     }
                 }
             }

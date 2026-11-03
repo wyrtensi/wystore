@@ -17,7 +17,7 @@ object LibraryCatalogPolicy {
     fun cardToApp(card: LibraryCard, locale: String): StoreApp {
         val text = card.locales[locale] ?: card.locales["en_US"]
         return StoreApp(appId = null, packageName = card.packageName, name = LibraryListingText.plain(text?.title ?: card.title),
-            publisher = card.developer, categories = if (card.foreignCategory) listOf("wy-foreign") else emptyList(),
+            publisher = card.developer, categories = card.categories,
             shortDescription = LibraryListingText.plain(text?.shortDescription.orEmpty()), fullDescription = "", iconUrl = card.iconUrl,
             screenshots = emptyList(), rating = null, ratingCount = null, downloadsText = null,
             versionName = "", versionCode = 0, updatedAt = null, sizeBytes = 0, minAndroidVersion = null,

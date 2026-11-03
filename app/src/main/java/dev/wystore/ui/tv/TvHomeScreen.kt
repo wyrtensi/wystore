@@ -414,7 +414,9 @@ private const val ROW_SIZE = 12
 private const val FOCUS_ATTEMPTS = 5
 
 /** A GitHub card has no status line, so its row is a little shorter than an app row. */
-private val TvGitHubRowHeight = 196.dp
+private val TvGitHubRowHeight: androidx.compose.ui.unit.Dp
+    @Composable get() = 196.dp + 72.dp *
+        (androidx.compose.ui.platform.LocalDensity.current.fontScale - 1f).coerceAtLeast(0f)
 private const val MIN_CATEGORY_SIZE = 3
 private const val MIN_CATEGORY_TILES = 2
 private const val OTHER_CATEGORY = "\u0000other"

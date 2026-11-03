@@ -21,6 +21,8 @@ object SourceTextResolver {
         SourceError.GITHUB_RATE_LIMITED -> R.string.source_error_github_rate_limited
         SourceError.GITHUB_UNAVAILABLE -> R.string.source_error_github_unavailable
         SourceError.GITHUB_INVALID_URL -> R.string.source_error_github_invalid_url
+        SourceError.GITHUB_RESERVED_LIBRARY -> R.string.source_error_github_reserved_library
+        SourceError.GITHUB_RESERVED_SELF -> R.string.source_error_github_reserved_self
         SourceError.GITHUB_NO_DOWNLOAD_LOCATION -> R.string.source_error_github_no_location
         SourceError.GITHUB_TOO_MANY_REDIRECTS -> R.string.source_error_github_redirects
         SourceError.RUSTORE_UNAVAILABLE -> R.string.source_error_rustore_unavailable

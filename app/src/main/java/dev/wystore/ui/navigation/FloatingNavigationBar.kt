@@ -53,95 +53,50 @@ fun FloatingNavigationBar(
     onNavigate: (WyStoreDestination) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        // A capsule, as in the concept: its ends round all the way, like the tab pills inside it.
-        shape = RoundedCornerShape(percent = 50),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        shadowElevation = 4.dp,
-        border = if (dev.wystore.ui.theme.LocalHubStyle.current) {
-            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-        } else null
-    ) {
-        val labels = listOf(
-            stringResource(R.string.nav_home),
-            stringResource(R.string.nav_search),
-            stringResource(R.string.nav_updates),
-            stringResource(R.string.nav_library),
-            stringResource(R.string.nav_settings)
-        )
-        val measurer = rememberTextMeasurer()
-        val baseStyle = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold)
-        val density = LocalDensity.current
-        BoxWithConstraints {
-        // One size for every name, the largest at which the longest still fits its fifth. Each
-        // shrinking on its own left "Обновления" a size smaller than its neighbours on a compact
-        // phone, and the row looked uneven.
-        val itemWidth = with(density) { ((maxWidth - 12.dp) / 5 - 8.dp).roundToPx() }
-        val labelSize = remember(labels, itemWidth, baseStyle) {
-            var size = 12f
-            while (size > 8f && labels.any { label ->
-                    measurer.measure(label, baseStyle.copy(fontSize = size.sp), maxLines = 1, softWrap = false)
-                        .size.width > itemWidth
-                }) size -= 0.5f
-            size.sp
+    val items = listOf<Triple<WyStoreDestination, ImageVector, String>>(
+        Triple(WyStoreDestination.Home, Icons.Outlined.Home, stringResource(R.string.nav_home)),
+        Triple(WyStoreDestination.Search, Icons.Outlined.Search, stringResource(R.string.nav_search)),
+        Triple(WyStoreDestination.Updates, Icons.Outlined.Refresh, stringResource(R.string.nav_updates)),
+        Triple(WyStoreDestination.Library, Icons.AutoMirrored.Outlined.List, stringResource(R.string.nav_library)),
+        Triple(WyStoreDestination.Settings, Icons.Outlined.Settings, stringResource(R.string.nav_settings))
+    )
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val labelSize = 12.sp
+    val labelStyle = MaterialTheme.typography.labelSmall.copy(fontSize = labelSize, fontWeight = FontWeight.SemiBold)
+    BoxWithConstraints(modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp)) {
+        val available = with(density) { (maxWidth - 12.dp).toPx() }
+        val required = remember(items.map { it.third }, labelStyle, density) {
+            items.map { measurer.measure(it.third, labelStyle, maxLines = 1, softWrap = false).size.width +
+                with(density) { 8.dp.roundToPx() } }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                // A minimum rather than a fixed height: at a large system font size the label needs
-                // the extra few dp, and pinning the bar at 66 cropped it.
-                .heightIn(min = 64.dp)
-                // Enough to clear the bar's rounded ends: the first and last labels are as wide
-                // as their share of the bar, and at the corners that share is cut by the curve.
-                .padding(horizontal = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(0.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // Give each name the width it needs. Equal columns wasted space beside short labels
+        // and forced ordinary screens into a second row just for a longer destination name.
+        val rowSizes = dev.wystore.ui.components.NavigationLayoutPolicy.rows(required, available.toInt().coerceAtLeast(0))
+        var nextItem = 0
+        val rows = rowSizes.map { count -> items.subList(nextItem, nextItem + count).also { nextItem += count } }
+        Surface(
+            shape = if (rows.size == 1) RoundedCornerShape(percent = 50) else RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            shadowElevation = 4.dp,
+            border = if (dev.wystore.ui.theme.LocalHubStyle.current) {
+                androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            } else null
         ) {
-            Destination(
-                icon = Icons.Outlined.Home,
-                label = stringResource(R.string.nav_home),
-                destination = WyStoreDestination.Home,
-                currentDestination = currentDestination,
-                onNavigate = onNavigate,
-                labelSize = labelSize
-            )
-            Destination(
-                icon = Icons.Outlined.Search,
-                label = stringResource(R.string.nav_search),
-                destination = WyStoreDestination.Search,
-                currentDestination = currentDestination,
-                onNavigate = onNavigate,
-                labelSize = labelSize
-            )
-            Destination(
-                icon = Icons.Outlined.Refresh,
-                label = stringResource(R.string.nav_updates),
-                destination = WyStoreDestination.Updates,
-                currentDestination = currentDestination,
-                onNavigate = onNavigate,
-                labelSize = labelSize
-            )
-            Destination(
-                icon = Icons.AutoMirrored.Outlined.List,
-                label = stringResource(R.string.nav_library),
-                destination = WyStoreDestination.Library,
-                currentDestination = currentDestination,
-                onNavigate = onNavigate,
-                labelSize = labelSize
-            )
-            Destination(
-                icon = Icons.Outlined.Settings,
-                label = stringResource(R.string.nav_settings),
-                destination = WyStoreDestination.Settings,
-                currentDestination = currentDestination,
-                onNavigate = onNavigate,
-                labelSize = labelSize
-            )
-        }
+            Column(Modifier.fillMaxWidth().padding(horizontal = 6.dp)) {
+                var cursor = 0
+                rows.forEach { row ->
+                    val widths = required.subList(cursor, cursor + row.size)
+                    val extra = ((available - widths.sum()) / row.size).coerceAtLeast(0f)
+                    cursor += row.size
+                    Row(Modifier.fillMaxWidth().heightIn(min = 64.dp), verticalAlignment = Alignment.CenterVertically) {
+                        row.forEachIndexed { index, (destination, icon, label) ->
+                            Destination(icon, label, destination, currentDestination, onNavigate, labelSize,
+                                (widths[index] + extra).coerceAtLeast(1f))
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -160,7 +115,8 @@ private fun RowScope.Destination(
     destination: WyStoreDestination,
     currentDestination: WyStoreDestination,
     onNavigate: (WyStoreDestination) -> Unit,
-    labelSize: androidx.compose.ui.unit.TextUnit
+    labelSize: androidx.compose.ui.unit.TextUnit,
+    weight: Float
 ) {
     val selected = currentDestination == destination
     val hub = dev.wystore.ui.theme.LocalHubStyle.current
@@ -179,17 +135,14 @@ private fun RowScope.Destination(
     )
     val textColor = if (selected) colors.onSurface else colors.onSurfaceVariant
     Box(
-        // An equal fifth each. Laid out by content width, the first tabs took what they wanted and
-        // the last ones were left with whatever remained, which on a compact screen broke
-        // "Обновления" across two lines and pushed "Настройки" against the edge.
+        // The measured label width and an equal share of spare space preserve every destination.
         modifier = Modifier
-            .weight(1f)
+            .weight(weight)
             .padding(horizontal = 1.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(pill)
             .selectable(selected = selected, role = Role.Tab, onClick = { onNavigate(destination) })
-            // Inside the pill, so a long name shrinks to clear its rounded corners rather than
-            // being cut by them.
+            // Keep text clear of the selection pill without changing its font size.
             .padding(horizontal = 3.dp, vertical = 7.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -198,6 +151,7 @@ private fun RowScope.Destination(
             Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(22.dp))
             Text(
                 text = label,
+                modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontSize = labelSize,
                     textAlign = TextAlign.Center,

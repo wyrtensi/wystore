@@ -1,5 +1,6 @@
 package dev.wystore.ui.components
 
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.ReadOnlyComposable
@@ -37,3 +38,10 @@ fun fontScaledWidth(base: Dp): Dp = LayoutMetrics.width(base, LocalDensity.curre
  * Zero on screens that have no bar of their own - an app page, a GitHub release.
  */
 val LocalBottomBarInset = compositionLocalOf { 0.dp }
+
+/** Put this before a visual size so small mode preserves the original 48dp hit area. */
+@Composable
+fun minimumTouchTarget(): androidx.compose.ui.Modifier {
+    val minimum = androidx.compose.material3.LocalMinimumInteractiveComponentSize.current
+    return androidx.compose.ui.Modifier.sizeIn(minWidth = minimum, minHeight = minimum)
+}

@@ -55,9 +55,56 @@ class ManagedRegistrationTest {
     )
 
     @Test
+    fun aReservedRepositoryBackupIsRejectedBeforeChangingAnySettings() {
+        val beforeSettings = repository.settings()
+        val beforeApps = repository.managedApps()
+        val ordinary = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName
+        val backup = dev.wystore.data.WyStoreBackup(
+            settings = beforeSettings.copy(uiScale = dev.wystore.settings.UiScale.LARGE,
+                selfUpdateEnabled = !beforeSettings.selfUpdateEnabled),
+            managedApps = listOf(managed(ordinary).copy(
+                githubRepository = dev.wystore.data.GitHubRepository("wyrtensi", "wystore-library")))
+        )
+        try {
+            repository.restoreBackup(backup)
+            org.junit.Assert.fail("reserved GitHub assignments must not be restored")
+        } catch (error: dev.wystore.data.SourceFormatException) {
+            org.junit.Assert.assertEquals(dev.wystore.data.SourceError.GITHUB_RESERVED_LIBRARY, error.error)
+        }
+        org.junit.Assert.assertEquals(beforeSettings, repository.settings())
+        org.junit.Assert.assertEquals(beforeApps, repository.managedApps())
+    }
+
+    @Test
+    fun aVerifiedSelfUpdateFinishesWithoutRegisteringTheStore() = kotlinx.coroutines.runBlocking {
+        val installed = requireNotNull(repository.installedAppFresh(context.packageName))
+        val row = dev.wystore.data.local.UpdateQueueEntity(
+            id = "self-update-registration", packageName = context.packageName, label = "Wy Store",
+            versionName = installed.versionName, versionCode = installed.versionCode,
+            source = "GITHUB", state = "INSTALLED", signingDigests = installed.signingDigests.joinToString(","),
+            githubRepositoryOwner = "wyrtensi", githubRepositoryName = "wystore",
+            sourceRevision = repository.sourceRevision(context.packageName)
+        )
+        assertTrue(InstalledAppRegistrar.register(context, row))
+        assertFalse(repository.managedApps().any { it.packageName == context.packageName })
+    }
+
+    @Test
+    fun aLegacySelfAdoptionIsRemovedWithoutTouchingOtherManagedApps() {
+        val ordinary = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName
+        val prefs = context.getSharedPreferences("wy_store", Context.MODE_PRIVATE)
+        val gson = com.google.gson.Gson()
+        prefs.edit().putString("managed_apps", gson.toJson(listOf(managed(context.packageName), managed(ordinary)))).commit()
+        assertTrue(repository.managedApps().none { it.packageName == context.packageName })
+        assertTrue(repository.managedApps().any { it.packageName == ordinary })
+        val persisted = prefs.getString("managed_apps", "")!!
+        assertFalse(persisted.contains("\"packageName\":\"${context.packageName}\""))
+    }
+
+    @Test
     fun anInstalledAppIsKeptEvenWhenTheCachedPackageListMissesIt() {
         // The device certainly has this package: it is the app running the test.
-        val self = context.packageName
+        val self = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName
         repository.saveManaged(managed(self))
 
         // Exactly the state after an install: the app is on the device, but the cached list the
@@ -89,7 +136,7 @@ class ManagedRegistrationTest {
 
     @Test
     fun aManagedAppSurvivesAProcessBoundaryBecauseTheWriteIsSynchronous() {
-        val packageName = context.packageName
+        val packageName = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName
         repository.saveManaged(managed(packageName))
 
         // A second repository reads the same backing store, as the receiver and the ViewModel do.

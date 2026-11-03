@@ -11,6 +11,11 @@ import org.junit.Test
  */
 class AdoptionPolicyTest {
 
+    @Test fun `Wy Store cannot adopt itself through either catalogue`() {
+        val self = "app.wystore"
+        assertTrue(AdoptionPolicy.options(installed(self), store(self), catalog(self)).isEmpty())
+    }
+
     private val key = "a".repeat(64)
     private val otherKey = "b".repeat(64)
 

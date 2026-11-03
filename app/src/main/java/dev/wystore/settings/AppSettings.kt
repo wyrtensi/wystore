@@ -5,6 +5,11 @@ import dev.wystore.updates.model.QueueMode
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+/** Relative to Android display size and font preferences; medium is the unmodified system scale. */
+enum class UiScale(val factor: Float) { SMALL(0.9f), MEDIUM(1f), LARGE(1.1f) }
+
+enum class LayoutDensity { AUTO, STANDARD, COMPACT }
+
 /** Which interface to show: decided from the device, or forced either way by the user. */
 enum class DeviceType { AUTO, PHONE, TV }
 
@@ -50,6 +55,8 @@ data class AppSettings(
     val updateIntervalHours: Long = 24,
     val queueMode: QueueMode = QueueMode.SMART_PROMPTS,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val uiScale: UiScale = UiScale.MEDIUM,
+    val layoutDensity: LayoutDensity = LayoutDensity.AUTO,
     val deviceType: DeviceType = DeviceType.AUTO,
     val tvCatalog: TvCatalog = TvCatalog.TV,
     val language: AppLanguage = AppLanguage.SYSTEM,
@@ -107,6 +114,8 @@ fun AppSettings.toStoreSettings(): StoreSettings = StoreSettings(
     rootSilentInstallEnabled = rootSilentInstallEnabled,
     rootSilentUninstallEnabled = rootSilentUninstallEnabled,
     themeMode = themeMode,
+    uiScale = uiScale,
+    layoutDensity = layoutDensity,
     deviceType = deviceType,
     tvCatalog = tvCatalog,
     language = language,
@@ -144,6 +153,8 @@ fun StoreSettings.toAppSettings(): AppSettings = AppSettings(
     updateIntervalHours = updateIntervalHours,
     queueMode = queueMode,
     themeMode = themeMode,
+    uiScale = uiScale,
+    layoutDensity = layoutDensity,
     deviceType = deviceType,
     tvCatalog = tvCatalog,
     language = language,

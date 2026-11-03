@@ -156,6 +156,43 @@ fun AppearanceSettingsScreen(
             }
 
             SettingsPanel {
+                Text(stringResource(R.string.appearance_scale_title), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.appearance_scale_hint), style = MaterialTheme.typography.bodyMedium)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(
+                        dev.wystore.settings.UiScale.SMALL to R.string.appearance_scale_small,
+                        dev.wystore.settings.UiScale.MEDIUM to R.string.appearance_scale_medium,
+                        dev.wystore.settings.UiScale.LARGE to R.string.appearance_scale_large
+                    ).forEach { (scale, label) ->
+                        HubChoiceChip(selected = settings.uiScale == scale,
+                            onClick = { onUpdateSettings(settings.copy(uiScale = scale)) },
+                            label = { Text(stringResource(label)) })
+                    }
+                }
+            }
+
+            if (DeviceProfilePolicy.resolve(settings.deviceType, deviceTraits) != DeviceProfile.TV) {
+                SettingsPanel {
+                    Text(stringResource(R.string.appearance_density_title), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.appearance_density_hint), style = MaterialTheme.typography.bodyMedium)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(
+                            dev.wystore.settings.LayoutDensity.AUTO to R.string.appearance_density_auto,
+                            dev.wystore.settings.LayoutDensity.STANDARD to R.string.appearance_density_standard,
+                            dev.wystore.settings.LayoutDensity.COMPACT to R.string.appearance_density_compact
+                        ).forEach { (density, label) ->
+                            HubChoiceChip(selected = settings.layoutDensity == density,
+                                onClick = { onUpdateSettings(settings.copy(layoutDensity = density)) },
+                                label = { Text(stringResource(label)) })
+                        }
+                    }
+                }
+            }
+
+            SettingsPanel {
                 DeviceTypeSection(
                     selected = settings.deviceType,
                     onSelect = { onUpdateSettings(settings.copy(deviceType = it)) }

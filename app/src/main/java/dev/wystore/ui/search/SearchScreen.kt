@@ -461,16 +461,17 @@ fun SearchCard(
 ) {
     val haptic = LocalHapticFeedback.current
     val inFlight = queueItem?.status?.isInFlight == true
+    val compact = dev.wystore.ui.components.LocalCompactLayout.current
 
     Framed(position = position, onClick = { onOpen(app) }) {
-        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(horizontal = if (compact) 9.dp else 14.dp, vertical = if (compact) 6.dp else 12.dp), verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AppIcon(
                     model = app.iconUrl,
                     contentDescription = stringResource(R.string.common_app_icon, app.name),
                     size = if (position != null) 48.dp else 58.dp
                 )
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(if (compact) 8.dp else 12.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     // Two lines, as on Home: catalogue names run long and one line cut them mid-word.
                     Text(

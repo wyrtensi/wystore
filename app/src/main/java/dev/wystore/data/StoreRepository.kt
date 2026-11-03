@@ -35,9 +35,16 @@ class StoreRepository(private val context: Context) {
 
     private fun readManagedApps(): List<ManagedApp> {
         val json = preferences.getString("managed_apps", "[]") ?: "[]"
-        return runCatching {
+        val decoded = runCatching {
             gson.fromJson<List<ManagedApp>>(json, object : TypeToken<List<ManagedApp>>() {}.type)
         }.getOrDefault(emptyList())
+        val ordinary = decoded.filterNot { it.packageName == context.packageName }
+        // Self-updates share the install queue, but never the adopted-app registry. Repair 0.6.0
+        // records on read so workers and restored backups cannot keep checking us twice.
+        if (ordinary.size != decoded.size) {
+            check(preferences.edit().putString("managed_apps", gson.toJson(ordinary)).commit())
+        }
+        return ordinary
     }
 
     fun saveManaged(app: ManagedApp, clearGooglePlayUpdate: Boolean = false) {
@@ -50,10 +57,13 @@ class StoreRepository(private val context: Context) {
         clearGooglePlayUpdate: Boolean = false,
         transform: (ManagedApp?) -> ManagedApp
     ): ManagedApp = synchronized(MANAGED_LOCK) {
+        require(packageName != context.packageName) { "Wy Store uses its dedicated self-updater" }
         val current = readManagedApps()
         val previous = current.firstOrNull { it.packageName == packageName }
         val replacement = SourceRequestPolicy.preserveSelection(previous, transform(previous))
         require(replacement.packageName == packageName)
+        replacement.githubRepository?.takeIf { it != previous?.githubRepository }?.let(ReservedGitHubRepository::requireAllowed)
+        replacement.knownGithubRepository?.takeIf { it != previous?.knownGithubRepository }?.let(ReservedGitHubRepository::requireAllowed)
         val merged = replacement.copy(sourceRevision = maxOf(replacement.sourceRevision, sourceRevision(packageName)),
             googlePlayUpdateDetected = !clearGooglePlayUpdate &&
             (replacement.googlePlayUpdateDetected || previous?.googlePlayUpdateDetected == true))
@@ -83,7 +93,7 @@ class StoreRepository(private val context: Context) {
         // and the process can be torn down before an asynchronous write reaches disk — which loses
         // the registration that makes the app eligible for updates.
         val old = readManagedApps().associateBy { it.packageName }
-        val normalized = updated.map { app ->
+        val normalized = updated.filterNot { it.packageName == context.packageName }.map { app ->
             val previous = old[app.packageName]
             val epoch = maxOf(preferences.getLong("source_revision:${app.packageName}", 0), previous?.sourceRevision ?: 0)
             if (app.sourceRevision >= epoch) app else app.copy(sourceRevision =
@@ -226,10 +236,11 @@ class StoreRepository(private val context: Context) {
         val json = preferences.getString("github_repositories", "[]") ?: "[]"
         return runCatching {
             gson.fromJson<List<GitHubRepository>>(json, object : TypeToken<List<GitHubRepository>>() {}.type)
-        }.getOrDefault(emptyList())
+        }.getOrDefault(emptyList()).filter { ReservedGitHubRepository.error(it) == null }
     }
 
     fun saveGithubRepository(repository: GitHubRepository) {
+        ReservedGitHubRepository.requireAllowed(repository)
         val updated = githubRepositories().filterNot { it == repository } + repository
         preferences.edit().putString("github_repositories", gson.toJson(updated)).apply()
     }
@@ -376,6 +387,7 @@ class StoreRepository(private val context: Context) {
         com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(createBackup())
 
     fun restoreBackup(backup: WyStoreBackup, merge: Boolean = false): BackupRestoreSummary {
+        ReservedGitHubRepository.requireAllowedManaged(backup.managedApps, context.packageName)
         // The interface choice describes this device, not the one the backup came from: a phone
         // restoring a TV's backup must not come up in the TV interface.
         saveSettings(backup.settings.withKnownChoices().copy(deviceType = settings().deviceType))
@@ -391,13 +403,13 @@ class StoreRepository(private val context: Context) {
         }
 
         val currentRepos = if (merge) githubRepositories() else emptyList()
-        val mergedRepos = (currentRepos + backup.githubRepositories).distinctBy { it.url }
+        val mergedRepos = (currentRepos + backup.githubRepositories).filter { ReservedGitHubRepository.error(it) == null }.distinctBy { it.url }
         preferences.edit().putString("github_repositories", gson.toJson(mergedRepos)).apply()
 
         val currentManaged = synchronized(MANAGED_LOCK) {
             val existing = readManagedApps().associateBy { it.packageName }
             val restored = if (merge) existing.toMutableMap() else mutableMapOf()
-            backup.managedApps.forEach { app ->
+            backup.managedApps.filterNot { it.packageName == context.packageName }.forEach { app ->
                 restored[app.packageName] = app.copy(googlePlayUpdateDetected =
                     app.googlePlayUpdateDetected || existing[app.packageName]?.googlePlayUpdateDetected == true)
             }

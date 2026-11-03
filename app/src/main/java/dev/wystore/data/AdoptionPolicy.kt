@@ -48,6 +48,7 @@ object AdoptionPolicy {
         byName: List<StoreApp> = emptyList(),
         acceptedFingerprint: String? = null
     ): List<AdoptionOption> {
+        if (app.packageName == dev.wystore.BuildConfig.APPLICATION_ID) return emptyList()
         if (app.source == InstallSource.GOOGLE_PLAY) {
             return GoogleAdoptionPolicy.candidates(app.packageName, exactMatch, byName, app.label)
                 .map { AdoptionOption.Replace(it) }

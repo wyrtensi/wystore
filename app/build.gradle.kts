@@ -38,8 +38,8 @@ android {
         // install is not being cut off from updates by it.
         minSdk = 28
         targetSdk = 36
-        versionCode = 47
-        versionName = "0.6.0"
+        versionCode = 48
+        versionName = "0.6.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

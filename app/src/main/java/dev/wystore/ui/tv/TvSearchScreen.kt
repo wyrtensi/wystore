@@ -1,11 +1,6 @@
 package dev.wystore.ui.tv
 
 import dev.wystore.ui.components.fadingTopEdge
-import android.content.Intent
-import android.speech.RecognizerIntent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -93,6 +88,10 @@ fun TvSearchScreen(
     /** Set when the remote's search or voice key brought the user here: listen straight away. */
     startVoice: Boolean = false,
     onVoiceStarted: () -> Unit = {},
+    voiceAvailable: Boolean = false,
+    onVoiceSearch: () -> Unit = {},
+    startTyping: Boolean = false,
+    onTypingStarted: () -> Unit = {},
     /** The result last opened - a package name or a GitHub key - to return the focus to after Back. */
     restoreFocusTo: String? = null,
     /** Why the RuStore search failed, so it is not told as "nothing found". */
@@ -119,10 +118,19 @@ fun TvSearchScreen(
     }
     var editing by remember { mutableStateOf(false) }
     val editFocus = remember { FocusRequester() }
-    val startEditing = {
-        editing = true
-        runCatching { editFocus.requestFocus() }
-        Unit
+    val startEditing = { editing = true }
+    LaunchedEffect(editing) {
+        if (editing) {
+            // The focus target must first recompose with canFocus=true.
+            androidx.compose.runtime.withFrameNanos { }
+            editFocus.requestFocus()
+        }
+    }
+    LaunchedEffect(startTyping) {
+        if (startTyping) {
+            editing = true
+            onTypingStarted()
+        }
     }
     val shouldTakeFocus by rememberUpdatedState(takeFocus || startVoice)
     val scope = rememberCoroutineScope()
@@ -165,28 +173,10 @@ fun TvSearchScreen(
         onSearchRustore(trimmed)
     }
 
-    // Voice is how a TV is searched; typing with a remote is the fallback. The button exists only
-    // where something on the device can recognise speech - plenty of boxes ship without it.
-    val context = LocalContext.current
-    val voiceIntent = remember(context) {
-        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH)
-            .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-            .takeIf { it.resolveActivity(context.packageManager) != null }
-    }
-    val voiceLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            ?.takeIf { it.isNotBlank() }
-            ?.let { spoken ->
-                onQueryChange(spoken)
-                // The field is done with: the results are where the next press should land.
-                focusManager.moveFocus(FocusDirection.Down)
-            }
-    }
-    LaunchedEffect(startVoice, voiceIntent) {
-        if (startVoice && voiceIntent != null) {
+    LaunchedEffect(startVoice) {
+        if (startVoice) {
             onVoiceStarted()
-            runCatching { voiceLauncher.launch(voiceIntent) }
+            onVoiceSearch()
         }
     }
 
@@ -213,13 +203,13 @@ fun TvSearchScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (voiceIntent != null) {
+                if (voiceAvailable) {
                     // Before the field, where TV launchers put it, and the same height, so the two
                     // read as one control.
                     TvIconButton(
                         icon = painterResource(R.drawable.ic_mic),
                         label = stringResource(R.string.tv_search_voice),
-                        onClick = { runCatching { voiceLauncher.launch(voiceIntent) } }
+                        onClick = onVoiceSearch
                     )
                 }
                 // On a TV a text field that takes the focus also takes the remote: the keyboard

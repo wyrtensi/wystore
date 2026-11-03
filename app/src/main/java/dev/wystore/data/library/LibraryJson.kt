@@ -40,7 +40,11 @@ object LibraryJson {
                 check(it.isJsonPrimitive && it.asJsonPrimitive.isBoolean, "Invalid category membership")
                 it.asBoolean
             } ?: true
-            LibraryCard(pkg, item.text("title"), item.optionalText("developer").orEmpty(), icon, included, locales)
+            val categories = if (item.has("categories")) item.strings("categories").also { slugs ->
+                check(slugs.size <= 8 && slugs.distinct().size == slugs.size &&
+                    slugs.all { Regex("[a-z][a-z0-9-]{0,63}").matches(it) }, "Invalid app categories")
+            } else emptyList()
+            LibraryCard(pkg, item.text("title"), item.optionalText("developer").orEmpty(), icon, included, locales, categories)
         }
         check(cards.map { it.packageName }.distinct().size == cards.size, "Duplicate catalogue package")
         LibraryCatalog(cards)

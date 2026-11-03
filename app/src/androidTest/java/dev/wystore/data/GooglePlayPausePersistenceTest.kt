@@ -116,7 +116,7 @@ class GooglePlayPausePersistenceTest {
     }
 
     @Test fun stalePlayScanAfterVerifiedHandoverDoesNotRestoreThePause() {
-        val actual = requireNotNull(repository.installedAppFresh(context.packageName))
+        val actual = requireNotNull(repository.installedAppFresh(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName))
         assertFalse("the test APK must be installed outside Google Play",
             actual.installerPackageName == "com.android.vending")
         val managed = ManagedApp(actual.packageName, actual.label, actual.signingDigests,
@@ -133,7 +133,7 @@ class GooglePlayPausePersistenceTest {
     }
 
     @Test fun ordinaryVerifiedRegistrationPreservesPauseAndPerAppChoices() = runBlocking {
-        val actual = requireNotNull(repository.installedAppFresh(context.packageName))
+        val actual = requireNotNull(repository.installedAppFresh(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName))
         repository.saveManaged(ManagedApp(actual.packageName, actual.label, actual.signingDigests,
             autoUpdate = false, forceWyStore = true, googlePlayUpdateDetected = true))
         val row = UpdateQueueEntity("play-pause-registration", actual.packageName, actual.label,
@@ -149,7 +149,7 @@ class GooglePlayPausePersistenceTest {
     }
 
     @Test fun aHandoverWithoutVerifiedSigningIdentityCannotClearThePause() = runBlocking {
-        val actual = requireNotNull(repository.installedAppFresh(context.packageName))
+        val actual = requireNotNull(repository.installedAppFresh(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName))
         repository.saveManaged(ManagedApp(actual.packageName, actual.label, actual.signingDigests,
             googlePlayUpdateDetected = true))
         val row = UpdateQueueEntity("play-pause-unverified-handover", actual.packageName, actual.label,

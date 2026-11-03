@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -140,7 +141,7 @@ fun HubHeaderPill(text: String, onClick: () -> Unit, enabled: Boolean = true) {
             text,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
             style = MaterialTheme.typography.labelMedium,
-            maxLines = 1
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }
@@ -253,9 +254,11 @@ fun HubGroupRow(
     val bottom = if (position == GroupPosition.LAST || position == GroupPosition.SINGLE) PanelRadius else 0.dp
     val shape = RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom)
     val line = colors.outlineVariant
+    val minimumHeight = androidx.compose.material3.LocalMinimumInteractiveComponentSize.current
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .then(if (onClick != null || onLongClick != null) Modifier.heightIn(min = minimumHeight) else Modifier)
             .drawWithContent {
                 drawContent()
                 if (!hub) return@drawWithContent
@@ -313,13 +316,15 @@ fun HubWideButton(
     val colors = MaterialTheme.colorScheme
     Surface(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(48.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = 48.dp),
         shape = RoundedCornerShape(50),
         color = if (primary) colors.primary else colors.secondaryContainer,
         contentColor = if (primary) colors.onPrimary else colors.onSecondaryContainer
     ) {
-        Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-            Text(text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            Text(text, modifier = Modifier.weight(1f, fill = false),
+                style = MaterialTheme.typography.labelLarge, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             if (chevron) {
                 Spacer(Modifier.width(6.dp))
                 Icon(
@@ -338,13 +343,16 @@ fun HubWideButton(
  * phone at a large font size left a name two words wide between an icon and three buttons.
  */
 @Composable
-fun isNarrowScreen(): Boolean =
-    androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 420
+fun isNarrowScreen(): Boolean {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val width = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize.width / density.density
+    return width / density.fontScale.coerceAtLeast(1f) < 420f
+}
 
 /** Padding of a row's button: narrower on a narrow screen. */
 @Composable
 fun rowButtonPadding(): androidx.compose.foundation.layout.PaddingValues =
-    if (isNarrowScreen()) androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 8.dp)
+    if (isNarrowScreen() || LocalCompactLayout.current) androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 8.dp)
     else androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 8.dp)
 
 /**
@@ -519,7 +527,7 @@ fun HubRoundIconButton(
         color = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         border = hairline(),
-        modifier = Modifier.size(44.dp)
+        modifier = minimumTouchTarget().size(44.dp)
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(icon, contentDescription = contentDescription, modifier = Modifier.size(22.dp))

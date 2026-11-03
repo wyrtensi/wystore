@@ -315,6 +315,7 @@ data class SourceReplacementPrompt(
 )
 
 data class StoreUiState(
+    val reservedSourcePrompt: dev.wystore.data.ReservedSourcePrompt? = null,
     val query: String = "",
     val search: SearchPage? = null,
     val selected: StoreApp? = null,
@@ -485,6 +486,29 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     fun consumeNavigationRequest() {
         _navigationRequest.value = null
     }
+
+    fun dismissReservedSourcePrompt() {
+        _state.update { it.copy(reservedSourcePrompt = null) }
+    }
+
+    fun openReservedSourceSettings(target: dev.wystore.data.ReservedSourceTarget) {
+        dismissReservedSourcePrompt()
+        clearDetails()
+        closeGitHubApp()
+        _navigationRequest.value = when (target) {
+            dev.wystore.data.ReservedSourceTarget.SOURCES -> "source_settings"
+            dev.wystore.data.ReservedSourceTarget.ABOUT -> "about_settings"
+        }
+    }
+
+    private fun showReservedSource(error: SourceError, backupFailed: Boolean = false): Boolean {
+        val prompt = dev.wystore.data.ReservedSourcePrompt.from(error, backupFailed) ?: return false
+        _state.update { it.copy(reservedSourcePrompt = prompt) }
+        return true
+    }
+
+    private fun showReservedSource(error: Throwable, backupFailed: Boolean = false): Boolean =
+        (error as? SourceFormatException)?.let { showReservedSource(it.error, backupFailed) } ?: false
 
     fun consumeInstallRequest() {
         _installRequest.value = null
@@ -689,15 +713,30 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun decorateSources(app: StoreApp): StoreApp {
-        val sources = app.availableSources.toMutableSet()
-        if (_state.value.settings.libraryEnabled && _state.value.libraryCards.any { it.packageName == app.packageName }) sources += ManagedSource.WY_STORE
-        if (app.packageName in _state.value.knownRuStorePackages) sources += ManagedSource.RUSTORE
-        if (_state.value.settings.githubEnabled && dev.wystore.data.GitHubCatalog.entries(_state.value.githubRepositories).any { it.packageName == app.packageName }) sources += ManagedSource.GITHUB
-        if (_state.value.settings.githubEnabled && _state.value.managed.any { it.packageName == app.packageName &&
-                (it.githubRepository != null || it.knownGithubRepository != null) }) sources += ManagedSource.GITHUB
-        return app.copy(availableSources = sources)
+    private data class SourceMembershipSnapshot(
+        val libraryEnabled: Boolean, val githubEnabled: Boolean,
+        val libraryCards: List<dev.wystore.data.library.LibraryCard>, val knownRuStorePackages: Set<String>,
+        val managed: List<ManagedApp>, val githubRepositories: List<GitHubRepository>
+    )
+    private var membershipSnapshot: SourceMembershipSnapshot? = null
+    private var membershipIndex: dev.wystore.data.SourceMembershipIndex? = null
+
+    @Synchronized
+    fun sourceMembershipIndex(state: StoreUiState = _state.value): dev.wystore.data.SourceMembershipIndex {
+        val snapshot = SourceMembershipSnapshot(state.settings.libraryEnabled, state.settings.githubEnabled,
+            state.libraryCards, state.knownRuStorePackages, state.managed, state.githubRepositories)
+        if (snapshot != membershipSnapshot) {
+            membershipIndex = dev.wystore.data.SourceMembershipIndex(snapshot.libraryEnabled, snapshot.githubEnabled,
+                snapshot.libraryCards, snapshot.knownRuStorePackages, snapshot.managed,
+                if (snapshot.githubEnabled) dev.wystore.data.GitHubCatalog.entries(snapshot.githubRepositories)
+                    .mapNotNull { it.packageName } else emptyList())
+            membershipSnapshot = snapshot
+        }
+        return checkNotNull(membershipIndex)
     }
+
+    fun decorateSources(app: StoreApp): StoreApp = app.copy(
+        availableSources = sourceMembershipIndex().sourcesFor(app.packageName, app.availableSources))
 
     fun knownGitHubEntry(entry: GitHubCatalogEntry): GitHubCatalogEntry = if (entry.packageName != null) entry
         else entry.copy(packageName = dev.wystore.data.AppSourceKnowledge.packageFor(entry.repository, _state.value.managed))
@@ -708,6 +747,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 if (getApplication<Application>().resources.configuration.locales[0].language == "ru") "ru_RU" else "en_US")) }
 
     fun sourceChoices(packageName: String): List<dev.wystore.data.AppSourceChoice> = buildList {
+        if (packageName == getApplication<Application>().packageName) return@buildList
         val state = _state.value
         val managed = state.managed.firstOrNull { it.packageName == packageName }
         if (packageName in state.knownRuStorePackages || managed?.source == ManagedSource.RUSTORE ||
@@ -716,8 +756,10 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         if (state.settings.libraryEnabled && state.libraryCards.any { it.packageName == packageName })
             add(dev.wystore.data.AppSourceChoice.Library(packageName))
         if (state.settings.githubEnabled) {
-            val repo = managed?.githubRepository ?: managed?.knownGithubRepository ?: dev.wystore.data.GitHubCatalog.entries(state.githubRepositories)
-                .firstOrNull { it.packageName == packageName }?.repository
+            val repo = sequenceOf(managed?.githubRepository, managed?.knownGithubRepository,
+                dev.wystore.data.GitHubCatalog.entries(state.githubRepositories)
+                    .firstOrNull { it.packageName == packageName }?.repository)
+                .filterNotNull().firstOrNull { dev.wystore.data.ReservedGitHubRepository.error(it) == null }
             repo?.let { add(dev.wystore.data.AppSourceChoice.GitHub(it, packageName)) }
         }
     }
@@ -1143,7 +1185,9 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                     .onSuccess { releases -> _state.value = _state.value.copy(githubLoading = false, githubReleases = releases) }
                     .onFailure { error -> _state.value = _state.value.copy(githubLoading = false, message = error.message ?: string(R.string.vm_github_releases_failed)) }
             }
-            .onFailure { error -> _state.value = _state.value.copy(message = error.message ?: string(R.string.vm_github_bad_url)) }
+            .onFailure { error ->
+                if (!showReservedSource(error)) _state.update { it.copy(message = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.vm_github_bad_url)) }
+            }
     }
 
     /**
@@ -1961,7 +2005,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     private fun finalizePendingUpdate(confirmed: PendingUpdate) {
         val current = repository.managedApps().firstOrNull { it.packageName == confirmed.packageName }
         val now = System.currentTimeMillis()
-        repository.saveManaged(
+        if (confirmed.packageName != getApplication<Application>().packageName) repository.saveManaged(
             ManagedApp(
                 packageName = confirmed.packageName,
                 label = confirmed.label,
@@ -2018,7 +2062,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 message = SentenceJoin.sentences(summary.message, restoreCaveat())
             ) }
         }.onFailure { error ->
-            _state.update { it.copy(message = error.message ?: string(R.string.vm_backup_import_failed)) }
+            if (!showReservedSource(error, backupFailed = true)) _state.update { it.copy(message = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.vm_backup_import_failed)) }
         }
     }
 
@@ -2048,7 +2092,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 ) }
             }
             .onFailure { error ->
-                _state.update { it.copy(message = error.message ?: string(R.string.vm_backup_restore_failed)) }
+                if (!showReservedSource(error, backupFailed = true)) _state.update { it.copy(message = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.vm_backup_restore_failed)) }
             }
     }
 
@@ -2074,6 +2118,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * the package is the name searched, and then the user picks from what came back.
      */
     fun beginAdoption(app: InstalledApp, keepMessage: Boolean = false) {
+        if (app.packageName == getApplication<Application>().packageName) return
         adoptionTransferJob?.cancel()
         val requestId = adoptionRequests.begin()
         _state.update {
@@ -2099,6 +2144,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     private data class AdoptionLookup(val options: List<AdoptionOption>, val failed: Boolean)
 
     private suspend fun lookUpAdoption(app: InstalledApp, searchByName: Boolean): AdoptionLookup {
+        if (app.packageName == getApplication<Application>().packageName) return AdoptionLookup(emptyList(), false)
         val exactResult = withContext(Dispatchers.IO) {
             runCatching { source.details(app.packageName, includeReviews = false) }
         }
@@ -2130,6 +2176,12 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     fun acceptAdoption(option: AdoptionOption): Boolean {
         val prompt = _state.value.adoption ?: return false
         if (prompt.githubChecking) return false
+        if (option is AdoptionOption.GitHub) {
+            dev.wystore.data.ReservedGitHubRepository.error(option.repository)?.let { error ->
+                showReservedSource(error)
+                return false
+            }
+        }
         val handover = dev.wystore.ui.components.ownershipHandover(getApplication(), prompt.app)
         if (option is AdoptionOption.Replace || !AdoptionPolicy.canTrackInPlace(handover)) {
             val requiresOwnership = Build.VERSION.SDK_INT >= 34
@@ -2163,6 +2215,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun canTransferUpdates(app: InstalledApp): Boolean {
+        if (app.packageName == getApplication<Application>().packageName) return false
         val handover = dev.wystore.ui.components.ownershipHandover(getApplication(), app)
         val warning = when (handover) {
             dev.wystore.data.OwnershipHandover.UNSUPPORTED_ANDROID -> R.string.ownership_unsupported_android
@@ -2176,6 +2229,10 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     /** Resolve the exact release before removal so a lookup failure cannot leave the app deleted. */
     private fun startGitHubAdoptionTransfer(app: InstalledApp, repo: GitHubRepository) {
         val prompt = _state.value.adoption ?: return
+        dev.wystore.data.ReservedGitHubRepository.error(repo)?.let { error ->
+            showReservedSource(error)
+            return
+        }
         if (prompt.app.packageName != app.packageName || prompt.githubChecking) return
         val handover = dev.wystore.ui.components.ownershipHandover(getApplication(), app)
         if (!AdoptionPolicy.canTrackInPlace(handover) && !canTransferUpdates(app)) return
@@ -2208,7 +2265,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
             } catch (error: Exception) {
                 if (isCurrentAdoption(prompt)) _state.update { state -> state.copy(
                     adoption = state.adoption?.copy(githubChecking = false,
-                        githubError = error.message ?: string(R.string.vm_github_bad_url))
+                        githubError = SourceTextResolver.describe(getApplication(), error) ?: string(R.string.vm_github_bad_url))
                 ) }
             }
         }
@@ -2242,7 +2299,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         val repo = try {
             githubSource.parseRepository(input)
         } catch (error: SourceFormatException) {
-            _state.update { it.copy(adoption = prompt.copy(githubError = string(R.string.vm_github_bad_url))) }
+            if (!showReservedSource(error.error)) _state.update { it.copy(adoption = prompt.copy(githubError = SourceTextResolver.resolve(getApplication(), error.error))) }
             return
         }
         startGitHubAdoptionTransfer(prompt.app, repo)
@@ -2279,12 +2336,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
      * two places, RuStore not answering) are asked about afterwards, one dialog at a time.
      */
     fun adoptMany(apps: List<InstalledApp>) {
-        if (apps.isEmpty() || _state.value.adoptionBatch != null) return
-        _state.update { it.copy(adoptionBatch = AdoptionBatch(0, apps.size), message = null) }
+        val eligible = apps.filterNot { it.packageName == getApplication<Application>().packageName }
+        if (eligible.isEmpty() || _state.value.adoptionBatch != null) return
+        _state.update { it.copy(adoptionBatch = AdoptionBatch(0, eligible.size), message = null) }
         viewModelScope.launch {
             var accepted = 0
             val undecided = mutableListOf<InstalledApp>()
-            apps.forEachIndexed { index, app ->
+            eligible.forEachIndexed { index, app ->
                 val handover = dev.wystore.ui.components.ownershipHandover(getApplication(), app)
                 val automatic = if (!AdoptionPolicy.canTrackInPlace(handover)) null else {
                     lookUpAdoption(app, searchByName = false)
@@ -2297,7 +2355,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                     else -> false
                 }
                 if (saved) accepted++ else undecided += app
-                _state.update { it.copy(adoptionBatch = AdoptionBatch(index + 1, apps.size)) }
+                _state.update { it.copy(adoptionBatch = AdoptionBatch(index + 1, eligible.size)) }
             }
             refreshLibrary()
             _state.update {
@@ -2322,6 +2380,13 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
         githubRepository: GitHubRepository?,
         refresh: Boolean = true
     ): Boolean {
+        if (app.packageName == getApplication<Application>().packageName) return false
+        githubRepository?.let { repo ->
+            dev.wystore.data.ReservedGitHubRepository.error(repo)?.let { error ->
+                showReservedSource(error)
+                return false
+            }
+        }
         if (app.signingDigests.isEmpty()) {
             _state.update { it.copy(message = string(R.string.vm_signature_read_failed)) }
             return false

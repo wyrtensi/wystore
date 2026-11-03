@@ -87,6 +87,8 @@ import dev.wystore.ui.components.SourceDisclaimer
 import dev.wystore.ui.components.WyCard
 import dev.wystore.ui.components.WyDivider
 
+enum class SettingsEntry { SOURCES, ABOUT }
+
 private enum class SettingsSubScreen {
     PERMISSIONS,
     APPEARANCE,
@@ -120,10 +122,16 @@ fun SettingsScreen(
     onInstallSelfUpdate: () -> Unit = {},
     onInstallDownloadedSelfUpdate: () -> Unit = {},
     onCancelSelfUpdateDownload: (String) -> Unit = {},
-    openGooglePlayUpdates: Boolean = false
+    openGooglePlayUpdates: Boolean = false,
+    initialEntry: SettingsEntry? = null
 ) {
     var subScreen by rememberSaveable {
-        mutableStateOf(if (openGooglePlayUpdates) SettingsSubScreen.UPDATES else null)
+        mutableStateOf(when {
+            openGooglePlayUpdates -> SettingsSubScreen.UPDATES
+            initialEntry == SettingsEntry.SOURCES -> SettingsSubScreen.SOURCES
+            initialEntry == SettingsEntry.ABOUT -> SettingsSubScreen.ABOUT
+            else -> null
+        })
     }
     var googlePlayEntryPending by rememberSaveable { mutableStateOf(openGooglePlayUpdates) }
     val updatesScrollState = rememberScrollState()

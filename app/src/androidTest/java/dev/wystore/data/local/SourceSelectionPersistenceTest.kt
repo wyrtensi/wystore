@@ -17,7 +17,7 @@ class SourceSelectionPersistenceTest {
     @Test fun registeringAnUpdateKeepsThePreviouslyVerifiedCustomRepository() = runBlocking {
         val repository = StoreRepository(context)
         val backup = repository.createBackup()
-        val local = requireNotNull(repository.installedAppFresh(context.packageName))
+        val local = requireNotNull(repository.installedAppFresh(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName))
         val custom = GitHubRepository("example", "previous-source")
         try {
             for (source in listOf(ManagedSource.WY_STORE, ManagedSource.RUSTORE)) {
@@ -38,7 +38,7 @@ class SourceSelectionPersistenceTest {
     @Test fun sourceSwitchPreservesUserSettingsAndRejectsLateRegistration() = runBlocking {
         val repository = StoreRepository(context)
         val original = repository.createBackup()
-        val pkg = context.packageName
+        val pkg = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName
         val local = requireNotNull(repository.installedAppFresh(pkg))
         val start = repository.sourceRevision(pkg) + 1
         val dao = WyStoreDatabase.getInstance(context).updateQueueDao
@@ -65,7 +65,7 @@ class SourceSelectionPersistenceTest {
     }
 
     @Test fun committedConfirmationDefersAChoiceAfterProcessStateIsReloaded() = runBlocking {
-        val pkg = context.packageName
+        val pkg = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName
         val dao = WyStoreDatabase.getInstance(context).updateQueueDao
         val id = "source-committed-test"
         try {
@@ -78,7 +78,7 @@ class SourceSelectionPersistenceTest {
     }
 
     @Test fun pendingRemovalBlocksAChoiceAndAnInstallUntilThePackageIsGone() = runBlocking {
-        val pkg = context.packageName
+        val pkg = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName
         val repository = StoreRepository(context)
         val store = PendingReinstallStore(context)
         val previous = store.read(pkg)
@@ -118,25 +118,25 @@ class SourceSelectionPersistenceTest {
 
     @Test fun aCanceledSourceChoiceCannotPersistAfterAnotherOperationReleasesTheGate() = runBlocking {
         val repository = StoreRepository(context)
-        val before = repository.sourceRevision(context.packageName)
+        val before = repository.sourceRevision(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName)
         SourceSelectionGate.locked {
             val entered = kotlinx.coroutines.CompletableDeferred<Unit>()
             val pending = launch(Dispatchers.IO) {
                 entered.complete(Unit)
-                SourceSelectionCoordinator(context).select(context.packageName,
-                    AppSourceChoice.GitHub(GitHubRepository("example", "canceled"), context.packageName))
+                SourceSelectionCoordinator(context).select(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName,
+                    AppSourceChoice.GitHub(GitHubRepository("example", "canceled"), androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName))
             }
             entered.await()
             kotlinx.coroutines.yield()
             pending.cancelAndJoin()
         }
-        assertEquals(before, repository.sourceRevision(context.packageName))
+        assertEquals(before, repository.sourceRevision(androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName))
     }
 
     @Test fun verifiedRotationWithinTheSavedSourceClearsTheReplacementFlag() = runBlocking {
         val repository = StoreRepository(context)
         val backup = repository.createBackup()
-        val pkg = context.packageName
+        val pkg = androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().context.packageName
         val local = requireNotNull(repository.installedAppFresh(pkg))
         val revision = repository.sourceRevision(pkg) + 1
         val id = "same-source-verified-replacement"

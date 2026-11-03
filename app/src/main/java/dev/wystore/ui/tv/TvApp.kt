@@ -103,7 +103,7 @@ private enum class TvDestination(val labelRes: Int, val icon: ImageVector) {
  * page, from the app page to the card it was opened from, from anywhere in a screen up to its tab,
  * from a tab to Home, and from Home out of the app.
  */
-@OptIn(ExperimentalTvMaterial3Api::class)
+@OptIn(ExperimentalTvMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun TvApp(
     viewModel: StoreViewModel,
@@ -116,6 +116,8 @@ fun TvApp(
     val focusManager = LocalFocusManager.current
     var destination by rememberSaveable { mutableStateOf(TvDestination.HOME) }
     var settingsGooglePlayEntry by rememberSaveable { mutableStateOf(false) }
+    var settingsEntry by rememberSaveable { mutableStateOf<dev.wystore.ui.settings.SettingsEntry?>(null) }
+    var settingsRequestId by rememberSaveable { mutableStateOf(0) }
     val navigationRequest by viewModel.navigationRequest.collectAsState()
     LaunchedEffect(navigationRequest) {
         if (navigationRequest == "library") {
@@ -127,12 +129,65 @@ fun TvApp(
             viewModel.clearDetails()
             viewModel.closeGitHubApp()
             settingsGooglePlayEntry = true
+            settingsEntry = null
+            settingsRequestId++
+            destination = TvDestination.SETTINGS
+            viewModel.consumeNavigationRequest()
+        } else if (navigationRequest == "source_settings" || navigationRequest == "about_settings") {
+            settingsGooglePlayEntry = false
+            settingsEntry = if (navigationRequest == "source_settings") dev.wystore.ui.settings.SettingsEntry.SOURCES else dev.wystore.ui.settings.SettingsEntry.ABOUT
+            settingsRequestId++
             destination = TvDestination.SETTINGS
             viewModel.consumeNavigationRequest()
         }
     }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var voiceRequested by remember { mutableStateOf(false) }
+    var keyboardRequested by rememberSaveable { mutableStateOf(false) }
+    // Keep the result receiver outside the search destination: TV focus restoration can leave
+    // that screen while the recognizer is open. Its reply still belongs to this search.
+    val voiceIntent = remember(context) {
+        android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            .putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            .putExtra(android.speech.RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+            .putExtra(android.speech.RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
+            .takeIf { it.resolveActivity(context.packageManager) != null }
+    }
+    var voiceError by rememberSaveable { mutableStateOf(false) }
+    val voiceLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { reply ->
+        val hypotheses = reply.data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
+        val result = VoiceSearchPolicy.result(reply.resultCode, hypotheses)
+        dev.wystore.data.EventLog(context).record(context.packageName, "TV_VOICE_RESULT",
+            "code=${reply.resultCode}; candidates=${hypotheses?.size ?: 0}; outcome=${result.javaClass.simpleName}")
+        when (result) {
+            is VoiceSearchResult.Query -> {
+                searchQuery = result.text
+                destination = TvDestination.SEARCH
+                voiceError = false
+            }
+            VoiceSearchResult.Canceled -> Unit
+            else -> voiceError = true
+        }
+    }
+    val voiceLanguage = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].toLanguageTag()
+    val launchVoice: () -> Unit = {
+        voiceError = false
+        if (voiceIntent == null) voiceError = true
+        else try {
+            voiceLauncher.launch(android.content.Intent(voiceIntent).putExtra(
+                android.speech.RecognizerIntent.EXTRA_LANGUAGE,
+                voiceLanguage))
+        } catch (error: android.content.ActivityNotFoundException) {
+            voiceError = true
+            dev.wystore.data.EventLog(context).record(context.packageName, "TV_VOICE_LAUNCH_FAILED", error.javaClass.simpleName)
+        } catch (error: SecurityException) {
+            voiceError = true
+            dev.wystore.data.EventLog(context).record(context.packageName, "TV_VOICE_LAUNCH_FAILED", error.javaClass.simpleName)
+        }
+    }
     var sourceFailureHelp by rememberSaveable { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     val contentFocus = remember { FocusRequester() }
@@ -155,10 +210,27 @@ fun TvApp(
         viewModel.openDetailsFromSource(packageName, dev.wystore.data.ManagedSource.WY_STORE)
     }
     val libraryLanguage = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language
-    val libraryApps = if (state.settings.libraryEnabled) state.libraryCards.map {
-        viewModel.decorateSources(dev.wystore.data.library.LibraryCatalogPolicy.cardToApp(it,
-            if (libraryLanguage == "ru") "ru_RU" else "en_US"))
-    } else emptyList()
+    val sourceIndex = viewModel.sourceMembershipIndex(state)
+    val libraryApps = remember(state.settings.libraryEnabled, state.libraryCards, libraryLanguage, sourceIndex) {
+        if (state.settings.libraryEnabled) state.libraryCards.map {
+            val app = dev.wystore.data.library.LibraryCatalogPolicy.cardToApp(it,
+                if (libraryLanguage == "ru") "ru_RU" else "en_US")
+            app.copy(availableSources = sourceIndex.sourcesFor(app.packageName, app.availableSources))
+        } else emptyList()
+    }
+    val foreignLibraryApps = remember(libraryApps, state.libraryCards) {
+        val packages = state.libraryCards.filter { it.foreignCategory }.mapTo(hashSetOf()) { it.packageName }
+        libraryApps.filter { it.packageName in packages }
+    }
+    val decoratedCatalog = remember(catalog, sourceIndex) {
+        fun decorate(app: dev.wystore.data.StoreApp) = app.copy(
+            availableSources = sourceIndex.sourcesFor(app.packageName, app.availableSources))
+        catalog.copy(apps = catalog.apps.map(::decorate), phoneApps = catalog.phoneApps.map(::decorate))
+    }
+    val decoratedSearch = remember(state.search, sourceIndex) {
+        state.search?.apps.orEmpty().map { app -> app.copy(
+            availableSources = sourceIndex.sourcesFor(app.packageName, app.availableSources)) }
+    }
     val sourceSelector: @Composable (String, dev.wystore.data.ManagedSource) -> Unit = { pkg, preview ->
         TvSourceSelector(viewModel.sourceChoices(pkg), preview, state.managed.firstOrNull { it.packageName == pkg }?.source,
             viewModel::selectAppSource)
@@ -223,6 +295,37 @@ fun TvApp(
     }
     WyStoreTheme(settings = tvSettings, tv = true) {
     TvTheme(dark = ThemePolicy.isDark(tvSettings.themeMode, isSystemInDarkTheme())) {
+        if (voiceError) {
+            val retryFocus = remember { FocusRequester() }
+            LaunchedEffect(Unit) {
+                androidx.compose.runtime.withFrameNanos { }
+                retryFocus.requestFocus()
+            }
+            dev.wystore.ui.components.HubAlertDialog(
+                onDismissRequest = { voiceError = false },
+                title = { androidx.compose.material3.Text(stringResource(R.string.tv_search_voice)) },
+                text = { androidx.compose.material3.Text(stringResource(R.string.tv_voice_no_result)) },
+                confirmButton = {
+                    Box(Modifier.focusRequester(retryFocus).focusGroup()) {
+                        dev.wystore.ui.components.DialogButton(primary = true, onClick = launchVoice) {
+                            androidx.compose.material3.Text(stringResource(R.string.common_retry))
+                        }
+                    }
+                },
+                dismissButton = {
+                    Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        dev.wystore.ui.components.DialogButton(onClick = {
+                            voiceError = false
+                            destination = TvDestination.SEARCH
+                            keyboardRequested = true
+                        }) { androidx.compose.material3.Text(stringResource(R.string.tv_search_keyboard)) }
+                        dev.wystore.ui.components.DialogButton(onClick = { voiceError = false }) {
+                            androidx.compose.material3.Text(stringResource(R.string.common_close))
+                        }
+                    }
+                }
+            )
+        }
         SharedRootDialogs(
             viewModel = viewModel,
             state = state,
@@ -289,7 +392,7 @@ fun TvApp(
                 Column(Modifier.fillMaxSize()) {
                     // The menu stays on an app page too, as the phone's bar does; only a screenshot
                     // opened full screen covers it.
-                    if (!(fullScreen && selected != null)) Row(
+                    if (!(fullScreen && selected != null)) androidx.compose.foundation.layout.FlowRow(
                         Modifier
                             .fillMaxWidth()
                             .padding(
@@ -298,10 +401,11 @@ fun TvApp(
                                 top = TvOverscanVertical,
                                 bottom = 12.dp
                             ),
-                        verticalAlignment = Alignment.CenterVertically
+                        itemVerticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(40.dp),
+                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
                     ) {
                         TvBrand(accent = state.settings.accent)
-                        Spacer(Modifier.width(40.dp))
                         Box(
                             Modifier
                                 // Coming up from a screen lands on that screen's own tab; landing
@@ -323,6 +427,7 @@ fun TvApp(
                                             if (destination != item) {
                                                 closePages()
                                                 settingsGooglePlayEntry = false
+                                                settingsEntry = null
                                                 destination = item
                                             }
                                         },
@@ -332,6 +437,7 @@ fun TvApp(
                                             .tvPointerClick {
                                                 closePages()
                                                 settingsGooglePlayEntry = false
+                                                settingsEntry = null
                                                 destination = item
                                                 focusManager.moveFocus(FocusDirection.Down)
                                             }
@@ -407,9 +513,8 @@ fun TvApp(
                             )
                         } else when (destination) {
                             TvDestination.HOME -> TvHomeScreen(
-                                catalog = catalog.copy(apps = catalog.apps.map(viewModel::decorateSources),
-                                    phoneApps = catalog.phoneApps.map(viewModel::decorateSources)),
-                                libraryApps = libraryApps.filter { app -> state.libraryCards.any { it.packageName == app.packageName && it.foreignCategory } },
+                                catalog = decoratedCatalog,
+                                libraryApps = foreignLibraryApps,
                                 onOpenLibrary = openLibrary,
                                 catalogMode = catalogMode,
                                 packages = packages,
@@ -429,9 +534,9 @@ fun TvApp(
                                 query = searchQuery,
                                 onQueryChange = { searchQuery = it },
                                 catalogMode = catalogMode,
-                                catalogApps = catalog.apps.map(viewModel::decorateSources),
+                                catalogApps = decoratedCatalog.apps,
                                 rustoreQuery = state.query,
-                                rustoreResults = state.search?.apps.orEmpty().map(viewModel::decorateSources),
+                                rustoreResults = decoratedSearch,
                                 libraryResults = libraryApps.filter { it.name.contains(searchQuery, true) || it.packageName.contains(searchQuery, true) },
                                 libraryError = if (state.settings.libraryEnabled) state.libraryError else null,
                                 onRetryLibrary = viewModel::retryLibraryCatalog,
@@ -446,7 +551,11 @@ fun TvApp(
                                 githubResults = githubResults,
                                 onOpenGitHub = openGitHub,
                                 startVoice = voiceRequested,
-                                onVoiceStarted = { voiceRequested = false }
+                                onVoiceStarted = { voiceRequested = false },
+                                voiceAvailable = voiceIntent != null,
+                                onVoiceSearch = launchVoice,
+                                startTyping = keyboardRequested,
+                                onTypingStarted = { keyboardRequested = false }
                             )
                             TvDestination.MY_APPS -> TvMyAppsScreen(
                                 packages = packages,
@@ -481,10 +590,11 @@ fun TvApp(
                             ) {
                                 // The phone's settings keep a phone's margin; a TV crops its edges,
                                 // so the rest of the overscan margin is added around them.
-                                SettingsScreen(
+                                androidx.compose.runtime.key(settingsRequestId) { SettingsScreen(
                                     modifier = Modifier.padding(horizontal = TvOverscanHorizontal - ScreenPadding),
                                     settings = state.settings,
                                     openGooglePlayUpdates = settingsGooglePlayEntry,
+                                    initialEntry = settingsEntry,
                                     rootAvailable = state.rootAvailable,
                                     managedCount = state.managed.size,
                                     githubCount = state.githubRepositories.size,
@@ -495,9 +605,13 @@ fun TvApp(
                                     onExportJson = viewModel::exportBackupJson,
                                     onRestoreJson = viewModel::restoreBackupJson,
                                     selfUpdate = state.selfUpdate,
+                                    selfUpdateQueueItem = state.installQueue.rowFor(dev.wystore.BuildConfig.APPLICATION_ID),
+                                    selfUpdatePending = state.pendingUpdates.firstOrNull { it.packageName == dev.wystore.BuildConfig.APPLICATION_ID },
                                     onCheckSelfUpdate = viewModel::checkSelfUpdate,
-                                    onInstallSelfUpdate = viewModel::installSelfUpdate
-                                )
+                                    onInstallSelfUpdate = viewModel::installSelfUpdate,
+                                    onInstallDownloadedSelfUpdate = { onInstallPending(dev.wystore.BuildConfig.APPLICATION_ID) },
+                                    onCancelSelfUpdateDownload = viewModel::queueCancel
+                                ) }
                             }
                         }
                     }
@@ -573,35 +687,19 @@ private const val MESSAGE_MILLIS = 4_000L
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun TvBrand(accent: dev.wystore.settings.AccentPreset) {
-    val (bgRes, fgRes) = when (accent) {
-        dev.wystore.settings.AccentPreset.ORANGE -> R.drawable.ic_wy_store_background to R.drawable.ic_wy_store_foreground
-        dev.wystore.settings.AccentPreset.RED -> R.drawable.ic_wy_store_background_red to R.drawable.ic_wy_store_foreground_red
-        dev.wystore.settings.AccentPreset.PINK -> R.drawable.ic_wy_store_background_pink to R.drawable.ic_wy_store_foreground_pink
-        dev.wystore.settings.AccentPreset.VIOLET -> R.drawable.ic_wy_store_background_violet to R.drawable.ic_wy_store_foreground_violet
-        dev.wystore.settings.AccentPreset.INDIGO -> R.drawable.ic_wy_store_background_indigo to R.drawable.ic_wy_store_foreground_indigo
-        dev.wystore.settings.AccentPreset.BLUE -> R.drawable.ic_wy_store_background_blue to R.drawable.ic_wy_store_foreground_blue
-        dev.wystore.settings.AccentPreset.TEAL -> R.drawable.ic_wy_store_background_teal to R.drawable.ic_wy_store_foreground_teal
-        dev.wystore.settings.AccentPreset.GREEN -> R.drawable.ic_wy_store_background_green to R.drawable.ic_wy_store_foreground_green
-        dev.wystore.settings.AccentPreset.AMBER -> R.drawable.ic_wy_store_background_amber to R.drawable.ic_wy_store_foreground_amber
+    val mark = when (accent) {
+        dev.wystore.settings.AccentPreset.ORANGE -> R.drawable.wy_brand_orange
+        dev.wystore.settings.AccentPreset.RED -> R.drawable.wy_brand_red
+        dev.wystore.settings.AccentPreset.PINK -> R.drawable.wy_brand_pink
+        dev.wystore.settings.AccentPreset.VIOLET -> R.drawable.wy_brand_violet
+        dev.wystore.settings.AccentPreset.INDIGO -> R.drawable.wy_brand_indigo
+        dev.wystore.settings.AccentPreset.BLUE -> R.drawable.wy_brand_blue
+        dev.wystore.settings.AccentPreset.TEAL -> R.drawable.wy_brand_teal
+        dev.wystore.settings.AccentPreset.GREEN -> R.drawable.wy_brand_green
+        dev.wystore.settings.AccentPreset.AMBER -> R.drawable.wy_brand_amber
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier
-                .size(40.dp)
-                .clip(androidx.compose.material3.MaterialTheme.shapes.medium),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(bgRes),
-                contentDescription = null,
-                modifier = Modifier.size(60.dp)
-            )
-            Image(
-                painter = painterResource(fgRes),
-                contentDescription = null,
-                modifier = Modifier.size(66.dp)
-            )
-        }
+        Image(painterResource(mark), contentDescription = null, modifier = Modifier.size(40.dp))
         Spacer(Modifier.width(14.dp))
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.width(10.dp))

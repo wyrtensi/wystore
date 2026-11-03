@@ -391,7 +391,7 @@ def save(im, path, opaque=False, size=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--only", choices=["icon", "banner", "rusinternet"], help="draw only one group")
+    parser.add_argument("--only", choices=["icon", "banner", "tv", "rusinternet"], help="draw only one group")
     parser.add_argument("--rusinternet-dir", type=Path, help="path to rusinternet public/assets directory")
     args = parser.parse_args()
 
@@ -452,8 +452,14 @@ def main():
                     DOCS / f"{name}.png",
                     opaque=True,
                 )
+        if args.only in (None, "banner", "tv"):
             save(render(banner_html(640, 360), 640, 360, Path("tv"), tmp),
                  RES / "drawable-xhdpi" / "tv_banner.png", opaque=True)
+            # In-app branding must not reconstruct the launcher's independently cropped layers.
+            for name, (accent_hex, lit_hex) in ACCENTS.items():
+                image = render(icon_html(512, True, accent_hex, lit_hex), 512, 512,
+                               Path(f"tv-mark-{name}"), tmp)
+                save(image, RES / "drawable-nodpi" / f"wy_brand_{name}.png", size=144)
         if args.only == "rusinternet" or args.rusinternet_dir:
             target = args.rusinternet_dir or Path(r"D:\ru-certificates\public\assets")
             big = render(icon_html(1024, True), 1024, 1024, Path("rus-icon"), tmp)

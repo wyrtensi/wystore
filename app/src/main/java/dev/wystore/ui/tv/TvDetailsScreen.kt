@@ -242,7 +242,7 @@ fun TvDetailsScreen(
 
             item(key = "sources") { sourceSelector() }
             if (!app.installationAvailable) item(key = "incompatible") {
-                Text(stringResource(R.string.library_incompatible), color = MaterialTheme.colorScheme.error)
+                Text(app.installationUnavailableReason ?: stringResource(R.string.library_incompatible), color = MaterialTheme.colorScheme.error)
             }
             // The phone page has always shown what changed in the version on offer; the TV page
             // had no way to it at all.

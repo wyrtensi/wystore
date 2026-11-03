@@ -5,7 +5,8 @@ data class LibrarySearchText(val title: String, val shortDescription: String)
 data class LibraryCard(
     val packageName: String, val title: String, val developer: String,
     val iconUrl: String?, val foreignCategory: Boolean,
-    val locales: Map<String, LibrarySearchText>
+    val locales: Map<String, LibrarySearchText>,
+    val categories: List<String> = emptyList()
 )
 data class LibraryIndex(val applications: Map<String, LibraryApplication>)
 class LibraryApplicationMissing(val packageName: String) : IllegalStateException("Application absent from library: $packageName")

@@ -3,7 +3,6 @@ package dev.wystore.selfupdate
 import android.content.Context
 import dev.wystore.BuildConfig
 import dev.wystore.data.GitHubRelease
-import dev.wystore.data.GitHubReleasePolicy
 import dev.wystore.data.GitHubReleaseSource
 import dev.wystore.data.GitHubRepository
 import dev.wystore.data.ManagedSource
@@ -38,13 +37,9 @@ class SelfUpdateChecker(
 
     suspend fun check(): SelfUpdateStatus = runCatching {
         val releases = releaseSource.releases(REPOSITORY)
-        val release = GitHubReleasePolicy.selectRelease(releases, assetPattern = null)
+        val release = SelfUpdateReleasePolicy.select(releases, currentVersionName)
             ?: return@runCatching SelfUpdateStatus.UpToDate
-        if (!SelfUpdateVersion.isNewer(release.tagName, currentVersionName)) {
-            SelfUpdateStatus.UpToDate
-        } else {
-            SelfUpdateStatus.Available(release.tagName.removePrefix("v"), release)
-        }
+        SelfUpdateStatus.Available(release.tagName.removePrefix("v").removePrefix("V"), release)
     }.getOrElse { error ->
         SelfUpdateStatus.Failed(error.message.orEmpty())
     }

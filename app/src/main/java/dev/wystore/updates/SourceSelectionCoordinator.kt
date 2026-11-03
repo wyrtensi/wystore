@@ -23,7 +23,9 @@ class SourceSelectionCoordinator(private val context: Context) {
     private val dao = WyStoreDatabase.getInstance(context).updateQueueDao
 
     suspend fun select(packageName: String, choice: AppSourceChoice): SourceSwitchResult {
+        require(packageName != context.packageName) { "Wy Store uses its dedicated self-updater" }
         require(choice.packageName == packageName)
+        (choice as? AppSourceChoice.GitHub)?.repository?.let(ReservedGitHubRepository::requireAllowed)
         // Source lookups happen outside the install gate, which must never wait for the network.
         val certificates = when (choice) {
             is AppSourceChoice.RuStore -> RuStoreSource.getInstance(context).details(packageName, false).signatureHint
@@ -46,6 +48,7 @@ class SourceSelectionCoordinator(private val context: Context) {
 
     private suspend fun change(packageName: String, choice: AppSourceChoice, certificates: Set<String>,
                                lineage: Set<String>?, keepQueueId: String?): SourceSwitchResult = withContext(Dispatchers.IO) {
+        (choice as? AppSourceChoice.GitHub)?.repository?.let(ReservedGitHubRepository::requireAllowed)
         SourceSelectionGate.commit {
             kotlinx.coroutines.currentCoroutineContext().ensureActive()
             if (PendingReinstallStore(context).read(packageName) != null) return@commit SourceSwitchResult.InstallInProgress

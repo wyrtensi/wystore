@@ -274,6 +274,9 @@ class UpdateDownloadWorker(
                             owner = entity.githubRepositoryOwner ?: error("Missing GitHub owner"),
                             name = entity.githubRepositoryName ?: error("Missing GitHub repo name")
                         )
+                        if (!dev.wystore.updates.SupersededDownloads.isSelfUpdate(entity)) {
+                            dev.wystore.data.ReservedGitHubRepository.requireAllowed(repo)
+                        }
                         // Rows written by an older build were named after the asset file. The name
                         // of the app is what belongs in a list of apps, so it is corrected here too
                         // and not only where the row is created.

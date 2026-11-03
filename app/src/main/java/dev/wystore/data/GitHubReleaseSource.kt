@@ -118,7 +118,7 @@ class GitHubReleaseSource(context: Context? = null) {
         if (parts.size != 2 || parts.any { !it.matches(Regex("[A-Za-z0-9_.-]+")) }) {
             throw SourceFormatException(SourceError.GITHUB_INVALID_URL, "Repository URL is not owner/name")
         }
-        return GitHubRepository(parts[0], parts[1])
+        return GitHubRepository(parts[0], parts[1]).also(ReservedGitHubRepository::requireAllowed)
     }
 }
 

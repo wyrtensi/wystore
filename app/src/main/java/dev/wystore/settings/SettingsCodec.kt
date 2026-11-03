@@ -35,6 +35,8 @@ internal object SettingsCodec {
     val KEY_QUEUE_MODE = stringPreferencesKey("queue_mode")
     val KEY_SEARCH_SOURCES = stringPreferencesKey("search_sources")
     val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
+    val KEY_UI_SCALE = stringPreferencesKey("ui_scale")
+    val KEY_LAYOUT_DENSITY = stringPreferencesKey("layout_density")
     val KEY_DEVICE_TYPE = stringPreferencesKey("device_type")
     val KEY_TV_CATALOG = stringPreferencesKey("tv_catalog")
     val KEY_LANGUAGE = stringPreferencesKey("language")
@@ -85,6 +87,12 @@ internal object SettingsCodec {
             themeMode = prefs[KEY_THEME_MODE]?.let { raw ->
                 runCatching { ThemeMode.valueOf(raw) }.getOrNull()
             } ?: defaults.themeMode,
+            uiScale = prefs[KEY_UI_SCALE]?.let { raw ->
+                UiScale.entries.firstOrNull { it.name == raw }
+            } ?: defaults.uiScale,
+            layoutDensity = prefs[KEY_LAYOUT_DENSITY]?.let { raw ->
+                LayoutDensity.entries.firstOrNull { it.name == raw }
+            } ?: defaults.layoutDensity,
             deviceType = prefs[KEY_DEVICE_TYPE]?.let { raw ->
                 runCatching { DeviceType.valueOf(raw) }.getOrNull()
             } ?: defaults.deviceType,
@@ -155,6 +163,8 @@ internal object SettingsCodec {
         prefs.put(KEY_UPDATE_INTERVAL_HOURS, updated.updateIntervalHours, current.updateIntervalHours)
         prefs.put(KEY_QUEUE_MODE, updated.queueMode.name, current.queueMode.name)
         prefs.put(KEY_THEME_MODE, updated.themeMode.name, current.themeMode.name)
+        prefs.put(KEY_UI_SCALE, updated.uiScale.name, current.uiScale.name)
+        prefs.put(KEY_LAYOUT_DENSITY, updated.layoutDensity.name, current.layoutDensity.name)
         prefs.put(KEY_DEVICE_TYPE, updated.deviceType.name, current.deviceType.name)
         prefs.put(KEY_TV_CATALOG, updated.tvCatalog.name, current.tvCatalog.name)
         prefs.put(KEY_LANGUAGE, updated.language.name, current.language.name)

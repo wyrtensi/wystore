@@ -93,6 +93,7 @@ fun LibraryAppRow(
     onOpenUpdateSettings: () -> Unit = {}
 ) {
     val selectable = selected != null && managed == null
+    val compact = dev.wystore.ui.components.LocalCompactLayout.current
     dev.wystore.ui.components.HubGroupRow(
         position = position,
         modifier = modifier,
@@ -101,7 +102,7 @@ fun LibraryAppRow(
         onClick = { if (selectable) onToggleSelected() else onExpandedChange(!expanded) },
         onLongClick = onStartSelection
     ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(horizontal = if (compact) 8.dp else 12.dp, vertical = if (compact) 5.dp else 10.dp), verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 InstalledAppIcon(
                     app,
@@ -109,7 +110,7 @@ fun LibraryAppRow(
                         .size(40.dp)
                         .clickable { onOpenStorePage(app.packageName) }
                 )
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(if (compact) 8.dp else 12.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
                         app.label,

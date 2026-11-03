@@ -8,6 +8,17 @@ import org.junit.Test
 
 class LibraryCatalogPolicyTest {
     private fun catalog() = LibraryJson.parseCatalog(javaClass.getResource("/library/catalog.json")!!.readText())
+    @Test fun `app categories come from the catalog independently of foreign shelf membership`() {
+        val json = javaClass.getResource("/library/catalog.json")!!.readText()
+        val root = com.google.gson.JsonParser.parseString(json).asJsonObject
+        root.getAsJsonArray("apps")[0].asJsonObject.add("categories", com.google.gson.JsonArray().apply { add("browsers") })
+        val card = LibraryJson.parseCatalog(root.toString()).cards.single()
+        assertEquals(listOf("browsers"), LibraryCatalogPolicy.cardToApp(card, "en_US").categories)
+        assertEquals(listOf("browsers"), LibraryCatalogPolicy.cardToApp(card.copy(foreignCategory = false), "ru_RU").categories)
+    }
+    @Test fun `an older catalog never labels an app category as foreign apps`() {
+        assertTrue(LibraryCatalogPolicy.cardToApp(catalog().cards.single(), "en_US").categories.isEmpty())
+    }
     @Test fun `editorial exclusion changes the category but not search`() {
         val card = catalog().cards.single().copy(foreignCategory = false)
         val data = LibraryCatalog(listOf(card))
