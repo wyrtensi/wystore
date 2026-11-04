@@ -29,6 +29,9 @@ jobs:
       - name: Unit tests
         run: ./gradlew :app:testDebugUnitTest
 
+      - name: Release tooling tests
+        run: python3 -m unittest discover -s tools/tests -v
+
       # The keystore is stored as base64 because a secret is text. It is written outside the
       # workspace so a later step cannot accidentally add it to the repository or an artifact.
       - name: Restore the signing keystore
@@ -72,6 +75,15 @@ jobs:
           cp "$APK_PATH" "wystore.apk"
           echo "RELEASE_APK=wystore-$VERSION.apk" >> "$GITHUB_ENV"
 
+      - name: Prepare the pending VirusTotal report
+        run: >-
+          python3 tools/virustotal_scan.py
+          --apk "$RELEASE_APK"
+          --alias-apk wystore.apk
+          --version "$GITHUB_REF_NAME"
+          --output-dir virustotal
+          --prepare-only
+
       - name: Remove the keystore
         if: always()
         run: rm -f "$RUNNER_TEMP/release.jks"
@@ -84,6 +96,7 @@ jobs:
           {
             echo 'NOTES<<CHANGELOG_EOF'
             bash .github/workflows/changelog-section.sh "$VERSION"
+            cat virustotal/virustotal-notes.md
             echo 'CHANGELOG_EOF'
           } >> "$GITHUB_ENV"
 
@@ -93,6 +106,17 @@ jobs:
           files: |
             ${{ env.RELEASE_APK }}
             wystore.apk
+            virustotal/virustotal-report.json
+            virustotal/virustotal-badge.json
           body: ${{ env.NOTES }}
           generate_release_notes: true
           fail_on_unmatched_files: true
+
+  virustotal:
+    name: VirusTotal report
+    needs: release
+    uses: ./.github/workflows/virustotal.yml
+    with:
+      release_tag: ${{ github.ref_name }}
+    secrets:
+      VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}

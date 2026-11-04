@@ -905,4 +905,9 @@
     <string name="appearance_density_auto">Automatic</string>
     <string name="appearance_density_standard">Standard</string>
     <string name="appearance_density_compact">Compact</string>
+    <string name="bottom_nav_home">Home</string>
+    <string name="bottom_nav_search">Search</string>
+    <string name="bottom_nav_updates">Updates</string>
+    <string name="bottom_nav_library">Apps</string>
+    <string name="bottom_nav_settings">Settings</string>
 </resources>

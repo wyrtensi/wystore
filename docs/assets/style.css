@@ -579,6 +579,17 @@ code {
   border-radius: 3px;
 }
 
+.scan-badge {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+}
+
+.scan-badge .badge {
+  max-width: 100%;
+  height: auto;
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;

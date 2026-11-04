@@ -905,4 +905,9 @@
     <string name="appearance_density_auto">Аутоматска</string>
     <string name="appearance_density_standard">Обична</string>
     <string name="appearance_density_compact">Компактна</string>
+    <string name="bottom_nav_home">Почетна</string>
+    <string name="bottom_nav_search">Претрага</string>
+    <string name="bottom_nav_updates">Ажурирај</string>
+    <string name="bottom_nav_library">Моје</string>
+    <string name="bottom_nav_settings">Опције</string>
 </resources>

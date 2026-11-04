@@ -103,9 +103,8 @@ class NotificationCoordinator(
             .setProgress(100, percent, totalBytes <= 0)
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setOngoing(true)
-            .setSilent(true)
             .setContentIntent(openIntent)
-            .setOnlyAlertOnce(true)
+            .stableTransferPresentation()
             .build()
 
         safeNotify(NOTIFICATION_ID_TRANSFER, notification)
@@ -120,10 +119,11 @@ class NotificationCoordinator(
     fun publishReady(items: List<QueueItemSnapshot>) {
         val settings = settings()
         val digest = NotificationPolicy.digestOf(items.map { "${it.packageName}@${it.versionName}" })
+        val previousDigest = state.lastDigest(NotificationState.CATEGORY_READY)
         val decision = NotificationPolicy.decide(
             categoryEnabled = settings.readyNotificationsEnabled,
             digest = digest,
-            lastPublishedDigest = state.lastDigest(NotificationState.CATEGORY_READY),
+            lastPublishedDigest = previousDigest,
             quietHours = quietNow(settings)
         )
         if (!decision.post) {
@@ -139,6 +139,8 @@ class NotificationCoordinator(
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setSilent(!decision.alert)
+
+        if (digest == previousDigest) builder.setWhen(0L).setShowWhen(false)
 
         if (items.size == 1) {
             val single = items.first()
@@ -205,10 +207,11 @@ class NotificationCoordinator(
     fun publishErrors(items: List<QueueItemSnapshot>) {
         val settings = settings()
         val digest = NotificationPolicy.digestOf(items.map { "${it.packageName}@${it.errorCode?.name.orEmpty()}" })
+        val previousDigest = state.lastDigest(NotificationState.CATEGORY_ERRORS)
         val decision = NotificationPolicy.decide(
             categoryEnabled = settings.errorNotificationsEnabled,
             digest = digest,
-            lastPublishedDigest = state.lastDigest(NotificationState.CATEGORY_ERRORS),
+            lastPublishedDigest = previousDigest,
             quietHours = quietNow(settings)
         )
         if (!decision.post) {
@@ -237,7 +240,7 @@ class NotificationCoordinator(
             )
         }
 
-        val notification = NotificationCompat.Builder(appContext, CHANNEL_ERRORS)
+        val builder = NotificationCompat.Builder(appContext, CHANNEL_ERRORS)
             .setSmallIcon(R.drawable.ic_stat_wystore)
             .setColor(accentColor())
             .setLargeIcon(items.singleOrNull()?.let { NotificationArt.iconFor(appContext, it.packageName) })
@@ -248,7 +251,9 @@ class NotificationCoordinator(
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setSilent(!decision.alert)
-            .build()
+
+        if (digest == previousDigest) builder.setWhen(0L).setShowWhen(false)
+        val notification = builder.build()
 
         safeNotify(NOTIFICATION_ID_ERRORS, notification)
         state.recordDigest(NotificationState.CATEGORY_ERRORS, digest)
@@ -284,6 +289,8 @@ class NotificationCoordinator(
             .setContentIntent(NotificationIntentFactory.createReadySummaryPendingIntent(appContext))
             .setAutoCancel(true)
             .setSilent(true)
+            .setWhen(0L)
+            .setShowWhen(false)
             .build()
 
         safeNotify(NOTIFICATION_ID_CHECK_SUMMARY, notification)

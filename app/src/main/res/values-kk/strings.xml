@@ -905,4 +905,9 @@
     <string name="appearance_density_auto">Автоматты</string>
     <string name="appearance_density_standard">Қалыпты</string>
     <string name="appearance_density_compact">Ықшам</string>
+    <string name="bottom_nav_home">Басты</string>
+    <string name="bottom_nav_search">Іздеу</string>
+    <string name="bottom_nav_updates">Жаңарту</string>
+    <string name="bottom_nav_library">Менің</string>
+    <string name="bottom_nav_settings">Баптау</string>
 </resources>

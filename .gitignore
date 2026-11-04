@@ -3,6 +3,8 @@ build/
 .gradle/
 .kotlin/
 app/build/
+__pycache__/
+*.py[cod]
 
 # Signing material. The release keystore must never leave this machine.
 *.jks

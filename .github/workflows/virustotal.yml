@@ -1,0 +1,87 @@
+name: VirusTotal
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Published release tag, or latest
+        type: string
+        default: latest
+        required: true
+  workflow_call:
+    inputs:
+      release_tag:
+        type: string
+        required: true
+    secrets:
+      VIRUSTOTAL_API_KEY:
+        required: false
+
+permissions:
+  contents: write
+
+# Keep all scans sequential because the Public API quota belongs to one account.
+concurrency:
+  group: wystore-virustotal
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: Analyse the published APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Download the published release
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: >-
+          python tools/virustotal_release.py prepare
+          --release-tag "$RELEASE_TAG"
+          --output-dir "$RUNNER_TEMP/virustotal"
+
+      - name: Mark this release analysis as pending
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python tools/virustotal_scan.py --apk "$VT_APK" --alias-apk "$VT_ALIAS_APK" --version "$VT_RELEASE_TAG" --output-dir "$RUNNER_TEMP/virustotal" --prepare-only
+          python tools/virustotal_release.py publish --output-dir "$RUNNER_TEMP/virustotal"
+
+      - name: Analyse the exact published APK
+        env:
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        run: >-
+          python tools/virustotal_scan.py
+          --apk "$VT_APK"
+          --alias-apk "$VT_ALIAS_APK"
+          --version "$VT_RELEASE_TAG"
+          --output-dir "$RUNNER_TEMP/virustotal"
+
+      # A scan error still leaves an explicit error report. The failed scan step stays red.
+      - name: Attach the analysis result
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python tools/virustotal_release.py publish
+          --output-dir "$RUNNER_TEMP/virustotal"
+
+      - name: Preserve analysis evidence
+        if: ${{ always() && steps.prepare.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: virustotal-${{ env.VT_RELEASE_TAG }}
+          path: |
+            ${{ runner.temp }}/virustotal/virustotal-report.json
+            ${{ runner.temp }}/virustotal/virustotal-badge.json
+            ${{ runner.temp }}/virustotal/virustotal-notes.md
+          if-no-files-found: error

@@ -54,6 +54,7 @@ object DownloadForegroundInfoFactory {
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setProgress(100, percent ?: 0, progress == null || progress.totalBytes <= 0)
             .setOngoing(true)
+            .stableTransferPresentation()
             .build()
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

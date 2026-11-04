@@ -905,4 +905,9 @@
     <string name="appearance_density_auto">自动</string>
     <string name="appearance_density_standard">标准</string>
     <string name="appearance_density_compact">紧凑</string>
+    <string name="bottom_nav_home">首页</string>
+    <string name="bottom_nav_search">搜索</string>
+    <string name="bottom_nav_updates">更新</string>
+    <string name="bottom_nav_library">应用</string>
+    <string name="bottom_nav_settings">设置</string>
 </resources>

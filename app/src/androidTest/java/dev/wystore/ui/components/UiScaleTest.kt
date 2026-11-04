@@ -98,7 +98,7 @@ class UiScaleTest {
 
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
 
-    @Test fun ordinaryPhoneKeepsEveryNavigationLabelInOneRow() {
+    @Test fun ordinaryPhoneKeepsEveryNavigationLabelInEqualColumns() {
         compose.setContent {
             CompositionLocalProvider(LocalDensity provides Density(2f, 1f)) {
                 WyStoreTheme(AppSettings()) {
@@ -109,10 +109,11 @@ class UiScaleTest {
                 }
             }
         }
-        val bounds = listOf(dev.wystore.R.string.nav_home, dev.wystore.R.string.nav_search,
-            dev.wystore.R.string.nav_updates, dev.wystore.R.string.nav_library, dev.wystore.R.string.nav_settings)
-            .map { compose.onNodeWithText(compose.activity.getString(it)).fetchSemanticsNode().boundsInRoot }
+        val bounds = listOf(dev.wystore.R.string.bottom_nav_home, dev.wystore.R.string.bottom_nav_search,
+            dev.wystore.R.string.bottom_nav_updates, dev.wystore.R.string.bottom_nav_library, dev.wystore.R.string.bottom_nav_settings)
+            .map { compose.onNodeWithText(compose.activity.getString(it), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot }
         bounds.forEach { org.junit.Assert.assertEquals(bounds.first().top, it.top, 1f) }
+        bounds.forEach { org.junit.Assert.assertEquals(bounds.first().width, it.width, 1f) }
     }
 
     @Test fun largeSystemTextDoesNotClipAnyNavigationLabel() {
@@ -127,8 +128,8 @@ class UiScaleTest {
                 }
             }
         }
-        for (resource in listOf(dev.wystore.R.string.nav_home, dev.wystore.R.string.nav_search,
-            dev.wystore.R.string.nav_updates, dev.wystore.R.string.nav_library, dev.wystore.R.string.nav_settings)) {
+        for (resource in listOf(dev.wystore.R.string.bottom_nav_home, dev.wystore.R.string.bottom_nav_search,
+            dev.wystore.R.string.bottom_nav_updates, dev.wystore.R.string.bottom_nav_library, dev.wystore.R.string.bottom_nav_settings)) {
             val label = compose.activity.getString(resource)
             val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
             compose.onNodeWithText(label, useUnmergedTree = true).performSemanticsAction(

@@ -905,4 +905,9 @@
     <string name="appearance_density_auto">Аўтаматычная</string>
     <string name="appearance_density_standard">Звычайная</string>
     <string name="appearance_density_compact">Кампактная</string>
+    <string name="bottom_nav_home">Дадому</string>
+    <string name="bottom_nav_search">Пошук</string>
+    <string name="bottom_nav_updates">Абнавіць</string>
+    <string name="bottom_nav_library">Мае</string>
+    <string name="bottom_nav_settings">Налады</string>
 </resources>

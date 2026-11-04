@@ -905,4 +905,9 @@
     <string name="appearance_density_auto">Automātisks</string>
     <string name="appearance_density_standard">Standarta</string>
     <string name="appearance_density_compact">Kompakts</string>
+    <string name="bottom_nav_home">Sākums</string>
+    <string name="bottom_nav_search">Meklēt</string>
+    <string name="bottom_nav_updates">Atjaunināt</string>
+    <string name="bottom_nav_library">Lietotnes</string>
+    <string name="bottom_nav_settings">Opcijas</string>
 </resources>

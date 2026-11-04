@@ -24,6 +24,9 @@ jobs:
       - name: Unit tests
         run: ./gradlew :app:testDebugUnitTest
 
+      - name: Release tooling tests
+        run: python3 -m unittest discover -s tools/tests -v
+
       - name: Lint
         run: ./gradlew :app:lintDebug
 

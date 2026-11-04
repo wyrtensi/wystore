@@ -32,6 +32,11 @@ is visible (`wystore-verify`, `wystore-device`).
 5. Push the branch and the tag only when the user said to publish.
 6. Watch the Release workflow (`gh run list --workflow release.yml`, `gh run watch`), then check the
    release page: both APKs present, body is the changelog section.
+   The separate VirusTotal job then scans the published file and attaches the SHA-256-bound
+   report and badge. Detections do not block publication; scan errors remain a failed job with an
+   explicit error/timeout report. Check this result separately and never describe it as a Play
+   Protect approval. The `VIRUSTOTAL_API_KEY` secret is required. For manual rescans and the latest
+   badge feed, see `docs/virustotal-release-checks.md`.
 7. Close issues the release fixed that did not close from `Fixes #N` in commit messages, with a
    short comment saying which version has the fix.
 

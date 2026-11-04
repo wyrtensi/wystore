@@ -905,4 +905,9 @@
     <string name="appearance_density_auto">Avtomatik</string>
     <string name="appearance_density_standard">Oddiy</string>
     <string name="appearance_density_compact">Ixcham</string>
+    <string name="bottom_nav_home">Asosiy</string>
+    <string name="bottom_nav_search">Qidiruv</string>
+    <string name="bottom_nav_updates">Yangilash</string>
+    <string name="bottom_nav_library">Ilovalar</string>
+    <string name="bottom_nav_settings">Sozlamalar</string>
 </resources>
