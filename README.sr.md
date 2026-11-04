@@ -2,11 +2,11 @@
 
 <img src="docs/banner-en.png" alt="Wy Store" width="760">
 
-[![VirusTotal](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwyrtensi%2Fwystore%2Frelease-reports%2Fvirustotal-latest.json&style=flat&logo=virustotal&logoColor=white&labelColor=202938&cacheSeconds=300)](https://wystore.ru/virustotal/)
-
 **Каталог апликација за Android без огласа и праћења**
 
 [Преузми APK](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk) · [Издања](https://github.com/wyrtensi/wystore/releases) · [Историја измена](CHANGELOG.md) · [Приватност](PRIVACY.md) · [Безбедност](SECURITY.md) · [Лиценца](LICENSE)
+
+[![VirusTotal](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwyrtensi%2Fwystore%2Frelease-reports%2Fvirustotal-latest.json&style=flat&logo=virustotal&logoColor=white&labelColor=202938&cacheSeconds=300)](https://wystore.ru/virustotal/)
 
 [Русский](README.md) · [English](README.en.md) · [Українська](README.uk.md) · [Беларуская](README.be.md) · [Қазақша](README.kk.md) · [Oʻzbekcha](README.uz.md) · [Latviešu](README.lv.md) · [简体中文](README.zh.md) · **Српски**
 

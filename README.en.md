@@ -7,9 +7,9 @@
 [![Download APK](https://img.shields.io/badge/Download%20APK-A85A38?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
 [![Downloads](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=downloads&labelColor=A85A38&color=BC7048)](https://github.com/wyrtensi/wystore/releases)
 
-[![Latest release](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=release&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![VirusTotal](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwyrtensi%2Fwystore%2Frelease-reports%2Fvirustotal-latest.json&style=flat&logo=virustotal&logoColor=white&labelColor=202938&cacheSeconds=300)](https://wystore.ru/virustotal/)
-[![Build](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=build)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
+
+[![Latest release](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=release&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-5E8F6E?style=flat-square&logo=android&logoColor=white)](#requirements)
 [![Telegram chat](https://img.shields.io/badge/Telegram-chat-4F83A6?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
 [![Licence MIT](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&color=6B7280&label=licence)](LICENSE)

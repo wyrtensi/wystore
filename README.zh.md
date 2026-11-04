@@ -7,9 +7,9 @@
 [![下载 APK](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD%20APK-A85A38?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
 [![下载量](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=%E4%B8%8B%E8%BD%BD%E9%87%8F&labelColor=A85A38&color=BC7048)](https://github.com/wyrtensi/wystore/releases)
 
-[![最新版本](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%E7%89%88%E6%9C%AC&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![VirusTotal](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwyrtensi%2Fwystore%2Frelease-reports%2Fvirustotal-latest.json&style=flat&logo=virustotal&logoColor=white&labelColor=202938&cacheSeconds=300)](https://wystore.ru/virustotal/)
-[![构建](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%E6%9E%84%E5%BB%BA)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
+
+[![最新版本](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%E7%89%88%E6%9C%AC&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-5E8F6E?style=flat-square&logo=android&logoColor=white)](#系统要求)
 [![Telegram 交流群](https://img.shields.io/badge/Telegram-%E4%BA%A4%E6%B5%81%E7%BE%A4-4F83A6?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
 [![MIT 许可证](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&color=6B7280&label=%E8%AE%B8%E5%8F%AF%E8%AF%81)](LICENSE)

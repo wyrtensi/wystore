@@ -7,9 +7,9 @@
 [![Lejupielādēt APK](https://img.shields.io/badge/Lejupiel%C4%81d%C4%93t%20APK-A85A38?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wyrtensi/wystore/releases/latest/download/wystore.apk)
 [![Lejupielādes](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=lejupiel%C4%81des&labelColor=A85A38&color=BC7048)](https://github.com/wyrtensi/wystore/releases)
 
-[![Jaunākais laidiens](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=laidiens&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![VirusTotal](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwyrtensi%2Fwystore%2Frelease-reports%2Fvirustotal-latest.json&style=flat&logo=virustotal&logoColor=white&labelColor=202938&cacheSeconds=300)](https://wystore.ru/virustotal/)
-[![Būvējums](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=b%C5%ABv%C4%93jums)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
+
+[![Jaunākais laidiens](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=laidiens&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-5E8F6E?style=flat-square&logo=android&logoColor=white)](#prasības)
 [![Telegram čats](https://img.shields.io/badge/Telegram-%C4%8Dats-4F83A6?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)
 [![MIT licence](https://img.shields.io/github/license/wyrtensi/wystore?style=flat-square&color=6B7280&label=licence)](LICENSE)
