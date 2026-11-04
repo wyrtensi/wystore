@@ -225,7 +225,7 @@ def write_assets(directory, report):
     directory.mkdir(parents=True, exist_ok=True)
     status = report['status']
     if status == 'completed':
-        color = 'red' if report['malicious'] else 'orange' if report['suspicious'] else 'green'
+        color = 'red' if report['malicious'] else 'orange' if report['suspicious'] else '40835b'
         detections = report['malicious'] + report['suspicious']
         message = f"{report['version']}: {detections}/{report['analysed']}"
     else:
@@ -234,7 +234,8 @@ def write_assets(directory, report):
     badge = {'schemaVersion': 1, 'label': 'VirusTotal', 'message': message, 'color': color}
     # Release notes contain a permanent snapshot. Shields blocks github.com release-asset URLs.
     shields = ('https://img.shields.io/static/v1?' + urllib.parse.urlencode({
-        'label': 'VirusTotal', 'message': message, 'color': color, 'style': 'flat-square'}))
+        'label': 'VirusTotal', 'message': message, 'color': color, 'style': 'flat',
+        'logo': 'virustotal', 'logoColor': 'white', 'labelColor': '202938'}))
     summary = (f"{report['malicious']} malicious, {report['suspicious']} suspicious / {report['analysed']} completed engine results"
                if status == 'completed' else status)
     notes = (f'<!-- wystore-virustotal:start -->\n[![VirusTotal]({shields})]({report["report_url"]})\n\n'

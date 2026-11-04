@@ -8,7 +8,7 @@
 [![Завантажень](https://img.shields.io/github/downloads/wyrtensi/wystore/total?style=for-the-badge&logo=github&logoColor=white&label=%D0%B7%D0%B0%D0%B2%D0%B0%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D0%BD%D1%8C&labelColor=A85A38&color=BC7048)](https://github.com/wyrtensi/wystore/releases)
 
 [![Останній реліз](https://img.shields.io/github/v/release/wyrtensi/wystore?style=flat-square&label=%D1%80%D0%B5%D0%BB%D1%96%D0%B7&color=A85A38)](https://github.com/wyrtensi/wystore/releases/latest)
-[![VirusTotal](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwyrtensi%2Fwystore%2Frelease-reports%2Fvirustotal-latest.json&style=flat-square&cacheSeconds=300)](https://github.com/wyrtensi/wystore/releases/latest)
+[![VirusTotal](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwyrtensi%2Fwystore%2Frelease-reports%2Fvirustotal-latest.json&style=flat&logo=virustotal&logoColor=white&labelColor=202938&cacheSeconds=300)](https://wystore.ru/virustotal/)
 [![Збірка](https://img.shields.io/github/actions/workflow/status/wyrtensi/wystore/build.yml?branch=main&style=flat-square&label=%D0%B7%D0%B1%D1%96%D1%80%D0%BA%D0%B0)](https://github.com/wyrtensi/wystore/actions/workflows/build.yml)
 [![Android 9.0+](https://img.shields.io/badge/Android-9.0%2B-5E8F6E?style=flat-square&logo=android&logoColor=white)](#вимоги)
 [![Telegram-чат](https://img.shields.io/badge/Telegram-%D1%87%D0%B0%D1%82-4F83A6?style=flat-square&logo=telegram&logoColor=white)](https://t.me/+_YytpJdDHgQ4OTYy)

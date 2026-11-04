@@ -100,7 +100,7 @@ def prepare(repository, requested_tag, output_dir, artifact_dir=None):
     print(f"Prepared published release {tag} for VirusTotal analysis.")
 
 
-def publish_latest(repository, tag, badge, status):
+def publish_latest(repository, tag, badge, status, report):
     # A manual rescan of an older release must never replace the latest release's badge.
     if release_metadata(repository)["tagName"] != tag:
         print(f"Preserved the latest badge because {tag} is not the latest release.")
@@ -110,7 +110,14 @@ def publish_latest(repository, tag, badge, status):
     matching = [ref for ref in refs if ref["ref"] == "refs/heads/release-reports"]
     parent = matching[0]["object"]["sha"] if matching else None
     blob = api(prefix + "/blobs", {"content": base64.b64encode(badge.read_bytes()).decode("ascii"), "encoding": "base64"})
-    tree_data = {"tree": [{"path": "virustotal-latest.json", "mode": "100644", "type": "blob", "sha": blob["sha"]}]}
+    report_blob = api(prefix + "/blobs", {
+        "content": base64.b64encode(json.dumps(report, indent=2).encode('utf-8')).decode('ascii'),
+        "encoding": "base64",
+    })
+    tree_data = {"tree": [
+        {"path": "virustotal-latest.json", "mode": "100644", "type": "blob", "sha": blob["sha"]},
+        {"path": "virustotal-latest-report.json", "mode": "100644", "type": "blob", "sha": report_blob["sha"]},
+    ]}
     if parent:
         tree_data["base_tree"] = api(prefix + "/commits/" + parent)["tree"]["sha"]
     tree = api(prefix + "/trees", tree_data)
@@ -151,7 +158,7 @@ def publish(repository, output_dir):
     # These are the only replaceable assets. Published APKs are never uploaded or changed here.
     github("release", "upload", tag, str(report), str(badge), "--repo", repository, "--clobber")
     github("release", "edit", tag, "--repo", repository, "--notes-file", str(body_file))
-    publish_latest(repository, tag, badge, report_data["status"])
+    publish_latest(repository, tag, badge, report_data["status"], report_data)
     print(f"Attached VirusTotal report to {tag}; published APKs were preserved.")
 
 

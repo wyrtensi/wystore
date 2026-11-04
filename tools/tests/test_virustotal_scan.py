@@ -188,7 +188,7 @@ class ArtifactTests(unittest.TestCase):
             report = {'version': 'v0.6.2', 'sha256': 'a' * 64, 'size': 1,
                 'checkedAt': '2026-01-01T00:00:00Z', 'report_url': 'https://www.virustotal.com/gui/file/' + 'a' * 64,
                 'analysisDate': None, 'analysisId': None, 'malicious': 0, 'suspicious': 0, 'analysed': 3}
-            cases = [('completed', 0, 0, 'green'), ('completed', 0, 1, 'orange'),
+            cases = [('completed', 0, 0, '40835b'), ('completed', 0, 1, 'orange'),
                      ('completed', 1, 0, 'red'), ('pending', 0, 0, 'yellow'),
                      ('timeout', 0, 0, 'lightgrey'), ('error', 0, 0, 'lightgrey')]
             for status, malicious, suspicious, color in cases:
@@ -200,6 +200,10 @@ class ArtifactTests(unittest.TestCase):
                     self.assertIn('v0.6.2', badge['message'])
                     if status != 'completed':
                         self.assertNotIn('0/0', badge['message'])
+                    notes = (Path(tmp) / 'virustotal-notes.md').read_text()
+                    self.assertIn('logo=virustotal', notes)
+                    self.assertIn('labelColor=202938', notes)
+                    self.assertIn('style=flat&', notes)
 
 class RetryTests(unittest.TestCase):
     def test_invalid_retry_after_falls_back_to_rate_limit_interval(self):

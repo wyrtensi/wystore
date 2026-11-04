@@ -1,5 +1,12 @@
 # VirusTotal release reports
 
+Badges use the VirusTotal mark on a dark label and muted green (`40835b`) for a
+completed scan with no detections. Detection, pending and error colors remain distinct.
+README and website badges open `https://wystore.ru/virustotal/`, which validates and
+opens the current APK's VirusTotal report. Its destination is published atomically
+beside the badge as `virustotal-latest-report.json`; release notes link directly to
+their own APK report. A failed lookup displays an error instead of opening a release.
+
 Large APK uploads use the one-time URL from `/files/upload_url`. Only HTTPS on
 `www.virustotal.com` or the official `bigfiles.virustotal.com` upload host is accepted;
 the latter is allowed only for uploads. Redirects, other hosts, credentials and

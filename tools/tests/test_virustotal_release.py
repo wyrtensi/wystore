@@ -1,4 +1,5 @@
 import importlib.util
+import base64
 import hashlib
 import json
 import os
@@ -127,11 +128,11 @@ class ReleaseReportTests(unittest.TestCase):
                 self.assertFalse(any(str(arg).endswith(".apk") for arg in upload))
                 self.assertIn("--clobber", upload)
                 self.assertTrue((output / "release-body.md").read_text().startswith("Fresh manual notes"))
-                latest.assert_called_once_with("wyrtensi/wystore", "v0.6.2", output / "virustotal-badge.json", "completed")
+                latest.assert_called_once_with("wyrtensi/wystore", "v0.6.2", output / "virustotal-badge.json", "completed", {"version": "v0.6.2", "status": "completed"})
 
     def test_rescanning_an_old_release_does_not_change_latest_badge(self):
         with patch.object(release, "release_metadata", return_value={"tagName": "v0.6.3"}), patch.object(release, "api") as api:
-            release.publish_latest("wyrtensi/wystore", "v0.6.2", Path("unused"), "completed")
+            release.publish_latest("wyrtensi/wystore", "v0.6.2", Path("unused"), "completed", {})
         api.assert_not_called()
 
     def test_first_report_creates_a_metadata_only_branch_with_owner_identity(self):
@@ -139,11 +140,14 @@ class ReleaseReportTests(unittest.TestCase):
             badge = Path(directory) / "badge.json"
             badge.write_text('{"message":"v0.6.2: pending"}')
             with patch.object(release, "release_metadata", return_value={"tagName": "v0.6.2"}), patch.object(release, "api") as api:
-                api.side_effect = [[], {"sha": "blob"}, {"sha": "tree"}, {"sha": "commit"}, {"ref": "refs/heads/release-reports"}]
-                release.publish_latest("wyrtensi/wystore", "v0.6.2", badge, "pending")
-                tree = api.call_args_list[2].args[1]
-                commit = api.call_args_list[3].args[1]
-                self.assertEqual([item["path"] for item in tree["tree"]], ["virustotal-latest.json"])
+                api.side_effect = [[], {"sha": "blob"}, {"sha": "report-blob"}, {"sha": "tree"}, {"sha": "commit"}, {"ref": "refs/heads/release-reports"}]
+                report = {'sha256': 'a' * 64, 'report_url': 'https://www.virustotal.com/gui/file/' + 'a' * 64}
+                release.publish_latest("wyrtensi/wystore", "v0.6.2", badge, "pending", report)
+                stored = json.loads(base64.b64decode(api.call_args_list[2].args[1]['content']))
+                self.assertEqual(stored, report)
+                tree = api.call_args_list[3].args[1]
+                commit = api.call_args_list[4].args[1]
+                self.assertEqual([item["path"] for item in tree["tree"]], ["virustotal-latest.json", "virustotal-latest-report.json"])
                 self.assertEqual(commit["parents"], [])
                 self.assertEqual(commit["author"], {"name": "wyrtensi", "email": "wyrtensi@gmail.com"})
                 self.assertEqual(commit["committer"], commit["author"])
@@ -153,19 +157,19 @@ class ReleaseReportTests(unittest.TestCase):
             badge = Path(directory) / "badge.json"
             badge.write_text("{}")
             with patch.object(release, "release_metadata", side_effect=[{"tagName": "v0.6.2"}, {"tagName": "v0.6.3"}]), patch.object(release, "api") as api:
-                api.side_effect = [[], {"sha": "blob"}, {"sha": "tree"}, {"sha": "commit"}]
-                release.publish_latest("wyrtensi/wystore", "v0.6.2", badge, "completed")
-                self.assertEqual(api.call_count, 4)
+                api.side_effect = [[], {"sha": "blob"}, {"sha": "report-blob"}, {"sha": "tree"}, {"sha": "commit"}]
+                release.publish_latest("wyrtensi/wystore", "v0.6.2", badge, "completed", {})
+                self.assertEqual(api.call_count, 5)
 
     def test_existing_reports_are_updated_without_force_or_dropping_other_files(self):
         with tempfile.TemporaryDirectory() as directory:
             badge = Path(directory) / "badge.json"
             badge.write_text("{}")
             with patch.object(release, "release_metadata", return_value={"tagName": "v0.6.2"}), patch.object(release, "api") as api:
-                api.side_effect = [[{"ref": "refs/heads/release-reports", "object": {"sha": "parent"}}], {"sha": "blob"},
+                api.side_effect = [[{"ref": "refs/heads/release-reports", "object": {"sha": "parent"}}], {"sha": "blob"}, {"sha": "report-blob"},
                                    {"tree": {"sha": "old-tree"}}, {"sha": "tree"}, {"sha": "commit"}, {}]
-                release.publish_latest("wyrtensi/wystore", "v0.6.2", badge, "error")
-                self.assertEqual(api.call_args_list[3].args[1]["base_tree"], "old-tree")
+                release.publish_latest("wyrtensi/wystore", "v0.6.2", badge, "error", {})
+                self.assertEqual(api.call_args_list[4].args[1]["base_tree"], "old-tree")
                 self.assertEqual(api.call_args_list[-1].kwargs["method"], "PATCH")
                 self.assertFalse(api.call_args_list[-1].args[1]["force"])
 

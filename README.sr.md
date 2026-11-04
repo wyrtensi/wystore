@@ -2,7 +2,7 @@
 
 <img src="docs/banner-en.png" alt="Wy Store" width="760">
 
-[![VirusTotal](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwyrtensi%2Fwystore%2Frelease-reports%2Fvirustotal-latest.json&style=flat-square&cacheSeconds=300)](https://github.com/wyrtensi/wystore/releases/latest)
+[![VirusTotal](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwyrtensi%2Fwystore%2Frelease-reports%2Fvirustotal-latest.json&style=flat&logo=virustotal&logoColor=white&labelColor=202938&cacheSeconds=300)](https://wystore.ru/virustotal/)
 
 **Каталог апликација за Android без огласа и праћења**
 

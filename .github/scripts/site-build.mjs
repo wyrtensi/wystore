@@ -15,7 +15,7 @@ const root = resolve(import.meta.dirname, '../..');
 const docs = join(root, 'docs');
 const dist = join(root, 'dist');
 const LANGS = ['en', 'uk', 'be', 'kk', 'uz', 'lv', 'zh'];
-const PUBLIC = ['index.html', '404.html', ...LANGS, 'assets', '.well-known', 'favicon.ico', 'robots.txt', 'sitemap.xml', 'security.txt'];
+const PUBLIC = ['index.html', '404.html', ...LANGS, 'virustotal', 'assets', '.well-known', 'favicon.ico', 'robots.txt', 'sitemap.xml', 'security.txt'];
 
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist);
@@ -89,6 +89,13 @@ if (!existsSync(join(dist, '404.html'))) {
 } else {
   const notFound = join(dist, '404.html');
   await writeFile(notFound, await stampAssets(await readFile(notFound, 'utf8'), dist));
+}
+
+const reportPage = join(dist, 'virustotal', 'index.html');
+if (!existsSync(reportPage)) {
+  problems.push('virustotal/index.html is missing');
+} else {
+  await writeFile(reportPage, await stampAssets(await readFile(reportPage, 'utf8'), join(dist, 'virustotal')));
 }
 
 if (problems.length > 0) {

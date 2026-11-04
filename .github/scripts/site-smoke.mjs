@@ -14,7 +14,7 @@ const pages = [...sitemap.matchAll(/<loc>https:\/\/wystore\.ru([^<]*)<\/loc>/g)]
 async function check() {
   const failures = [];
   try {
-    for (const path of pages) {
+    for (const path of [...pages, '/virustotal/']) {
       const response = await fetch(`${base}${path}`, { redirect: 'manual' });
       if (response.status !== 200) failures.push(`${path}: HTTP ${response.status}`);
       else if (!response.headers.get('content-type')?.startsWith('text/html')) failures.push(`${path}: not HTML`);
@@ -37,7 +37,7 @@ async function check() {
 for (let attempt = 1; ; attempt += 1) {
   const failures = await check();
   if (failures.length === 0) {
-    console.log(`Production OK: ${pages.length} pages, 404 page, www and http redirects.`);
+    console.log(`Production OK: ${pages.length} pages, VirusTotal redirect page, 404 page, www and http redirects.`);
     break;
   }
   if (attempt >= attempts) {
