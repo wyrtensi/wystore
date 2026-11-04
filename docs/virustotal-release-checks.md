@@ -1,5 +1,18 @@
 # VirusTotal release reports
 
+Large APK uploads use the one-time URL from `/files/upload_url`. Only HTTPS on
+`www.virustotal.com` or the official `bigfiles.virustotal.com` upload host is accepted;
+the latter is allowed only for uploads. Redirects, other hosts, credentials and
+nonstandard ports are rejected. See the [VirusTotal large-file API](https://docs.virustotal.com/reference/files-upload-url)
+and [official host announcement](https://blog.virustotal.com/2024/11/important-update-ip-address-change-for.html).
+
+The automatic analysis starts at least 60 seconds after the release job finishes.
+That job hands its built APKs to the analysis job through a one-day workflow artifact;
+each alias must match the SHA-256, size and uploaded state of the corresponding published
+release asset before scanning. Manual analyses download both published aliases instead.
+The analysis updates the existing release description and report assets without replacing
+either APK or rebuilding the application.
+
 The Release workflow publishes the signed APK first. A separate VirusTotal job then downloads
 the two published APK names, verifies that their SHA-256 hashes match, uploads the file once,
 and waits up to 15 minutes for the completed analysis. Detections do not block publication.

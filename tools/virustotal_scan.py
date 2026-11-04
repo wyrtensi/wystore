@@ -45,14 +45,28 @@ def hash_file(path):
     return digest.hexdigest(), size
 
 
-def trusted_url(url):
+def url_rejection_reason(url, upload=False):
     try:
         parsed = urllib.parse.urlsplit(url)
-        return (parsed.scheme == 'https' and parsed.hostname == 'www.virustotal.com'
-                and parsed.port in (None, 443) and not parsed.username and not parsed.password
-                and not parsed.fragment)
+        hosts = {'www.virustotal.com'}
+        # The large-file endpoint returns a one-use URL on this separate official host.
+        if upload:
+            hosts.add('bigfiles.virustotal.com')
+        if parsed.scheme != 'https':
+            return 'HTTPS is required'
+        if parsed.hostname not in hosts:
+            return 'host is not approved'
+        if parsed.port not in (None, 443):
+            return 'port is not approved'
+        if parsed.username or parsed.password or parsed.fragment:
+            return 'credentials or fragment are not allowed'
+        return None
     except ValueError:
-        return False
+        return 'URL is malformed'
+
+
+def trusted_url(url, upload=False):
+    return url_rejection_reason(url, upload) is None
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -61,8 +75,9 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def transport(method, url, headers, body, timeout):
-    if not trusted_url(url):
-        raise ScanError('VirusTotal returned an untrusted upload URL')
+    rejection = url_rejection_reason(url, upload=method == 'POST')
+    if rejection:
+        raise ScanError(f'VirusTotal returned an untrusted upload URL: {rejection}')
     request = urllib.request.Request(url, data=body, headers=headers, method=method)
     try:
         with urllib.request.build_opener(NoRedirect()).open(request, timeout=timeout) as response:
@@ -145,8 +160,11 @@ def scan(client, path, digest, size):
     url = API + '/files'
     if size > SMALL_SIZE:
         url = obj(client.request('GET', API + '/files/upload_url')).get('data')
-        if not isinstance(url, str) or not trusted_url(url):
-            raise ScanError('VirusTotal returned an untrusted upload URL')
+        if not isinstance(url, str):
+            raise ScanError('VirusTotal returned an invalid upload URL schema')
+        rejection = url_rejection_reason(url, upload=True)
+        if rejection:
+            raise ScanError(f'VirusTotal returned an untrusted upload URL: {rejection}')
     body, headers = multipart(path)
     upload = obj(obj(client.request('POST', url, body, headers)).get('data'))
     analysis_id = upload.get('id')

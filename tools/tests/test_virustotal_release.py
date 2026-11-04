@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -14,6 +15,57 @@ spec.loader.exec_module(release)
 
 
 class ReleaseReportTests(unittest.TestCase):
+    def test_build_artifact_is_reused_only_when_both_published_aliases_match(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            artifact, output = root / 'build', root / 'analysis'
+            artifact.mkdir()
+            contents = b'published APK'
+            names = ('wystore-0.6.2.apk', 'wystore.apk')
+            for name in names:
+                (artifact / name).write_bytes(contents)
+            assets = [{'name': name, 'state': 'uploaded', 'size': len(contents),
+                       'digest': 'sha256:' + hashlib.sha256(contents).hexdigest()} for name in names]
+            metadata = {'tagName': 'v0.6.2', 'isDraft': False, 'body': 'Notes', 'assets': assets}
+            with patch.object(release, 'release_metadata', return_value=metadata), \
+                    patch.object(release, 'github') as github, patch.dict(os.environ, {}, clear=True):
+                release.prepare('wyrtensi/wystore', 'v0.6.2', output, artifact_dir=artifact)
+            github.assert_not_called()
+            for name in names:
+                self.assertEqual((output / name).read_bytes(), contents)
+
+    def test_artifact_mismatch_or_missing_published_identity_stops_before_analysis(self):
+        for failure in ('hash', 'size', 'missing_digest', 'missing_alias', 'local_alias', 'state'):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                artifact, output = root / 'build', root / 'analysis'
+                artifact.mkdir()
+                contents = b'published APK'
+                names = ('wystore-0.6.2.apk', 'wystore.apk')
+                for name in names:
+                    (artifact / name).write_bytes(contents)
+                assets = [{'name': name, 'state': 'uploaded', 'size': len(contents),
+                           'digest': 'sha256:' + hashlib.sha256(contents).hexdigest()} for name in names]
+                if failure == 'hash':
+                    assets[0]['digest'] = 'sha256:' + 'a' * 64
+                elif failure == 'size':
+                    assets[0]['size'] += 1
+                elif failure == 'missing_digest':
+                    del assets[0]['digest']
+                elif failure == 'missing_alias':
+                    assets.pop()
+                elif failure == 'state':
+                    assets[0]['state'] = 'new'
+                else:
+                    (artifact / names[1]).unlink()
+                metadata = {'tagName': 'v0.6.2', 'isDraft': False, 'body': 'Notes', 'assets': assets}
+                with patch.object(release, 'release_metadata', return_value=metadata), \
+                        patch.object(release, 'github') as github, patch.dict(os.environ, {}, clear=True):
+                    with self.assertRaises((ValueError, OSError)):
+                        release.prepare('wyrtensi/wystore', 'v0.6.2', output, artifact_dir=artifact)
+                github.assert_not_called()
+                self.assertFalse((output / 'release-context.json').exists())
+
     def test_replacing_report_preserves_changelog_and_later_manual_notes(self):
         old = release.START + "\nold report\n" + release.END
         new = release.START + "\nnew report\n" + release.END

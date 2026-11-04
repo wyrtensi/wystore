@@ -112,11 +112,23 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
 
+      # A failure of this analysis handoff must not prevent APK publication.
+      - name: Hand the built APKs to the analysis job
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apks-${{ github.ref_name }}
+          path: |
+            ${{ env.RELEASE_APK }}
+            wystore.apk
+          if-no-files-found: error
+          retention-days: 1
+
   virustotal:
     name: VirusTotal report
     needs: release
     uses: ./.github/workflows/virustotal.yml
     with:
       release_tag: ${{ github.ref_name }}
+      apk_artifact: release-apks-${{ github.ref_name }}
     secrets:
       VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}

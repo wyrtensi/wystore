@@ -2,10 +2,12 @@
 
 import argparse
 import base64
+import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 
@@ -31,7 +33,7 @@ def release_metadata(repository, tag=None):
     args = ["release", "view"]
     if tag is not None:
         args.append(tag)
-    return json.loads(github(*args, "--repo", repository, "--json", "tagName,isDraft,body"))
+    return json.loads(github(*args, "--repo", repository, "--json", "tagName,isDraft,body,assets"))
 
 
 def checked_tag(value):
@@ -56,7 +58,7 @@ def replace_report(body, notes):
     return body[:start] + notes + body[end + len(END):]
 
 
-def prepare(repository, requested_tag, output_dir):
+def prepare(repository, requested_tag, output_dir, artifact_dir=None):
     if requested_tag != "latest":
         checked_tag(requested_tag)
     metadata = release_metadata(repository, None if requested_tag == "latest" else requested_tag)
@@ -65,8 +67,28 @@ def prepare(repository, requested_tag, output_dir):
         raise ValueError("VirusTotal scanning requires the requested published release.")
     output_dir.mkdir(parents=True, exist_ok=True)
     versioned_name = f"wystore-{tag[1:]}.apk"
-    github("release", "download", tag, "--repo", repository,
-           "--pattern", versioned_name, "--pattern", "wystore.apk", "--dir", str(output_dir))
+    names = (versioned_name, "wystore.apk")
+    if artifact_dir is None:
+        github("release", "download", tag, "--repo", repository,
+               "--pattern", versioned_name, "--pattern", "wystore.apk", "--dir", str(output_dir))
+    else:
+        for name in names:
+            matches = [asset for asset in metadata.get('assets', []) if asset.get('name') == name]
+            if len(matches) != 1:
+                raise ValueError(f'The published release must contain exactly one {name}.')
+            asset = matches[0]
+            source = artifact_dir / name
+            digest = hashlib.sha256()
+            with source.open('rb') as stream:
+                while chunk := stream.read(1024 * 1024):
+                    digest.update(chunk)
+            if (asset.get('state') != 'uploaded' or type(asset.get('size')) is not int
+                    or asset['size'] != source.stat().st_size
+                    or asset.get('digest') != 'sha256:' + digest.hexdigest()):
+                raise ValueError(f'The build artifact does not match the published {name}.')
+        # Validate both aliases before preparing any file for analysis.
+        for name in names:
+            shutil.copyfile(artifact_dir / name, output_dir / name)
     for name in (versioned_name, "wystore.apk"):
         if not (output_dir / name).is_file():
             raise ValueError(f"The published release does not contain {name}.")
@@ -139,12 +161,14 @@ def main(argv=None):
     parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY", "wyrtensi/wystore"))
     parser.add_argument("--release-tag", default="latest")
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--artifact-dir", type=Path)
     args = parser.parse_args(argv)
     if not REPOSITORY.fullmatch(args.repository):
         parser.error("Invalid GitHub repository name.")
     try:
         if args.operation == "prepare":
-            prepare(args.repository, args.release_tag, args.output_dir.resolve())
+            prepare(args.repository, args.release_tag, args.output_dir.resolve(),
+                    args.artifact_dir.resolve() if args.artifact_dir else None)
         else:
             publish(args.repository, args.output_dir.resolve())
     except subprocess.CalledProcessError as error:

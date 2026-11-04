@@ -13,6 +13,10 @@ on:
       release_tag:
         type: string
         required: true
+      apk_artifact:
+        type: string
+        required: false
+        default: ''
     secrets:
       VIRUSTOTAL_API_KEY:
         required: false
@@ -39,15 +43,28 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Download the published release
+      - name: Wait for published release assets
+        run: sleep 60
+
+      - name: Receive the APKs from the release job
+        if: ${{ inputs.apk_artifact != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.apk_artifact }}
+          path: ${{ runner.temp }}/release-apks
+
+      - name: Prepare the published release for analysis
         id: prepare
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
-        run: >-
-          python tools/virustotal_release.py prepare
-          --release-tag "$RELEASE_TAG"
-          --output-dir "$RUNNER_TEMP/virustotal"
+          APK_ARTIFACT: ${{ inputs.apk_artifact }}
+        run: |
+          args=(prepare --release-tag "$RELEASE_TAG" --output-dir "$RUNNER_TEMP/virustotal")
+          if [ -n "$APK_ARTIFACT" ]; then
+            args+=(--artifact-dir "$RUNNER_TEMP/release-apks")
+          fi
+          python tools/virustotal_release.py "${args[@]}"
 
       - name: Mark this release analysis as pending
         env:

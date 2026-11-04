@@ -123,6 +123,16 @@ class ApiTests(unittest.TestCase):
         self.assertTrue(self.calls[0][2].endswith('/files/upload_url'))
         self.assertEqual(self.calls[1][1], 'POST')
 
+    def test_large_upload_uses_the_official_bigfiles_host(self):
+        url = 'https://bigfiles.virustotal.com/_ah/upload/one-use-token'
+        self.reply({'data': url})
+        self.reply({'data': {'id': 'analysis-id'}})
+        self.reply(self.analysis())
+        self.reply(self.file(size=self.vt.SMALL_SIZE + 1))
+        result = self.vt.scan(self.client(), self.apk, self.digest, self.vt.SMALL_SIZE + 1)
+        self.assertEqual(result['status'], 'completed')
+        self.assertEqual(self.calls[1][1:3], ('POST', url))
+
     def test_untrusted_upload_url_never_receives_key(self):
         self.reply({'data': 'https://evil.example/upload'})
         with self.assertRaises(self.vt.ScanError):
@@ -233,6 +243,23 @@ class MainIntegrationTests(unittest.TestCase):
             self.assertNotIn('secret-key', json.dumps(report) + json.dumps(badge))
 
 class UrlTests(unittest.TestCase):
+    def test_bigfiles_is_only_trusted_for_uploads_and_spoofed_origins_are_rejected(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('vt_upload_url', SCRIPT)
+        vt = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(vt)
+        self.assertTrue(vt.trusted_url('https://bigfiles.virustotal.com/_ah/upload/token', upload=True))
+        self.assertFalse(vt.trusted_url('https://bigfiles.virustotal.com/_ah/upload/token'))
+        for url in ('http://bigfiles.virustotal.com/upload',
+                    'https://bigfiles.virustotal.com.evil.example/upload',
+                    'https://sub.bigfiles.virustotal.com/upload',
+                    'https://evil.example/?host=bigfiles.virustotal.com',
+                    'https://user:secret@bigfiles.virustotal.com/upload',
+                    'https://bigfiles.virustotal.com:444/upload',
+                    'https://bigfiles.virustotal.com/upload#fragment'):
+            with self.subTest(url=url):
+                self.assertFalse(vt.trusted_url(url, upload=True))
+
     def test_invalid_port_is_rejected_without_raising_or_exposing_url(self):
         import importlib.util
         spec = importlib.util.spec_from_file_location('vt_url', SCRIPT)
