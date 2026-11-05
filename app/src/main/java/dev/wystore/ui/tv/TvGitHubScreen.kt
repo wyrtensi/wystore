@@ -121,7 +121,7 @@ fun TvGitHubAppScreen(
     val entry = state.entry ?: return
     val context = LocalContext.current
     val deviceAbis = remember { android.os.Build.SUPPORTED_ABIS.toList() }
-    val recommended = state.recommendedAsset(deviceAbis)
+    val recommended = state.recommendedAsset(deviceAbis, android.os.Build.VERSION.SDK_INT)
     val installState = GitHubInstallStatePolicy.stateFor(
         installedVersionName = installedApp?.versionName,
         releaseTag = state.latestRelease?.tagName

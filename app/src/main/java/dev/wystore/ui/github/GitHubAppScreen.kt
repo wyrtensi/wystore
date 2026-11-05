@@ -100,8 +100,8 @@ data class GitHubAppUiState(
      * The build this device should get. A GitHub app installs with one tap like a RuStore app;
      * picking between per-ABI builds is a deliberate detour, not the default.
      */
-    fun recommendedAsset(supportedAbis: List<String>): GitHubAsset? =
-        GitHubReleasePolicy.preferredAsset(apkAssets, supportedAbis)
+    fun recommendedAsset(supportedAbis: List<String>, deviceSdk: Int? = null): GitHubAsset? =
+        GitHubReleasePolicy.preferredAsset(apkAssets, supportedAbis, deviceSdk)
 }
 
 /**
@@ -133,6 +133,7 @@ fun GitHubAppScreen(
     managedApp: dev.wystore.data.ManagedApp? = null,
     continueChecksAfterGooglePlayUpdate: Boolean = false,
     onOpenUpdateSettings: () -> Unit = {},
+    deviceSdk: Int = android.os.Build.VERSION.SDK_INT,
     sourceSelector: @Composable () -> Unit = {}
 ) {
     val entry = state.entry
@@ -253,7 +254,7 @@ fun GitHubAppScreen(
                         stringResource(R.string.github_fact_published) to (release?.publishedAt?.take(10) ?: unknown),
                         // The size shown must be the build the Install button will actually fetch.
                         stringResource(R.string.github_fact_size) to
-                            (state.recommendedAsset(deviceAbis)?.let { formatSize(it.sizeBytes) } ?: unknown),
+                            (state.recommendedAsset(deviceAbis, deviceSdk)?.let { formatSize(it.sizeBytes) } ?: unknown),
                         state.info?.stars?.let { stringResource(R.string.github_fact_stars) to it.toString() },
                         installedApp?.let { stringResource(R.string.github_fact_installed) to it.versionName },
                         installedApp?.let { stringResource(if (it.updateOwnerPackageName.isNullOrBlank()) R.string.github_fact_owner else R.string.github_fact_update_owner) to installerLabel(it) }
@@ -282,7 +283,7 @@ fun GitHubAppScreen(
 
             // One primary action, like a RuStore card. Choosing a specific build is a small
             // secondary control rather than a list of every asset in the release.
-            val recommended = state.recommendedAsset(deviceAbis)
+            val recommended = state.recommendedAsset(deviceAbis, deviceSdk)
             val handover = installedApp?.let { dev.wystore.ui.components.ownershipHandover(context, it) }
             val ownedByUs = handover == dev.wystore.data.OwnershipHandover.OWNED
             val installState = GitHubInstallStatePolicy.stateFor(
@@ -310,7 +311,7 @@ fun GitHubAppScreen(
                     )
                 }
             }
-            if (recommended != null && !installBusy) {
+            if (!installBusy) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         // Laid out like a RuStore card: what is installed opens, and only a
@@ -318,7 +319,7 @@ fun GitHubAppScreen(
                         // installed at all" offered "Update" for the build already running and
                         // reinstalled the same APK when pressed.
                         when (installState) {
-                            GitHubInstallState.NotInstalled -> Button(
+                            GitHubInstallState.NotInstalled -> if (recommended != null) Button(
                                 onClick = { onInstallAsset(recommended) },
                                 modifier = Modifier.fillMaxWidth()
                             ) { Text(stringResource(R.string.github_install_primary)) }
@@ -331,10 +332,12 @@ fun GitHubAppScreen(
                                     onClick = { installedApp?.let { onOpenInstalled(it.packageName) } },
                                     modifier = Modifier.weight(1f)
                                 ) { Text(stringResource(R.string.common_open)) }
-                                Button(
-                                    onClick = { onInstallAsset(recommended) },
-                                    modifier = Modifier.weight(1f)
-                                ) { Text(stringResource(R.string.github_update_primary)) }
+                                if (recommended != null) {
+                                    Button(
+                                        onClick = { onInstallAsset(recommended) },
+                                        modifier = Modifier.weight(1f)
+                                    ) { Text(stringResource(R.string.github_update_primary)) }
+                                }
                                 installedApp?.let { UninstallIconButton(it.packageName) }
                             }
 
@@ -360,7 +363,7 @@ fun GitHubAppScreen(
                                     onClick = { installedApp?.let { onOpenInstalled(it.packageName) } },
                                     modifier = Modifier.weight(1f)
                                 ) { Text(stringResource(R.string.common_open)) }
-                                if (ownedByUs) {
+                                if (ownedByUs && recommended != null) {
                                     FilledTonalButton(
                                         onClick = { onInstallAsset(recommended) },
                                         modifier = Modifier.weight(1f)
@@ -369,7 +372,7 @@ fun GitHubAppScreen(
                                 installedApp?.let { UninstallIconButton(it.packageName) }
                             }
                         }
-                        if (handover == dev.wystore.data.OwnershipHandover.REINSTALL) {
+                        if (handover == dev.wystore.data.OwnershipHandover.REINSTALL && recommended != null) {
                             FilledTonalButton(
                                 onClick = { onTransferAsset(recommended) },
                                 modifier = Modifier.fillMaxWidth()
@@ -402,7 +405,7 @@ fun GitHubAppScreen(
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        } else if (handover == dev.wystore.data.OwnershipHandover.REINSTALL) {
+                        } else if (handover == dev.wystore.data.OwnershipHandover.REINSTALL && recommended != null) {
                             Text(
                                 stringResource(R.string.details_take_over_hint),
                                 style = MaterialTheme.typography.labelSmall,
@@ -413,16 +416,18 @@ fun GitHubAppScreen(
                             handover == dev.wystore.data.OwnershipHandover.UNSUPPORTED_INSTALLER) {
                             dev.wystore.ui.components.OwnershipHandoverNotice(handover)
                         }
-                        Text(
-                            stringResource(
-                                R.string.github_selected_asset,
-                                recommended.name,
-                                formatSize(recommended.sizeBytes)
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (state.apkAssets.size > 1) {
+                        if (recommended != null) {
+                            Text(
+                                stringResource(
+                                    R.string.github_selected_asset,
+                                    recommended.name,
+                                    formatSize(recommended.sizeBytes)
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (state.apkAssets.size > 1 || (recommended == null && state.apkAssets.isNotEmpty())) {
                             HubTextAction(
                                 onClick = { showAllAssets = !showAllAssets },
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
@@ -438,7 +443,7 @@ fun GitHubAppScreen(
                 }
 
                 if (showAllAssets) {
-                    items(state.apkAssets.filter { it.id != recommended.id }, key = { it.id }) { asset ->
+                    items(state.apkAssets.filter { it.id != recommended?.id }, key = { it.id }) { asset ->
                         WyCard(
                             modifier = Modifier.fillMaxWidth(),
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -462,13 +467,12 @@ fun GitHubAppScreen(
                         }
                     }
                 }
-            } else if (recommended == null && !state.loading && state.error == null) {
-                // Only when there is truly nothing to install: while an install runs the actions
-                // are hidden, and this used to announce that the release had no APK.
+            }
+            if (recommended == null && !installBusy && !state.loading && state.error == null) {
                 item {
                     EmptyState(
                         icon = Icons.Outlined.Warning,
-                        title = stringResource(R.string.github_no_apk)
+                        title = stringResource(if (state.apkAssets.isEmpty()) R.string.github_no_apk else R.string.queue_error_incompatible)
                     )
                 }
             }

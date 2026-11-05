@@ -63,7 +63,7 @@ class SourceReplacementStager(private val context: Context) {
                             val release = GitHubReleasePolicy.selectRelease(GitHubReleaseSource(context).releases(choice.repository), entry?.assetPattern())
                                 ?: throw TransferFailure(false, QueueErrorCode.SOURCE_CHANGED)
                             val asset = GitHubReleasePolicy.preferredAsset(GitHubReleasePolicy.apkAssets(release, entry?.assetPattern()),
-                                android.os.Build.SUPPORTED_ABIS.toList()) ?: throw TransferFailure(false, QueueErrorCode.SOURCE_CHANGED)
+                                android.os.Build.SUPPORTED_ABIS.toList(), android.os.Build.VERSION.SDK_INT) ?: throw TransferFailure(false, QueueErrorCode.SOURCE_CHANGED)
                             releaseId = release.id; label = entry?.title ?: choice.repository.name
                             listOf(downloader.downloadGitHubApk(asset, directory, requiresExactSelection = true))
                         }

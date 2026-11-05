@@ -2243,7 +2243,7 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
                 val release = GitHubReleasePolicy.selectRelease(githubSource.releases(repo), pattern)
                     ?: error(string(R.string.adopt_github_no_apk))
                 val asset = GitHubReleasePolicy.preferredAsset(
-                    GitHubReleasePolicy.apkAssets(release, pattern), Build.SUPPORTED_ABIS.toList()
+                    GitHubReleasePolicy.apkAssets(release, pattern), Build.SUPPORTED_ABIS.toList(), Build.VERSION.SDK_INT
                 ) ?: error(string(R.string.adopt_github_no_apk))
                 // No writes or uninstall can outlive the exact prompt that authorized the lookup.
                 kotlinx.coroutines.currentCoroutineContext().ensureActive()

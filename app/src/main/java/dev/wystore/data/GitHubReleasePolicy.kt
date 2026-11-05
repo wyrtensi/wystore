@@ -32,6 +32,15 @@ object GitHubReleasePolicy {
         "x86_64" to listOf("x86_64", "x86-64", "x64", "amd64"),
         "x86" to listOf("x86", "i686", "i386")
     )
+    private val ABI_TOKEN = Regex(
+        "(?<![a-z0-9])(?:" + ABI_ALIASES.values.flatten().distinct()
+            .sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) } + ")(?![a-z0-9])",
+        RegexOption.IGNORE_CASE
+    )
+    private val ANDROID_RANGE = Regex(
+        "(?<![a-z0-9])android(\\d+(?:\\.\\d+)?)(\\+|-(\\d+(?:\\.\\d+)?))(?![a-z0-9])",
+        RegexOption.IGNORE_CASE
+    )
     private val UNIVERSAL_ALIASES = listOf("universal", "all", "fat")
 
     fun isStable(release: GitHubRelease): Boolean =
@@ -60,29 +69,48 @@ object GitHubReleasePolicy {
      */
     fun preferredAsset(
         assets: List<GitHubAsset>,
-        supportedAbis: List<String> = emptyList()
+        supportedAbis: List<String> = emptyList(),
+        deviceSdk: Int? = null
     ): GitHubAsset? {
-        if (assets.isEmpty()) return null
-        if (assets.size == 1) return assets.single()
+        val eligible = assets.filter { isAndroidCompatible(it.name, deviceSdk) }
+        if (eligible.isEmpty()) return null
+        if (eligible.size == 1) return eligible.single()
         // The device's own ABIs, in the device's order of preference.
         for (abi in supportedAbis.map { it.lowercase() }) {
             val aliases = ABI_ALIASES[abi] ?: listOf(abi)
-            assets.filter { asset -> aliases.any { nameHasToken(asset.name, it) } }
+            eligible.filter { asset -> abiTokens(asset.name).any { it in aliases } }
                 .minByOrNull { it.sizeBytes }
                 ?.let { return it }
         }
         UNIVERSAL_ALIASES.forEach { alias ->
-            assets.filter { nameHasToken(it.name, alias) }.minByOrNull { it.sizeBytes }?.let { return it }
+            eligible.filter { nameHasToken(it.name, alias) }.minByOrNull { it.sizeBytes }?.let { return it }
         }
         // A build that names no ABI at all is presumably for every ABI. One that names another
         // ABI is not: a 32-bit TV box handed the arm64 build fails with NO_MATCHING_ABIS.
-        val allAliases = ABI_ALIASES.values.flatten()
-        assets.filter { asset -> allAliases.none { nameHasToken(asset.name, it) } }
+        eligible.filter { asset -> abiTokens(asset.name).isEmpty() }
             .minByOrNull { it.sizeBytes }
             ?.let { return it }
         // Every build is for some other ABI. The smallest still fails, but with the installer's
         // own explanation rather than a silent "nothing to install".
-        return assets.minByOrNull { it.sizeBytes }
+        return eligible.minByOrNull { it.sizeBytes }
+    }
+
+    private fun abiTokens(name: String): Set<String> =
+        ABI_TOKEN.findAll(name).map { it.value.lowercase() }.toSet()
+
+    private fun isAndroidCompatible(name: String, deviceSdk: Int?): Boolean {
+        if (deviceSdk == null) return true
+        val match = ANDROID_RANGE.find(name) ?: return true
+        val minimum = AndroidSdkCompatibility.sdkForRelease(match.groupValues[1]) ?: return true
+        val upperLabel = match.groupValues[3]
+        val maximum = if (upperLabel.isEmpty()) null else {
+            val firstSdk = AndroidSdkCompatibility.sdkForRelease(upperLabel) ?: return true
+            // A whole Android release can span several SDKs, such as Android 12 and 12.1.
+            val nextRelease = upperLabel.toIntOrNull()?.plus(1)?.toString()
+            val nextSdk = nextRelease?.let(AndroidSdkCompatibility::sdkForRelease)
+            nextSdk?.minus(1) ?: firstSdk
+        }
+        return deviceSdk >= minimum && (maximum == null || deviceSdk <= maximum)
     }
 
     /**

@@ -178,4 +178,71 @@ class GitHubReleasePolicyTest {
 
         assertEquals(only.single(), GitHubReleasePolicy.preferredAsset(only, listOf("arm64-v8a")))
     }
+
+    @Test
+    fun underscoreSeparatedArchitectureUsesTheDeviceAbiRatherThanTheSmallestApk() {
+        val assets = listOf(
+            asset("AmneziaVPN_5.1.0.6_android11+_arm64-v8a.apk", 77_683_257),
+            asset("AmneziaVPN_5.1.0.6_android11+_armeabi-v7a.apk", 73_845_717),
+            asset("AmneziaVPN_5.1.0.6_android11+_x86.apk", 84_268_389),
+            asset("AmneziaVPN_5.1.0.6_android11+_x86_64.apk", 80_992_207)
+        )
+        assertEquals(assets[0], GitHubReleasePolicy.preferredAsset(assets, listOf("arm64-v8a")))
+        assertEquals(assets[1], GitHubReleasePolicy.preferredAsset(assets, listOf("armeabi-v7a")))
+        assertEquals(assets[2], GitHubReleasePolicy.preferredAsset(assets, listOf("x86")))
+        assertEquals(assets[3], GitHubReleasePolicy.preferredAsset(assets, listOf("x86_64")))
+    }
+
+    @Test
+    fun underscoreSeparatedX86DoesNotMatchAnX8664Build() {
+        val assets = listOf(asset("app_x86_64.apk", 10), asset("app_x86.apk", 20))
+        assertEquals(assets[1], GitHubReleasePolicy.preferredAsset(assets, listOf("x86")))
+    }
+
+    @Test
+    fun androidReleaseRangesAndAbisSelectTheCompatibleBuild() {
+        val abis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+        val assets = listOf("android9-10", "android11+").flatMapIndexed { range, label ->
+            abis.mapIndexed { index, abi -> asset("app_${label}_${abi}.apk", (range * 100 + index + 1).toLong()) }
+        }
+        for (sdk in listOf(28, 29, 30, 35, 36)) {
+            for (abi in abis) {
+                val label = if (sdk <= 29) "android9-10" else "android11+"
+                assertEquals("app_${label}_${abi}.apk", GitHubReleasePolicy.preferredAsset(assets, listOf(abi), sdk)?.name)
+            }
+        }
+    }
+
+    @Test
+    fun incompatibleAndroidRangesAreExcludedEvenForOneAsset() {
+        val old = asset("app_android9-10_arm64-v8a.apk")
+        val newer = asset("app_android11+_arm64-v8a.apk")
+        assertNull(GitHubReleasePolicy.preferredAsset(listOf(old), listOf("arm64-v8a"), 35))
+        assertNull(GitHubReleasePolicy.preferredAsset(listOf(newer, newer), listOf("arm64-v8a"), 29))
+        assertEquals(old, GitHubReleasePolicy.preferredAsset(listOf(old), listOf("arm64-v8a")))
+    }
+
+    @Test
+    fun unknownAndroidLabelsAndGenericNamesRemainEligible() {
+        val unknown = asset("app_android99+_arm64-v8a.apk", 1)
+        val generic = asset("app-release.apk", 2)
+        assertEquals(unknown, GitHubReleasePolicy.preferredAsset(listOf(unknown, generic), listOf("arm64-v8a"), 29))
+        assertEquals(generic, GitHubReleasePolicy.preferredAsset(listOf(generic), listOf("x86"), 29))
+    }
+
+    @Test
+    fun multipleAbisCanShareASeparator() {
+        val both = asset("app_arm64-v8a_x86.apk", 1)
+        val neutral = asset("app-release.apk", 2)
+        assertEquals(both, GitHubReleasePolicy.preferredAsset(listOf(both, neutral), listOf("x86")))
+    }
+
+
+    @Test
+    fun rangeEndingAtAndroid12IncludesAndroid12Point1() {
+        val asset = asset("app_android9-12_arm64-v8a.apk")
+        assertEquals(asset, GitHubReleasePolicy.preferredAsset(listOf(asset), listOf("arm64-v8a"), 32))
+        assertNull(GitHubReleasePolicy.preferredAsset(listOf(asset), listOf("arm64-v8a"), 33))
+    }
+
 }

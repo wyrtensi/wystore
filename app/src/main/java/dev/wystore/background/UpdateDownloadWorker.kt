@@ -321,7 +321,8 @@ class UpdateDownloadWorker(
                             ) {
                                 GitHubReleasePolicy.preferredAsset(
                                     assets = GitHubReleasePolicy.apkAssets(release, assetPattern),
-                                    supportedAbis = Build.SUPPORTED_ABIS.toList()
+                                    supportedAbis = Build.SUPPORTED_ABIS.toList(),
+                                    deviceSdk = Build.VERSION.SDK_INT
                                 )
                             }
                         } ?: error("No APK asset in GitHub release")
