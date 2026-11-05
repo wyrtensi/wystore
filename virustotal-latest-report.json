@@ -1,13 +1,13 @@
 {
-  "version": "v0.6.2",
-  "sha256": "17692184dca74e7993594841bda386c8129d8cb365acf4279c2d1fd8db5bb290",
-  "size": 34591093,
-  "checkedAt": "2026-11-04T13:43:09Z",
-  "analysisDate": "2026-11-04T13:41:18Z",
-  "analysisId": "ZDFiMGZmOTQ3YTI4ZWNlZjIxNmIxNTFkNjQyNDdiOWU6MTc5Mzc5OTY3OA==",
-  "status": "completed",
-  "malicious": 0,
-  "suspicious": 0,
-  "analysed": 66,
-  "report_url": "https://www.virustotal.com/gui/file/17692184dca74e7993594841bda386c8129d8cb365acf4279c2d1fd8db5bb290"
+  "version": "v0.6.3",
+  "sha256": "1e685691da37d69dffbdc8ac96e1ca0de1a033b6b58bc9cf1c52619b8221e310",
+  "size": 34607481,
+  "checkedAt": "2026-11-05T06:23:14Z",
+  "analysisDate": null,
+  "analysisId": null,
+  "status": "pending",
+  "malicious": null,
+  "suspicious": null,
+  "analysed": null,
+  "report_url": "https://www.virustotal.com/gui/file/1e685691da37d69dffbdc8ac96e1ca0de1a033b6b58bc9cf1c52619b8221e310"
 }
