@@ -30,7 +30,7 @@ Wy Store 是 Android 应用目录客户端，通过系统安装器下载和安�
 
 这个目录面向俄罗斯的用户，所以其中大部分内容是俄语的；界面本身提供上述语言。
 
-Wy Store 与 RuStore 没有隶属关系，也不代表它行事：RuStore 在这里只是数据源。详见 [DISCLAIMER.md](DISCLAIMER.md)。
+Wy Store 使用 RuStore 的目录和服务器，但其开发独立于 RuStore 团队，并非 RuStore 官方客户端。详见 [DISCLAIMER.md](DISCLAIMER.md)。
 
 | 主页 | 应用页面 | 应用 |
 |---|---|---|

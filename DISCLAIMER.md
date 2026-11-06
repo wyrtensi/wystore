@@ -8,8 +8,8 @@
 
 ## Независимость
 
-Wy Store — независимый клиент с открытым исходным кодом. Он **не связан с RuStore, VK, Google или
-GitHub**, не одобрен ими, не сертифицирован и не действует от их имени. Названия RuStore, VK,
+Wy Store использует каталог и серверы RuStore, но разрабатывается независимо от его команды и не является официальным клиентом RuStore.
+Проект не одобрен и не сертифицирован RuStore, VK, Google или GitHub и не действует от их имени. Названия RuStore, VK,
 Google Play, Android и GitHub принадлежат их владельцам и используются здесь исключительно для того,
 чтобы назвать соответствующий сервис.
 
@@ -62,8 +62,8 @@ yourself or with a professional.
 
 ## Independence
 
-Wy Store is an independent, open-source client. It is **not affiliated with RuStore, VK, Google or
-GitHub**, not endorsed or certified by them, and does not act on their behalf. RuStore, VK, Google
+Wy Store uses RuStore's catalogue and servers, but is developed independently of the RuStore team and is not an official RuStore client.
+The project is not endorsed or certified by RuStore, VK, Google or GitHub and does not act on their behalf. RuStore, VK, Google
 Play, Android and GitHub are trademarks of their respective owners and are used here only to name
 the corresponding service.
 

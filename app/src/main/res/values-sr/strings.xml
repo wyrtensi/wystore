@@ -478,9 +478,9 @@
     <string name="source_github">GitHub</string>
     <string name="disclaimer_title">Одрицање од одговорности</string>
     <string name="disclaimer_body">Wy Store само преузима датотеке које је извор објавио и пре инсталације проверава назив пакета, верзију и потпис. Апликације се не проверавају, не модерирају и не препоручују: Wy Store не одговара за њихов садржај, рад и последице коришћења. Инсталирате на сопствени ризик, а за поштовање закона сте сами одговорни.</string>
-    <string name="disclaimer_source_rustore">Извор: RuStore. Wy Store није повезан са RuStore.</string>
+    <string name="disclaimer_source_rustore">Извор: RuStore. Wy Store користи каталог и сервере RuStore-а, али се развија независно од његовог тима и није званични RuStore клијент.</string>
     <string name="disclaimer_source_github">Извор: издања пројекта на GitHub-у. Датотеке објављује програмер, а не Wy Store.</string>
-    <string name="disclaimer_sources_both">Извори: RuStore, GitHub Releases и Wy Store Library. Wy Store није повезан са RuStore или GitHub.</string>
+    <string name="disclaimer_sources_both">Извори: RuStore, GitHub Releases и Wy Store Library. Wy Store користи каталог и сервере RuStore-а, али се развија независно од његовог тима и није званични RuStore клијент.</string>
     <string name="library_filter_title">Прикажи</string>
     <string name="library_filter_all">Све</string>
     <string name="library_filter_empty">Ништа не одговара овом филтеру</string>
@@ -662,7 +662,7 @@
     <string name="github_share_subject">%1$s на GitHub-у</string>
     <string name="check_finished_with_problems">Провера је завршена, неке апликације нису могле бити проверене</string>
     <string name="queue_download_now">Преузми сада</string>
-    <string name="about_independent">Wy Store је независан алтернативни клијент за каталог RuStore и GitHub издања. Пројекат није повезан са RuStore, нема његово одобрење и не наступа у његово име.</string>
+    <string name="about_independent">Wy Store користи каталог и сервере RuStore-а, али се развија независно од његовог тима и није званични RuStore клијент.</string>
     <string name="about_disclaimer_link">Изјава о пројекту и независности</string>
     <string name="about_issues_link">Пријави проблем на GitHub-у</string>
     <string name="source_failure_title">Изгледа да је проблем у извору</string>
