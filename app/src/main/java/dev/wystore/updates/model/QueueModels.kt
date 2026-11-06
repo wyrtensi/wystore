@@ -54,6 +54,8 @@ enum class QueueErrorCode {
     INSTALL_CONFLICT,
     ARTIFACT_MISSING,
     TIMEOUT,
+    /** A connection timeout, distinct from waiting for Android's install confirmation. */
+    NETWORK_TIMEOUT,
 
     /**
      * The source carries an older build than the one on the phone, so nothing can be installed.

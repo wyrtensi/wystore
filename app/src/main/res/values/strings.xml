@@ -428,7 +428,7 @@
     <string name="github_view_releases">View releases</string>
     <string name="home_github_title">From GitHub</string>
     <string name="home_github_hint">Open-source apps installed straight from releases</string>
-    <string name="queue_error_network">Network error</string>
+    <string name="queue_error_network">Could not download. Check your connection or try another network. If VPN is on, try turning it off or changing its server, then retry.</string>
     <string name="queue_error_rate_limited">The source is limiting requests. Try again later</string>
     <string name="queue_error_source_changed">The source or selected file changed. Check the app source and try again.</string>
     <string name="queue_error_storage_full">Not enough storage space</string>
@@ -439,7 +439,7 @@
     <string name="queue_error_install_canceled">Installation was canceled</string>
     <string name="queue_error_install_failed">Android could not install the app</string>
     <string name="queue_error_artifact_missing">The downloaded file is no longer available</string>
-    <string name="queue_error_timeout">The connection timed out</string>
+    <string name="queue_error_timeout">The operation timed out</string>
     <string name="queue_error_downgrade">The source has an older version than the one installed</string>
     <string name="queue_error_internal">Wy Store failed on this one, not the network</string>
     <string name="settings_queue_mode">Update queue</string>
@@ -910,4 +910,6 @@
     <string name="bottom_nav_updates">Updates</string>
     <string name="bottom_nav_library">Apps</string>
     <string name="bottom_nav_settings">Settings</string>
+    <string name="queue_previous_attempt_failed">Previous attempt: %1$s</string>
+    <string name="queue_error_network_timeout">The server did not respond in time. Check your connection or try another network. If VPN is on, try turning it off or changing its server, then retry.</string>
 </resources>

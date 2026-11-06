@@ -26,6 +26,7 @@ object QueueErrorStrings {
         QueueErrorCode.INSTALL_CONFLICT -> R.string.queue_error_install_conflict
         QueueErrorCode.ARTIFACT_MISSING -> R.string.queue_error_artifact_missing
         QueueErrorCode.TIMEOUT -> R.string.queue_error_timeout
+        QueueErrorCode.NETWORK_TIMEOUT -> R.string.queue_error_network_timeout
         QueueErrorCode.DOWNGRADE -> R.string.queue_error_downgrade
         QueueErrorCode.INTERNAL -> R.string.queue_error_internal
     }

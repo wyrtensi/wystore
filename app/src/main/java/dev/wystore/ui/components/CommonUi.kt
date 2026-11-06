@@ -304,6 +304,7 @@ fun OperationProgress(
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(queueStatusLabel(item), style = MaterialTheme.typography.titleSmall)
+            QueueRetryError(item)
             val progress = item.progress
             if (item.status == InstallQueueStatus.FAILED) {
                 // The line above already names the failure in the user's language. This used to
@@ -460,6 +461,17 @@ fun verificationLabel(detail: String?): String? {
 @Composable
 fun queueErrorLabel(code: QueueErrorCode): String =
     stringResource(dev.wystore.updates.QueueErrorStrings.stringRes(code))
+
+@Composable
+fun QueueRetryError(item: InstallQueueItem) {
+    dev.wystore.updates.QueueRetryFeedback.errorCode(item.status, item.errorCode)?.let { code ->
+        Text(
+            text = stringResource(R.string.queue_previous_attempt_failed, queueErrorLabel(code)),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error
+        )
+    }
+}
 
 @Composable
 fun sourceLabel(source: InstallSource): String = when (source) {

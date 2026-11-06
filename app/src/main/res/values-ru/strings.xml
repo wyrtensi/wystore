@@ -428,7 +428,7 @@
     <string name="github_view_releases">Смотреть релизы</string>
     <string name="home_github_title">Из GitHub</string>
     <string name="home_github_hint">Приложения с открытым кодом — установка прямо из релизов</string>
-    <string name="queue_error_network">Ошибка сети</string>
+    <string name="queue_error_network">Не удалось скачать. Проверьте подключение или попробуйте другую сеть. Если включён VPN, попробуйте выключить его или сменить сервер и повторите.</string>
     <string name="queue_error_rate_limited">Источник ограничил запросы. Повторите позже</string>
     <string name="queue_error_source_changed">Источник или выбранный файл изменился. Проверьте источник приложения и повторите попытку.</string>
     <string name="queue_error_storage_full">Недостаточно места в хранилище</string>
@@ -910,4 +910,6 @@
     <string name="bottom_nav_updates">Апдейты</string>
     <string name="bottom_nav_library">Мои</string>
     <string name="bottom_nav_settings">Опции</string>
+    <string name="queue_previous_attempt_failed">Предыдущая попытка: %1$s</string>
+    <string name="queue_error_network_timeout">Сервер не ответил вовремя. Проверьте подключение или попробуйте другую сеть. Если включён VPN, попробуйте выключить его или сменить сервер и повторите.</string>
 </resources>

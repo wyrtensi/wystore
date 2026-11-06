@@ -428,7 +428,7 @@
     <string name="github_view_releases">Relizlarni koʻrish</string>
     <string name="home_github_title">GitHub manbasidan</string>
     <string name="home_github_hint">Ochiq kodli ilovalar — toʻgʻridan-toʻgʻri relizlardan oʻrnatiladi</string>
-    <string name="queue_error_network">Tarmoq xatosi</string>
+    <string name="queue_error_network">Yuklab boʻlmadi. Ulanishni tekshiring yoki boshqa tarmoqdan foydalaning. VPN yoqilgan boʻlsa, uni oʻchirib yoki serverini almashtirib, qayta urinib koʻring.</string>
     <string name="queue_error_rate_limited">Manba soʻrovlarni cheklamoqda. Keyinroq urinib koʻring</string>
     <string name="queue_error_source_changed">Manba yoki tanlangan fayl oʻzgardi. Ilova manbasini tekshirib, qayta urinib koʻring.</string>
     <string name="queue_error_storage_full">Xotirada joy yetarli emas</string>
@@ -439,7 +439,7 @@
     <string name="queue_error_install_canceled">Oʻrnatish bekor qilindi</string>
     <string name="queue_error_install_failed">Android ilovani oʻrnata olmadi</string>
     <string name="queue_error_artifact_missing">Yuklab olingan fayl endi mavjud emas</string>
-    <string name="queue_error_timeout">Ulanish vaqti tugadi</string>
+    <string name="queue_error_timeout">Kutish vaqti tugadi</string>
     <string name="queue_error_downgrade">Manbadagi versiya oʻrnatilganidan eski</string>
     <string name="queue_error_internal">Bu safar tarmoq emas, Wy Store oʻzi ishdan chiqdi</string>
     <string name="settings_queue_mode">Yangilanishlar navbati</string>
@@ -910,4 +910,6 @@
     <string name="bottom_nav_updates">Yangilash</string>
     <string name="bottom_nav_library">Ilovalar</string>
     <string name="bottom_nav_settings">Sozlamalar</string>
+    <string name="queue_previous_attempt_failed">Oldingi urinish: %1$s</string>
+    <string name="queue_error_network_timeout">Server vaqtida javob bermadi. Ulanishni tekshiring yoki boshqa tarmoqdan foydalaning. VPN yoqilgan boʻlsa, uni oʻchirib yoki serverini almashtirib, qayta urinib koʻring.</string>
 </resources>

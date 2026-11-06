@@ -428,7 +428,7 @@
     <string name="github_view_releases">Глядзець рэлізы</string>
     <string name="home_github_title">З GitHub</string>
     <string name="home_github_hint">Праграмы з адкрытым кодам — усталяванне проста з рэлізаў</string>
-    <string name="queue_error_network">Памылка сеткі</string>
+    <string name="queue_error_network">Не ўдалося спампаваць. Праверце злучэнне або паспрабуйце іншую сетку. Калі ўключаны VPN, паспрабуйце выключыць яго або змяніць сервер і паўтарыце.</string>
     <string name="queue_error_rate_limited">Крыніца абмяжоўвае запыты. Паўтарыце пазней</string>
     <string name="queue_error_source_changed">Крыніца або выбраны файл змяніліся. Праверце крыніцу праграмы і паўтарыце спробу.</string>
     <string name="queue_error_storage_full">Не хапае месца ў сховішчы</string>
@@ -439,7 +439,7 @@
     <string name="queue_error_install_canceled">Усталяванне скасавана</string>
     <string name="queue_error_install_failed">Android не змог усталяваць праграму</string>
     <string name="queue_error_artifact_missing">Спампаваны файл больш недаступны</string>
-    <string name="queue_error_timeout">Скончыўся час чакання злучэння</string>
+    <string name="queue_error_timeout">Скончыўся час чакання</string>
     <string name="queue_error_downgrade">У крыніцы версія старэйшая за ўсталяваную</string>
     <string name="queue_error_internal">Збой самога Wy Store, а не сеткі</string>
     <string name="settings_queue_mode">Чарга абнаўленняў</string>
@@ -910,4 +910,6 @@
     <string name="bottom_nav_updates">Абнавіць</string>
     <string name="bottom_nav_library">Мае</string>
     <string name="bottom_nav_settings">Налады</string>
+    <string name="queue_previous_attempt_failed">Папярэдняя спроба: %1$s</string>
+    <string name="queue_error_network_timeout">Сервер не адказаў своечасова. Праверце злучэнне або паспрабуйце іншую сетку. Калі ўключаны VPN, паспрабуйце выключыць яго або змяніць сервер і паўтарыце.</string>
 </resources>

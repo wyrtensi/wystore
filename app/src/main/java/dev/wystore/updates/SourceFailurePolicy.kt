@@ -20,9 +20,9 @@ object SourceFailurePolicy {
         // The page answered, and did not answer the way this build expects.
         QueueErrorCode.SOURCE_CHANGED,
         // Answered with "not now" - a limit on their side, not a setting on this one.
-        QueueErrorCode.RATE_LIMITED,
-        // Did not answer at all within the time a working source takes.
-        QueueErrorCode.TIMEOUT -> true
+        QueueErrorCode.RATE_LIMITED -> true
+        // A timeout cannot distinguish a stalled route/VPN from the server. TIMEOUT also covers
+        // install confirmation and older queue rows, so neither timeout diagnoses the source.
         else -> false
     }
 }

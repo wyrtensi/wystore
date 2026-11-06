@@ -428,7 +428,7 @@
     <string name="github_view_releases">Погледај издања</string>
     <string name="home_github_title">Са GitHub-а</string>
     <string name="home_github_hint">Апликације отвореног кода, инсталација директно из издања</string>
-    <string name="queue_error_network">Грешка мреже</string>
+    <string name="queue_error_network">Преузимање није успело. Проверите везу или покушајте преко друге мреже. Ако је VPN укључен, покушајте да га искључите или промените сервер, па покушајте поново.</string>
     <string name="queue_error_rate_limited">Извор је ограничио захтеве. Покушајте касније</string>
     <string name="queue_error_source_changed">Извор или изабрана датотека су промењени. Проверите извор апликације и покушајте поново.</string>
     <string name="queue_error_storage_full">Нема довољно простора у складишту</string>
@@ -439,7 +439,7 @@
     <string name="queue_error_install_canceled">Инсталација је отказана</string>
     <string name="queue_error_install_failed">Android није успео да инсталира апликацију</string>
     <string name="queue_error_artifact_missing">Преузета датотека више није доступна</string>
-    <string name="queue_error_timeout">Истекло је време чекања</string>
+    <string name="queue_error_timeout">Време чекања је истекло</string>
     <string name="queue_error_downgrade">Верзија у извору је старија од инсталиране</string>
     <string name="queue_error_internal">Грешка самог Wy Store, а не мреже</string>
     <string name="settings_queue_mode">Ред за ажурирања</string>
@@ -910,4 +910,6 @@
     <string name="bottom_nav_updates">Ажурирај</string>
     <string name="bottom_nav_library">Моје</string>
     <string name="bottom_nav_settings">Опције</string>
+    <string name="queue_previous_attempt_failed">Претходни покушај: %1$s</string>
+    <string name="queue_error_network_timeout">Сервер није одговорио на време. Проверите везу или покушајте преко друге мреже. Ако је VPN укључен, покушајте да га искључите или промените сервер, па покушајте поново.</string>
 </resources>

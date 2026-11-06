@@ -23,7 +23,7 @@ fun classifyHttpFailure(statusCode: Int, retryAfterHeader: String? = null): Tran
     return when (statusCode) {
         408 -> TransferFailure(
             retryable = true,
-            code = QueueErrorCode.TIMEOUT,
+            code = QueueErrorCode.NETWORK_TIMEOUT,
             detail = "HTTP 408: Request Timeout"
         )
         425 -> TransferFailure(
@@ -39,7 +39,7 @@ fun classifyHttpFailure(statusCode: Int, retryAfterHeader: String? = null): Tran
         )
         504 -> TransferFailure(
             retryable = true,
-            code = QueueErrorCode.TIMEOUT,
+            code = QueueErrorCode.NETWORK_TIMEOUT,
             detail = "HTTP 504: Gateway Timeout"
         )
         in 500..599 -> TransferFailure(
@@ -90,7 +90,7 @@ fun classifyThrowable(throwable: Throwable): TransferFailure {
     return when (throwable) {
         is SocketTimeoutException -> TransferFailure(
             retryable = true,
-            code = QueueErrorCode.TIMEOUT,
+            code = QueueErrorCode.NETWORK_TIMEOUT,
             detail = message.ifBlank { "Connection timed out" }
         )
         is UnknownHostException,

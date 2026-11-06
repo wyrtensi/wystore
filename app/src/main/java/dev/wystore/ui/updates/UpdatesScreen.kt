@@ -672,6 +672,7 @@ fun QueueItemCard(
                     }
                 }
             }
+            dev.wystore.ui.components.QueueRetryError(item)
             item.progress?.takeIf { it.totalBytes > 0 }?.let { progress ->
                 LinearProgressIndicator(
                     progress = { progress.fraction },

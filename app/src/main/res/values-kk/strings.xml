@@ -428,7 +428,7 @@
     <string name="github_view_releases">Релиздерді көру</string>
     <string name="home_github_title">GitHub-тан</string>
     <string name="home_github_hint">Ашық кодты қолданбалар — тікелей релиздерден орнатылады</string>
-    <string name="queue_error_network">Желі қатесі</string>
+    <string name="queue_error_network">Жүктеп алу мүмкін болмады. Қосылымды тексеріңіз немесе басқа желіні қолданып көріңіз. VPN қосулы болса, оны өшіріп немесе серверін ауыстырып, қайталап көріңіз.</string>
     <string name="queue_error_rate_limited">Дереккөз сұрауларды шектеуде. Кейінірек қайталаңыз</string>
     <string name="queue_error_source_changed">Дереккөз немесе таңдалған файл өзгерді. Қолданбаның дереккөзін тексеріп, қайталап көріңіз.</string>
     <string name="queue_error_storage_full">Жадта орын жеткіліксіз</string>
@@ -439,7 +439,7 @@
     <string name="queue_error_install_canceled">Орнатудан бас тартылды</string>
     <string name="queue_error_install_failed">Android қолданбаны орната алмады</string>
     <string name="queue_error_artifact_missing">Жүктеп алынған файл енді қолжетімсіз</string>
-    <string name="queue_error_timeout">Байланысты күту уақыты бітті</string>
+    <string name="queue_error_timeout">Күту уақыты бітті</string>
     <string name="queue_error_downgrade">Дереккөздегі нұсқа орнатылғаннан ескі</string>
     <string name="queue_error_internal">Мұнда желі емес, Wy Store-дың өзі сүрінді</string>
     <string name="settings_queue_mode">Жаңарту кезегі</string>
@@ -910,4 +910,6 @@
     <string name="bottom_nav_updates">Жаңарту</string>
     <string name="bottom_nav_library">Менің</string>
     <string name="bottom_nav_settings">Баптау</string>
+    <string name="queue_previous_attempt_failed">Алдыңғы әрекет: %1$s</string>
+    <string name="queue_error_network_timeout">Сервер уақытында жауап бермеді. Қосылымды тексеріңіз немесе басқа желіні қолданып көріңіз. VPN қосулы болса, оны өшіріп немесе серверін ауыстырып, қайталап көріңіз.</string>
 </resources>

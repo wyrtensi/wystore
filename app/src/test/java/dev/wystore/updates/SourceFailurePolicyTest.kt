@@ -7,12 +7,11 @@ import org.junit.Test
 
 class SourceFailurePolicyTest {
 
-    /** The three that mean "the page answered wrong, too often, or not at all". */
+    /** A malformed answer or an explicit rate limit comes from the source. */
     @Test
     fun `the source answering badly is the source's problem`() {
         assertTrue(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.SOURCE_CHANGED))
         assertTrue(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.RATE_LIMITED))
-        assertTrue(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.TIMEOUT))
     }
 
     /**
@@ -22,6 +21,7 @@ class SourceFailurePolicyTest {
     @Test
     fun `a lost connection is not`() {
         assertFalse(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.NETWORK))
+        assertFalse(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.NETWORK_TIMEOUT))
     }
 
     @Test
@@ -29,6 +29,7 @@ class SourceFailurePolicyTest {
         assertFalse(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.STORAGE_FULL))
         assertFalse(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.SIGNATURE))
         assertFalse(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.INSTALL_CANCELED))
+        assertFalse(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.TIMEOUT))
         assertFalse(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.DOWNGRADE))
         assertFalse(SourceFailurePolicy.looksLikeSourceProblem(QueueErrorCode.INTERNAL))
         assertFalse(SourceFailurePolicy.looksLikeSourceProblem(null))

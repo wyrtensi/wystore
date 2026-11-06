@@ -428,7 +428,7 @@
     <string name="github_view_releases">Дивитися релізи</string>
     <string name="home_github_title">З GitHub</string>
     <string name="home_github_hint">Застосунки з відкритим кодом — встановлення просто з релізів</string>
-    <string name="queue_error_network">Помилка мережі</string>
+    <string name="queue_error_network">Не вдалося завантажити. Перевірте з’єднання або спробуйте іншу мережу. Якщо ввімкнено VPN, спробуйте вимкнути його або змінити сервер і повторіть.</string>
     <string name="queue_error_rate_limited">Джерело обмежило запити. Повторіть пізніше</string>
     <string name="queue_error_source_changed">Джерело або вибраний файл змінилися. Перевірте джерело застосунку та повторіть спробу.</string>
     <string name="queue_error_storage_full">Недостатньо місця у сховищі</string>
@@ -910,4 +910,6 @@
     <string name="bottom_nav_updates">Оновити</string>
     <string name="bottom_nav_library">Мої</string>
     <string name="bottom_nav_settings">Опції</string>
+    <string name="queue_previous_attempt_failed">Попередня спроба: %1$s</string>
+    <string name="queue_error_network_timeout">Сервер не відповів вчасно. Перевірте з’єднання або спробуйте іншу мережу. Якщо ввімкнено VPN, спробуйте вимкнути його або змінити сервер і повторіть.</string>
 </resources>

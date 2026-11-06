@@ -12,6 +12,10 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 class TransferFailureTest {
+    @Test
+    fun aNetworkTimeoutIsDistinctFromAnInstallConfirmationTimeout() {
+        assertFalse(classifyThrowable(SocketTimeoutException("Read timed out")).code == QueueErrorCode.TIMEOUT)
+    }
 
     @Test
     fun classifiesHttpFailuresCorrectly() {
@@ -29,11 +33,11 @@ class TransferFailureTest {
 
         val gatewayTimeout = classifyHttpFailure(504, null)
         assertTrue(gatewayTimeout.retryable)
-        assertEquals(QueueErrorCode.TIMEOUT, gatewayTimeout.code)
+        assertEquals(QueueErrorCode.NETWORK_TIMEOUT, gatewayTimeout.code)
 
         val requestTimeout = classifyHttpFailure(408, null)
         assertTrue(requestTimeout.retryable)
-        assertEquals(QueueErrorCode.TIMEOUT, requestTimeout.code)
+        assertEquals(QueueErrorCode.NETWORK_TIMEOUT, requestTimeout.code)
 
         val tooEarly = classifyHttpFailure(425, null)
         assertTrue(tooEarly.retryable)
@@ -51,7 +55,7 @@ class TransferFailureTest {
     fun classifiesIoAndNetworkExceptions() {
         val timeout = classifyThrowable(SocketTimeoutException("Read timed out"))
         assertTrue(timeout.retryable)
-        assertEquals(QueueErrorCode.TIMEOUT, timeout.code)
+        assertEquals(QueueErrorCode.NETWORK_TIMEOUT, timeout.code)
 
         val dnsFailure = classifyThrowable(UnknownHostException("rustore.ru"))
         assertTrue(dnsFailure.retryable)

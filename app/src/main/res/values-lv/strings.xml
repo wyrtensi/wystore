@@ -428,7 +428,7 @@
     <string name="github_view_releases">Skatīt laidienus</string>
     <string name="home_github_title">No GitHub</string>
     <string name="home_github_hint">Atvērtā koda lietotnes, ko instalē tieši no laidieniem</string>
-    <string name="queue_error_network">Tīkla kļūda</string>
+    <string name="queue_error_network">Neizdevās lejupielādēt. Pārbaudiet savienojumu vai izmēģiniet citu tīklu. Ja VPN ir ieslēgts, mēģiniet to izslēgt vai mainīt tā serveri un mēģiniet vēlreiz.</string>
     <string name="queue_error_rate_limited">Avots ierobežo pieprasījumus. Mēģini vēlāk</string>
     <string name="queue_error_source_changed">Avots vai atlasītais fails ir mainījies. Pārbaudiet lietotnes avotu un mēģiniet vēlreiz.</string>
     <string name="queue_error_storage_full">Nepietiek vietas krātuvē</string>
@@ -439,7 +439,7 @@
     <string name="queue_error_install_canceled">Instalēšana tika atcelta</string>
     <string name="queue_error_install_failed">Android neizdevās instalēt lietotni</string>
     <string name="queue_error_artifact_missing">Lejupielādētais fails vairs nav pieejams</string>
-    <string name="queue_error_timeout">Savienojuma noildze</string>
+    <string name="queue_error_timeout">Gaidīšanas laiks ir beidzies</string>
     <string name="queue_error_downgrade">Avotā ir vecāka versija nekā instalētā</string>
     <string name="queue_error_internal">Šoreiz kļūme bija pašā Wy Store, nevis tīklā</string>
     <string name="settings_queue_mode">Atjauninājumu rinda</string>
@@ -910,4 +910,6 @@
     <string name="bottom_nav_updates">Atjaunināt</string>
     <string name="bottom_nav_library">Lietotnes</string>
     <string name="bottom_nav_settings">Opcijas</string>
+    <string name="queue_previous_attempt_failed">Iepriekšējais mēģinājums: %1$s</string>
+    <string name="queue_error_network_timeout">Serveris neatbildēja laikus. Pārbaudiet savienojumu vai izmēģiniet citu tīklu. Ja VPN ir ieslēgts, mēģiniet to izslēgt vai mainīt tā serveri un mēģiniet vēlreiz.</string>
 </resources>
