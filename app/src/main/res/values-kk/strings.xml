@@ -478,9 +478,9 @@
     <string name="source_github">GitHub</string>
     <string name="disclaimer_title">Жауапкершіліктен бас тарту</string>
     <string name="disclaimer_body">Wy Store дереккөз жариялаған файлдарды ғана жүктеп алады және орнату алдында пакет атауын, нұсқасын және қолтаңбасын тексереді. Қолданбалардың өзін қарамайды, модерацияламайды және ұсынбайды, олардың мазмұнына, жұмысына және пайдалану салдарына жауап бермейді. Орнату — өз тәуекеліңізбен, жергілікті заңды сақтау — сіздің жауапкершілігіңіз.</string>
-    <string name="disclaimer_source_rustore">Дереккөз: RuStore. Wy Store RuStore-мен байланысты емес.</string>
+    <string name="disclaimer_source_rustore">Дереккөз: RuStore. Wy Store RuStore каталогы мен серверлерін пайдаланады, бірақ оның командасынан тәуелсіз әзірленеді және RuStore-дың ресми клиенті емес.</string>
     <string name="disclaimer_source_github">Дереккөз: жоба жариялаған GitHub релиздері. Файлдарды Wy Store емес, әзірлеуші ұсынады.</string>
-    <string name="disclaimer_sources_both">Дереккөздер: RuStore, GitHub Releases және Wy Store Library. Wy Store жобасының RuStore немесе GitHub-пен байланысы жоқ.</string>
+    <string name="disclaimer_sources_both">Дереккөздер: RuStore, GitHub Releases және Wy Store Library. Wy Store RuStore каталогы мен серверлерін пайдаланады, бірақ оның командасынан тәуелсіз әзірленеді және RuStore-дың ресми клиенті емес.</string>
     <string name="library_filter_title">Көрсету</string>
     <string name="library_filter_all">Барлығы</string>
     <string name="library_filter_empty">Бұл сүзгіге ештеңе сәйкес келмейді</string>
@@ -662,7 +662,7 @@
     <string name="github_share_subject">GitHub-тағы %1$s</string>
     <string name="check_finished_with_problems">Тексеру аяқталды, кейбір қолданбаларға қол жеткізілмеді</string>
     <string name="queue_download_now">Қазір жүктеп алу</string>
-    <string name="about_independent">Wy Store — RuStore каталогы мен GitHub релиздеріне арналған тәуелсіз балама клиент. Ол RuStore-мен байланысты емес, оның мақұлдауы жоқ және оның атынан әрекет етпейді.</string>
+    <string name="about_independent">Wy Store RuStore каталогы мен серверлерін пайдаланады, бірақ оның командасынан тәуелсіз әзірленеді және RuStore-дың ресми клиенті емес.</string>
     <string name="about_disclaimer_link">Жоба туралы мәлімдеме және тәуелсіздік</string>
     <string name="about_issues_link">GitHub-та мәселе туралы хабарлау</string>
     <string name="source_failure_title">Мәселе дереккөз жағында сияқты</string>

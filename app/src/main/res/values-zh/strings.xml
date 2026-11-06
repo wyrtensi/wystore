@@ -478,9 +478,9 @@
     <string name="source_github">GitHub</string>
     <string name="disclaimer_title">免责声明</string>
     <string name="disclaimer_body">Wy Store 只下载来源发布的文件，并在安装前检查包名、版本和签名。它不审查、不审核、不推荐这些应用本身，也不对其内容、行为和使用后果负责。安装风险由你自行承担，遵守当地法律也由你负责。</string>
-    <string name="disclaimer_source_rustore">来源：RuStore。Wy Store 与 RuStore 无关联。</string>
+    <string name="disclaimer_source_rustore">来源：RuStore。Wy Store 使用 RuStore 的目录和服务器，但其开发独立于 RuStore 团队，并非 RuStore 官方客户端。</string>
     <string name="disclaimer_source_github">来源：项目在 GitHub 上发布的版本。文件由开发者提供，而非 Wy Store。</string>
-    <string name="disclaimer_sources_both">来源：RuStore、GitHub Releases 和 Wy Store Library。Wy Store 与 RuStore 或 GitHub 没有关联。</string>
+    <string name="disclaimer_sources_both">来源：RuStore、GitHub Releases 和 Wy Store Library。Wy Store 使用 RuStore 的目录和服务器，但其开发独立于 RuStore 团队，并非 RuStore 官方客户端。</string>
     <string name="library_filter_title">显示</string>
     <string name="library_filter_all">全部</string>
     <string name="library_filter_empty">没有符合这个筛选的内容</string>
@@ -662,7 +662,7 @@
     <string name="github_share_subject">GitHub 上的 %1$s</string>
     <string name="check_finished_with_problems">检查完成，部分应用无法访问</string>
     <string name="queue_download_now">立即下载</string>
-    <string name="about_independent">Wy Store 是面向 RuStore 目录和 GitHub 发布的独立第三方客户端。它与 RuStore 无关联，未获其认可，也不代表其行事。</string>
+    <string name="about_independent">Wy Store 使用 RuStore 的目录和服务器，但其开发独立于 RuStore 团队，并非 RuStore 官方客户端。</string>
     <string name="about_disclaimer_link">项目声明与独立性</string>
     <string name="about_issues_link">在 GitHub 上报告问题</string>
     <string name="source_failure_title">看起来是来源那边的问题</string>

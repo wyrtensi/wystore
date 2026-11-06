@@ -478,9 +478,9 @@
     <string name="source_github">GitHub</string>
     <string name="disclaimer_title">Atruna</string>
     <string name="disclaimer_body">Wy Store tikai lejupielādē avota publicētos failus un pirms instalēšanas pārbauda pakotnes nosaukumu, versiju un parakstu. Pašas lietotnes tas nepārskata, nemoderē un neiesaka, kā arī neatbild par to saturu, darbību vai lietošanas sekām. Tu instalē uz savu risku un atbildi par vietējo likumu ievērošanu.</string>
-    <string name="disclaimer_source_rustore">Avots: RuStore. Wy Store nav saistīts ar RuStore.</string>
+    <string name="disclaimer_source_rustore">Avots: RuStore. Wy Store izmanto RuStore katalogu un serverus, taču tiek izstrādāts neatkarīgi no RuStore komandas un nav oficiāls RuStore klients.</string>
     <string name="disclaimer_source_github">Avots: GitHub laidieni, ko publicē pats projekts. Failus dod izstrādātājs, nevis Wy Store.</string>
-    <string name="disclaimer_sources_both">Avoti: RuStore, GitHub Releases un Wy Store Library. Wy Store nav saistīts ar RuStore vai GitHub.</string>
+    <string name="disclaimer_sources_both">Avoti: RuStore, GitHub Releases un Wy Store Library. Wy Store izmanto RuStore katalogu un serverus, taču tiek izstrādāts neatkarīgi no RuStore komandas un nav oficiāls RuStore klients.</string>
     <string name="library_filter_title">Rādīt</string>
     <string name="library_filter_all">Visas</string>
     <string name="library_filter_empty">Šim filtram nekas neatbilst</string>
@@ -662,7 +662,7 @@
     <string name="github_share_subject">%1$s GitHub</string>
     <string name="check_finished_with_problems">Pārbaude pabeigta, dažas lietotnes neizdevās sasniegt</string>
     <string name="queue_download_now">Lejupielādēt tagad</string>
-    <string name="about_independent">Wy Store ir neatkarīgs alternatīvs klients RuStore katalogam un GitHub laidieniem. Tas nav saistīts ar RuStore, nav tā apstiprināts un nedarbojas tā vārdā.</string>
+    <string name="about_independent">Wy Store izmanto RuStore katalogu un serverus, taču tiek izstrādāts neatkarīgi no RuStore komandas un nav oficiāls RuStore klients.</string>
     <string name="about_disclaimer_link">Paziņojums par projektu un neatkarību</string>
     <string name="about_issues_link">Ziņot par problēmu GitHub</string>
     <string name="source_failure_title">Izskatās, ka vaina ir avota pusē</string>

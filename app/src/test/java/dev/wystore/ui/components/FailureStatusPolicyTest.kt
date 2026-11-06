@@ -16,7 +16,7 @@ class FailureStatusPolicyTest {
     fun `the typed code decides, not the words in the detail`() {
         assertEquals(
             StatusCode.FAILED_NETWORK,
-            FailureStatusPolicy.statusFor(QueueErrorCode.TIMEOUT, "соединение прервано")
+            FailureStatusPolicy.statusFor(QueueErrorCode.NETWORK_TIMEOUT, "соединение прервано")
         )
         assertEquals(
             StatusCode.FAILED_STORAGE,
@@ -25,6 +25,14 @@ class FailureStatusPolicyTest {
         assertEquals(
             StatusCode.FAILED_SIGNATURE,
             FailureStatusPolicy.statusFor(QueueErrorCode.INTEGRITY, "hash mismatch")
+        )
+    }
+
+    @Test
+    fun anInstallConfirmationOrLegacyTimeoutDoesNotBlameTheNetwork() {
+        assertEquals(
+            StatusCode.FAILED_GENERIC,
+            FailureStatusPolicy.statusFor(QueueErrorCode.TIMEOUT, "Install confirmation timed out")
         )
     }
 

@@ -28,8 +28,7 @@ Uchta manba bor: RuStore, GitHub relizlari va [Wy Store Library](https://github.
 
 **Rossiya Google Play doʻkonida mavjud boʻlmagan yoki bloklangan ayrim ilovalarni Googleʼga kirmasdan [Wy Store Library](https://github.com/wyrtensi/wystore-library) orqali yuklab oʻrnatish mumkin.**
 
-Wy Store RuStore bilan bogʻliq emas va uning nomidan ish koʻrmaydi: bu yerda RuStore — maʼlumot
-manbai. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
+Wy Store RuStore katalogi va serverlaridan foydalanadi, ammo uning jamoasidan mustaqil ravishda ishlab chiqiladi va RuStore’ning rasmiy mijozi emas. Tafsilotlar — [DISCLAIMER.md](DISCLAIMER.md) faylida.
 
 | Bosh sahifa | Ilova sahifasi | Ilovalar |
 |---|---|---|

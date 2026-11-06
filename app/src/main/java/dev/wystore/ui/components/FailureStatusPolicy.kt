@@ -22,7 +22,6 @@ object FailureStatusPolicy {
     private fun statusForCode(code: QueueErrorCode?): StatusCode = when (code) {
         QueueErrorCode.NETWORK,
         QueueErrorCode.NETWORK_TIMEOUT,
-        QueueErrorCode.TIMEOUT,
         QueueErrorCode.RATE_LIMITED -> StatusCode.FAILED_NETWORK
         QueueErrorCode.STORAGE_FULL -> StatusCode.FAILED_STORAGE
         QueueErrorCode.SIGNATURE,

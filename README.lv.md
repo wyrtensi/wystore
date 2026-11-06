@@ -31,7 +31,7 @@ Ir trīs avoti: RuStore, GitHub laidieni un [Wy Store Library](https://github.co
 Katalogs ir domāts lietotājiem Krievijā, tāpēc lielākā daļa satura ir krievu valodā; pats interfeiss
 ir pieejams visās iepriekš uzskaitītajās valodās.
 
-Wy Store nav saistīts ar RuStore un nedarbojas tā vārdā: RuStore šeit ir datu avots. Sk.
+Wy Store izmanto RuStore katalogu un serverus, taču tiek izstrādāts neatkarīgi no RuStore komandas un nav oficiāls RuStore klients. Sk.
 [DISCLAIMER.md](DISCLAIMER.md).
 
 | Sākums | Lietotnes lapa | Lietotnes |

@@ -478,9 +478,9 @@
     <string name="source_github">GitHub</string>
     <string name="disclaimer_title">Отказ от ответственности</string>
     <string name="disclaimer_body">Wy Store только скачивает файлы, опубликованные источником, и перед установкой проверяет имя пакета, версию и подпись. Приложения не проверяются, не модерируются и не рекомендуются: Wy Store не отвечает за их содержимое, работу и последствия использования. Установка — на ваш страх и риск, соблюдение законодательства — ваша ответственность.</string>
-    <string name="disclaimer_source_rustore">Источник: RuStore. Wy Store не связан с RuStore.</string>
+    <string name="disclaimer_source_rustore">Источник: RuStore. Wy Store использует каталог и серверы RuStore, но разрабатывается независимо от его команды и не является официальным клиентом RuStore.</string>
     <string name="disclaimer_source_github">Источник: релизы проекта на GitHub. Файлы публикует разработчик, а не Wy Store.</string>
-    <string name="disclaimer_sources_both">Источники: RuStore, GitHub Releases и Wy Store Library. Wy Store не связан с RuStore или GitHub.</string>
+    <string name="disclaimer_sources_both">Источники: RuStore, GitHub Releases и Wy Store Library. Wy Store использует каталог и серверы RuStore, но разрабатывается независимо от его команды и не является официальным клиентом RuStore.</string>
     <string name="library_filter_title">Показать</string>
     <string name="library_filter_all">Все</string>
     <string name="library_filter_empty">Под этот фильтр ничего не подходит</string>
@@ -662,7 +662,7 @@
     <string name="github_share_subject">%1$s на GitHub</string>
     <string name="check_finished_with_problems">Проверка завершена, часть приложений опросить не удалось</string>
     <string name="queue_download_now">Скачать сейчас</string>
-    <string name="about_independent">Wy Store — независимый альтернативный клиент для каталога RuStore и релизов GitHub. Проект не связан с RuStore, не одобрен им и не действует от его имени.</string>
+    <string name="about_independent">Wy Store использует каталог и серверы RuStore, но разрабатывается независимо от его команды и не является официальным клиентом RuStore.</string>
     <string name="about_disclaimer_link">Заявление о проекте и независимости</string>
     <string name="about_issues_link">Сообщить о проблеме на GitHub</string>
     <string name="source_failure_title">Похоже, дело в источнике</string>

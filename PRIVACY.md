@@ -45,8 +45,8 @@ Wy Store не собирает персональные данные, не за�
 представляется как `WyStore/<версия>` и не передаёт идентификаторов устройства, рекламных ID,
 аккаунтов и токенов. `User-Token` RuStore приложение не создаёт и не использует.
 
-Обработка данных на стороне RuStore и GitHub регулируется их собственными правилами; Wy Store
-не связан с этими сервисами.
+Обработка данных на стороне RuStore и GitHub регулируется их собственными правилами.
+Wy Store использует каталог и серверы RuStore, но разрабатывается независимо от его команды и не является официальным клиентом RuStore.
 
 Запросы идут только к публичным адресам, которые отвечают без авторизации. Приложение не создаёт
 сессию RuStore, не использует чужие учётные записи, не передаёт логинов и токенов и не обходит
@@ -138,8 +138,8 @@ network request, the receiving side sees the IP address and request headers; Wy 
 itself as `WyStore/<version>` and sends no device identifiers, advertising IDs, accounts or tokens.
 It never creates or uses a RuStore `User-Token`.
 
-How RuStore and GitHub handle data is governed by their own policies; Wy Store is not affiliated
-with either.
+How RuStore and GitHub handle data is governed by their own policies.
+Wy Store uses RuStore's catalogue and servers, but is developed independently of the RuStore team and is not an official RuStore client.
 
 Requests go only to public addresses that answer without authentication. The app creates no RuStore
 session, uses nobody else's account, sends no logins or tokens, and works around none of the

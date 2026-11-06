@@ -31,8 +31,7 @@ There are three sources: RuStore, GitHub releases and [Wy Store Library](https:/
 The catalogue is aimed at users in Russia, so most of the content is in Russian; the interface
 itself ships in every language listed above.
 
-Wy Store is not affiliated with RuStore and does not act on its behalf: RuStore is a data source
-here. See [DISCLAIMER.md](DISCLAIMER.md).
+Wy Store uses RuStore's catalogue and servers, but is developed independently of the RuStore team and is not an official RuStore client. See [DISCLAIMER.md](DISCLAIMER.md).
 
 | Home | App page | Apps |
 |---|---|---|

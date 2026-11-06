@@ -70,7 +70,7 @@ Wy Store проверяет обновления в фоне по расписа
 • Платных приложений и покупок внутри — только бесплатное.
 • Каталога Google Play — Wy Store его не читает и не заменяет.
 
-Wy Store — независимый проект с открытым исходным кодом (лицензия MIT). Он не связан с RuStore и не действует от его имени: RuStore является источником данных. Приложение проверяет доставку файлов, но не отвечает за содержимое и работу установленных программ.
+Wy Store — независимый проект с открытым исходным кодом (лицензия MIT). Wy Store использует каталог и серверы RuStore, но разрабатывается независимо от его команды и не является официальным клиентом RuStore. Приложение проверяет доставку файлов, но не отвечает за содержимое и работу установленных программ.
 
 Исходный код и релизы: github.com/wyrtensi/wystore
 ```
@@ -170,7 +170,7 @@ WHAT IT DOES NOT DO
 • No paid apps or in-app purchases — free apps only.
 • No Google Play catalogue — Wy Store neither reads nor replaces it.
 
-Wy Store is an independent open-source project (MIT licence). It is not affiliated with RuStore and does not act on its behalf: RuStore is a data source. The app verifies file delivery but is not responsible for the content or behaviour of the programs it installs.
+Wy Store is an independent open-source project (MIT licence). Wy Store uses RuStore's catalogue and servers, but is developed independently of the RuStore team and is not an official RuStore client. The app verifies file delivery but is not responsible for the content or behaviour of the programs it installs.
 
 Source code and releases: github.com/wyrtensi/wystore
 ```

@@ -478,9 +478,9 @@
     <string name="source_github">GitHub</string>
     <string name="disclaimer_title">Masʼuliyatdan voz kechish</string>
     <string name="disclaimer_body">Wy Store faqat manba eʼlon qilgan fayllarni yuklab oladi va oʻrnatishdan oldin package name, versiya va imzoni tekshiradi. Ilovalarning oʻzini koʻrib chiqmaydi, moderatsiya qilmaydi va tavsiya etmaydi hamda ularning mazmuni, ishlashi va foydalanish oqibatlari uchun javob bermaydi. Oʻrnatish — oʻz xavfingiz ostida, mahalliy qonunchilikka rioya qilish esa sizning masʼuliyatingiz.</string>
-    <string name="disclaimer_source_rustore">Manba: RuStore. Wy Store RuStore bilan bogʻliq emas.</string>
+    <string name="disclaimer_source_rustore">Manba: RuStore. Wy Store RuStore katalogi va serverlaridan foydalanadi, ammo uning jamoasidan mustaqil ravishda ishlab chiqiladi va RuStore’ning rasmiy mijozi emas.</string>
     <string name="disclaimer_source_github">Manba: loyiha eʼlon qilgan GitHub relizlari. Fayllarni Wy Store emas, ishlab chiquvchi joylaydi.</string>
-    <string name="disclaimer_sources_both">Manbalar: RuStore, GitHub Releases va Wy Store Library. Wy Store RuStore yoki GitHub bilan bogʻliq emas.</string>
+    <string name="disclaimer_sources_both">Manbalar: RuStore, GitHub Releases va Wy Store Library. Wy Store RuStore katalogi va serverlaridan foydalanadi, ammo uning jamoasidan mustaqil ravishda ishlab chiqiladi va RuStore’ning rasmiy mijozi emas.</string>
     <string name="library_filter_title">Koʻrsatish</string>
     <string name="library_filter_all">Barchasi</string>
     <string name="library_filter_empty">Bu filtrga hech narsa mos kelmaydi</string>
@@ -662,7 +662,7 @@
     <string name="github_share_subject">%1$s GitHub saytida</string>
     <string name="check_finished_with_problems">Tekshiruv tugadi, baʼzi ilovalarga ulanib boʻlmadi</string>
     <string name="queue_download_now">Hozir yuklab olish</string>
-    <string name="about_independent">Wy Store — RuStore katalogi va GitHub relizlari uchun mustaqil muqobil mijoz. U RuStore bilan bogʻliq emas, u tomonidan maʼqullanmagan va uning nomidan ish koʻrmaydi.</string>
+    <string name="about_independent">Wy Store RuStore katalogi va serverlaridan foydalanadi, ammo uning jamoasidan mustaqil ravishda ishlab chiqiladi va RuStore’ning rasmiy mijozi emas.</string>
     <string name="about_disclaimer_link">Loyiha va mustaqillik haqida bayonot</string>
     <string name="about_issues_link">GitHub orqali muammo haqida xabar berish</string>
     <string name="source_failure_title">Muammo manba tomonida koʻrinadi</string>
