@@ -98,6 +98,9 @@ class RuStoreSource(context: Context) : StoreSource {
             add("supportedAbis", com.google.gson.JsonArray().apply {
                 Build.SUPPORTED_ABIS.forEach { add(it) }
             })
+            add("supportedLocales", com.google.gson.JsonArray().apply {
+                RuStoreDeviceSpec.systemLocales().forEach { add(it) }
+            })
         }
         val root = withRateLimitRetries { apiClient.execute(catalogues()) { versionCode ->
             Request.Builder()
