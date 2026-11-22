@@ -33,11 +33,14 @@ class SilentInstallRefusal(context: Context) {
          *
          * Only an abort of a silent session nobody was asked about: once Android has asked for the
          * user's answer ([InstallSessionWriter.SESSION_AWAITING_USER]), an abort is the user's cancel,
-         * and bringing the dialog straight back would argue with them.
+         * and bringing the dialog straight back would argue with them. [InstallSessionWriter.commitSession]
+         * moves the row to [InstallSessionWriter.SESSION_COMMITTED] right before committing, so live
+         * firmware refusals arrive in that state rather than [InstallSessionWriter.SESSION_PREPARED].
          */
         fun isRefusal(status: Int, silentRequested: Boolean, sessionState: String?): Boolean =
             status == PackageInstaller.STATUS_FAILURE_ABORTED &&
                 silentRequested &&
-                sessionState == InstallSessionWriter.SESSION_PREPARED
+                (sessionState == InstallSessionWriter.SESSION_PREPARED ||
+                    sessionState == InstallSessionWriter.SESSION_COMMITTED)
     }
 }
