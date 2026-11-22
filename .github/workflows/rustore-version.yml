@@ -1,0 +1,45 @@
+name: RuStore Version
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Force APK re-inspection and republish even when unchanged
+        type: boolean
+        default: false
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wystore-rustore-version
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Verify and publish RuStore versionCode
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Discover, verify, and publish RuStore version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          FORCE_UPDATE: ${{ inputs.force == true }}
+        run: |
+          args=(--publish)
+          if [ "$FORCE_UPDATE" = "true" ]; then
+            args+=(--force)
+          fi
+          python tools/rustore_version.py "${args[@]}"
