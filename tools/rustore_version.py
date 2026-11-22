@@ -77,8 +77,22 @@ class _TrustedRuStoreRedirectHandler(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
+def _rustore_ssl_context():
+    """Default system CAs plus the Russian Trusted CAs bundled with Wy Store for *.rustore.ru."""
+    context = ssl.create_default_context()
+    raw_dir = Path(__file__).resolve().parents[1] / "app" / "src" / "main" / "res" / "raw"
+    for cert_name in ("russian_trusted_root_ca.cer", "russian_trusted_sub_ca.cer"):
+        cert_path = raw_dir / cert_name
+        if cert_path.is_file():
+            context.load_verify_locations(cafile=str(cert_path))
+    return context
+
+
 def _rustore_opener():
-    return urllib.request.build_opener(_TrustedRuStoreRedirectHandler())
+    return urllib.request.build_opener(
+        urllib.request.HTTPSHandler(context=_rustore_ssl_context()),
+        _TrustedRuStoreRedirectHandler(),
+    )
 
 
 def http_request(url, *, headers=None, data=None, method="GET", timeout=30, max_bytes=None):
