@@ -25,7 +25,8 @@ class RuStoreSource(context: Context) : StoreSource {
     // Process-wide, so browsing the catalogue reuses one connection instead of opening a TLS
     // session per ViewModel and per worker that happens to construct a source.
     private val client = HttpClients.ruStore(context)
-    private val apiClient = RuStoreApiClient(client)
+    private val versionSync = RuStoreVersionSync(appContext, repository)
+    private val apiClient = RuStoreApiClient(client) { force -> versionSync.currentVersionCode(force) }
     private val deviceTraits by lazy { dev.wystore.device.DeviceTraits.read(appContext) }
 
     /**
@@ -77,7 +78,10 @@ class RuStoreSource(context: Context) : StoreSource {
         }
     }
 
-    override suspend fun resolveArtifacts(app: StoreApp): List<DownloadArtifact> = withContext(Dispatchers.IO) {
+    override suspend fun resolveArtifacts(app: StoreApp): List<DownloadArtifact> =
+        resolveArtifacts(app, forceWithoutSplits = false)
+
+    suspend fun resolveArtifacts(app: StoreApp, forceWithoutSplits: Boolean): List<DownloadArtifact> = withContext(Dispatchers.IO) {
         PackageNameValidator.requireValid(app.packageName)
         AndroidSdkCompatibility.requireSupported(app.minSdkVersion, Build.VERSION.SDK_INT)
         val payload = JsonObject().apply {
@@ -89,7 +93,8 @@ class RuStoreSource(context: Context) : StoreSource {
             // Split parts need an installer session. A device whose firmware refuses sessions
             // installs through the system installer, which takes one file, so it gets the whole
             // APK the source also publishes - larger, and the only thing that device can install.
-            addProperty("withoutSplits", dev.wystore.updates.SessionInstallSupport(appContext).sessionsRefused())
+            // Callers can also force the whole APK as a fallback if a split CDN artifact is missing.
+            addProperty("withoutSplits", forceWithoutSplits || dev.wystore.updates.SessionInstallSupport(appContext).sessionsRefused())
             add("supportedAbis", com.google.gson.JsonArray().apply {
                 Build.SUPPORTED_ABIS.forEach { add(it) }
             })

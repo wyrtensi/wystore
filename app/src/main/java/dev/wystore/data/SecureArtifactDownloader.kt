@@ -61,17 +61,29 @@ class SecureArtifactDownloader(context: Context? = null) {
             val temporary = File(directory, "artifact_$index.part")
             val destination = File(directory, "artifact_$index.apk")
             val marker = File(directory, "artifact_$index.id")
+            val unpackedMarker = File(directory, "artifact_$index.unpacked")
             // A file already here in full is not fetched again. It matters where a download is
             // kept after it has been refused: answering "take it anyway" acts on the bytes that
             // were refused, rather than spending the whole transfer a second time to arrive at
-            // the same file.
+            // the same file. RuStore serves .zip bundles whose raw archive is removed right after
+            // unpacking, so already-extracted APKs are matched via their unpacked manifest too.
+            alreadyExtracted(directory, marker, unpackedMarker, artifact.url, artifact.sizeBytes)?.let { cached ->
+                completedBefore += artifact.sizeBytes
+                onProgress(
+                    DownloadProgress(completedBefore, totalExpected, index + 1, artifacts.size, 0, 0)
+                )
+                return@flatMapIndexed cached
+            }
             if (alreadyFetched(destination, marker, artifact.url, artifact.sizeBytes)) {
                 completedBefore += artifact.sizeBytes
                 onProgress(
                     DownloadProgress(completedBefore, totalExpected, index + 1, artifacts.size, 0, 0)
                 )
-                return@flatMapIndexed extractApksFromBundleIfNeeded(destination, directory, index)
+                val extracted = extractApksFromBundleIfNeeded(destination, directory, index)
+                if (extracted != listOf(destination)) rememberExtracted(unpackedMarker, extracted)
+                return@flatMapIndexed extracted
             }
+            unpackedMarker.delete()
             destination.delete()
             try {
                 // Anything already on disk from an interrupted attempt is offered back to the
@@ -134,7 +146,9 @@ class SecureArtifactDownloader(context: Context? = null) {
                 }
                 if (!temporary.renameTo(destination)) fail(SourceError.ARTIFACT_WRITE_FAILED, "Rename failed")
                 completedBefore += artifact.sizeBytes
-                extractApksFromBundleIfNeeded(destination, directory, index)
+                val extracted = extractApksFromBundleIfNeeded(destination, directory, index)
+                if (extracted != listOf(destination)) rememberExtracted(unpackedMarker, extracted)
+                extracted
             } catch (error: Throwable) {
                 destination.delete()
                 // The partial file is kept on purpose so the next attempt can resume, unless the
@@ -367,6 +381,38 @@ private fun discardForeignPartial(temporary: File, marker: File, url: String, ex
 /** Records where the bytes now being written came from, for the attempt after this one. */
 private fun rememberPartial(marker: File, url: String, expectedBytes: Long) {
     runCatching { marker.writeText(PartialDownloadIdentity.marker(url, expectedBytes)) }
+}
+
+private fun rememberExtracted(unpackedMarker: File, files: List<File>) {
+    runCatching {
+        unpackedMarker.writeText(files.joinToString("\n") { "${it.name}:${it.length()}" })
+    }
+}
+
+private fun alreadyExtracted(
+    directory: File,
+    marker: File,
+    unpackedMarker: File,
+    url: String,
+    expectedBytes: Long
+): List<File>? {
+    if (!unpackedMarker.isFile) return null
+    val stored = runCatching { marker.takeIf { it.isFile }?.readText() }.getOrNull()
+    if (!PartialDownloadIdentity.matches(stored, url, expectedBytes)) return null
+    val lines = runCatching { unpackedMarker.readLines() }.getOrNull()?.filter { it.isNotBlank() }
+        ?: return null
+    if (lines.isEmpty()) return null
+    val files = lines.map { line ->
+        val split = line.lastIndexOf(':')
+        if (split <= 0) return null
+        val name = line.substring(0, split)
+        val size = line.substring(split + 1).toLongOrNull() ?: return null
+        if (name.contains('/') || name.contains('\\') || size <= 0L) return null
+        val file = File(directory, name)
+        if (!file.isFile || file.length() != size) return null
+        file
+    }
+    return files
 }
 
 /**

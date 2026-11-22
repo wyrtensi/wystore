@@ -33,18 +33,52 @@ object RootShellPolicy {
     /** An `id` run through su that did not print uid=0 ran as the app, whatever it exited with. */
     fun grantsRoot(idOutput: String): Boolean =
         Regex("""(^|\s)uid=0\(""").containsMatchIn(idOutput)
+
+    /**
+     * Tries [candidates] (starting with [cached], if present) until one actually executes `id`
+     * with uid=0. Returning only a verified path stops a broken or denied `su` binary earlier on
+     * PATH from shadowing a working Magisk/KernelSU binary later in the list.
+     */
+    fun probeCandidates(
+        cached: String?,
+        candidates: List<String>,
+        runId: (String) -> RootResult?
+    ): Pair<String, RootResult>? {
+        val ordered = buildList {
+            if (cached != null) add(cached)
+            addAll(candidates)
+        }.distinct()
+        for (candidate in ordered) {
+            val result = runId(candidate) ?: continue
+            if (result.success && grantsRoot(result.output)) {
+                return candidate to result
+            }
+        }
+        return null
+    }
 }
 
 class RootInstaller {
     /**
-     * Whether su both starts and actually grants uid 0.
+     * Whether any su binary both starts and actually grants uid 0.
      *
      * A root manager asks the user on the first su call, so this is also what makes Wy Store show
-     * up in its list at all.
+     * up in its list at all. Only a candidate that returns uid=0 is cached as [resolved]; a stub
+     * or denied binary earlier on PATH never blocks later candidates from being tried.
      */
-    suspend fun isAvailable(): Boolean {
-        val result = execute("id")
-        return result.success && RootShellPolicy.grantsRoot(result.output)
+    suspend fun isAvailable(): Boolean = withContext(Dispatchers.IO) {
+        val probed = RootShellPolicy.probeCandidates(
+            cached = resolved,
+            candidates = CANDIDATES,
+            runId = { path -> runWithPath(path, "id") }
+        )
+        if (probed != null) {
+            resolved = probed.first
+            true
+        } else {
+            resolved = null
+            false
+        }
     }
 
     /**
@@ -107,9 +141,32 @@ class RootInstaller {
     }
 
     private suspend fun execute(command: String): RootResult = withContext(Dispatchers.IO) {
-        runCatching {
-            val process = startSu(command)
-                ?: return@runCatching RootResult(false, "su not found", RootFailure.ROOT_UNAVAILABLE)
+        val path = resolved ?: run {
+            val probed = RootShellPolicy.probeCandidates(
+                cached = null,
+                candidates = CANDIDATES,
+                runId = { candidate -> runWithPath(candidate, "id") }
+            ) ?: return@withContext RootResult(false, "su not found or root denied", RootFailure.ROOT_UNAVAILABLE)
+            resolved = probed.first
+            probed.first
+        }
+        val result = runWithPath(path, command)
+        if (result != null) return@withContext result
+        // The cached binary disappeared or failed to spawn; clear and re-probe once.
+        resolved = null
+        val reprobed = RootShellPolicy.probeCandidates(
+            cached = null,
+            candidates = CANDIDATES,
+            runId = { candidate -> runWithPath(candidate, "id") }
+        ) ?: return@withContext RootResult(false, "su not found", RootFailure.ROOT_UNAVAILABLE)
+        resolved = reprobed.first
+        runWithPath(reprobed.first, command)
+            ?: RootResult(false, "su not found", RootFailure.ROOT_UNAVAILABLE)
+    }
+
+    private fun runWithPath(path: String, command: String): RootResult? {
+        val process = runCatching { spawn(path, command) }.getOrNull() ?: return null
+        return runCatching {
             val finished = process.waitFor(90, TimeUnit.SECONDS)
             if (!finished) {
                 process.destroy()
@@ -118,39 +175,15 @@ class RootInstaller {
             }
             val output = process.inputStream.bufferedReader().use { it.readText() }.take(2000)
             val exitVal = process.exitValue()
-            android.util.Log.d("WyStoreRoot", "su exited with value $exitVal, output: $output")
+            android.util.Log.d("WyStoreRoot", "su ($path) exited with value $exitVal, output: $output")
             RootResult(exitVal == 0, output)
         }.getOrElse {
-            android.util.Log.e("WyStoreRoot", "Root execution error", it)
+            android.util.Log.e("WyStoreRoot", "Root execution error ($path)", it)
             RootResult(false, it.message.orEmpty(), RootFailure.ROOT_UNAVAILABLE)
         }
     }
 
     private fun shellQuote(value: String): String = "'" + value.replace("'", "'\\''") + "'"
-
-    /**
-     * Starts `su`, wherever this device keeps it.
-     *
-     * One hardcoded absolute path is what this used to be, and it is the wrong shape of assumption:
-     * Magisk usually puts one at /system/bin, but not on every build, and an emulator image keeps
-     * its own at /system/xbin. On a device where the path differs the app did not report a failure
-     * - it reported that root was unavailable, which is a different answer and the wrong one.
-     *
-     * The bare name is tried first, because a working root almost always puts it on PATH and that
-     * answer costs nothing; the absolute paths follow for the installs that do not. Whichever
-     * starts is remembered, so the search happens once.
-     */
-    private fun startSu(command: String): Process? {
-        resolved?.let { path ->
-            return runCatching { spawn(path, command) }.getOrNull()
-        }
-        for (candidate in CANDIDATES) {
-            val process = runCatching { spawn(candidate, command) }.getOrNull() ?: continue
-            resolved = candidate
-            return process
-        }
-        return null
-    }
 
     private fun spawn(path: String, command: String): Process =
         ProcessBuilder(path, "-c", command).redirectErrorStream(true).start()
@@ -200,7 +233,14 @@ class RootInstaller {
             "/system/xbin/su",
             "/sbin/su",
             "/su/bin/su",
-            "/debug_ramdisk/su"
+            "/debug_ramdisk/su",
+            "/vendor/bin/su",
+            "/product/bin/su",
+            "/system_ext/bin/su",
+            "/odm/bin/su",
+            "/data/adb/magisk/su",
+            "/data/adb/ksu/bin/su",
+            "/data/adb/ap/bin/su"
         )
 
         /** Shared across instances: the path does not change while the app is running. */

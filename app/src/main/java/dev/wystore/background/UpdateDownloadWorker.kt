@@ -256,15 +256,43 @@ class UpdateDownloadWorker(
                         }
                         val version = AvailableUpdateVersion.RuStore(storeApp.versionCode)
                         checkedDownload(queueId, version) {
-                            val artifacts = ruStoreSource.resolveArtifacts(storeApp)
+                            val sessionsRefused = dev.wystore.updates.SessionInstallSupport(context).sessionsRefused()
+                            val artifacts = ruStoreSource.resolveArtifacts(storeApp, forceWithoutSplits = false)
                             sourceSignatureHint = storeApp.signatureHint
                             sourceArtifactHash = artifacts.firstOrNull()?.sourceHash
                             // Resolving links is another network wait. Google Play may have
                             // installed this version while that request was in flight.
                             checkedDownload(queueId, version) {
-                                downloader.download(artifacts, tempDir) { progress ->
-                                    currentCoroutineContext().ensureActive()
-                                    reportProgress(queueId, progress, coordinator)
+                                try {
+                                    downloader.download(artifacts, tempDir) { progress ->
+                                        currentCoroutineContext().ensureActive()
+                                        reportProgress(queueId, progress, coordinator)
+                                    }
+                                } catch (error: Throwable) {
+                                    if (!dev.wystore.data.RuStoreSplitFallbackPolicy.shouldFallbackToWholeApk(
+                                            requestedWithoutSplits = sessionsRefused,
+                                            artifactCount = artifacts.size,
+                                            error = error
+                                        )
+                                    ) {
+                                        throw error
+                                    }
+                                    // A split artifact went missing on the CDN; retry once with the
+                                    // universal APK before surfacing a download failure.
+                                    runCatching {
+                                        EventLog(context).record(
+                                            packageName = entity.packageName,
+                                            code = "RUSTORE_SPLIT_FALLBACK",
+                                            detail = error.message
+                                        )
+                                    }
+                                    tempDir.listFiles()?.forEach { it.deleteRecursively() }
+                                    val wholeArtifacts = ruStoreSource.resolveArtifacts(storeApp, forceWithoutSplits = true)
+                                    sourceArtifactHash = wholeArtifacts.firstOrNull()?.sourceHash
+                                    downloader.download(wholeArtifacts, tempDir) { progress ->
+                                        currentCoroutineContext().ensureActive()
+                                        reportProgress(queueId, progress, coordinator)
+                                    }
                                 }
                             }
                         }
